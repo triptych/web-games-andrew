@@ -126,8 +126,8 @@ repeats every 15–25 seconds. These are asserted as bands in `dev/simtest.mjs` 
 - **Telegraphs.** Every attack that can take more than ~30% of the player's life is preceded by a red ground ring for
   0.6 s (`MON.telegraph`): boss slams, Sentinel charges, the Thunderous elite nova, the Molten death blast. If it was
   in a ring, it was fair.
-- **Hit feedback (view only):** hit-flash on the struck model, a short knockback, a 40 ms "hit-stop" on crits and
-  kills of elites, camera shake scaled by damage, floating numbers. None of it changes the rules.
+- **Hit feedback (view only):** hit-flash on the struck model, a lunge on every attack, sparks in the element's colour,
+  camera shake scaled by damage, floating numbers. None of it changes the rules.
 
 ### 2.4 Screen-clearing AoE, on purpose
 
@@ -320,10 +320,10 @@ delta.
 
 ### 4.4 Economy
 
-Gold comes from the floor (35% of kills), from selling, and from the pet's town runs. It goes to: buying potions'
-extra charge (no; potions are free), **gem combining** (50 × grade), **socketing** (adding a socket to an item that
-can have one: 500 × ilvl / 10, the main sink), **respec**, and **gambling** at the merchant (a random unidentified
-item of a chosen slot for 150 × level; 2× the normal legendary weight). Selling pays 25% of an item's price.
+Gold comes from the floor (35% of kills), from selling, and from the pet's town runs. Potions are free (they refill).
+Gold goes to **gem combining** (50 × the next grade), **socketing** (adding a socket to an item that can have one:
+500 × ilvl / 10, the main sink), **respec** (100 × level after level 10), and **gambling** at the merchant (an unknown
+item of a chosen kind for 150 × level: 50% magic, 40% rare, 8% legendary, 2% set). Selling pays 25% of an item's price.
 Death takes 10% of carried gold. The economy bot in `simtest.mjs` reports gold earned and spent per act.
 
 ### 4.5 The endgame chase: Vault Rifts
@@ -375,14 +375,14 @@ A Torchlight-style pet that is half fighter, half pack mule.
   enemy per 0.15 s). Damage to the player is red and drifts the other way. Heals are green on the player.
 - **Elites read as elites**: a name plate with their affixes ("Fast Vampiric Bone Thrall"), a coloured ring under
   them (blue champion, yellow rare), and a health bar always shown.
-- **Boss bar** across the top with phase ticks, name and a portrait.
+- **Boss bar** across the top with phase ticks and the boss's name; its taunt lines appear as it changes phase.
 - **Danger is red, only.** No player effect uses the red-orange ring colour reserved for telegraphs.
 
 ### 5.3 Other quality of life
 
-Auto-pickup of gold and globes; "Sell all junk" (all commons and magics) at the merchant; compare tooltips; a
-**stash** in town (60 slots, shared by all of a save's characters in a future version); waypoint travel from the
-waystone; potions refilled in town; the Hint button; a minimap of explored cells; full keyboard, gamepad and touch.
+Auto-pickup of gold and globes; "Sell all junk" (all commons and magics) at the merchant; compare tooltips with the
+change in damage, toughness and life; a **stash** in town (60 slots); waystone travel; potions refilled in town and by
+Ember's trips; the chronicle line under the area name always says what is next; full keyboard, gamepad and touch.
 
 ---
 
@@ -392,31 +392,35 @@ waystone; potions refilled in town; the Hint button; a minimap of explored cells
 
 ```
 index.html ── style.css
-js/main.js            boot, mode machine (title → class select → play ↔ menus → dead → victory), fixed-step loop,
-                      input routing, event fan-out, debug hooks
+js/main.js            boot, modes (title → class choice → play ↔ screens), fixed-step loop, input routing
+                      (mouse → aim, attack-move, click-to-move, labels, town features), event fan-out, debug hooks
 js/config.js          every tuning number (shared by the sim, the view and the tests)
-js/rng.js             seeded mulberry32 with saveable state, hash3
-js/sim/               PURE: no DOM, no three.js, no Math.random, no clock, no storage
-    game.js           newGame(seed, cls), step(G, inp, dt), act(G, cmd), serialize / deserialize
-    world.js          area generation (town, wilds caves, rooms & corridors, rifts) + reachability proof
-    combat.js         damage formula, crits, armour/resist, stagger, deaths, kill rewards
-    skills.js         the 21 skills as rules over fx types (arc, proj, chain, leap, nova, ground, buff,
-                      channel, beam, summon, blink, curse)
-    monsters.js       spawning packs and elites, monster AI (melee, ranged, caster, charger), bosses
-    loot.js           drops, item generation (rarity, base, affixes, sockets), gems, vendor prices
-    stats.js          derived stats from level, attributes, masteries, passives, gear, sets and buffs
-    pet.js            the companion: follow, fight, town trips, pet spells
-    bot.js            the auto-player (tests, balance, attract mode)
+js/rng.js             seeded mulberry32 with saveable state, hash3, childSeed, weighted
+js/sim/               PURE: no DOM, no three.js, no Math.random, no clock, no storage (grepped by simtest)
+    game.js           newGame(seed, cls), step(G, inp, dt), serialize / deserialize; movement, potion, portal, pickups
+    act.js            act(G, cmd): every non-real-time action (inventory, merchant, skills, travel, rifts…)
+    world.js          area generators (town, wilds caves, rooms & corridors), collision, sight, clear paths, flow fields,
+                      and the reachability proof
+    areas.js          entering areas, features and decor, the portal snapshot, bosses killed, quests, rifts
+    combat.js         damage, crits, armour and resists, stagger, kills, experience, levels, death
+    skills.js         the 21 skills over 12 effect types; projectiles, ground zones, shades and decoys
+    monsters.js       packs, champions and rares, AI (melee, ranged, caster, charger), bosses and phases
+    loot.js           drops, item generation, names, prices, gems
+    stats.js          derived stats from level, attributes, masteries, passives, gear, gems and sets
+    pet.js            Ember: follow, fight, spells, town trips
+    bot.js            the auto-player (tests, balance, ?debug=1 autoplay)
     data/             masteries, monsters, items, world: tables only
 js/view/              three.js: reads G, never writes it
-    view.js           renderer, isometric camera, lights, fog, the frame
-    level.js          floor and walls from the grid (instanced), props
-    actors.js         player, pet, monsters, NPCs: Meshy models with code stand-ins, animation, hit-flash
-    fx.js             projectiles, rings, beams, particles, floating text, loot beams
-js/ui/                DOM: hud.js (orbs, skill bar, boss bar), panels.js (inventory, skills, character,
-                      merchant, stash, waystone, map), screens.js (title, class pick, death, cards)
-js/input.js           keyboard + mouse + gamepad + touch → one input record; press queue
-js/audio.js           ElevenLabs clips with Web Audio synth fallbacks; music crossfade; voices
+    view.js           renderer, camera, lights, fog, picking, screenOf
+    level.js          floor (one merged mesh) and walls (instanced) from the grid; features and decor props
+    models.js         Meshy GLBs with code stand-ins; rigged ones get an AnimationMixer
+    actors.js         player, pet, monsters, shades: walk clips or a code gait, lunges, hit flashes, deaths
+    fx.js             projectiles, telegraph rings, arcs, beams, novas, sparks, loot on the floor with rarity beams
+    overlay.js        2D canvas: floating numbers, health bars, elite names, item labels
+js/ui/                DOM: ui.js (screens, HUD, cards, toasts, touch deck), panels.js (inventory, skills, character,
+                      merchant, chronicler, waystone, stash, obelisk, shrine), icons.js (the fal icon sheets)
+js/input.js           keyboard + mouse + gamepad + touch → one raw state; latched presses; menu queue
+js/audio.js           ElevenLabs music and effects with Web Audio synth fallbacks; theme crossfades
 js/save.js            guarded localStorage, versioned saves
 ```
 
@@ -529,23 +533,60 @@ The sim was written so that co-op is a transport problem, not a rewrite:
 | Stand still | Shift | LB (held) | — |
 | Potion | Q | LT | ❤ |
 | Town portal | T | Back | ⌂ |
-| Show item labels | Alt (hold) | RS click | 🏷 |
-| Inventory / Skills / Character | I / K / C | D-pad | buttons in the menu |
+| Show item labels | Alt (hold) | — | 🏷 |
+| Inventory / Skills / Character | I / K / C | LB opens the inventory | the HUD buttons |
 | Pause | P / Esc | Start | ❚❚ |
 
 ## Testing
 
-See [dev/README.md](dev/README.md).
+See [dev/README.md](dev/README.md). `simtest.mjs` (424 checks): purity, data, world proofs on 60 seeds per generator,
+every rule, every active skill, legendary powers and synergies, loot, determinism and save round trips (mid-fight and
+through a portal), and a bot that plays the whole campaign and three rift tiers with every class at skill 1 and 0.4,
+with per-step invariants and asserted balance bands. `browsertest.mjs` drives the real page with real keys, mouse and
+clicks on desktop, real touches on two phones, and with storage blocked.
 
 ## Balance notes
 
-To be filled from the bot's balance table.
+The bot (`js/sim/bot.js`) plays through the same input and commands a person uses. Table from `SEEDS=2` (median of
+the perfect bot, all three classes; game time, at the bot's pace):
+
+| | Skyllith (Act I) | Morwen (Act II) | Kolossar (Act III) | Rift tier 3 |
+|---|---|---|---|---|
+| Time | ~145 s | ~325 s | ~1,000 s | ~1,500 s |
+| Player level | 9 (boss 9) | 15 (boss 18) | 24–28 (boss 27) | 32–34 |
+
+What the bot found and what changed because of it:
+- **Experience was a third of what it needed.** With 8 + 3.2 × level per kill the bot met Morwen at level 10 against
+  level-17 monsters and still won, so levels meant nothing. Kill experience is 20 + 9 × level now (`combat.js`).
+- **It was too easy.** Even a skill-0.3 bot finished with no deaths. Monster base damage went from 4 to 6.5
+  (`MON.dmg`); deaths are now 0–9 a run (median 2–3).
+- **The skill dial barely moves deaths.** A skill-0.4 bot (dodges 40% of telegraphs, drinks later, sometimes picks
+  the third-best skill) dies about as often as the perfect one, because most damage in an ARPG is not telegraphed.
+  Survival comes from gear and the build, which is genre-true, but it means the telegraphs are only tested on bosses.
+- **Areas were skipped.** A bot that took the exit as soon as it was level enough met Kolossar at 14–17; clearing
+  three quarters of each area (as a person does) put it at 24–28.
+- **Stalls** (a mover catching corners, bolts clipping walls, loot in walls, dithering, unfillable rift bars, a
+  Guardian inside a wall) were all real bugs that would have stopped a person too; see docs/generic/learnings.md.
+
+Bands asserted in `simtest.mjs`: the perfect bot binds Kolossar with every class on every seed and clears rift tier
+3; a skill-0.4 bot usually finishes; the median level at Kolossar is 18–28; the median campaign is 400–1,800 s of
+game time; the perfect bot's median deaths ≤ 6.
 
 ## Open questions / next steps
 
-- A human pass on real hardware: the bot is not a person, and SwiftShader is not a GPU.
+- A human pass on real hardware: it has only run under SwiftShader. Pacing, hit feel, readability in a big fight and
+  whether the loot loop is moreish are unjudged by a person.
+- Voices (a narrator for the cards, boss taunts, barks) were planned and not made; the rift music track failed on
+  ElevenLabs and the rifts borrow Act III's.
+- Walls are textured boxes; there are no cut-aways, so a tall wall can hide the player for a moment.
+- Only the humanoids are rigged; the pet, hounds, wraiths, gorgons and two bosses move with a code gait. There are no
+  attack clips: attacks are a lunge.
+- Multiplayer is the written design in §6.5, not built.
+- Seasons and ladders (§4.5) are design only.
 
 ## Changelog
 
-### v1.0.0 (in progress)
-- Data tables, tuning, fal art, ElevenLabs music and effects, Meshy model pipeline.
+### v1.0.0 (2026-11-12)
+- First release: three classes and three hybrids, 21 skills, three acts and six generated areas, three bosses, elites,
+  loot from common to mythic with gems, sets and legendary powers, Ember the loot pet, town, waystones, the portal,
+  endless rifts; fal art, Meshy models, ElevenLabs music and effects; simtest and browsertest.

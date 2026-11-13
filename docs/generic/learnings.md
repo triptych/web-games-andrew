@@ -7036,3 +7036,33 @@ A peaceful first-person exploration game in the sim/view layout, with fal art, M
   - a glow on whichever side leads to the next job.
   A bot that travels only by side doors proves the game can be finished without the map
   ([game-130 v1.1.0](../../game-130/js/ui.js)).
+
+## Game 132 Titan's Vault: an action RPG in a pure sim, a bot that kept getting stuck, and three asset services with a token budget (2026-11-12)
+
+*An isometric loot ARPG (three classes, dual masteries, 21 skills, a loot pet, three acts, endless rifts) built from a six-pillar design brief. Every stall below was found by the bot in `simtest.mjs`, and each one would have stopped a person too.*
+
+**Movement and the bot**
+- **Centre-line line of sight is not a walkable path.** `los()` samples the centre line; a body 0.42 m wide still catches the corner the line slips past, so a mover that walks straight when it "can see" its goal stops dead against a wall, forever. Steering decisions use `clearPath(A, x0, y0, x1, y1, r)`: the same test along three parallel lines a radius apart. The flow field takes over whenever it fails (`js/sim/world.js`).
+- **A projectile needs a lane as wide as itself.** A Spark Bolt (0.35 m) fired at a monster the bot could see clipped a corner every time, and each cast rooted the caster for 0.55 s, so the Stormcaller fired 3,895 bolts into one wall. The bot only shoots along a `clearPath` lane as wide as the bolt, and walks otherwise.
+- **Everything placed at runtime goes on floor.** Loot sprayed in a spiral round a dying monster landed in walls; the bot (and a person) walked at it forever. A rift's way home, opened beside the player, landed in a wall too. Drops use `lastFit` from the source along the offset; added features search a ring of `fits` spots.
+- **A give-up timer must not reset when the goal changes.** The bot dithered between two goals each step, so a per-chase timer that restarted on every switch never ran out. Time is kept per goal id (`bot.time[id]`).
+- **Never give up on a boss, and never spawn one without a spot that fits.** The 8-second give-up rule also dropped a rift Guardian that blinks and keeps its distance, leaving the bot nothing to do. Separately, the Guardian's spawn loop kept its last (unfitting) candidate when none of 16 fitted, putting a 1.6 m boss's centre inside a wall where no flow field reaches. Bosses are exempt from giving up; spawns search outward and fall back to a spot that fits; click-to-move toward a wall cell steers to the nearest floor cell.
+- **Size a goal from what the level holds.** A rift needed 120 points of kills; small rifts held less, so the bar could never fill. The bar is three quarters of the rift's own population, computed after it is populated.
+
+**Saving**
+- **An `undefined` key changes save key order.** The bot tried gear on with `equip[slot] = id`, then restored `equip[slot] = old`, leaving `undefined` keys that JSON drops. Later that key was re-added at a different position in the loaded copy, so `JSON.stringify(serialize(a)) === JSON.stringify(serialize(b))` failed on identical games. Restore by `delete` when there was nothing; keep the strict comparison.
+- **The view must not try gear on the live player.** The tooltip's compare line called `recompute(G)` with the item swapped in, which clamps life to the new maximum. It now recomputes a `structuredClone` of the player.
+
+**Input**
+- **Flush on close, not on the next frame.** Flushing input on the first running frame after a menu closed (to swallow the key that closed it) also ate any key pressed between the close and that frame, so `T` right after Resume did nothing. The flush now runs in the UI the moment the last screen closes (`ui.onResume`).
+
+**three.js and Meshy**
+- **A NaN in a group's position hides the whole model, silently.** The player's actor record lacked a `bob` field the code gait reads before the GLB loads, so `position.y` became `NaN` and the hero never drew. `Box3.setFromObject(g, true)` returning nulls was the clue.
+- **Cloned GLTF models share materials.** A hit flash on one Bone Thrall lit up every Bone Thrall. Clone materials per instance when a model is placed (`js/view/models.js`).
+- **Quantised skinned meshes report a ±1 geometry box.** After gltf-transform `quantize()`, a skinned mesh's own bounding box is the quantised range; the scene's box (`Box3.setFromObject(scene)`) still gives the right height to scale by.
+
+**Generated media within a context budget**
+- **fal's replies are large.** Each `submit_jobs` of 8 images echoes the full recipe and three signed URLs per job (~20k tokens). Submit the 2D art there, then call `wait_for_jobs` with all the request ids at once: the reply overflows to a file, and a short script (`grab.py` pattern) downloads every image. For the 26 Meshy references, Meshy's own `text-to-image --ai-model nano-banana-pro` chained straight into `image-to-3d --input-task-id` costs no context at all; `game-132/dev/assets/meshy-batch.mjs` runs the whole set six at a time and journals task ids so a rerun never pays twice.
+- **"Leave empty space for the logo" paints a black box.** Ask for what should be there ("the shadowy cavern ceiling far above, dim and calm").
+- **Meshy's device login expires** (`oauth_timeout`, exit 8) if nobody approves within about 15 minutes; start it in the background, post the code, and run it again for a fresh code if it lapses. 704 credits made 28 models and 10 rigs.
+- **An ElevenLabs music generation can fail** with "an unexpected error"; don't resubmit without asking (it charges again). The rifts borrow the Act III track.

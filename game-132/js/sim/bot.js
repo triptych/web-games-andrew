@@ -217,10 +217,11 @@ export function botInput(G, bot) {
 
 /** Follow a goal for at most 8 s of game time without hitting it; after that it's ignored (it may be out of reach). */
 function pursue(bot, goal, dt) {
-    if (goal.id === undefined) return true;
+    // a boss is never given up on: it moves, blinks and keeps its distance, but it is the way on
+    if (goal.id === undefined || goal.boss) return true;
     // time is kept per goal, so a bot that dithers between two goals still gives up on both
     const t = (bot.time[goal.id] = (bot.time[goal.id] || 0) + dt);
-    if (t > (goal.boss ? 40 : 8)) {
+    if (t > 8) {
         bot.ignore[goal.id] = true;
         if (Object.keys(bot.ignore).length > 400) { bot.ignore = {}; bot.time = {}; }
         return false;

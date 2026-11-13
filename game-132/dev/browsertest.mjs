@@ -57,7 +57,7 @@ async function open(viewport, { touch = false, nostorage = false, q = '' } = {})
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
-    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    page.on('pageerror', (e) => errors.push(`pageerror: ${e.message} @ ${(e.stack || '').split('\n').slice(1, 3).join(' | ')}`));
     page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
     await page.goto(`${BASE}/game-132/index.html?debug=1&fast=4&q=low${q}`);
     await page.waitForFunction(() => window.__tv && __tv.mode === 'title', null, { timeout: 60000 });

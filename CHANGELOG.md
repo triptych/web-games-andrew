@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Titan's Vault** (game-132) v1.0.0: an isometric action RPG in three.js that blends Diablo's dread, Titan Quest's mythology and dual masteries, and Torchlight's speed and loot pet, built from a six-pillar design document ([game-plan.md](game-132/game-plan.md)).
+  - Three oaths, each with its own resource: the Ironsworn (Warfare, Rage that drains when you stop fighting), the Stormcaller (Storm, Mana) and the Shadebinder (Umbra, Essence from kills). At level 6 a second oath makes a Thunderborn, Reaver or Eclipse Seer with a synergy of its own. 21 skills in four tiers behind mastery bars ([masteries.js](game-132/js/sim/data/masteries.js)).
+  - Three acts and six generated areas, each proved reachable on 60 seeds; Skyllith, Morwen and Kolossar with phases and red telegraph rings; champion and rare elites with affixes; stagger and poise ([monsters.js](game-132/js/sim/monsters.js), [world.js](game-132/js/sim/world.js)).
+  - Loot from common to mythic with rolled affixes and a quality bar, gems and sockets, two sets, twelve legendary powers that change skills, gambling, a loot filter and item labels ([loot.js](game-132/js/sim/loot.js), [items.js](game-132/js/sim/data/items.js)).
+  - Ember the lynx-wolf: fights, carries 16 things, runs to town to sell them and refill potions, and casts Howl, Mend and Pounce ([pet.js](game-132/js/sim/pet.js)).
+  - Potions with a cooldown, health globes, a one-button town portal that a hit interrupts, waystones, death that costs gold, and endless Vault Rifts with modifiers and a guardian ([areas.js](game-132/js/sim/areas.js)).
+  - Art by fal (title, story cards, portraits, 80 icons, textures; [dev/art](game-132/dev/art/README.md)), 28 Meshy models with 10 rigs ([dev/assets](game-132/dev/assets/README.md)), ElevenLabs music and effects ([dev/audio](game-132/dev/audio/README.md)); every asset has a code-made stand-in.
+  - [simtest.mjs](game-132/dev/simtest.mjs) (424 checks, including a bot that plays the whole campaign and three rift tiers with every class) and [browsertest.mjs](game-132/dev/browsertest.mjs) (desktop, two touch phones, blocked storage).
+- Launcher: game-132 in `js/gamedata.js` (genre `dungeon`), its card style in `css/styles.css`, and its preview `garden/img/games/game-132.jpg` (made by [game-132/dev/preview.mjs](game-132/dev/preview.mjs)).
+- Docs: "Game 132 Titan's Vault" in [docs/generic/learnings.md](docs/generic/learnings.md): centre-line sight is not a walkable path, projectile lanes, runtime things on floor, per-goal give-up timers, `undefined` keys and save key order, flushing input on close, and making fal, Meshy and ElevenLabs assets within a context budget.
+
 ### Changed
 - **Fray & the Spiral Isle** (game-131) v1.1.0: the trees and the other things built from boxes and cones looked like placeholders next to the Meshy characters. They are Meshy models now, in the same painted style ([dev/assets](game-131/dev/assets/README.md)).
   - 28 new models: two trees (an oak for the Mosswood, a windswept tree for the highlands, drawn as instances), and the Tidewatch ruin, boat, cairn, burrow, well, cave mouth and its boulder, castle wall, throne, stair, wind perch, arch, hut, tide stairs, moon door, cart, barrels, telescope, nest, weather vane, cistern, bell, loom, pipe, the dark way and the vine. 38 models, 7.7 MB.

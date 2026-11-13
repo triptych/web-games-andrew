@@ -139,7 +139,16 @@ function movePlayer(G, inp, dt, approach) {
             if (d <= stop) { if (!approach) P.moveGoal = null; }
             else if (clearPath(A, P.x, P.y, goal.x, goal.y, PLAYER.radius + 0.05)) { mx = dx / d; my = dy / d; }
             else {
-                const gx = Math.floor(goal.x), gy = Math.floor(goal.y);
+                let gx = Math.floor(goal.x), gy = Math.floor(goal.y);
+                // a goal inside a wall (a big monster's centre, a click on a wall) steers to the nearest floor cell
+                if (!isFloor(A, gx + 0.5, gy + 0.5)) {
+                    let best = null, bd = Infinity;
+                    for (let oy = -3; oy <= 3; oy++) for (let ox = -3; ox <= 3; ox++) {
+                        const d = Math.abs(ox) + Math.abs(oy);
+                        if (d < bd && isFloor(A, gx + ox + 0.5, gy + oy + 0.5)) { bd = d; best = [gx + ox, gy + oy]; }
+                    }
+                    if (best) [gx, gy] = best;
+                }
                 if (!G._goal || G._goal.cx !== gx || G._goal.cy !== gy || G._goal.area !== A.uid) G._goal = { cx: gx, cy: gy, area: A.uid, d: flow(A, gx, gy) };
                 const n = downhill(A, G._goal.d, P.x, P.y);
                 if (n) { const ex = n.cx - P.x, ey = n.cy - P.y, el = Math.hypot(ex, ey) || 1; mx = ex / el; my = ey / el; }

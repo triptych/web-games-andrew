@@ -158,8 +158,12 @@ export function stepRift(G, dt) {
         R.guardian = true;
         const P = G.player;
         const boss = G.rng.pick(Object.keys(BOSSES));
-        let x = P.x + 4, y = P.y;
-        for (let k = 0; k < 16; k++) { const a = k * 0.4; x = P.x + Math.cos(a) * 6; y = P.y + Math.sin(a) * 6; if (fits(G.area, x, y, BOSSES[boss].radius)) break; }
+        // on a spot big enough for it, searching outward; never inside a wall (the bot found one there)
+        let x = P.x, y = P.y, found = false;
+        for (let r = 6; r >= 2 && !found; r -= 1) for (let k = 0; k < 16 && !found; k++) {
+            const a = k * 0.3927, tx = P.x + Math.cos(a) * r, ty = P.y + Math.sin(a) * r;
+            if (fits(G.area, tx, ty, BOSSES[boss].radius * 0.8)) { x = tx; y = ty; found = true; }
+        }
         const m = makeMonster(G, null, x, y, RIFT.baseLevel + (R.tier - 1) * RIFT.levelPerTier + 2, { boss, aggro: true });
         m.guardian = true;
         G.events.push({ type: 'guardian', boss, name: BOSSES[boss].name });
