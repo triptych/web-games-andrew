@@ -95,6 +95,7 @@ export class Actors {
             else { u.walk.paused = true; u.walk.time = (u.clipLen || 1) * 0.02; }
             u.mixer.update(dt);
             g.rotation.x = -lunge * 0.4;
+            g.rotation.z = 0;             // upright (a downed pet is tipped over after this, every frame it is down)
         } else {
             // models without a rig: a gait in code (bob, a lean into the run, a lunge)
             a.bob += dt * (moving ? speed * 2.4 : 1.2);
