@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "STARSPIN",
+  "short_name": "STARSPIN",
+  "description": "STARSPIN — a space fantasy slot machine roguelike RPG. Spin the Fortune Engine, nudge the reels, and climb a branching-path roguelike deckbuilder style constellation of skills.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07031a",
+  "theme_color": "#07031a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

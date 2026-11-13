@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Hearthwick",
+  "short_name": "Hearthwick",
+  "description": "Hearthwick — A cozy town-building game: grow one little hut into a bustling town, recruit heroes, craft, cook and keep the kettle on, even while you are away.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#3f6b3a",
+  "theme_color": "#3f6b3a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

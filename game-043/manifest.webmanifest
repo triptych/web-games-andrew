@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Glimmerglen",
+  "short_name": "Glimmerglen",
+  "description": "GLIMMERGLEN — a cozy village builder in a forest that remembers magic. Farm, build homes for newcomers, run the job board, cook discovered recipes, and venture into procedurally generated lands and dungeons to bring the five Heart Shards home.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1d2a22",
+  "theme_color": "#1d2a22",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

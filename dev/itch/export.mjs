@@ -37,7 +37,10 @@ export async function buildItch(options = {}) {
     fs.mkdirSync(outDir, { recursive: true });
     copyGame(gameDir, outDir);
 
-    fs.writeFileSync(path.join(outDir, 'index.html'), hideLauncherLinks(fs.readFileSync(path.join(outDir, 'index.html'), 'utf8')));
+    fs.writeFileSync(path.join(outDir, 'index.html'), hideLauncherLinks(stripInstallBlock(fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'))));
+    // the install manifest, its icons and the worker mean nothing inside itch.io's frame
+    fs.rmSync(path.join(outDir, 'manifest.webmanifest'), { force: true });
+    fs.rmSync(path.join(outDir, 'icons'), { recursive: true, force: true });
     const shared = vendorRepoFiles(gameDir, outDir, repoDir);
     const three = await vendorThree(fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'), outDir, pkg);
     fs.writeFileSync(path.join(outDir, 'index.html'), three.html);
@@ -181,6 +184,11 @@ function parseThreeMap(html) {
         core,
         addons: html.match(/"three\/addons\/"\s*:\s*"([^"]+examples\/jsm\/)"/)?.[1] ?? null,
     };
+}
+
+// dev/add-pwa.mjs puts the manifest link and lib/pwa.js between "pwa" comments.
+function stripInstallBlock(html) {
+    return html.replace(/[ \t]*<!-- pwa:start[\s\S]*?<!-- pwa:end -->[ \t]*\r?\n?/, '');
 }
 
 // The "← Games" link back to the repo launcher means nothing on itch.io. Some

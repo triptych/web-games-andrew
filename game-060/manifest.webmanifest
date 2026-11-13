@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "BRICKVADERS",
+  "short_name": "BRICKVADERS",
+  "description": "BRICKVADERS — brick-breaker meets formation shooter in a 1983 arcade cabinet. Bounce the plasma ball, fire your lasers, smash the Brick Armada.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#04020c",
+  "theme_color": "#04020c",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

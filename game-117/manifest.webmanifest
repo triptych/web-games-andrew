@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "PERIHELION",
+  "short_name": "PERIHELION",
+  "description": "PERIHELION — a twin-stick shooter on tiny turning asteroids. You stay in the middle of the screen while the rock rolls beneath you; find your way through the maze on its surface, silence the beacons and their machines, and step through the black gate to the next one, toward the sun.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

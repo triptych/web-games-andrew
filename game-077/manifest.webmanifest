@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "CUE VICE",
+  "short_name": "CUE VICE",
+  "description": "CUE VICE — Miami, 1986. A stealth game played like pool: pull back, let go, bank your squad of round undercover cops off the walls, knock guards out from behind and sink them in the bay.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#14061e",
+  "theme_color": "#14061e",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

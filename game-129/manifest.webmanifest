@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "HOLLOWDEEP",
+  "short_name": "HOLLOWDEEP",
+  "description": "HOLLOWDEEP — a first-person dungeon crawler in the Wizardry and Etrian Odyssey tradition: recruit a party in the town of Brindlemoor, map an endless dungeon, fight painted monsters in turn-based battles, and warp deeper past every guardian you fell.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07060a",
+  "theme_color": "#07060a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

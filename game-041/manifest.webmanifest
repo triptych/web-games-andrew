@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Burrowguard",
+  "short_name": "Burrowguard",
+  "description": "BURROWGUARD — an 8-bit arcade fusion of digging, tower defense and maze-chase. Dig the tunnels the monsters walk, build towers in the dirt, and eat a power gem to turn the hunt around.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#03030a",
+  "theme_color": "#03030a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

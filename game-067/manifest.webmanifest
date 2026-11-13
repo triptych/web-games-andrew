@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Tootle Isles",
+  "short_name": "Tootle Isles",
+  "description": "Tootle Isles: a cozy toy-train sandbox. Pick an island, lay track, build a little town, design your own trains and watch them run. Everything is unlocked.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#7cc6f2",
+  "theme_color": "#7cc6f2",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

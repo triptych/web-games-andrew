@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Legend of the Jade Wyrm",
+  "short_name": "Legend of the…",
+  "description": "Legend of the Jade Wyrm: a classic browser RPG browser RPG with a simulated online realm, text adventure pages and a three.js fantasy frame.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a110a",
+  "theme_color": "#1a110a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

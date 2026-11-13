@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "NEON ARCANA",
+  "short_name": "NEON ARCANA",
+  "description": "NEON ARCANA — a neon block-placement puzzle in three.js: fill rows and columns of a glowing lattice with glyphs to rekindle the 22 Major Arcana and restore magic to the world.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#05030c",
+  "theme_color": "#05030c",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

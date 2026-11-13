@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Hauntly Manor",
+  "short_name": "Hauntly Manor",
+  "description": "Hauntly Manor — a lighthearted point-and-click Halloween mystery. Four friends, one haunted house, one ghost who just wants friends. Drawn entirely in code with three.js.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#120a20",
+  "theme_color": "#120a20",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

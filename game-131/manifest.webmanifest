@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Fray & the Spiral Isle",
+  "short_name": "Fray & the Sp…",
+  "description": "Fray & the Spiral Isle — a peaceful first-person journey: a new mage, a blind goblin, seven gems and an island of quiet ruins.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b2a2e",
+  "theme_color": "#1b2a2e",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "The Kids Table",
+  "short_name": "The Kids Table",
+  "description": "The Kids Table — a Thanksgiving merge game. Merge pumpkins, turkeys, bread and kid crafts, serve the guests, and earn your seat at the big table.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2b170b",
+  "theme_color": "#2b170b",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

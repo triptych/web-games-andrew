@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Crystal Crescendo",
+  "short_name": "Crystal Cresc…",
+  "description": "Crystal Crescendo — an HD-2D rhythm RPG. A princess freed from a crystal gathers a band of princesses, each playing one layer of the song, to face the dragon who silences the world.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d0a18",
+  "theme_color": "#0d0a18",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

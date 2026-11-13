@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Salve & Scale",
+  "short_name": "Salve & Scale",
+  "description": "Salve & Scale — a first-person monster-healer adventure. Run the Lantern Clinic, treat goblins, slimes, dragons and an Overlord by linking their afflictions in the Lumen Lens, and expose the adventurers hurting Gloamhollow.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0a12",
+  "theme_color": "#0b0a12",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

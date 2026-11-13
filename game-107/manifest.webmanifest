@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Kaiju Roll",
+  "short_name": "Kaiju Roll",
+  "description": "Kaiju Roll — curl into a ball and roll through a toy city, smashing skyscrapers, bridges, cars and tanks. a rolling-growth arcade game with brick-breaker physics and city destruction.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b2a4a",
+  "theme_color": "#1b2a4a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

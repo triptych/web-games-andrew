@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "PINBREAK '86",
+  "short_name": "PINBREAK '86",
+  "description": "A flashy synthwave pinball table with a brick-breaking playfield in its upper half. Plunge, flip, nudge and pop bumpers like pinball, but smash every brick to clear the wave: explosive bricks set off…",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07021a",
+  "theme_color": "#07021a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Scrapwright",
+  "short_name": "Scrapwright",
+  "description": "Scrapwright: a steampunk COM-bot adventure on the junk planet Midden. Find, repair, build and evolve 250 scrap robots, battle eight Forgemasters in turn-based fights, and win the championship and a ticket off-world.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a120c",
+  "theme_color": "#1a120c",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

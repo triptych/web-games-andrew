@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Colorverse",
+  "short_name": "Colorverse",
+  "description": "Colorverse: a pixel colour-by-number adventure. Zoom into every pixel, restore ten grey worlds across two books, grow a constellation of skills, and meet the Grey Hush.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#16132b",
+  "theme_color": "#16132b",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

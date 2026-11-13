@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Crate Pusher",
+  "short_name": "Crate Pusher",
+  "description": "A grid-based crate-pushing puzzle game: push every crate onto a target across 8 hand-made levels. Swipe or use the arrow keys, undo any move, and pick up where you left off with saved progress and…",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1219",
+  "theme_color": "#0f1219",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
