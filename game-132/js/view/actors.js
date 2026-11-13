@@ -55,8 +55,8 @@ export class Actors {
 
     onEvents(G, events) {
         for (const e of events) {
-            if (e.type === 'cast' && this.player) this.player.lunge = 1;
-            else if (e.type === 'monAttack' || e.type === 'bossCast') { const a = this.map.get(e.id); if (a) a.lunge = 1; }
+            if (e.type === 'cast' && this.player) { this.player.lunge = 1; this.player.strike = true; this.player.attackTime = Math.max(0.3, Math.min(0.8, G.player.busy || 0.45)); }
+            else if (e.type === 'monAttack' || e.type === 'bossCast') { const a = this.map.get(e.id); if (a) { a.lunge = 1; a.strike = true; } }
             else if (e.type === 'hit') { const a = this.map.get(e.id); if (a) a.hit = 1; }
             else if (e.type === 'hurt' && this.player) this.player.hit = 1;
             else if (e.type === 'petBite' && this.pet) this.pet.lunge = 1;
@@ -74,10 +74,20 @@ export class Actors {
         d = Math.atan2(Math.sin(d), Math.cos(d));
         g.rotation.y += d * Math.min(1, dt * 14);
         a.lunge = Math.max(0, a.lunge - dt * 5);
-        const lunge = Math.sin(a.lunge * Math.PI) * 0.35;
-        g.position.x += Math.cos(face) * lunge; g.position.z += Math.sin(face) * lunge;
         const u = g.userData;
+        // a Meshy attack clip when the model has one (played over about half a second), else a lunge
+        if (a.strike && u.attack) {
+            a.strike = false;
+            const len = a.attackTime ?? 0.55;
+            u.attack.reset(); u.attack.timeScale = u.attackLen / len; u.attack.setEffectiveWeight(1); u.attack.play();
+            a.attacking = len;
+        }
+        a.strike = false;
+        if (a.attacking > 0) { a.attacking -= dt; if (a.attacking <= 0) u.attack.stop(); }
+        const lunge = u.attack ? 0 : Math.sin(a.lunge * Math.PI) * 0.35;
+        g.position.x += Math.cos(face) * lunge; g.position.z += Math.sin(face) * lunge;
         if (u.mixer) {
+            u.walk.setEffectiveWeight(a.attacking > 0 ? 0 : 1);
             if (moving) { u.walk.paused = false; u.walk.timeScale = Math.max(0.6, speed / 2.4); }
             else { u.walk.paused = true; u.walk.time = (u.clipLen || 1) * 0.02; }
             u.mixer.update(dt);

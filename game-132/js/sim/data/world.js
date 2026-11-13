@@ -1,4 +1,4 @@
-// TITAN'S VAULT: the places, the story, the people in town and the lore tablets. Pure data.
+// GIANT'S VAULT: the places, the story, the people in town and the lore tablets. Pure data.
 //
 // gen: 'town' (hand-laid), 'wilds' (cellular caves with clearings), 'rooms' (rooms and corridors).
 // lvl: monster level at the entrance and at the far end. density: packs per 100 floor cells.
@@ -32,10 +32,10 @@ export const AREAS = {
     halls: {
         name: 'The Bronze Halls', act: 3, gen: 'rooms', w: 66, h: 66, lvl: [18, 22], density: 2.8, next: 'vault',
         music: 'act3', tex: 'vault', fog: 0x2a1a10, sky: 0x180e08, light: 0xffb070, ambient: 0x7a5a40,
-        blurb: 'The forge-halls the gods built to hold a titan. The furnaces never went out.',
+        blurb: 'The forge-halls the gods built to hold a giant. The furnaces never went out.',
     },
     vault: {
-        name: 'The Titan\'s Vault', act: 3, gen: 'rooms', w: 60, h: 60, lvl: [22, 26], density: 3.0, boss: 'kolossar',
+        name: 'The Giant\'s Vault', act: 3, gen: 'rooms', w: 60, h: 60, lvl: [22, 26], density: 3.0, boss: 'kolossar',
         next: 'town', music: 'act3', tex: 'vault', fog: 0x301008, sky: 0x1a0804, light: 0xff8040, ambient: 0x8a4a30,
         blurb: 'The chains are here. So is the thing they hold.',
     },
@@ -52,8 +52,8 @@ export const CAMPAIGN = ['wilds', 'temple', 'necropolis', 'ossuary', 'halls', 'v
 export const CARDS = {
     intro: {
         title: 'The Chains Are Rusting',
-        text: 'Before the gods left, they chained the Titans beneath the world and set wardens to watch them. The gods are gone now. The wardens are few. And under the mountain, something has begun to pull at its chains.',
-        art: 'a vast dark cavern with an enormous chained stone titan silhouette in the background, glowing magma cracks, a lone warden with a lantern on a ledge in the foreground',
+        text: 'Before the gods left, they chained the Giants beneath the world and set wardens to watch them. The gods are gone now. The wardens are few. And under the mountain, something has begun to pull at its chains.',
+        art: 'a vast dark cavern with an enormous chained stone giant silhouette in the background, glowing magma cracks, a lone warden with a lantern on a ledge in the foreground',
     },
     act1: {
         title: 'Act I: The Drowned Wilds',
@@ -66,14 +66,14 @@ export const CARDS = {
         art: 'a vast city of tombs and mausoleums under a violet night sky, ash falling like snow, ghostly lights in the windows',
     },
     act3: {
-        title: 'Act III: The Titan\'s Vault',
+        title: 'Act III: The Giant\'s Vault',
         text: 'Two keys. One door. Behind it the Bronze Halls, the furnaces that forged the chains, and at the bottom, Kolossar, who has been awake for ten thousand years.',
         art: 'enormous bronze gates in a mountain wall, glowing orange furnace light spilling out, giant chains running into the dark',
     },
     victory: {
         title: 'The Chains Hold',
-        text: 'You bound Kolossar again with his own broken chains. But the fight cracked the Vault\'s walls, and through the cracks you can see other places: rifts into everywhere the titans ever touched. The Vault will need watching. It will need you.',
-        art: 'a warden standing before a defeated chained stone titan, golden chains glowing, violet cracks in the walls opening onto starry rift dimensions',
+        text: 'You bound Kolossar again with his own broken chains. But the fight cracked the Vault\'s walls, and through the cracks you can see other places: rifts into everywhere the giants ever touched. The Vault will need watching. It will need you.',
+        art: 'a warden standing before a defeated chained stone giant, golden chains glowing, violet cracks in the walls opening onto starry rift dimensions',
     },
     rifts: {
         title: 'The Vault Rifts',
@@ -103,9 +103,9 @@ export const LORE = {
         { title: 'Morwen\'s diary', text: 'I was a warden once. I held the Vault for sixty years. Then I listened to him. He is very patient, and very kind, and he promised the dead would never have to sleep.' },
     ],
     halls: [
-        { title: 'Forge-master\'s plaque', text: 'THESE FIRES SHALL NOT GO OUT WHILE THE TITAN BREATHES. (They have not.)' },
+        { title: 'Forge-master\'s plaque', text: 'THESE FIRES SHALL NOT GO OUT WHILE THE GIANT BREATHES. (They have not.)' },
         { title: 'A sentinel\'s order-stone', text: 'GUARD. GUARD. GUARD. GUARD. (The same word ten thousand times, worn smooth.)' },
-        { title: 'Scorched letter', text: 'If you are reading this, the chains are weakening. Do not try to kill him. You cannot kill a titan. Bind him. Use the chains themselves.' },
+        { title: 'Scorched letter', text: 'If you are reading this, the chains are weakening. Do not try to kill him. You cannot kill a giant. Bind him. Use the chains themselves.' },
     ],
     vault: [
         { title: 'Chain-link, large as a cart', text: 'Every link is stamped with the name of a god. Most of the names have been scratched out from the inside.' },
@@ -137,7 +137,7 @@ export const QUESTS = [
     { id: 'q3', area: 'necropolis', text: 'Open the Ashen Necropolis and find the way down to the Ossuary.' },
     { id: 'q4', area: 'ossuary', text: 'End Morwen, the Ossuary Queen, and free the wardens\' souls.' },
     { id: 'q5', area: 'halls', text: 'Pass through the Bronze Halls to the Vault.' },
-    { id: 'q6', area: 'vault', text: 'Bind Kolossar, the Chained Titan.' },
+    { id: 'q6', area: 'vault', text: 'Bind Kolossar, the Chained Giant.' },
     { id: 'q7', area: 'rift', text: 'The Vault Rifts are open. Go as deep as you dare.' },
 ];
 

@@ -1,5 +1,5 @@
 /**
- * simtest.mjs — headless checks of TITAN'S VAULT's simulation. No browser.
+ * simtest.mjs — headless checks of GIANT'S VAULT's simulation. No browser.
  *
  *   node game-132/dev/simtest.mjs                 # everything (about a minute)
  *   ONLY=purity,data,world,rules,skills,loot,determinism,bot node game-132/dev/simtest.mjs
@@ -414,7 +414,7 @@ if (want('skills')) {
         run(G, input({ stand: true }), 5);
         ok(P.res.rage < 5, 'Rage drains away out of combat');
         learn(G, 'wrath'); P.res.rage = 30;
-        ok(Sk.useSkill(G, 'wrath', null) === 'not enough rage', 'Titan\'s Wrath needs 50 Rage');
+        ok(Sk.useSkill(G, 'wrath', null) === 'not enough rage', 'Giant\'s Wrath needs 50 Rage');
     }
     {   // legendary powers
         const G = arena('stormcaller');
@@ -438,7 +438,7 @@ if (want('skills')) {
         const G2 = arena('ironsworn');
         learn(G2, 'leap');
         G2.player.stats.powers.leapFree = true; G2.player.res.rage = 0;
-        ok(Sk.useSkill(G2, 'leap', { x: G2.player.x + 3, y: G2.player.y }) === '', 'Titan\'s Tread: Leap Slam costs no Rage');
+        ok(Sk.useSkill(G2, 'leap', { x: G2.player.x + 3, y: G2.player.y }) === '', 'Giant\'s Tread: Leap Slam costs no Rage');
         const G3 = arena('shadebinder');
         learn(G3, 'shade', 1);
         G3.player.stats.powers.shadeArmy = true;
@@ -448,7 +448,7 @@ if (want('skills')) {
     {   // equipping a legendary and a set turns its power on
         const G = arena('ironsworn');
         const P = G.player;
-        const it = L.rollItem(G, 10, { rarity: 'legendary', uniq: 'titantread' }); G.items[it.id] = it; P.bag[0] = it.id;
+        const it = L.rollItem(G, 10, { rarity: 'legendary', uniq: 'gianttread' }); G.items[it.id] = it; P.bag[0] = it.id;
         Gm.act(G, { t: 'equip', id: it.id });
         ok(P.stats.powers.leapFree, 'equipping a legendary switches its power on');
         let n = 0;
@@ -583,14 +583,14 @@ if (want('bot')) {
                 }
                 const P = G.player;
                 ok(!bad, `${cls} seed ${s} skill ${skill}: ${bad || 'invariants hold'}`);
-                rows.push({ cls, seed: s, skill, won: G.won, t: Math.round(t), lvl: P.level, deaths: G.stats.deaths, kills: G.stats.kills, rift: P.riftBest, gold: P.gold, at });
+                rows.push({ cls, seed: s, skill, won: G.won, t: Math.round(t), lvl: P.level, deaths: G.stats.deaths, kills: G.stats.kills, rift: P.riftBest, gold: P.gold, at, dodge: Math.round(G.stats.dodgeable / Math.max(1, G.stats.taken) * 100) });
             }
         }
     }
-    console.log('\n  class        seed skill  won  rift  lvl  deaths  kills  Skyllith   Morwen     Kolossar   time');
+    console.log('\n  class        seed skill  won  rift  lvl  deaths  kills  dodge%  Skyllith   Morwen     Kolossar   time');
     for (const r of rows) {
         const b = (k) => (r.at[k] ? `${r.at[k].t}s L${r.at[k].lvl}`.padEnd(10) : '—'.padEnd(10));
-        console.log(`  ${r.cls.padEnd(12)} ${String(r.seed).padStart(4)} ${String(r.skill).padStart(5)}  ${r.won ? 'yes' : 'no '}  ${String(r.rift).padStart(4)} ${String(r.lvl).padStart(4)} ${String(r.deaths).padStart(7)} ${String(r.kills).padStart(6)}  ${b('skyllith')} ${b('morwen')} ${b('kolossar')} ${r.t}s`);
+        console.log(`  ${r.cls.padEnd(12)} ${String(r.seed).padStart(4)} ${String(r.skill).padStart(5)}  ${r.won ? 'yes' : 'no '}  ${String(r.rift).padStart(4)} ${String(r.lvl).padStart(4)} ${String(r.deaths).padStart(7)} ${String(r.kills).padStart(6)} ${String(r.dodge).padStart(7)}  ${b('skyllith')} ${b('morwen')} ${b('kolossar')} ${r.t}s`);
     }
     const perfect = rows.filter((r) => r.skill === 1), weak = rows.filter((r) => r.skill !== 1);
     const med = (a) => a.slice().sort((x, y) => x - y)[Math.floor(a.length / 2)];
@@ -601,6 +601,12 @@ if (want('bot')) {
     ok(med(kl) >= 18 && med(kl) <= 28, `the perfect bot meets Kolossar around level 18–28 (median ${med(kl)})`);
     const kt = perfect.map((r) => r.at.kolossar?.t || 9999);
     ok(med(kt) >= 400 && med(kt) <= 1800, `the campaign takes the perfect bot 400–1800 s of game time (median ${med(kt)} s)`);
+    // the skill dial: dodge% is the share of damage taken that came from telegraphs and slow shots. Even the perfect
+    // bot takes some (about 44%): a ring that appears while it is locked in a 0.5–0.7 s cast lands before it can move,
+    // which is the rule for a human too. The weak bot misses 60% of rings on top of that (about 56%).
+    const share = (a) => a.reduce((n, r) => n + r.dodge, 0) / a.length;
+    ok(share(weak) > share(perfect) * 1.15, `the weak bot eats more telegraphed damage than the perfect one (${share(weak).toFixed(0)}% vs ${share(perfect).toFixed(0)}% of damage taken)`);
+    ok(weak.reduce((n, r) => n + r.deaths, 0) >= perfect.reduce((n, r) => n + r.deaths, 0), 'and dies at least as often');
     ok(med(perfect.map((r) => r.deaths)) <= 6, `the perfect bot rarely dies (median ${med(perfect.map((r) => r.deaths))})`);
 }
 

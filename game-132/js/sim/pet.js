@@ -1,4 +1,4 @@
-// TITAN'S VAULT: Ember the lynx-wolf. Follows, fights, carries 16 things, runs to town to sell them, casts its own
+// GIANT'S VAULT: Ember the lynx-wolf. Follows, fights, carries 16 things, runs to town to sell them, casts its own
 // spells. Never dies: at 0 life it is downed for a while and gets up. Pure.
 
 import { PET, POTION } from '../config.js';

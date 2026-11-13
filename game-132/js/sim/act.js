@@ -1,4 +1,4 @@
-// TITAN'S VAULT: commands. Everything that isn't real-time input goes through act(G, cmd): the UI, the bot and the
+// GIANT'S VAULT: commands. Everything that isn't real-time input goes through act(G, cmd): the UI, the bot and the
 // tests all use it. A command either changes G and pushes an event, or pushes { type: 'denied', reason } and returns
 // the reason. Pure.
 

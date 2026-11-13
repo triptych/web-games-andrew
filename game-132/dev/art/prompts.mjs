@@ -1,4 +1,4 @@
-// prompts.mjs — every fal prompt for TITAN'S VAULT, built from the game's own data tables, so the art matches the
+// prompts.mjs — every fal prompt for GIANT'S VAULT, built from the game's own data tables, so the art matches the
 // game and can be regenerated. `node game-132/dev/art/prompts.mjs [group]` prints a JSON array of
 // { name, system_prompt, prompt, aspect_ratio, resolution }; groups: pilot, title, cards, portraits, icons, tex, refs.
 // The jobs were sent with fal-ai/nano-banana-2 (PNG). See README.md.
@@ -8,7 +8,7 @@ import { MONSTERS, BOSSES } from '../../js/sim/data/monsters.js';
 import { LEGENDARIES, SETS, BASES, GEMS } from '../../js/sim/data/items.js';
 import { CARDS, NPCS } from '../../js/sim/data/world.js';
 
-const STYLE = 'TITAN\'S VAULT, a dark mythic action RPG: gothic-mythic fusion of ruined Greek temples, drowned marshes, shadow-drenched crypts and titan forges of bronze and fire.';
+const STYLE = 'GIANT\'S VAULT, a dark mythic action RPG: gothic-mythic fusion of ruined Greek temples, drowned marshes, shadow-drenched crypts and giant forges of bronze and fire.';
 export const SYS = {
     paint: `You are the art director of ${STYLE} Every image is lush painterly dark-fantasy concept art: deep shadows, dramatic rim light, saturated accent glows (teal, violet, molten orange) against dark stone, rich texture, cinematic composition. Never include any text, letters, logos, watermarks, frames, borders or user-interface elements.`,
     icon: `You are the icon painter of ${STYLE} You paint sheets of game icons: a perfectly even 4 by 4 grid of 16 square icons filling the whole image edge to edge, each a bold, readable painted emblem centred in its own cell on a dark smoky background, glowing accents, strong silhouette, consistent lighting from the top left. No grid lines, no borders between cells, no text, no letters, no numbers, no captions.`,
@@ -19,7 +19,7 @@ export const SYS = {
 const job = (name, sys, prompt, aspect_ratio = '1:1', resolution = '1K') => ({ name, system_prompt: SYS[sys], prompt, aspect_ratio, resolution });
 
 // ----------------------------------------------------------------------------------------------------- title, cards
-const title = [job('title', 'paint', 'Key art for the title screen: a lone armoured warden with a glowing sword stands on a cliff edge at the bottom left, looking down into a colossal underground vault where an enormous chained stone titan with molten cracks strains against golden chains. Violet and orange light. The upper third of the picture is the shadowy cavern ceiling far above, dim and calm, with soft violet haze.', '16:9', '2K')];
+const title = [job('title', 'paint', 'Key art for the title screen: a lone armoured warden with a glowing sword stands on a cliff edge at the bottom left, looking down into a colossal underground vault where an enormous chained stone giant with molten cracks strains against golden chains. Violet and orange light. The upper third of the picture is the shadowy cavern ceiling far above, dim and calm, with soft violet haze.', '16:9', '2K')];
 const cards = Object.entries(CARDS).map(([id, c]) => job(`card-${id}`, 'paint', `${c.title}. ${c.art}.`, '16:9', '1K'));
 const portraits = [
     ...Object.entries(CLASSES).map(([id, c]) => job(`portrait-${id}`, 'paint', `Heroic waist-up portrait of the ${c.name}: ${c.art}. Facing the viewer, ${MASTERIES[c.mastery].name.toLowerCase()} magic glowing in the background.`, '3:4')),

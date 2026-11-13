@@ -1,4 +1,4 @@
-// TITAN'S VAULT: item bases, rarities, affixes, gems, sets and legendary powers. Pure data.
+// GIANT'S VAULT: item bases, rarities, affixes, gems, sets and legendary powers. Pure data.
 // An item instance is plain JSON: { id, base, rarity, ilvl, affixes: [{ k, v }], sockets: [gemId|null], uniq?, set? }.
 // Affix values are rolled from [lo, hi] × the tier of the item level (ITEM.tier in config.js), so a level-30 ring
 // rolls about three times a level-1 ring and a perfect roll is something you can see and chase.
@@ -39,16 +39,16 @@ export const BASE_LIST = Object.keys(BASES);
 
 /** Names that go with each base by level band (for flavour; the stats come from the roll). */
 export const BASE_NAMES = {
-    sword: ['Rusted Gladius', 'Bronze Xiphos', 'Oathblade', 'Titansteel Falchion'],
-    axe: ['Hatchet', 'Bearded Axe', 'Labrys', 'Titan Cleaver'],
+    sword: ['Rusted Gladius', 'Bronze Xiphos', 'Oathblade', 'Giantsteel Falchion'],
+    axe: ['Hatchet', 'Bearded Axe', 'Labrys', 'Giant Cleaver'],
     mace: ['Club', 'Flanged Mace', 'Warden\'s Maul', 'Starfall Hammer'],
     staff: ['Gnarled Staff', 'Oracle Staff', 'Skyreach Staff', 'Thunder Pillar'],
     wand: ['Bone Wand', 'Ebon Wand', 'Lich Wand', 'Dusk Sceptre'],
-    helm: ['Leather Cap', 'Bronze Helm', 'Crested Helm', 'Titan Visage'],
-    chest: ['Padded Vest', 'Bronze Cuirass', 'Scale Hauberk', 'Titanplate'],
-    gloves: ['Wraps', 'Bronze Gauntlets', 'Warden\'s Grips', 'Titan Fists'],
-    boots: ['Sandals', 'Bronze Greaves', 'Strider Boots', 'Titan Treads'],
-    amulet: ['Cord Charm', 'Bronze Torc', 'Silver Locket', 'Titan\'s Eye'],
+    helm: ['Leather Cap', 'Bronze Helm', 'Crested Helm', 'Giant Visage'],
+    chest: ['Padded Vest', 'Bronze Cuirass', 'Scale Hauberk', 'Giantplate'],
+    gloves: ['Wraps', 'Bronze Gauntlets', 'Warden\'s Grips', 'Giant Fists'],
+    boots: ['Sandals', 'Bronze Greaves', 'Strider Boots', 'Giant Treads'],
+    amulet: ['Cord Charm', 'Bronze Torc', 'Silver Locket', 'Giant\'s Eye'],
     ring: ['Copper Band', 'Silver Ring', 'Gold Signet', 'Star Ring'],
 };
 
@@ -61,7 +61,7 @@ export const AFFIXES = {
     physPct: { pre: true, name: 'Cruel', text: '+{v}% physical damage', lo: 8, hi: 18, slots: ['weapon', 'gloves', 'jewel'] },
     lightningPct: { pre: true, name: 'Crackling', text: '+{v}% lightning damage', lo: 8, hi: 18, slots: ['weapon', 'helm', 'jewel'] },
     shadowPct: { pre: true, name: 'Dusk-touched', text: '+{v}% shadow damage', lo: 8, hi: 18, slots: ['weapon', 'chest', 'jewel'] },
-    dmgPct: { pre: true, name: 'Titanic', text: '+{v}% damage', lo: 4, hi: 9, slots: ['weapon', 'amulet', 'ring'] },
+    dmgPct: { pre: true, name: 'Gigantic', text: '+{v}% damage', lo: 4, hi: 9, slots: ['weapon', 'amulet', 'ring'] },
     weaponDmg: { pre: true, name: 'Honed', text: '+{v} weapon damage', lo: 2, hi: 5, slots: ['weapon'] },
     armorPct: { pre: true, name: 'Sturdy', text: '+{v}% armour', lo: 10, hi: 30, slots: ['helm', 'chest', 'gloves', 'boots'] },
     life: { pre: true, name: 'Hale', text: '+{v} maximum life', lo: 8, hi: 18, slots: 'any' },
@@ -82,7 +82,7 @@ export const AFFIXES = {
     movePct: { pre: false, name: 'of the Wind', text: '+{v}% movement speed', lo: 3, hi: 7, slots: ['boots'], cap: 20, flat: true },
     magicFind: { pre: false, name: 'of Fortune', text: '+{v}% magic find', lo: 5, hi: 12, slots: ['helm', 'boots', 'jewel'] },
     goldFind: { pre: false, name: 'of Greed', text: '+{v}% gold found', lo: 10, hi: 25, slots: ['gloves', 'boots', 'jewel'] },
-    skillRank: { pre: false, name: 'of the Titan', text: '+1 to all {m} skills', lo: 1, hi: 1, slots: ['amulet', 'helm', 'weapon'], flat: true, mastery: true, rare: true },
+    skillRank: { pre: false, name: 'of the Giant', text: '+1 to all {m} skills', lo: 1, hi: 1, slots: ['amulet', 'helm', 'weapon'], flat: true, mastery: true, rare: true },
     staggerPct: { pre: false, name: 'of Ruin', text: '+{v}% stagger', lo: 10, hi: 20, slots: ['weapon'] },
     critStat: { pre: false, name: 'of Ferocity', text: '+{v}% critical chance', lo: 1, hi: 2, slots: ['ring'], cap: 6 },
 };
@@ -112,7 +112,7 @@ export const LEGENDARIES = {
     },
     wrathforge: {
         name: 'Wrathforge Maul', base: 'mace', icon: 1, power: 'wrathCd',
-        text: 'Titan\'s Wrath cooldown is halved, and every third Cleave releases a shockwave for 200% weapon damage.',
+        text: 'Giant\'s Wrath cooldown is halved, and every third Cleave releases a shockwave for 200% weapon damage.',
         art: 'a massive glowing-orange forge hammer with molten cracks and a golden head',
     },
     soulreaper: {
@@ -135,10 +135,10 @@ export const LEGENDARIES = {
         text: '+2 Shades at once. When a Shade dies or fades it bursts for 150% weapon damage as shadow.',
         art: 'a crown made of interlocked finger bones and violet gems',
     },
-    titantread: {
-        name: 'Titan\'s Tread', base: 'boots', icon: 6, power: 'leapFree',
+    gianttread: {
+        name: 'Giant\'s Tread', base: 'boots', icon: 6, power: 'leapFree',
         text: 'Leap Slam costs no Rage, and killing an enemy with it resets its cooldown.',
-        art: 'heavy bronze titan boots with winged ankle guards and glowing orange soles',
+        art: 'heavy bronze giant boots with winged ankle guards and glowing orange soles',
     },
     hollowmantle: {
         name: 'Mantle of the Hollow Shepherd', base: 'chest', icon: 7, power: 'painToPower',

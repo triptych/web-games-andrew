@@ -1,14 +1,14 @@
-// TITAN'S VAULT: tuning and constants. Shared by the sim, the view and the tests.
+// GIANT'S VAULT: tuning and constants. Shared by the sim, the view and the tests.
 // Every curve the balance table in game-plan.md was tuned against lives here.
 
-export const VERSION = '1.0.0';
-export const SAVE_KEY = 'titans-vault.v1';
+export const VERSION = '1.1.0';
+export const SAVE_KEY = 'giants-vault.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
 export const MAX_FRAME = 0.05;            // a long frame never runs more than this much game time
 
 export const LEVEL_CAP = 40;
-export const SECOND_MASTERY_AT = 6;       // Titan Quest gives the second mastery at 8; our acts are shorter
+export const SECOND_MASTERY_AT = 6;       // dual-mastery classics give the second mastery at 8; our acts are shorter
 export const SKILL_POINTS_PER_LEVEL = 2;
 export const ATTR_POINTS_PER_LEVEL = 3;
 /** Experience to go from level L to L+1. */
@@ -43,6 +43,9 @@ export const MON = {
     eliteChance: 0.12,
     staggerTime: 0.45, stunMax: 2,
     telegraph: 0.6,              // seconds of red ring before a big monster attack lands
+    heavyEvery: 3,               // an elite melee monster's every third swing is a telegraphed heavy blow…
+    heavyMult: 2.2,              // …that hits this much harder than a plain swing
+    dodgeSpeed: 11,              // projectiles at most this fast can be sidestepped (orbs, bone rings, the hydra's spray)
     corpse: 6,                   // seconds a corpse lies (for the view and for Harvest)
 };
 

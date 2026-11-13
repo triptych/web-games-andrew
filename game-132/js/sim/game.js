@@ -1,4 +1,4 @@
-// TITAN'S VAULT: the simulation's front door. Pure: no DOM, no rendering library, no Math.random, no clock.
+// GIANT'S VAULT: the simulation's front door. Pure: no DOM, no rendering library, no Math.random, no clock.
 //   newGame(seed, cls)   a fresh warden in Lantern's Rest
 //   step(G, inp, dt)     one fixed step of real time
 //   act(G, cmd)          a command (inventory, skills, travel…; see act.js)
@@ -38,7 +38,7 @@ export function newGame(seed = 1, cls = 'ironsworn') {
         },
         pet: newPet(), area: null, features: [], decor: [], mons: [], shots: [], zones: [], minions: [], drops: [], items: {},
         rift: null, portalBack: null, seenCards: [],
-        stats: { kills: 0, elites: 0, deaths: 0, dealt: 0, taken: 0, casts: {} },
+        stats: { kills: 0, elites: 0, deaths: 0, dealt: 0, taken: 0, dodgeable: 0, casts: {} },
         events: [],
     };
     const P = G.player;

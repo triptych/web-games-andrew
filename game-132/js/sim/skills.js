@@ -1,10 +1,11 @@
-// TITAN'S VAULT: the 21 skills as rules over a few effect types, plus projectiles, ground zones and summons. Pure.
+// GIANT'S VAULT: the 21 skills as rules over a few effect types, plus projectiles, ground zones and summons. Pure.
 // useSkill(G, id, aim) is the only way a skill happens: the player's input, the bot and the tests all call it.
 
 import { SKILLS, skillVal } from './data/masteries.js';
 import { rankOf, resOf } from './stats.js';
 import { hitMonster, weaponRoll, gainRes, heal, hurtPlayer } from './combat.js';
 import { lastFit, moveBody, isFloor, fits } from './world.js';
+import { MON } from '../config.js';
 
 const alive = (m) => m.life > 0 && m.state !== 'dead';
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -368,7 +369,8 @@ export function stepShots(G, dt) {
         if (!dead && b.from === 'mon') {
             if (P.life > 0 && Math.hypot(P.x - b.x, P.y - b.y) < b.r + 0.42) {
                 const src = G.mons.find((m) => m.id === b.src);
-                hurtPlayer(G, b.dmg, b.el, b.lvl, src);
+                const got = hurtPlayer(G, b.dmg, b.el, b.lvl, src);
+                if (Math.hypot(b.vx, b.vy) <= MON.dodgeSpeed) G.stats.dodgeable = (G.stats.dodgeable || 0) + got;
                 dead = true;
             } else {
                 const pet = G.pet;
@@ -401,7 +403,8 @@ export function stepZones(G, dt) {
         G.zones.splice(i, 1);
         G.events.push({ type: 'zone', x: z.x, y: z.y, r: z.r, kind: z.kind, from: z.from, el: z.el });
         if (z.from === 'mon') {
-            if (P.life > 0 && Math.hypot(P.x - z.x, P.y - z.y) < z.r + 0.42) hurtPlayer(G, z.dmg, z.el, z.lvl, G.mons.find((m) => m.id === z.src));
+            // telegraphed damage: what a careful player steps out of (the bot's skill dial is measured on it)
+            if (P.life > 0 && Math.hypot(P.x - z.x, P.y - z.y) < z.r + 0.42) G.stats.dodgeable = (G.stats.dodgeable || 0) + hurtPlayer(G, z.dmg, z.el, z.lvl, G.mons.find((m) => m.id === z.src));
             for (const s of G.minions) if (Math.hypot(s.x - z.x, s.y - z.y) < z.r) s.life -= z.dmg * 0.5;
         } else {
             for (const m of G.mons.slice()) {

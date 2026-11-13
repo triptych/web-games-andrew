@@ -1,4 +1,4 @@
-# TITAN'S VAULT — dev harnesses
+# GIANT'S VAULT — dev harnesses
 
 Plain Node scripts, no build step, no test framework. Run from the repo root.
 

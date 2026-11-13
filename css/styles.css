@@ -1616,13 +1616,13 @@ h1 {
     box-shadow: 0 0 14px rgba(240, 201, 106, 0.7);
 }
 
-.game-preview.titans-vault,
-.carousel-slide-bg.titans-vault {
+.game-preview.giants-vault,
+.carousel-slide-bg.giants-vault {
     background: radial-gradient(ellipse at 50% 85%, rgba(255, 110, 40, 0.55) 0%, rgba(120, 40, 20, 0.35) 30%, transparent 60%),
         linear-gradient(180deg, #120c1c 0%, #2a1638 45%, #3a1a12 80%, #120806 100%);
 }
 
-.game-card.titans-vault .play-button {
+.game-card.giants-vault .play-button {
     background: linear-gradient(135deg, #e7bf6a, #c0602a, #7a3aa8);
     color: #1c1206;
     box-shadow: 0 0 14px rgba(255, 140, 60, 0.6);

@@ -1,4 +1,4 @@
-// TITAN'S VAULT: the auto-player. It plays through the same input record and commands a person uses, so the tests,
+// GIANT'S VAULT: the auto-player. It plays through the same input record and commands a person uses, so the tests,
 // the balance table and the attract mode all exercise the real rules. Pure, like the rest of js/sim.
 //
 // skill ∈ [0, 1]: at 1 it dodges every telegraph it can see, drinks at 45% and picks skills well; lower skill reacts
@@ -7,7 +7,7 @@
 import { SKILLS, MASTERIES, TIER_RANK, skillVal } from './data/masteries.js';
 import { SLOTS } from './data/items.js';
 import { CAMPAIGN } from './data/world.js';
-import { SECOND_MASTERY_AT } from '../config.js';
+import { SECOND_MASTERY_AT, MON } from '../config.js';
 import { act, bagFree } from './act.js';
 import { recompute, rankOf, canLearn } from './stats.js';
 import { skillBlocked } from './skills.js';
@@ -171,11 +171,35 @@ export function botInput(G, bot) {
 
     // dodge: step out of any monster telegraph we're standing in (seen with probability = skill)
     for (const z of G.zones) {
-        if (z.from !== 'mon' || d2(z, P) > z.r + 0.6) continue;
+        if (z.from !== 'mon' || d2(z, P) > z.r + 0.9) continue;
         if (bot.seen[z.id] === undefined) bot.seen[z.id] = G.rng() < bot.skill;
         if (!bot.seen[z.id]) continue;
-        const dx = P.x - z.x, dy = P.y - z.y, d = Math.hypot(dx, dy) || 1;
-        inp.mx = dx / d; inp.my = dy / d;
+        // the open direction that gets furthest from the ring's centre (straight out may be a wall)
+        let best = -1, bx = 0, by = 0;
+        const a0 = Math.atan2(P.y - z.y, P.x - z.x);
+        for (let k = 0; k < 8; k++) {
+            const a = a0 + (k % 2 ? 1 : -1) * Math.ceil(k / 2) * 0.785, ux = Math.cos(a), uy = Math.sin(a);
+            if (!clearPath(A, P.x, P.y, P.x + ux * 1.6, P.y + uy * 1.6, 0.4)) continue;
+            const far = Math.hypot(P.x + ux * 1.6 - z.x, P.y + uy * 1.6 - z.y);
+            if (far > best) { best = far; bx = ux; by = uy; }
+        }
+        if (best < 0) continue;
+        inp.mx = bx; inp.my = by;
+        return inp;
+    }
+    // sidestep a slow projectile heading for us (also noticed with probability = skill)
+    for (const b of G.shots) {
+        if (b.from !== 'mon' || Math.hypot(b.vx, b.vy) > MON.dodgeSpeed) continue;
+        const rx = P.x - b.x, ry = P.y - b.y, sp = Math.hypot(b.vx, b.vy) || 1;
+        const along = (rx * b.vx + ry * b.vy) / sp;               // how far ahead of the shot we are
+        if (along < 0 || along > 6) continue;
+        const side = (rx * b.vy - ry * b.vx) / sp;                // how far off its line
+        if (Math.abs(side) > b.r + 0.55) continue;
+        if (bot.seen[b.id] === undefined) bot.seen[b.id] = G.rng() < bot.skill;
+        if (!bot.seen[b.id]) continue;
+        const sgn = side >= 0 ? 1 : -1;
+        inp.mx = (b.vy / sp) * sgn; inp.my = (-b.vx / sp) * sgn;
+        if (!clearPath(A, P.x, P.y, P.x + inp.mx * 1.5, P.y + inp.my * 1.5, 0.4)) { inp.mx = -inp.mx; inp.my = -inp.my; }
         return inp;
     }
     if (P.life < P.stats.maxLife * (0.25 + 0.2 * bot.skill)) inp.potion = true;

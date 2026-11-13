@@ -1,4 +1,4 @@
-// TITAN'S VAULT: damage, crits, armour, stagger, kills, experience and death. Pure.
+// GIANT'S VAULT: damage, crits, armour, stagger, kills, experience and death. Pure.
 
 import { PLAYER, POTION, MON, ARMOR_K, RIFT, SKILL_POINTS_PER_LEVEL, ATTR_POINTS_PER_LEVEL, LEVEL_CAP, xpToNext } from '../config.js';
 import { MONSTERS, BOSSES } from './data/monsters.js';

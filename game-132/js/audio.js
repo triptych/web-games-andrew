@@ -1,15 +1,21 @@
 // Sound: ElevenLabs music and effects (audio/*.mp3, listed in js/audio-files.js), with a Web Audio synth for anything
 // missing. Music plays through <audio> elements routed into a gain node, so ../lib/page-audio.js still silences a
 // hidden tab; effects are decoded into buffers on first use. The context is made on the first user gesture.
+// Voices (vo-*.mp3): the narrator reads each story card, and each boss speaks when it sees you, at each phase and as it
+// dies. One voice at a time on its own bus; the music ducks under it.
 
 import { AUDIO_FILES } from './audio-files.js';
 
-const TRACK = { town: 'music-town', act1: 'music-act1', act2: 'music-act2', act3: 'music-act3', boss: 'music-boss', rift: 'music-act3' };
+const TRACK = { town: 'music-town', act1: 'music-act1', act2: 'music-act2', act3: 'music-act3', boss: 'music-boss', rift: 'music-rift' };
+const DUCK = 0.35;             // music level under a voice
 
 export class Audio {
     constructor() {
         this.ctx = null;
-        this.sfxVol = 0.8; this.musicVol = 0.5;
+        this.sfxVol = 0.8; this.musicVol = 0.5; this.voiceVol = 0.9;
+        this.vo = null;               // { name, src, card } the line playing
+        this.voNext = null;           // a card line waiting for a boss line to finish
+        this.voWant = null;           // the line asked for while its clip is still loading
         this.buffers = {}; this.loading = {};
         this.music = {}; this.theme = null; this.wantTheme = null;
         this.last = {};               // effect name → last time played (rate limit)
@@ -27,14 +33,64 @@ export class Audio {
         comp.connect(this.meter); this.meter.connect(ctx.destination);
         this.sfx = ctx.createGain(); this.sfx.gain.value = this.sfxVol; this.sfx.connect(comp);
         this.mus = ctx.createGain(); this.mus.gain.value = this.musicVol * 0.6; this.mus.connect(comp);
+        this.voBus = ctx.createGain(); this.voBus.gain.value = this.voiceVol; this.voBus.connect(comp);
         if (this.wantTheme) this.setTheme(this.wantTheme);
+        if (this.voPending) { const n = this.voPending; this.voPending = null; this.voice(n, { card: true }); }
     }
 
-    setVolumes(sfx, music) {
-        this.sfxVol = sfx; this.musicVol = music;
+    setVolumes(sfx, music, voice = this.voiceVol) {
+        this.sfxVol = sfx; this.musicVol = music; this.voiceVol = voice;
         if (!this.ctx) return;
         this.sfx.gain.setTargetAtTime(sfx, this.ctx.currentTime, 0.02);
-        this.mus.gain.setTargetAtTime(music * 0.6, this.ctx.currentTime, 0.02);
+        this.voBus.gain.setTargetAtTime(voice, this.ctx.currentTime, 0.02);
+        this.duck();
+    }
+
+    /** Music level: lower while someone is speaking. */
+    duck() {
+        if (!this.ctx) return;
+        const v = this.musicVol * 0.6 * (this.vo && this.voiceVol > 0 ? DUCK : 1);
+        this.mus.gain.setTargetAtTime(v, this.ctx.currentTime, this.vo ? 0.15 : 0.6);
+    }
+
+    get voicePlaying() { return this.vo?.name || null; }
+
+    /**
+     * Speak a line. A card line (the narrator) waits for a boss line that is already speaking, then plays; a boss
+     * line never cuts the narrator off, but does replace another boss line.
+     */
+    async voice(name, { card = false } = {}) {
+        if (!AUDIO_FILES.has(name)) return;
+        if (!this.ctx) { if (card) this.voPending = name; return; }     // a card shown before the first gesture
+        if (this.vo) {
+            if (card && !this.vo.card) { this.voNext = name; return; }
+            if (!card && this.vo.card) return;
+        }
+        this.voWant = name;
+        if (!this.buffers[name]) await this.load(name);
+        if (this.voWant !== name || !this.buffers[name]) return;     // stopped, or another line asked for, while loading
+        this.voWant = null;
+        this.stopVoice(false);
+        const src = this.ctx.createBufferSource();
+        src.buffer = this.buffers[name];
+        src.connect(this.voBus);
+        const vo = this.vo = { name, src, card };
+        src.onended = () => {
+            if (this.vo !== vo) return;
+            this.vo = null; this.duck();
+            if (this.voNext) { const n = this.voNext; this.voNext = null; this.voice(n, { card: true }); }
+        };
+        src.start();
+        this.duck();
+    }
+
+    /** Silence the voice (a card was closed). all: also forget a card line waiting its turn. */
+    stopVoice(all = true) {
+        if (all) { this.voNext = null; this.voWant = null; this.voPending = null; }
+        if (!this.vo) return;
+        const vo = this.vo; this.vo = null;
+        try { vo.src.stop(); } catch { /* already over */ }
+        this.duck();
     }
 
     /** The loudest sample the master bus has carried recently (for the browser test). */
@@ -72,13 +128,16 @@ export class Audio {
         m.el.play().catch(() => { /* autoplay blocked until a gesture: init() retries */ });
     }
 
-    async load(name) {
-        if (this.buffers[name] || this.loading[name] || !AUDIO_FILES.has(name) || !this.ctx) return;
-        this.loading[name] = true;
-        try {
-            const r = await fetch(`audio/${name}.mp3`);
-            this.buffers[name] = await this.ctx.decodeAudioData(await r.arrayBuffer());
-        } catch { /* falls back to the synth */ }
+    /** Decode a clip once; resolves when it is ready (or failed: then the synth stands in). */
+    load(name) {
+        if (this.buffers[name] || !AUDIO_FILES.has(name) || !this.ctx) return Promise.resolve();
+        this.loading[name] ||= (async () => {
+            try {
+                const r = await fetch(`audio/${name}.mp3`);
+                this.buffers[name] = await this.ctx.decodeAudioData(await r.arrayBuffer());
+            } catch { /* falls back to the synth */ }
+        })();
+        return this.loading[name];
     }
 
     /** Play an effect clip, or its synth stand-in. gap: minimum seconds between two of the same. */
@@ -155,7 +214,9 @@ export class Audio {
                 case 'levelup': case 'ascend': this.play('sfx-levelup', { vol: 1 }); break;
                 case 'portal': case 'area': this.play('sfx-portal', { vol: 0.6, gap: 0.5 }); break;
                 case 'waystone': this.play('sfx-portal', { vol: 0.5 }); break;
-                case 'bossPhase': case 'aggro': if (e.boss) this.play('sfx-roar', { vol: 1, gap: 2 }); break;
+                case 'aggro': if (e.boss) { this.play('sfx-roar', { vol: 1, gap: 2 }); this.voice(`vo-${e.boss}-0`); } break;
+                case 'bossPhase': this.play('sfx-roar', { vol: 1, gap: 2 }); this.voice(`vo-${e.boss}-${Math.min(e.phase, 2)}`); break;
+                case 'bossDead': this.voice(`vo-${e.boss}-death`); break;
                 case 'petSpell': if (e.spell === 'howl') this.play('sfx-roar', { vol: 0.3, rate: 1.6, gap: 1 }); break;
                 case 'hurt': if (e.amt > P.stats.maxLife * 0.08) this.play('sfx-hit', { vol: 0.6, rate: 0.7, gap: 0.2 }); break;
                 case 'death': this.play('sfx-roar', { vol: 0.6, rate: 0.6 }); break;

@@ -1,4 +1,4 @@
-// TITAN'S VAULT: area generation, the walkable grid, collision, line of sight and flow fields. Pure.
+// GIANT'S VAULT: area generation, the walkable grid, collision, line of sight and flow fields. Pure.
 //
 // An area is a grid of cells, 1 m each: 0 wall, 1 floor. Positions are continuous (x, y) in metres; cell (cx, cy)
 // covers [cx, cx+1) × [cy, cy+1). Generators: 'town' (hand-laid), 'wilds' (cellular caves), 'rooms' (rooms joined by

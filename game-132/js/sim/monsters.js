@@ -1,4 +1,4 @@
-// TITAN'S VAULT: spawning packs, elites and bosses; monster AI. Pure.
+// GIANT'S VAULT: spawning packs, elites and bosses; monster AI. Pure.
 //
 // AI states: idle → chase → wind (an attack winding up; big ones draw a red ring) → back to chase.
 // stagger and stun cancel a wind-up. Monsters walk down a flow field toward the player, so walls never trap them.
@@ -43,7 +43,7 @@ export function makeMonster(G, kind, x, y, lvl, extra = {}) {
         id: G.nextId++, kind: boss ? boss : kind, boss: boss || null, x, y, face: 0, lvl,
         life: Math.round(hp), max: Math.round(hp), dmg, speed, atk, radius: def.radius, reach: def.reach,
         state: 'idle', t: 0, cd: G.rng() * atk, aggro: !!extra.aggro, elite, hx: x, hy: y,
-        shock: null, curse: null, taunt: 0, hitT: 0, novaT: 4, phase: 0, abilityT: 2.5, chargeT: 0,
+        shock: null, curse: null, taunt: 0, hitT: 0, novaT: 4, swings: 0, heavy: false, phase: 0, abilityT: 2.5, chargeT: 0,
     };
     G.mons.push(m);
     return m;
@@ -219,8 +219,9 @@ export function stepMonsters(G, dt) {
                     const r = placeNear(G, def.raises, { x: m.x + Math.cos(a) * 1.5, y: m.y + Math.sin(a) * 1.5 }, m.lvl, { aggro: true });
                     if (r) G.events.push({ type: 'raise', id: r.id, x: r.x, y: r.y });
                 }
-            } else if (def.ai === 'charger') {
-                // the slam lands on the telegraph zone placed when the wind-up began (zones step on their own)
+            } else if (def.ai === 'charger' || m.heavy) {
+                // the blow lands on the telegraph zone placed when the wind-up began (zones step on their own)
+                m.heavy = false;
             } else if (d <= m.reach + 0.6) strike(G, m, tgt);
             continue;
         }
@@ -229,7 +230,11 @@ export function stepMonsters(G, dt) {
         if (inReach && m.cd <= 0) {
             m.state = 'wind';
             if (def.ai === 'charger') { m.t = MON.telegraph; telegraph(G, m, m.x + (dx / d) * 1.4, m.y + (dy / d) * 1.4, 1.9, 1.6); }
-            else m.t = def.ai === 'melee' ? 0.35 : 0.45;
+            else if (def.ai === 'melee' && m.elite && !m.elite.minion && ++m.swings % MON.heavyEvery === 0) {
+                // an elite's heavy blow: a red ring in front of it first, so it can be stepped out of
+                m.heavy = true; m.t = MON.telegraph;
+                telegraph(G, m, m.x + (dx / d) * 1.2, m.y + (dy / d) * 1.2, 1.8, MON.heavyMult, MON.telegraph, 'heavy');
+            } else m.t = def.ai === 'melee' ? 0.35 : 0.45;
             G.events.push({ type: 'monAttack', id: m.id, kind: m.kind });
             continue;
         }
