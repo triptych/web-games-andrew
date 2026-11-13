@@ -55,7 +55,8 @@ export const JOBS = {
 
 export const GIVERS = {
     folk: {
-        names: ['Farmer Edda', 'Miller Joss', 'Widow Harrowgate', 'Shepherd Tam', 'Baker Olwen', 'Innkeep Marta', 'Old Fenwick', 'Fisher Bryn', 'Weaver Sallow', 'Cooper Hask'],
+        // a name's place in its list picks its painted face (art/giv/<kind>-<index % 6>): keep each list in the order of its sheet
+        names: ['Farmer Edda', 'Miller Joss', 'Widow Harrowgate', 'Shepherd Tam', 'Baker Olwen', 'Fisher Bryn', 'Weaver Sallow', 'Cooper Hask', 'Old Mother Fenwick', 'Goatherd Wil', 'Innkeep Marta', 'Ferryman Odo'],
         open: ['Begging your pardon, clerk.', 'I have walked since dawn to say this.', 'You have to help us.', 'I have the coin, I swear it.', 'It is not much to pay with, but it is honest.'],
     },
     adv: {
@@ -63,11 +64,11 @@ export const GIVERS = {
         open: ['Posting a job, not taking one.', 'Saw it with my own eyes on the road in.', 'I would handle it myself, but my party is short.', 'Put this on the board. Somebody should know.'],
     },
     crown: {
-        names: ['Royal Herald Cassius', 'Lady Brannoch', 'Tax-reeve Dunmore', 'Captain Yseult of the Lancers', 'Lord Steward Ambrose'],
+        names: ['Royal Herald Cassius', 'Lady Brannoch', 'Tax-reeve Dunmore', 'Captain Yseult of the Lancers', 'Lord Steward Ambrose', 'Page Linnet'],
         open: ['By order of the Crown.', 'Her Majesty requires the guild\'s discretion.', 'The palace will pay promptly, in gold.', 'This comes under the royal seal.'],
     },
     wild: {
-        names: ['Thistle the hedge-sprite', 'Brock, a talking badger', 'Grandmother Owl', 'a pond nixie', 'Grim the gargoyle', 'a will-o\'-wisp', 'the Fox Who Walks Upright'],
+        names: ['Thistle the hedge-sprite', 'Brock, a talking badger', 'Grandmother Owl', 'Lilypad the pond nixie', 'Grim the gargoyle', 'the Fox Who Walks Upright'],
         open: ['The tall folk said the lantern-house listens.', 'I can pay in acorns. They are very good acorns.', 'The old compact says you must hear me.', 'Do not laugh. It is a long way to come on small legs.'],
     },
 };

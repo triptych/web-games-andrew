@@ -99,6 +99,22 @@ if (want('scripts')) {
         }
         ok(errs.length === 0, `${s.id}: ${errs.join('; ') || 'clean'}`);
     }
+    // every file a script, a face or a sound can ask for is on disk
+    const { CG_FILES, ART, EXPRS } = await import('../js/assets.js');
+    const { VOICED, voiceKey } = await import('../js/voices.js');
+    const has = (f) => fs.existsSync(path.join(ROOT, f));
+    const missing = [];
+    for (const p of Object.keys(PLACES)) if (!has(ART.bg(p))) missing.push(ART.bg(p));
+    for (const c of [...Object.keys(CGS), ...ENDINGS.map((e) => 'end-' + e.id)]) if (!CG_FILES.has(c) || !has(ART.cg(c))) missing.push(ART.cg(c));
+    for (const c of Object.keys(CAST)) for (const e of EXPRS) if (!has(ART.por(c, e))) missing.push(ART.por(c, e));
+    for (const a of ROSTER) if (!a.face && !has(`art/por/adv-${a.id}.webp`)) missing.push('adv-' + a.id);
+    for (const t of ['folk', 'adv', 'crown', 'wild']) for (let i = 0; i < 6; i++) if (!has(ART.giver(t, i))) missing.push(ART.giver(t, i));
+    for (const m of Object.keys(MUSIC)) if (!has(`audio/music/${m}.mp3`)) missing.push('music ' + m);
+    for (const x of Object.keys(SFX)) if (!has(`audio/sfx/${x}.mp3`)) missing.push('sfx ' + x);
+    for (const v of VOICED) if (!has(`audio/vo/${v}.mp3`)) missing.push('vo ' + v);
+    if (!has(ART.title)) missing.push(ART.title);
+    ok(missing.length === 0, `every backdrop, picture, portrait, face, tune, effect and voice clip is on disk${missing.length ? ': missing ' + missing.slice(0, 8).join(', ') : ''}`);
+    ok(ROMANCE.every((w) => CAST[w].talk.every((t) => VOICED.has(voiceKey(w, t)))), 'every visit greeting has a voice clip named for its exact words');
     ok(ROMANCE.length >= 4, `at least four romances (${ROMANCE.length})`);
     for (const who of ROMANCE) {
         ok(HEARTS[who]?.length === 4, `${who} has four heart events`);
@@ -143,6 +159,7 @@ if (want('rules')) {
     for (let d = 0; d < q.days; d++) { skip(G); Gm.act(G, { t: 'endday' }); skip(G); }
     ok(adv(G, 'kael').state !== 'away' && G.reports.length >= 1, 'the party comes home with a report');
     ok(G.reports[0].res !== 'win' || G.gold > gold0 - 200, 'a win pays the fee');
+    ok(G.events.some((e) => e.type === 'report' && e.from), 'and a report event names itself (a payload field must not shadow the event type)');
     ok(Gm.questChance(G, { kind: 'mgt', rank: 0 }, ['garrick']) > Gm.questChance(G, { kind: 'mgt', rank: 4 }, ['garrick']), 'harder jobs are less likely');
     ok(Gm.questChance(G, { kind: 'mgt', rank: 3 }, ['kael', 'garrick']) > Gm.questChance(G, { kind: 'arc', rank: 3 }, ['kael', 'garrick']), 'a fighter suits a fight better than a warding');
     ok(Gm.questChance(G, { kind: 'mgt', rank: 4 }, ['pip']) === 0.05 && Gm.questChance(G, { kind: 'mgt', rank: 0 }, ['garrick', 'kael', 'sera']) === 0.97, 'chances are clamped to 5%..97%');

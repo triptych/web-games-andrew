@@ -172,7 +172,7 @@ function resolve(G, o) {
         const base = XP_QUEST * (q.rank + 1) * (gap <= 0 ? 1 : gap === 1 ? 0.5 : 0.15);
         addXp(G, id, Math.round(base * (res === 'win' ? 1 : res === 'part' ? 0.5 : 0.25)));
     }
-    const rep = { res, title: q.title, type: q.type, gold, rank: q.rank, posted: q.posted, party: o.party.slice() };
+    const rep = { res, title: q.title, from: q.type, gold, rank: q.rank, posted: q.posted, party: o.party.slice() };
     G.reports.push(rep);
     G.events.push({ type: 'report', ...rep });
 }

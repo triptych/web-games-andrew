@@ -43,9 +43,10 @@ button, input, select { font: inherit; color: inherit; }
 
 /* portraits: three places on the stage; the speaker is lit, the others dimmed */
 #actors { pointer-events: none; }
-.actor { position: absolute; bottom: 0; height: min(86%, 760px); transform: translateX(-50%); transition: opacity 0.35s, transform 0.35s, filter 0.3s; filter: brightness(0.62) saturate(0.85); }
+.actor { position: absolute; bottom: 0; height: min(76%, 660px); transform: translateX(-50%); transition: opacity 0.35s, transform 0.35s, filter 0.3s; filter: brightness(0.62) saturate(0.85); }
 .actor img { height: 100%; width: auto; display: block; filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.5)); }
-.actor.p-c { left: 50%; } .actor.p-l { left: 22%; } .actor.p-r { left: 78%; }
+.actor.p-c { left: 50%; } .actor.p-l { left: 24%; } .actor.p-r { left: 76%; }
+.actor.short { height: min(64%, 560px); }
 .actor.speaking { filter: none; z-index: 2; }
 .actor.enter { opacity: 0; transform: translateX(-50%) translateY(24px); }
 .actor.small { height: min(52%, 430px); }
@@ -53,6 +54,7 @@ button, input, select { font: inherit; color: inherit; }
     .actor { height: min(64%, 560px); bottom: 150px; }
     .actor.p-l { left: 26%; } .actor.p-r { left: 74%; }
     .actor.small { height: min(38%, 320px); }
+    .actor.short { height: min(56%, 480px); }
 }
 
 #back-link {
@@ -168,7 +170,8 @@ h3:first-child { margin-top: 0; }
     background: rgba(8, 5, 12, 0.6); overflow-y: auto;
 }
 .screen.title { background: #120c18; }
-.title-art { position: absolute; inset: 0; background: center / cover no-repeat; }
+.title-art { position: absolute; inset: 0; background: center bottom / auto 124% no-repeat; background-color: #2a1c2c; }
+@media (max-aspect-ratio: 16/11) { .title-art { background-size: cover; background-position: center; } }
 .title-art::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 45%, rgba(18, 12, 24, 0.1), rgba(18, 12, 24, 0.75)); }
 .sheet {
     position: relative; width: min(460px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
@@ -242,3 +245,13 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-8px); } 8%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01s !important; transition-duration: 0.01s !important; } }
+
+/* phones: the HUD is two rows (day and buttons beside the back link, then the chips) */
+@media (max-width: 700px) {
+    #hud { gap: 4px 8px; }
+    #hud .when { flex: 1; min-height: 44px; display: flex; align-items: center; }
+    #hud .btns { margin-left: 0; }
+    #hud .chips { order: 3; flex: 0 0 calc(100% + 96px); margin-left: -96px; }
+    .chip { font-size: 13px; padding: 2px 8px; }
+    #dlg .text { font-size: 17px; }
+}

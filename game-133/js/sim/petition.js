@@ -32,12 +32,13 @@ export function makePetition(G, chapter) {
     const [phrase, plural] = rng.pick(COUNTS[cnt]);
     const where = rng.pick(SITES[site]);
     const kind = rng.pick(['mgt', 'mgt', 'wit', 'arc', 'stl']);
-    const giver = rng.pick(GIVERS[type].names);
+    const face = rng.int(0, GIVERS[type].names.length - 1);
+    const giver = GIVERS[type].names[face];
     const creature = plural ? foe.many : foe.one;
     const be = phrase === 'dozens of' ? 'are' : 'is';
     const text = `${rng.pick(GIVERS[type].open)} There ${be} ${phrase} ${creature} ${where}.${rng.pick(OMENS[omen])} ${rng.pick(JOBS[kind])}`;
     return {
-        id: G.nid++, type, giver, face: rng.int(1, 99999), text, kind,
+        id: G.nid++, type, giver, face, text, kind,
         title: `${VERB[kind]} ${plural ? foe.many : 'the ' + foe.one} ${where}`.replace('in my cellar', 'in a cellar'),
         tier, cnt, site, omen, rank: trueRank, posted: null,
         days: 1 + (trueRank >= 2 ? 1 : 0) + (site === 2 ? 1 : 0),
