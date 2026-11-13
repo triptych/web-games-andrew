@@ -592,6 +592,13 @@ more) and dies at least as often.
 
 ## Changelog
 
+### v1.2.1 (2026-11-13)
+- Ember stayed on her side after being revived (reported by a player). A downed pet is tipped over each frame; the
+  code gait used to set the tilt back every frame, but the rigged path never did. Rigged models are set upright
+  every frame now. The browser test knocks her down, revives her and checks she stands.
+- The browser test stood the hero inside a wall beside the training dummy on one seed (the bot then never moved);
+  it now picks a spot with room.
+
 ### v1.2.0 (2026-11-13)
 - Ember and the Gorehounds are rigged. Meshy's auto-rigger only takes humanoids, so `dev/assets/rig-quadruped.mjs` fits a 15-bone
   quadruped skeleton (hips, spine, chest, neck, head, a two-bone tail, two bones a leg) to the static Meshy model at

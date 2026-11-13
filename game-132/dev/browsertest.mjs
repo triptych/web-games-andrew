@@ -112,7 +112,11 @@ const arena = (page) => Q(page, () => {
     // only the dummy: a rare pack nearby can kill a level-1 hero mid-test, and the death screen covers the HUD
     G.mons = G.mons.filter((o) => o === m || Math.hypot(o.x - m.x, o.y - m.y) > 30);
     G.shots = []; G.zones = [];
-    P.x = m.x - 1.4; P.y = m.y; m.aggro = true; m.life = m.max = 1e6; m.dmg = 0.01;
+    // stand beside it where the hero's body fits (1.4 m to its left was inside a wall on one seed: the hero couldn't move)
+    const A = G.area, floor = (x, y) => !!A.grid[Math.floor(y) * A.w + Math.floor(x)];
+    const fits = (x, y) => [-0.45, 0.45].every((dx) => [-0.45, 0.45].every((dy) => floor(x + dx, y + dy)));
+    const spot = [[-1.4, 0], [1.4, 0], [0, -1.4], [0, 1.4], [-1, -1], [1, -1], [-1, 1], [1, 1]].find(([dx, dy]) => fits(m.x + dx, m.y + dy)) || [0, 0];
+    P.x = m.x + spot[0]; P.y = m.y + spot[1]; m.aggro = true; m.life = m.max = 1e6; m.dmg = 0.01;
     return m.id;
 });
 
@@ -217,6 +221,12 @@ async function desktop() {
     const nb = await notBlank(page);
     check(nb.ok, `the picture is not blank (mean ${nb.mean.toFixed(0)}, spread ${nb.spread})`);
     check(await Q(page, () => __tv.view.info.models.failed === 0 && __tv.view.info.models.loaded >= 8), 'models loaded and none failed');
+    // Ember knocked down lies on her side, and stands up again when she's back (a rigged model once stayed tipped over)
+    await until(page, () => __tv.view.actors.pet?.g.userData.mixer, 'Ember is rigged and animated', 30000);
+    await Q(page, () => { __tv.G.pet.life = 0; });                               // the sim knocks her down
+    await until(page, () => __tv.G.pet.state === 'down' && Math.abs(__tv.view.actors.pet.g.rotation.z) > 1, 'a downed Ember lies on her side');
+    await Q(page, () => { __tv.G.pet.t = 0.2; });                                 // and gets her up (sooner than PET.downTime)
+    await until(page, () => __tv.G.pet.state === 'follow' && Math.abs(__tv.view.actors.pet.g.rotation.z) < 0.01, 'and stands upright again once revived');
     await until(page, () => __tv.audio.musicPlaying, 'music is playing');
     await until(page, () => __tv.audio.level() > 0.001, 'sound came out of the master bus', 15000);
     await shot(page, 'desktop-play');

@@ -1,7 +1,7 @@
 // GIANT'S VAULT: tuning and constants. Shared by the sim, the view and the tests.
 // Every curve the balance table in game-plan.md was tuned against lives here.
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.2.1';
 export const SAVE_KEY = 'giants-vault.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
