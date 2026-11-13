@@ -1,0 +1,200 @@
+{
+ "mother-brief": [
+  {
+   "id": "brief0",
+   "text": "Your first solo flight, sweetie. Five specimens. Cows if you can. Try not to dent anything else."
+  },
+  {
+   "id": "brief1",
+   "text": "Seven specimens, and Mother is craving bacon research. A pig, dear. And watch that man in the foil hat."
+  },
+  {
+   "id": "brief2",
+   "text": "The suits in sunglasses are here. Our beam bounces off them. Drop something heavy on one, then try."
+  },
+  {
+   "id": "brief3",
+   "text": "Nine specimens from the cornfield. Rumour says there's a golden cow out there. Rumour is Mother."
+  },
+  {
+   "id": "brief4",
+   "text": "The army rolled in a tank. You can't lift it, but a cow from a great height works wonders."
+  },
+  {
+   "id": "brief5",
+   "text": "A whole army base. Lasers, jets, the works. Ten specimens. Mother believes in you. Mostly."
+  },
+  {
+   "id": "brief6",
+   "text": "Their secret hangar. Twelve specimens, and Mother would simply LOVE an agent for her collection."
+  },
+  {
+   "id": "brief7",
+   "text": "General Grumbles built a tank the size of a barn. Beam up livestock. Drop it on him. Six times. Go!"
+  }
+ ],
+ "mother-grade": [
+  {
+   "id": "grade-Aplus-0",
+   "text": "Flawless! Mother is putting this on the fridge."
+  },
+  {
+   "id": "grade-Aplus-1",
+   "text": "A plus! Who's a good little saucer? You are!"
+  },
+  {
+   "id": "grade-Aplus-2",
+   "text": "Perfection. I may cry into my antennae."
+  },
+  {
+   "id": "grade-A-0",
+   "text": "Excellent work, sweetie. Hardly a scratch."
+  },
+  {
+   "id": "grade-A-1",
+   "text": "A! Mother is proud. Don't let it go to your dome."
+  },
+  {
+   "id": "grade-B-0",
+   "text": "Good. Not great. Good."
+  },
+  {
+   "id": "grade-B-1",
+   "text": "A solid B. Your cousin got an A, but who's counting. Mother is."
+  },
+  {
+   "id": "grade-C-0",
+   "text": "Average. Like your father."
+  },
+  {
+   "id": "grade-C-1",
+   "text": "C. As in \"Could have tried harder.\""
+  },
+  {
+   "id": "grade-D-0",
+   "text": "D. Did you even look at the brief?"
+  },
+  {
+   "id": "grade-D-1",
+   "text": "Mother is not angry. Mother is disappointed."
+  },
+  {
+   "id": "grade-F-0",
+   "text": "F! Back down there and do it again, young saucer!"
+  },
+  {
+   "id": "grade-F-1",
+   "text": "Zero stars. Not even a moon. Try again."
+  }
+ ],
+ "mother-radio": [
+  {
+   "id": "quota-0",
+   "text": "Quota met! Dock with Mother, or grab a few extras."
+  },
+  {
+   "id": "quota-1",
+   "text": "That's the quota! Hover under me to dock."
+  },
+  {
+   "id": "hurry-0",
+   "text": "Fifteen seconds, dear! Chop chop!"
+  },
+  {
+   "id": "hurry-1",
+   "text": "Clock's ticking, dented dinner plate!"
+  },
+  {
+   "id": "crash-0",
+   "text": "Oh, not AGAIN. Sending a spare."
+  },
+  {
+   "id": "crash-1",
+   "text": "That's coming out of your allowance."
+  },
+  {
+   "id": "crash-2",
+   "text": "Warranty claim filed. Sigh."
+  },
+  {
+   "id": "full-0",
+   "text": "Hold's full! Bring them up to Mother."
+  },
+  {
+   "id": "full-1",
+   "text": "No more room, sweetie. Come unload."
+  },
+  {
+   "id": "bank-0",
+   "text": "Lovely specimens!"
+  },
+  {
+   "id": "bank-1",
+   "text": "Into the freezer they go. Kidding! Mostly."
+  },
+  {
+   "id": "bank-2",
+   "text": "Ooh, that one's plump."
+  },
+  {
+   "id": "boss-0",
+   "text": "Down he goes! Now come home for supper."
+  }
+ ],
+ "zib": [
+  {
+   "id": "catch-0",
+   "text": "Gotcha!"
+  },
+  {
+   "id": "catch-1",
+   "text": "Wheee!"
+  },
+  {
+   "id": "hit-0",
+   "text": "Ow ow ow!"
+  },
+  {
+   "id": "crash-0",
+   "text": "Uh-ohhhh!"
+  },
+  {
+   "id": "drop-0",
+   "text": "Bombs away!"
+  },
+  {
+   "id": "glitch-0",
+   "text": "Not again!"
+  },
+  {
+   "id": "quota-0",
+   "text": "Coming home, Mom!"
+  },
+  {
+   "id": "respawn-0",
+   "text": "I'm okay!"
+  }
+ ],
+ "general": [
+  {
+   "id": "taunt-0",
+   "text": "Blast that saucer!"
+  },
+  {
+   "id": "taunt-1",
+   "text": "Hold still, you flying hubcap!"
+  },
+  {
+   "id": "taunt-2",
+   "text": "Fire at will!"
+  },
+  {
+   "id": "hit-0",
+   "text": "Not my beautiful tank!"
+  },
+  {
+   "id": "down-0",
+   "text": "This isn't over, saucer!"
+  }
+ ]
+}

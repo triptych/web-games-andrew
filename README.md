@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-133 games, `game-001` through `game-133`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+134 games, `game-001` through `game-134`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -169,6 +169,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 131 | [Fray & the Spiral Isle](game-131/) | A peaceful first-person journey: a new mage and a blind goblin gather seven gems across an island of quiet ruins, each gem opening the way to the next; fal art, Meshy 3D models, ElevenLabs voices, music and ambience | three.js |
 | 132 | [Giant's Vault](game-132/) | An isometric action RPG: three oaths and dual masteries, 21 skills, a loot pet, three acts to bind a chained giant and endless rifts; fal art, Meshy 3D models, ElevenLabs music and effects | three.js |
 | 133 | [Lanternhall](game-133/) | A fantasy visual novel behind the quest desk of an adventurers' guild: grade petitions from their words, send Copper rookies and a Platinum legend, five mini-games, five romances, thirty days to become Guildmaster, sixteen endings; fal art, ElevenLabs music, effects and voices | DOM |
+| 134 | [UFOops!](game-134/) | A Saturday-morning-cartoon saucer romp: beam up cows, pigs and farmers, drop livestock on agents, tinfoil hats and tanks, dodge lasers and jets, and get a report card from Mother after every episode; fal art, ElevenLabs music, effects and voices | Canvas 2D |
 
 ### Highlights
 
