@@ -36,9 +36,35 @@ attack, sped up or slowed to the attack's own length (0.3–0.8 s for the player
 
 | Rigged (walk clip `Armature|walking_man|baselayer`) | Static |
 |---|---|
-| hero-ironsworn, hero-stormcaller, hero-shadebinder, mon-thrall, mon-archer, mon-hag, mon-wretch, mon-sentinel, mon-slinger, boss-kolossar | pet, npc-ysolde, npc-heron, mon-gorehound, mon-wraith, mon-gorgon, boss-skyllith, boss-morwen, prop-waystone, prop-portal, prop-chest, prop-brazier, prop-column, prop-sarcophagus, prop-obelisk, prop-statue, prop-tree, prop-stall |
+| hero-ironsworn, hero-stormcaller, hero-shadebinder, mon-thrall, mon-archer, mon-hag, mon-wretch, mon-sentinel, mon-slinger, boss-kolossar; and pet (our own quadruped rig, below) | npc-ysolde, npc-heron, mon-gorehound, mon-wraith, mon-gorgon, boss-skyllith, boss-morwen, prop-waystone, prop-portal, prop-chest, prop-brazier, prop-column, prop-sarcophagus, prop-obelisk, prop-statue, prop-tree, prop-stall |
 
 The four-legged, legless and serpent-tailed creatures (pet, gorehound, wraith, gorgon, Skyllith) and Morwen's
-floating gown can't take Meshy's humanoid rig; the view animates them in code (bob, lean, lunge). Meshy's rigs also
+floating gown can't take Meshy's humanoid rig. Ember (the pet) is rigged by our own script instead (below); the rest
+are animated in code (bob, lean, lunge).
+
+### Ember: a quadruped rig without Meshy
+
+`rig-quadruped.mjs` rigs a static four-legged model from `opt.mjs`. No credits; needs the same gltf-transform
+packages as `opt.mjs`.
+
+```bash
+node rig-quadruped.mjs profile WORK/static-pet.glb          # a side profile: top, lowest point, feet, per Z slice
+node rig-quadruped.mjs pet WORK/static-pet.glb game-132/assets/models/pet.glb
+```
+
+1. **Skeleton.** 15 joints at landmarks read off the profile (`RIGS.pet`): hips, spine, chest, neck, head, two tail
+   bones, and an upper and a lower bone for each leg. The model's node transform is baked into the vertices first
+   (glTF ignores a skinned mesh's own transform).
+2. **Weights.** A vertex low in a leg's Z band, on that leg's side, takes only that leg's bones and the body bone it
+   hangs from, so legs never pull on each other; everything else takes the body, neck, head, tail and upper leg
+   bones. Weight falls off with the fourth power of distance to a bone in the legs and the third in the body (a
+   sharper falloff tore the rump open where the tail joins). The best four are kept.
+3. **Clips**, baked at 30 fps: `walk`, a 1.1 s trot with diagonal legs together, knees folding on the forward swing,
+   a bob, a roll through the spine and a sway in the tail; `attack`, a 0.6 s crouch, lunge and snap of the jaws.
+4. **Size.** Quantised like the other models (732 KB → 471 KB).
+
+`models.js` plays a clip named `walk` as the walk and `attack` as the attack when a model carries them. `actors.js`
+gives Ember a gait of 3 m/s per 1× (a fast trot at her 6.6 m/s; true foot speed would be a blur) and measures her
+speed from how far she moved. The Gorehound could be rigged the same way with its own landmarks. Meshy's rigs also
 come with a running clip (`run-*.glb`, not shipped): the game plays the walk faster instead. Models without an
 attack clip lunge forward instead.

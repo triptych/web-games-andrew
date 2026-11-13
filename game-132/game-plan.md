@@ -582,8 +582,8 @@ more) and dies at least as often.
 
 - A human pass on real hardware: it has only run under SwiftShader. Pacing, hit feel, readability in a big fight and
   whether the loot loop is moreish are unjudged by a person.
-- Only the humanoids are rigged; the pet, hounds, wraiths, gorgons and two bosses move with a code gait and lunge to
-  attack.
+- The humanoids and Ember are rigged; the hounds, wraiths, gorgons and two bosses move with a code gait and lunge
+  to attack. The Gorehound is four-legged too, so `dev/assets/rig-quadruped.mjs` could rig it with its own landmarks.
 - No barks (short lines for the hero, the pet and townsfolk); only the narrator and the bosses speak.
 - The wall cut-away sinks the walls just south of the player; a monster or a drop behind a wall elsewhere on screen
   can still be hidden.
@@ -591,6 +591,13 @@ more) and dies at least as often.
   single-player.
 
 ## Changelog
+
+### v1.2.0 (2026-11-13)
+- Ember is rigged. Meshy's auto-rigger only takes humanoids, so `dev/assets/rig-quadruped.mjs` fits a 15-bone
+  quadruped skeleton (hips, spine, chest, neck, head, a two-bone tail, two bones a leg) to the static Meshy model at
+  landmarks read off its side profile, skins each vertex to its nearest bones (legs kept apart by side and end), and
+  bakes two clips: a trot (diagonal legs together, knees folding on the forward swing, tail sway) and a lunging bite.
+  She trots at a speed measured from how far she moved, and bites when the sim says she does.
 
 ### v1.1.1 (2026-11-13)
 - Town on a phone: nothing in town could be opened by touch on a portrait phone. The "Tap: talk" prompt sat under the
