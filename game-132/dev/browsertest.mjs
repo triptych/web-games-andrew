@@ -10,7 +10,9 @@
  *   not blank, models loaded, music played and sound came out. No sideways scroll; the canvas fills the window.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the title, class and card, the touch
  *   deck appears, the stick walks, a tapped skill button casts, ❚❚ pauses and stays open after the lift, controls
- *   ≥ 44 px and on screen, no sideways scroll, the canvas matches the visible viewport.
+ *   ≥ 44 px and on screen, no sideways scroll, the canvas matches the visible viewport; in town, a tap on Ysolde
+ *   (from across the square, and under the stick zone) opens her shop, a tap buys, and the "Tap: talk" prompt is
+ *   uncovered and opens it too.
  * nostorage: localStorage throws; the game still boots and plays.
  * Fails on any console error, page error or failed request.
  *
@@ -295,6 +297,44 @@ async function phone(w, h) {
     await shot(page, `phone-${w}x${h}-inventory`);
     await tapSel('#panel [data-close]');
     await until(page, () => document.getElementById('panel').hidden, 'a tap on ✕ closes it');
+
+    // town on a phone: tap a person (even under the stick zone) to walk over and talk, buy, and tap the prompt
+    await Q(page, () => { const P = __tv.G.player; __tv.G.mons = []; __tv.G.shots = []; __tv.G.zones = []; __tv.act({ t: 'portal' }); P.gold = 99999; });
+    await until(page, () => __tv.G.area.id === 'town', 'the portal takes the phone player to town');
+    await Q(page, () => { const P = __tv.G.player, f = __tv.G.features.find((x) => x.id === 'ysolde'); P.x = f.x + 5; P.y = f.y + 3; });
+    await page.waitForTimeout(800);
+    const at = await Q(page, () => { const f = __tv.G.features.find((x) => x.id === 'ysolde'); const p = __tv.view.screenOf(f.x, f.y, 0.9); return { x: p.x, y: p.y, under: document.elementFromPoint(p.x, p.y)?.id }; });
+    await page.touchscreen.tap(at.x, at.y);
+    await until(page, () => /Ysolde/.test(document.getElementById('panel-title').textContent) && !document.getElementById('panel').hidden, `a tap on Ysolde (under #${at.under}) walks over and opens her shop`, 15000);
+    const bag0 = await Q(page, () => __tv.G.player.bag.filter(Boolean).length);
+    check(await tapSel('#panel [data-do*="gamble"]:not([disabled])'), 'the shop has a buy button');
+    await until(page, (n) => __tv.G.player.bag.filter(Boolean).length > n, 'a tap on it buys an item', 5000, bag0);
+    await tapSel('#panel [data-close]');
+    await until(page, () => document.getElementById('panel').hidden && !document.getElementById('prompt').hidden, 'beside her, the "Tap: talk" prompt shows');
+    const pr = await Q(page, () => { const r = document.getElementById('prompt').getBoundingClientRect(); return document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)?.id; });
+    check(pr === 'prompt', `nothing covers the prompt (on top: #${pr})`);
+    await tapSel('#prompt');
+    await until(page, () => !document.getElementById('panel').hidden, 'a tap on the prompt opens the shop');
+    await shot(page, `phone-${w}x${h}-shop`);
+    await tapSel('#panel [data-close]');
+    await until(page, () => document.getElementById('panel').hidden, 'and ✕ closes it again');
+    // a person under the walking stick's zone: a quick tap there is a tap on her, not a walk
+    const under = await Q(page, () => {
+        const P = __tv.G.player, f = __tv.G.features.find((x) => x.id === 'ysolde');
+        for (const [dx, dy] of [[1.2, 0.3], [3, -2], [4, -3], [2, -4], [5, -1]]) {
+            P.x = f.x + dx; P.y = f.y + dy;
+            __tv.view.camPos.x = P.x; __tv.view.camPos.z = P.y;
+            __tv.view.frame(__tv.G, 0, 0);
+            const p = __tv.view.screenOf(f.x, f.y, 0.9);
+            if (document.elementFromPoint(p.x, p.y)?.id === 'stick-zone') return { x: p.x, y: p.y };
+        }
+        return null;
+    });
+    if (under) {
+        await page.touchscreen.tap(under.x, under.y);
+        await until(page, () => !document.getElementById('panel').hidden, 'a quick tap on a person under the stick zone talks to her');
+        await tapSel('#panel [data-close]');
+    }
     reportErrors(`phone ${w}×${h}`);
 }
 

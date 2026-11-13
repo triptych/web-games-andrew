@@ -117,7 +117,7 @@ export class UI {
     }
 
     // ------------------------------------------------------------------ HUD
-    showHud(on) { $('hud').hidden = !on; this.setTouch(this.touchOn, on); }
+    showHud(on) { $('hud').hidden = !on; if (!on) $('prompt').hidden = true; this.setTouch(this.touchOn, on); }
     setTouch(on, playing = !$('hud').hidden) { this.touchOn = on; $('touch').hidden = !(on && playing); }
 
     buildSlots(G, onSlot) {
