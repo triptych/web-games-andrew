@@ -6,7 +6,7 @@ import {
 } from './config.js';
 import { ART, CG_FILES, faceStyle } from './assets.js';
 import { esc } from './vn.js';
-import { chapterOf, questChance, raidPower, advName } from './sim/game.js';
+import { chapterOf, questChance, raidPower, advName, gradeOf } from './sim/game.js';
 import { TRUSTS, TRUST_NAME, votes } from './sim/rules.js';
 import { CAST, ROMANCE, PLACES } from './sim/data/cast.js';
 import { ROSTER_BY_ID } from './sim/data/adventurers.js';
@@ -415,6 +415,42 @@ export class UI {
         $('log-body').innerHTML = this.vn.log.map((l) => `<p>${l.who ? `<b>${esc(l.who)}:</b> ` : ''}${l.narr ? `<i>${esc(l.text)}</i>` : esc(l.text)}</p>`).join('') || '<p class="dim">Nothing yet.</p>';
         this.openScreen('log');
         $('log-body').parentElement.scrollTop = 1e6;
+    }
+
+    /** The nightly assessment: what you did against what Pell expects, and a grade. */
+    showDayReport(G) {
+        const r = G.lastDay;
+        if (!r) return;
+        const cls = (share) => (share >= 0.99 ? 'good' : share >= 0.5 ? 'mid' : 'poor');
+        const rows = [];
+        const row = (what, you, expected, share) => rows.push(`<tr class="${share == null ? '' : cls(share)}"><td>${what}</td><td>${you}</td><td>${expected}</td></tr>`);
+        if (r.total) {
+            row('Petitioners heard', `${r.heard} of ${r.total}`, 'all of them', r.heard / r.total);
+            row('Graded true', `${r.right} of ${r.total}`, 'every one', r.right / r.total);
+        }
+        if (r.assigned + r.waiting) row('Jobs sent out', `${r.assigned} of ${r.assigned + r.waiting}`, 'none left on the board', r.assigned / (r.assigned + r.waiting));
+        if (r.wins + r.parts + r.fails) row('Parties home this morning', [r.wins && `${r.wins} done`, r.parts && `${r.parts} half done`, r.fails && `${r.fails} failed`].filter(Boolean).join(', '), 'every job done', (r.wins + r.parts / 2) / (r.wins + r.parts + r.fails));
+        if (r.apMax) row('Free actions used', `${r.apUsed} of ${r.apMax}`, 'all of them', r.apUsed / r.apMax);
+        row('Merit earned', `${r.merit >= 0 ? '+' : ''}${r.merit}`, `about +${r.expect} a day`, Math.max(0, Math.min(1, r.merit / r.expect)));
+        row('The guild\'s purse', `${r.gold >= 0 ? '+' : ''}${r.gold} gold`, 'after wages and takings', null);
+        const SAY = {
+            S: 'Not a blot on the page. I checked. I checked twice. I shall be insufferable about you at supper.',
+            A: 'A very good day. I have found one thing to frown at, on principle.',
+            B: 'Sound work. Tidy the loose ends tomorrow and I shall have nothing to say, which I will hate.',
+            C: 'It will do. It will only just do. Read the Handbook again before bed.',
+            D: 'I have seen worse days. Not many, and one of those involved a fire.',
+            F: 'I am not angry. I am writing it down, which is worse.',
+        };
+        const avg = G.gradeDays ? Math.round(G.gradeSum / G.gradeDays) : r.score;
+        const month = gradeOf(avg);
+        $('dayreport-body').innerHTML = `
+            <div class="dr-head"><span class="face big" style="${faceStyle('pell')}"></span>
+                <div><h2>Day ${r.day}: Pell's ledger</h2><div class="dim">${r.score} out of 100</div></div>
+                <div class="dr-grade g-${r.grade}" id="dr-grade" aria-label="Grade ${r.grade}">${r.grade}</div></div>
+            <table class="dr-table"><tr><th></th><th>You</th><th>Expected</th></tr>${rows.join('')}</table>
+            <p class="dr-say">“${SAY[r.grade]}”</p>
+            <p class="dim small">The month so far: <b class="g-${month}">${month}</b> (${avg} out of 100 over ${G.gradeDays} day${G.gradeDays === 1 ? '' : 's'}). Merit ${G.merit}${G.rank < 4 ? ` of the ${MERIT[G.rank + 1]} your next promotion needs` : ''}.</p>`;
+        this.openScreen('dayreport');
     }
 
     showEnding(G, album) {

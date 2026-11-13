@@ -3,7 +3,7 @@
 **Genre:** fantasy visual novel with mini-games and light idle elements: a guild-desk management sim with five romances
 **Engine:** vanilla HTML/CSS/JS, DOM rendering. Sim/view split: a pure seeded simulation in `js/sim/`; the UI reads `G` and drains `G.events`
 **Media:** every picture painted with fal (`fal-ai/nano-banana-2`); the music, effects and voices by ElevenLabs
-**Status:** v1.0.1
+**Status:** v1.1.0
 
 ---
 
@@ -31,7 +31,7 @@ novels (it copies the script engine of [game-127](../game-127/)), and on the rep
 2. **The board.** For each posted job pick one to three ready adventurers. They are away for the job's days.
 3. **Afternoon: the guild.** Two free actions (three as Vice-Guildmaster): visit one of five people, or play a
    mini-game. Collect the tavern till (it fills in real time, up to a daily cap). Improve rooms with gold.
-4. **End the day.** Unheard petitioners and expired jobs cost trust; upkeep goes out, tavern takings and vault
+4. **End the day.** Pell's ledger grades the day (S to F) against what he expected. Unheard petitioners and expired jobs cost trust; upkeep goes out, tavern takings and vault
    interest come in, idle adventurers drill in the yard; parties due home resolve.
 
 Story scenes play on set mornings. Reviews on days 7, 13, 19 and 25 promote you if your merit is enough. Day 28 is
@@ -168,7 +168,7 @@ in for any sound that fails to load.
 
 ## Testing
 
-See [dev/README.md](dev/README.md). `simtest.mjs` (250 checks): purity; every script linted (labels unique,
+See [dev/README.md](dev/README.md). `simtest.mjs` (258 checks): purity; every script linted (labels unique,
 every backdrop, picture, tune and effect listed and on disk); the rules; 2,000 petitions read back from their
 words; 60 route maps solved; determinism and save round trips on four days, mid-scene and mid-mini-game; **every
 one of the sixteen endings reached by its route through real play**; whole games at three skills with invariants.
@@ -198,6 +198,14 @@ one of the sixteen endings reached by its route through real play**; whole games
 - The clerk never appears on stage (only from behind in pictures), so the gender choice changes words, not art.
 
 ## Changelog
+
+### v1.1.0 (2026-11-13)
+- Added: the nightly assessment ("Pell's ledger"). `assessDay` scores the day out of 100 as a weighted average
+  (graded true 40, jobs sent 20, parties' results 20, free actions 10, merit against `MERIT_PACE` 10) of the
+  parts that applied, and gives a letter (S 95, A 85, B 70, C 55, D 40, F). `G.lastDay` holds it; `G.gradeSum` /
+  `G.gradeDays` the month's average.
+- Fixed: the Cauldron never lit the first ingredient of a recipe, so the first click always failed. The browser
+  test now reads the recipe off the screen.
 
 ### v1.0.1 (2026-11-13)
 - Fixed: the "spar with" drop-down was an unstyled white box with pale text. All selects and text fields share one style now; the browser test checks it.

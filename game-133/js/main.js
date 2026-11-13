@@ -183,6 +183,7 @@ function drain() {
             case 'promoted': ui.toast(`Promoted: ${e.job}!`); audio.sfx('rankup'); break;
             case 'rankup': ui.toast(`${advName(e.adv)} has earned ${RANKS[e.rank]} rank!`); audio.sfx('rankup', 0.7); break;
             case 'day': autosave(); hubMusic(); if (e.day > 1) audio.sfx('bell', 0.5); break;
+            case 'dayreport': if (!G.ending) { ui.showDayReport(G); audio.sfx('quill', 0.6); } break;
             case 'petition': audio.sfx('door', 0.6); break;
             case 'posted': audio.sfx('stamp'); break;
             case 'declined': audio.sfx('door', 0.4); break;
@@ -235,7 +236,7 @@ vn.onAdvance = () => { if (swallow <= 0) send({ t: 'next' }); };
 vn.onChoose = (i) => send({ t: 'choose', i });
 
 // ------------------------------------------------------------------ keys
-const CLOSABLE = ['menu', 'handbook', 'party', 'album', 'log', 'howto', 'settings', 'slots', 'newgame'];
+const CLOSABLE = ['dayreport', 'menu', 'handbook', 'party', 'album', 'log', 'howto', 'settings', 'slots', 'newgame'];
 window.addEventListener('keydown', (e) => {
     const tag = e.target?.tagName;
     if ((tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') && e.code !== 'Escape') return;
@@ -315,6 +316,7 @@ if (DEBUG) {
                 if (!G.scene && !G.mg) step(G, 2);
             }
             ui.mini.show = null;
+            if (ui.isOpen('dayreport')) ui.closeScreen('dayreport');
             refresh();
             return G.day;
         },

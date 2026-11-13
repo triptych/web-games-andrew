@@ -1,6 +1,6 @@
 // Lanternhall — tuning and constants. Shared by the sim, the UI and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'lanternhall.v1';
 export const SLOTS = 3;
 
@@ -57,3 +57,9 @@ export const MG = {
     dice: { rounds: 3, stake: 10, cap: 80 },
     spar: { rounds: 5, xp: 5 },
 };
+
+// The nightly assessment. A day's score is the weighted average of the parts that applied that day (0..100);
+// GRADES are the lowest score for each letter. Pell expects the merit a promotion needs, spread over its six days.
+export const DAY_WEIGHTS = { graded: 40, sent: 20, results: 20, actions: 10, merit: 10 };
+export const GRADES = [['S', 95], ['A', 85], ['B', 70], ['C', 55], ['D', 40], ['F', 0]];
+export const MERIT_PACE = [3, 4, 5, 5, 5];             // merit a day Pell expects, by chapter
