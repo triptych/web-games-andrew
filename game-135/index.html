@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#f6c21c">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Hard Hat Harbor — drive a toy box of trucks, dozers and cranes to rebuild a seaside town, one job at a time.">
+    <title>Hard Hat Harbor</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <canvas id="view" aria-label="Hard Hat Harbor game view"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="clip" class="plate">
+            <img id="clip-face" alt="" width="44" height="44">
+            <div id="clip-body">
+                <div id="clip-title">Job Board</div>
+                <div id="clip-text">Open the job board to pick a job.</div>
+                <div id="clip-bar"><i id="clip-fill"></i><span id="clip-count"></span></div>
+            </div>
+        </div>
+        <div id="hud-right">
+            <div id="hud-stars" class="plate" aria-label="Stars earned">★ <span id="stars-n">0</span></div>
+            <button id="btn-jobs" class="ibtn" aria-label="Job board">📋</button>
+            <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+        </div>
+        <div id="hint" class="plate" hidden></div>
+        <div id="meter" class="plate" hidden>
+            <div id="meter-label">Press when the hook is over the mark!</div>
+            <div id="meter-track"><i id="meter-zone"></i><i id="meter-hook"></i></div>
+        </div>
+        <div id="toybox" role="toolbar" aria-label="Toy box: choose a vehicle"></div>
+    </div>
+
+    <!-- Touch deck: shown on coarse pointers or after the first touch -->
+    <div id="touch" hidden>
+        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
+        <button id="btn-a" class="tbtn" aria-label="Action">HONK</button>
+    </div>
+
+    <!-- Screens -->
+    <div id="title" class="screen">
+        <div class="sheet title-sheet">
+            <h1 class="logo"><span>Hard Hat</span> <span>Harbor</span></h1>
+            <p class="tag">A toy box of trucks. A town to rebuild.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <p>Pick a job from the <b>job board</b>, climb into the right vehicle from the <b>toy box</b>, and follow the yellow arrow.</p>
+            <table>
+                <tr><td>↑ ↓ / W S</td><td>Drive forward, reverse</td></tr>
+                <tr><td>← → / A D</td><td>Steer</td></tr>
+                <tr><td>Space</td><td>Work: tip, dig, pour, lift, swing (hold to dig and pour). Otherwise: honk!</td></tr>
+                <tr><td>1 – 8, Q / E</td><td>Swap vehicle</td></tr>
+                <tr><td>J</td><td>Job board</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+            </table>
+            <p>Touch: drag on the left to drive, press the big button to work, tap a vehicle to swap. Gamepad: stick or triggers, A to work, bumpers to swap, Y for jobs, Start to pause.</p>
+            <p>Finish a job quickly for three stars. Nothing can go wrong: take your time.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
+            <label class="row">Touch controls
+                <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <p class="credits">Models by Meshy, pictures by fal, music, sounds and voices by ElevenLabs. Built with three.js.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Paused</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="jobs" class="screen" hidden>
+        <div class="sheet board">
+            <h2>Job Board <span id="jobs-stars"></span></h2>
+            <div id="jobs-list"></div>
+            <div class="sheet-foot"><button class="btn" data-close>Back to the truck</button></div>
+        </div>
+    </div>
+
+    <div id="talk" class="screen" hidden>
+        <div class="sheet talk-sheet">
+            <img id="talk-face" alt="" width="128" height="128">
+            <div class="talk-body">
+                <h2 id="talk-name"></h2>
+                <div id="talk-role"></div>
+                <p id="talk-text"></p>
+                <ol id="talk-steps"></ol>
+            </div>
+            <div class="sheet-foot"><button id="talk-ok" class="btn primary">Let's go!</button></div>
+        </div>
+    </div>
+
+    <div id="done" class="screen" hidden>
+        <div class="sheet talk-sheet">
+            <img id="done-face" alt="" width="128" height="128">
+            <div class="talk-body">
+                <h2>Job done!</h2>
+                <div id="done-job"></div>
+                <div id="done-stars" aria-label="Stars"></div>
+                <p id="done-text"></p>
+            </div>
+            <div class="sheet-foot"><button id="done-ok" class="btn primary">Hooray!</button></div>
+        </div>
+    </div>
+
+    <div id="finale" class="screen" hidden>
+        <div class="sheet cert">
+            <img id="finale-badge" src="art/badge.webp" alt="The Golden Hard Hat" width="150" height="175">
+            <h2>The Golden Hard Hat</h2>
+            <p>awarded to the <b>Master Builder of Hard Hat Harbor</b></p>
+            <p id="finale-text"></p>
+            <div class="sheet-foot"><button id="finale-ok" class="btn primary">Keep driving</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Hard Hat Harbor needs JavaScript.</p></noscript>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+        }
+    }
+    </script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>

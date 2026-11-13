@@ -26,25 +26,26 @@ export const SPAWN = { x: 20, y: 66, a: 0 };
 
 /**
  * Buildings. `from: job` exists once that job is done; `until: [job, step]` exists until that step of the job is done.
- * h is the height the view draws. kind picks the look (and the Meshy model, when there is one).
+ * `tall` is the height the view draws, `f` the way the front door faces (0 south, 1 east, 2 north, 3 west), and kind
+ * picks the look (and the Meshy model, when there is one).
  */
 export const BUILDINGS = [
     { id: 'townhall', kind: 'townhall', x: 40, y: 23, w: 16, h: 13, tall: 11 },
     { id: 'school', kind: 'school', x: 70, y: 23, w: 12, h: 11, tall: 8 },
-    { id: 'garage', kind: 'garage', x: 6, y: 54, w: 10, h: 7, tall: 5 },
-    { id: 'cannery', kind: 'cannery', x: 40, y: 55, w: 16, h: 13, tall: 10, until: ['cannery', 0] },
-    { id: 'bakery', kind: 'shop', x: 70, y: 55, w: 12, h: 8, tall: 6 },
-    { id: 'store', kind: 'shop', x: 70, y: 66, w: 12, h: 8, tall: 6, hue: 1 },
+    { id: 'garage', kind: 'garage', f: 1, x: 6, y: 54, w: 10, h: 7, tall: 5 },
+    { id: 'cannery', kind: 'cannery', f: 2, x: 40, y: 55, w: 16, h: 13, tall: 10, until: ['cannery', 0] },
+    { id: 'bakery', kind: 'shop', f: 3, x: 70, y: 55, w: 12, h: 8, tall: 6 },
+    { id: 'store', kind: 'shop', f: 3, x: 70, y: 66, w: 12, h: 8, tall: 6, hue: 1 },
     { id: 'cliff', kind: 'rock', x: 5, y: 21, w: 22, h: 4, tall: 6 },
-    { id: 'barn', kind: 'barn', x: 116, y: 22, w: 9, h: 9, tall: 8 },
+    { id: 'barn', kind: 'barn', f: 3, x: 116, y: 22, w: 9, h: 9, tall: 8 },
     { id: 'statue', kind: 'statue', x: 47, y: 39, w: 2, h: 2, tall: 5, from: 'square' },
     { id: 'gazebo', kind: 'gazebo', x: 40, y: 66, w: 5, h: 5, tall: 4, from: 'park' },
-    { id: 'home1', kind: 'house', x: 96.5, y: 20.5, w: 7, h: 7, tall: 6, from: 'homes', hue: 0 },
-    { id: 'home2', kind: 'house', x: 96.5, y: 30.5, w: 7, h: 7, tall: 6, from: 'homes', hue: 1 },
-    { id: 'home3', kind: 'house', x: 96.5, y: 60.5, w: 7, h: 7, tall: 6, from: 'homes', hue: 2 },
+    { id: 'home1', kind: 'house', f: 1, x: 96.5, y: 20.5, w: 7, h: 7, tall: 6, from: 'homes', hue: 0 },
+    { id: 'home2', kind: 'house', f: 1, x: 96.5, y: 30.5, w: 7, h: 7, tall: 6, from: 'homes', hue: 1 },
+    { id: 'home3', kind: 'house', f: 1, x: 96.5, y: 60.5, w: 7, h: 7, tall: 6, from: 'homes', hue: 2 },
     // rows of houses along the north and south edges
     ...[8, 19, 40, 51, 70].map((x, i) => ({ id: 'hn' + i, kind: 'house', x, y: 3, w: 8, h: 6, tall: 6, hue: i })),
-    ...[8, 19, 40, 51, 70].map((x, i) => ({ id: 'hs' + i, kind: 'house', x, y: 87, w: 8, h: 6, tall: 6, hue: i + 2 })),
+    ...[8, 19, 40, 51, 70].map((x, i) => ({ id: 'hs' + i, kind: 'house', f: 2, x, y: 87, w: 8, h: 6, tall: 6, hue: i + 2 })),
 ];
 
 export const rectHas = (r, x, y, pad = 0) => x > r.x - pad && x < r.x + r.w + pad && y > r.y - pad && y < r.y + r.h + pad;

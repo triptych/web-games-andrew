@@ -9,6 +9,9 @@ import { VEHICLES } from '../../js/config.js';
 const WORLD = 'HARD HAT HARBOR, a cheerful construction game for children about toy trucks rebuilding a small seaside town';
 export const SYS = {
     toon: `You are the illustrator of ${WORLD}. Style: a 1990s children's CD-ROM edutainment cartoon: bold clean black outlines, flat bright primary colours with simple two-tone cel shading, friendly rounded shapes, big expressive eyes. No text, letters, logos, frames or UI.`,
+    // scenes and objects: the first title came back with faces on the trucks (eyes in the windscreen AND eyes for
+    // headlights, a second face on the bulldozer blade), which the in-game models don't have
+    scene: `You are the illustrator of ${WORLD}. Style: a 1990s children's CD-ROM edutainment cartoon: bold clean black outlines, flat bright primary colours with simple two-tone cel shading, friendly rounded shapes. The vehicles and objects are ordinary toys, NOT characters: they have no faces, no eyes, no mouths, no eyebrows anywhere on them. No text, letters, logos, frames or UI.`,
     ref: `You are the toy designer of ${WORLD}. A single chunky die-cast toy rendered as a clean 3D game model: bright saturated glossy paint, simple rounded shapes, thick black rubber tyres or tracks, no driver, no people. ONE subject, whole subject visible and centred, three-quarter view from the front left and slightly above, soft even studio lighting, plain flat light-grey background, no shadow, no floor, no text, no logos, no brand names.`,
 };
 
@@ -18,8 +21,8 @@ const portraits = Object.entries(GIVERS).map(([id, g]) => job(`por-${id}`, 'toon
     `A head and shoulders portrait of ${g.name}, ${g.art}. Smiling warmly at the viewer, centred, on a plain flat sky-blue background.`));
 
 const title = [
-    job('title', 'toon', 'A wide cheerful scene: a yellow dump truck, a yellow bulldozer, a yellow excavator and a red crane truck, all chunky toys with friendly headlights, parked in a row on a grassy hill at sunrise, looking down on a small colourful harbor town with a river, a half-built bridge, a clock tower and little houses. Big empty blue sky in the upper half.', '16:9', '2K'),
-    job('badge', 'toon', 'A shiny golden construction hard hat with a small star on its front, sitting on a round red rosette ribbon award, centred, on a plain flat magenta (#ff00ff) background.'),
+    job('title', 'scene', 'A wide cheerful scene: a yellow dump truck, a yellow bulldozer, a yellow excavator and a red crane truck, chunky toy vehicles parked in a row on a grassy hill at sunrise, looking down on a small colourful harbor town with a river, a half-built bridge, a clock tower and little houses. Big empty blue sky in the upper half. The trucks are plain toys with no faces at all: empty dark glass cab windows with nobody inside, simple round yellow headlights that are just lamps, plain metal grilles and bumpers, a plain bulldozer blade. Nothing in the picture has eyes or a mouth, not the trucks, not the sun, not the clouds.', '16:9', '2K'),
+    job('badge', 'scene', 'A shiny golden construction hard hat, a plain helmet with no face, no eyes and no mouth, with one small embossed star on its front, sitting on a round red rosette ribbon award with two ribbon tails, centred, on a plain flat magenta (#ff00ff) background.'),
 ];
 
 const VEH_ART = {
