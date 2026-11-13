@@ -104,7 +104,7 @@ export function buildIsle(low) {
 
     // trees: one Meshy model per kind, drawn as instances. Until it loads (or with ?models=0) a plain trunk and
     // two leaf clumps stand in.
-    const all = trees().filter((_, i) => !low || i % 2 === 0);
+    const all = trees().filter((_, i) => !low || i % 3 === 0);      // low quality draws a third of the trees (they still block the way)
     const o = new THREE.Object3D(), col = new THREE.Color(), m4 = new THREE.Matrix4();
     for (const [kind, file, tall] of [[0, 'tree', 8.5], [1, 'tree2', 5.5]]) {
         const list = all.filter((t) => t.kind === kind);
@@ -134,6 +134,7 @@ export function buildIsle(low) {
                 const mat = m.material.clone();
                 mat.color.setScalar(1.45);           // the canopy's painted greens are dark; lift them to sit with the meadow
                 mat.metalness = 0; mat.roughness = 1;
+                mat.side = THREE.FrontSide;          // back-to-back leaf faces fight when both sides are drawn
                 const im = new THREE.InstancedMesh(m.geometry, mat, list.length);
                 list.forEach((t, i) => {
                     const s = k0 * t.s * (0.8 + hash3(i, 6, kind) * 0.35);

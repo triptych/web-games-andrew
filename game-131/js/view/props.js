@@ -141,7 +141,12 @@ export function makeProp(look, onModel) {
         loadModel(m.file).then((g) => {
             if (!g) return;
             const root = look === 'fray' ? g.scene : g.scene.clone(true);
-            if (!g.userData.matte) { g.userData.matte = true; g.scene.traverse((o) => { if (o.material) { o.material.metalness = 0; o.material.roughness = Math.max(0.8, o.material.roughness); } }); }
+            if (!g.userData.matte) {
+                g.userData.matte = true;
+                // Single-sided: Meshy closes thin parts with two faces back to back in one plane, and its materials ask
+                // for both sides to be drawn, so each pair fights for the same pixels (the oak's leaves flickered).
+                g.scene.traverse((o) => { if (o.material) { o.material.metalness = 0; o.material.roughness = Math.max(0.8, o.material.roughness); o.material.side = THREE.FrontSide; } });
+            }
             const b = new THREE.Box3().setFromObject(root), size = b.getSize(new THREE.Vector3());
             const s = m.h / (size.y || 1);
             root.scale.multiplyScalar(s);
