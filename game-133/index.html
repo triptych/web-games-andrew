@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#1a1220">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Lanternhall — a fantasy visual novel with mini-games. Run the quest desk of an adventurers' guild: grade petitions, send Copper rookies and Platinum legends, fall in love, and rise from apprentice clerk to Guildmaster. Sixteen endings.">
+    <title>Lanternhall</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Alegreya:ital,wght@0,400;0,600;1,400&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="app">
+        <!-- the painted stage -->
+        <div id="bg" class="layer"><div class="pic a"></div><div class="pic b"></div></div>
+        <div id="actors" class="layer" aria-hidden="true"></div>
+        <div id="cg" class="layer"><div class="pic"></div></div>
+
+        <header id="hud" hidden>
+            <div class="when"><b id="hud-day">Day 1</b> <span id="hud-chapter"></span></div>
+            <div class="chips">
+                <span class="chip job" id="hud-job" title="Your post"></span>
+                <span class="chip" title="Gold">🪙 <b id="hud-gold">0</b></span>
+                <span class="chip" title="Renown">⭐ <b id="hud-renown">0</b></span>
+                <span class="chip" title="Free actions this afternoon">⏳ <b id="hud-ap">0</b></span>
+            </div>
+            <nav class="btns">
+                <button id="btn-handbook" class="ibtn" aria-label="The Guild Handbook" title="Handbook (H)">📖</button>
+                <button id="btn-menu" class="ibtn" aria-label="Menu" title="Menu (Esc)">☰</button>
+            </nav>
+        </header>
+
+        <!-- the desk: tabs and the current tab's cards -->
+        <main id="panel" hidden>
+            <nav id="tabs" class="tabs" role="tablist">
+                <button data-tab="desk" class="tab on">Desk</button>
+                <button data-tab="board" class="tab">Board</button>
+                <button data-tab="roster" class="tab">Roster</button>
+                <button data-tab="guild" class="tab">Guild</button>
+            </nav>
+            <div id="tab-body"></div>
+            <div id="panel-foot"><button id="btn-endday" class="btn primary">End the Day</button></div>
+        </main>
+
+        <!-- the visual novel box -->
+        <section id="dlg" hidden>
+            <div class="box">
+                <div class="name" id="dlg-name"></div>
+                <div class="text" id="dlg-text"></div>
+                <div class="choices" id="dlg-choices"></div>
+                <div class="more" id="dlg-more" aria-hidden="true">▼</div>
+            </div>
+            <div class="vn-ctrl">
+                <button data-vn="log" class="vbtn" title="History (L)">Log</button>
+                <button data-vn="auto" class="vbtn" title="Auto (A)">Auto</button>
+                <button data-vn="skip" class="vbtn" title="Skip (Tab)">Skip</button>
+                <button data-vn="menu" class="vbtn" title="Menu (Esc)">Menu</button>
+            </div>
+        </section>
+        <div id="scene-title" hidden></div>
+        <div id="floats" aria-hidden="true"></div>
+    </div>
+
+    <!-- ============================================================ screens -->
+    <div id="title" class="screen title">
+        <div class="title-art"></div>
+        <div class="sheet glass">
+            <h1 class="logo">Lanternhall</h1>
+            <p class="tag">A guild clerk's tale. Thirty days. Sixteen endings.</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
+                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="load" class="btn">Load</button>
+                <button data-act="album" class="btn">Endings</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="newgame" class="screen modal" hidden>
+        <div class="sheet">
+            <h2>A Letter of Appointment</h2>
+            <p class="dim">Lanternhall, the Adventurers' Guild of Brightmoor, is pleased to offer the post of Apprentice Clerk to…</p>
+            <label class="row">Your name <input id="ng-name" maxlength="16" autocomplete="off" spellcheck="false" value="Robin"></label>
+            <div class="row">You are
+                <div class="seg" id="ng-gender" role="radiogroup" aria-label="Gender">
+                    <button data-g="f" class="btn small" role="radio">a woman</button>
+                    <button data-g="m" class="btn small" role="radio">a man</button>
+                    <button data-g="n" class="btn small on" role="radio">neither</button>
+                </div>
+            </div>
+            <p class="dim small">This changes how people speak of you (she, he or they). Everyone you can fall for will fall for you either way.</p>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button><button id="ng-go" class="btn primary">Take the coach</button></div>
+        </div>
+    </div>
+
+    <div id="slots" class="screen modal" hidden>
+        <div class="sheet">
+            <h2 id="slots-head">Load</h2>
+            <div id="slots-list" class="slot-list"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="menu" class="screen modal" hidden>
+        <div class="sheet narrow">
+            <h2>Menu</h2>
+            <nav class="menu" id="menu-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="save" class="btn">Save</button>
+                <button data-act="load" class="btn">Load</button>
+                <button data-act="album" class="btn">Endings</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="handbook" class="screen modal" hidden>
+        <div class="sheet wide">
+            <h2>The Guild Handbook</h2>
+            <div id="handbook-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="petition" class="screen modal" hidden>
+        <div class="sheet wide">
+            <div id="petition-body"></div>
+        </div>
+    </div>
+
+    <div id="party" class="screen modal" hidden>
+        <div class="sheet wide">
+            <h2 id="party-head">Choose a party</h2>
+            <div id="party-body"></div>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button><button id="party-go" class="btn primary">Send them</button></div>
+        </div>
+    </div>
+
+    <div id="mg" class="screen modal" hidden>
+        <div class="sheet wide">
+            <h2 id="mg-head"></h2>
+            <div id="mg-body"></div>
+        </div>
+    </div>
+
+    <div id="album" class="screen modal" hidden>
+        <div class="sheet wide">
+            <h2>Endings</h2>
+            <p class="dim" id="album-count"></p>
+            <div id="album-body" class="album"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="log" class="screen modal" hidden>
+        <div class="sheet wide">
+            <h2>History</h2>
+            <div id="log-body"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen modal" hidden>
+        <div class="sheet wide">
+            <h2>How to Play</h2>
+            <p>You keep the quest desk of Lanternhall. Each day:</p>
+            <ol>
+                <li><b>Hear petitioners</b> (Desk). Read what they say and <b>grade the job</b>: the creature, how many, where, and any omen each add threat; every two points is a rank. The 📖 Handbook has the tables.</li>
+                <li><b>Send adventurers</b> (Board). Pick up to three for each posted job. Their rank and their skill at the kind of work decide the odds. They are away for the days the job takes.</li>
+                <li><b>Spend your afternoon</b> (Guild). Each free action ⏳ is a visit to someone, or a mini-game in one of the rooms.</li>
+                <li><b>End the day.</b> Parties come home, the tavern pays in, wages go out.</li>
+            </ol>
+            <p>Good work earns <b>merit</b>; every sixth day Pell reviews you for promotion. Townsfolk, the Crown, the Wild Folk and the Fellowship each trust you more or less, and on day 29 they vote.</p>
+            <table>
+                <tr><td>Enter / Space / click</td><td>Next line</td></tr>
+                <tr><td>1 – 4</td><td>Choose an answer</td></tr>
+                <tr><td>A · Tab · L</td><td>Auto · skip · history</td></tr>
+                <tr><td>H · Esc</td><td>Handbook · menu</td></tr>
+            </table>
+            <p class="dim small">Art painted with fal; music, sound effects and voices by ElevenLabs.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen modal" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
+            <label class="row">Text speed
+                <select id="set-speed"><option value="0.6">Slow</option><option value="1">Normal</option><option value="2">Fast</option><option value="99">Instant</option></select>
+            </label>
+            <button id="set-delete" class="btn danger">Delete all saves</button>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="ending" class="screen modal" hidden>
+        <div class="sheet wide ending">
+            <div class="end-art" id="ending-art"></div>
+            <p class="dim" id="ending-kicker">Ending</p>
+            <h2 id="ending-name"></h2>
+            <p id="ending-text"></p>
+            <p class="dim" id="ending-count"></p>
+            <div class="sheet-foot"><button id="ending-album" class="btn">Endings</button><button id="ending-again" class="btn primary">Back to Title</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Lanternhall needs JavaScript.</p></noscript>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
