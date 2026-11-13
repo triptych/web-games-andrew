@@ -1,0 +1,138 @@
+{
+ "sprites": {
+  "cow": [
+   220,
+   178
+  ],
+  "chicken": [
+   110,
+   140
+  ],
+  "pig": [
+   190,
+   164
+  ],
+  "sheep": [
+   190,
+   154
+  ],
+  "golden": [
+   220,
+   198
+  ],
+  "farmer": [
+   209,
+   240
+  ],
+  "townie": [
+   214,
+   240
+  ],
+  "gunner": [
+   190,
+   240
+  ],
+  "agent": [
+   147,
+   240
+  ],
+  "tinfoil": [
+   123,
+   240
+  ],
+  "tank": [
+   300,
+   183
+  ],
+  "laser": [
+   196,
+   220
+  ],
+  "boss": [
+   560,
+   314
+  ],
+  "jet": [
+   300,
+   103
+  ],
+  "ufo": [
+   260,
+   167
+  ],
+  "ufo-crash": [
+   260,
+   164
+  ],
+  "mothership": [
+   900,
+   379
+  ]
+ },
+ "backdrops": {
+  "farm": {
+   "size": [
+    1697,
+    720
+   ],
+   "ground": 0.87
+  },
+  "night": {
+   "size": [
+    1697,
+    720
+   ],
+   "ground": 0.795
+  },
+  "corn": {
+   "size": [
+    1697,
+    720
+   ],
+   "ground": 0.84
+  },
+  "town": {
+   "size": [
+    1697,
+    720
+   ],
+   "ground": 0.87
+  },
+  "base": {
+   "size": [
+    1697,
+    720
+   ],
+   "ground": 0.83
+  },
+  "desert": {
+   "size": [
+    1697,
+    720
+   ],
+   "ground": 0.965
+  },
+  "finale": {
+   "size": [
+    1697,
+    720
+   ],
+   "ground": 0.845
+  }
+ },
+ "portraits": [
+  "mother-0",
+  "mother-1",
+  "mother--1"
+ ],
+ "pickups": [
+  "wrench",
+  "tape",
+  "turbo",
+  "mega",
+  "shield",
+  "clock",
+  "star",
+  "heart"
+ ]
+}

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **UFOops!** (game-134) v1.0.0: a casual arcade abduction game drawn and voiced like a 1980s Saturday-morning cartoon. Canvas 2D, sim/view layout ([game-plan.md](game-134/game-plan.md)).
+  - **The saucer and the beam:** floaty flight, a held tractor-beam cone that lifts walkers by weight and overheats, a hold banked under the Mother Ship, docking once the quota is in, and defects from damage that make the saucer sputter, hiccup and honk ([game.js](game-134/js/sim/game.js), [actors.js](game-134/js/sim/actors.js)).
+  - **The countryside fights back:** shotgun farmers, agents in black (beam-proof, nets), tinfoil-hat dudes (the beam backfires; camera flashes reverse your controls), tanks, laser batteries, jets and the Buzzkill 9000. Drop livestock on them: humans are bonked and can then be beamed up, armour is wrecked, the boss loses a hit point.
+  - **Episodes and report cards:** eight episodes from a farm to a secret desert hangar ([data.js](game-134/js/sim/data.js)); Mother grades each on quota, variety, her special order, extras and dents, and offers three of seven repairs; arcade continues at half score.
+  - **Look and sound:** 31 images painted with fal (17 sprites, 7 backdrops, 7 pickups, Mother in three moods; [art README](game-134/dev/art/README.md)); 4 music tracks, 27 effects and 47 voice lines for Mother, Zib and General Grumbles from ElevenLabs ([audio README](game-134/dev/audio/README.md)); the code-drawn cartoon and the Web Audio synth stay as fallbacks.
+  - **Tests:** [simtest.mjs](game-134/dev/simtest.mjs) (198 checks; the bot plays whole games at three skill levels) and [browsertest.mjs](game-134/dev/browsertest.mjs) (desktop, two touch-only phones, blocked storage, every painting and sound file decoding).
+- Launcher: UFOops! in `js/gamedata.js` (genre `arcade`), its card style in `css/styles.css` and its Garden preview `garden/img/games/game-134.jpg`.
+- Docs: splitting a voice take that pauses inside its lines, in [learnings.md](docs/generic/learnings.md).
+
 ### Fixed
 - **Fray & the Spiral Isle** (game-131) v1.1.1: a patch of the oak's leaves flickered between two textures (z-fighting), most visibly in the Mosswood.
   - Cause: Meshy closes thin parts (leaves, nets, planks) with two faces back to back in exactly the same plane, and its materials ask for both sides of every face to be drawn, so each pair competed for the same pixels. Nearly every model had some: the oak 15 pairs, the castle tower 234.

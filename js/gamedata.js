@@ -2057,6 +2057,23 @@ const games = [
             { emoji: '🏁', label: '16 endings' },
             { emoji: '🖼️', label: 'DOM' }
         ]
+    },
+    {
+        id: 'game-134',
+        title: 'UFOops!',
+        description: "A casual arcade abduction romp in Canvas 2D, drawn and voiced like a 1980s Saturday-morning cartoon. You are Zib, a little one-eyed alien in a slightly defective flying saucer (one dent, one duct-tape patch, an antenna that won't stay straight), and Mother is on the radio. Fly over farms, cornfields, a small town, an army base and a secret desert hangar, beam up cows, chickens, pigs, sheep, farmers and the odd golden cow, and carry them up to the Mother Ship to bank them. Shotgun farmers fire spreads at you, agents in black suits shrug off the beam and net you, tinfoil-hat conspiracy nuts zap the beam back and dazzle you with flash cameras, tanks lob shells, laser batteries mark your column and fire, and fighter jets scream across announced lanes. Drop a cow on an agent's head and beam him up while he sees stars; drop a pig on a tank and it's scrap. Every hit knocks a specimen loose and adds a defect: sputters, hiccups and honks until you find the duct tape. Between episodes Mother grades you on a report card (quota, variety, her special order, extras and dents) from D to A+, then lets you pick a repair: a bigger hold, a wider beam, more hull, faster thrusters. Eight episodes end with General Grumbles in the Buzzkill 9000, a tank the size of a barn that only falling livestock can stop. Art painted with fal; music, effects and the voices of Mother, Zib and the General by ElevenLabs. Keyboard, gamepad or touch.",
+        icon: '🛸',
+        folder: 'game-134',
+        version: '1.0.0',
+        cssClass: 'ufoops',
+        genre: 'arcade',
+        tags: [
+            { emoji: '🐄', label: 'Abduction' },
+            { emoji: '📺', label: '80s cartoon' },
+            { emoji: '📝', label: 'Report cards' },
+            { emoji: '🎙️', label: 'Voiced' },
+            { emoji: '🖌️', label: 'Canvas 2D' }
+        ]
     }
 ];
 

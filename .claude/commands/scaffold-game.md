@@ -4639,6 +4639,8 @@ Its `dev/art/` and `dev/audio/` hold the scripts and READMEs to copy.
 - Voices: `creative_list_voices` with `use_cases: ['characters_animation']`, then one `eleven_v4` take per
   character holding all of their lines separated by `[long pause]`, with audio tags for the delivery.
   Split the take at its longest pauses with ffmpeg `silencedetect` (`game-126/dev/audio/process.py`).
+  If a take has more pauses than lines − 1 (short lines, delivery tags), transcribe it instead: `creative_transcribe_audio`
+  on the TTS node is free and times every `[long pause]`; cut at their middles (`game-134/dev/audio/process.py` `CUTS`).
   Always `generations_count: 1`.
 - Encode small: music 80 kbps stereo with a fade at the loop seam, effects 96 kbps mono, voices 64 kbps mono.
 - In the game: decode effects and voices into `AudioBuffer`s, play music through `<audio>` elements routed
