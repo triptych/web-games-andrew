@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Tests:** [simtest.mjs](game-133/dev/simtest.mjs) (250 checks, including every ending reached by a bot route and every petition read back from its text) and [browsertest.mjs](game-133/dev/browsertest.mjs) (desktop, two touch-only phones, blocked storage).
 - Launcher: Lanternhall added to `js/gamedata.js` (genre `story`), its card style to `css/styles.css`, its preview to `garden/img/games/game-133.jpg`.
 - Docs: [learnings.md](docs/generic/learnings.md) § Game 133 (one route per ending, grading from words, expression sheets, keying each cell on its own border, an event field that shadowed its type).
+
 ### Fixed
 - **Giant's Vault** (game-132) v1.2.1: after Ember was knocked down and revived she kept running on her side (reported by a player). The rigged model never reset the tilt that a downed pet gets; [actors.js](game-132/js/view/actors.js) now sets every rigged model upright each frame. [browsertest.mjs](game-132/dev/browsertest.mjs) knocks her down and checks she stands again, and no longer stands the hero inside a wall beside its training dummy.
 
