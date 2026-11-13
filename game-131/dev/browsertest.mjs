@@ -140,8 +140,9 @@ async function desktop() {
     // read the picture back from a fixed viewpoint (the Rootshrine's ring, seen level): where the walking and
     // looking above leave the camera varies, and one tree crown or plain sky can fill the view
     await Q(page, () => { __si.input.pitch = 0; __si.goto('rootMural', 3); });
-    await until(page, () => __si.view.info.tris > 1000 && Math.abs(__si.view.camera.rotation.x) < 0.01, 'the view has drawn the Rootshrine');
+    await until(page, () => __si.view.info.tris > 1000 && Math.abs(__si.view.camera.rotation.x) < 0.01, 'the view has drawn the Rootshrine', 120000);      // the first frame here uploads the ring's models: slow under SwiftShader
     await page.waitForTimeout(800);
+    if (process.env.VERBOSE) console.log('   ', JSON.stringify(await Q(page, () => ({ tris: __si.view.info.tris, rx: __si.view.camera.rotation.x, pitch: __si.input.pitch, locked: __si.input.locked, screens: __si.ui.stack, pos: [__si.G.player.x, __si.G.player.z, __si.G.player.yaw] }))));
     const pic = await picture(page);
     // a blank or fogged-out frame is one colour: require several, none covering most of the screen (sky, sea, sand and wood are flat low-poly colours, so the count is small)
     check(pic.colours >= 5 && pic.top < 0.7 && pic.mean > 0.08 && pic.mean < 0.95, `the picture is not blank or washed out (${pic.colours} colours, the commonest ${(pic.top * 100).toFixed(0)}% of the screen, brightness ${pic.mean.toFixed(2)})`);

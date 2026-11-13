@@ -2,7 +2,7 @@
 
 **Genre:** peaceful first-person exploration adventure
 **Engine:** three.js r165, sim/view layout. Art by fal, 3D models by Meshy, audio by ElevenLabs; every asset has a code-made stand-in
-**Status:** v1.1.0
+**Status:** v1.1.1
 
 ---
 
@@ -119,6 +119,10 @@ was the world's (a tree could pinch a path the lattice thought open); see docs/g
 - The Cold Hearth card is composed from the hearth's prop render (the image model declined that painting).
 
 ## Changelog
+
+### v1.1.1 (2026-11-13)
+- Fixed flickering leaves: the Meshy models are drawn single-sided (their thin parts are two faces back to back in one plane); same-facing overlaps in twelve models nudged apart with `dev/assets/unfight.mjs`.
+- Low quality draws a third of the trees.
 
 ### v1.1.0 (2026-11-12)
 - The trees and every remaining code-built prop are Meshy models (28 new, 38 in all); trees are instanced.

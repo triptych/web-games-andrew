@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Fray & the Spiral Isle** (game-131) v1.1.1: a patch of the oak's leaves flickered between two textures (z-fighting), most visibly in the Mosswood.
+  - Cause: Meshy closes thin parts (leaves, nets, planks) with two faces back to back in exactly the same plane, and its materials ask for both sides of every face to be drawn, so each pair competed for the same pixels. Nearly every model had some: the oak 15 pairs, the castle tower 234.
+  - Fix: every model is drawn single-sided ([props.js](game-131/js/view/props.js), [build.js](game-131/js/view/build.js)), so each face of a pair shows only from its own side. Checked by eye that nothing went hollow (canopies, the hut's net, Fray).
+  - Twelve models also had a few faces overlapping while facing the same way (a label on a barrel, the organ's pipes); [dev/assets/unfight.mjs](game-131/dev/assets/unfight.mjs) reports both kinds and lifts the outer face of those a hair. The cistern is left as generated: its flagged faces are the grate lying on the water, which looks right.
+  - Low quality (`&q=low`) now draws a third of the trees; with half of them software rendering sometimes took over 30 seconds for a frame and a browser-test step timed out.
+
+### Fixed
 - **Lanternhall** (game-133) v1.0.1: the "spar with" drop-down in the Guild tab was a white box with pale text (reported by a player). Only fields inside a settings row were styled; a select in a desk card got the browser's default background with the page's light text colour. Every select and text field is now styled in one rule, and [browsertest.mjs](game-133/dev/browsertest.mjs) fails if any drop-down has a light background.
 
 ### Added

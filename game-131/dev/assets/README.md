@@ -43,3 +43,22 @@ KEEP=1 node opt.mjs walk-fray.glb ../../assets/models/fray.glb 1024       # KEEP
 
 `MODELS` in `props.js` says which look takes which file and how tall it stands. Nobody has judged the models' backs,
 or how Fray's walk reads at her size, on a real GPU.
+
+## Coincident faces (v1.1.1)
+
+Meshy closes thin parts with two faces back to back in exactly the same plane, and marks its materials double-sided.
+Drawn that way each pair z-fights (a patch of the oak's leaves flickered). The game therefore draws every model
+single-sided (`material.side = FrontSide` in `js/view/props.js` and for the instanced trees in `js/view/build.js`).
+
+`unfight.mjs` reports, per model, the back-to-back pairs (harmless once single-sided) and the pairs that overlap while
+facing the same way (which still fight), and with `--fix` lifts the outer face of each of those along its normal:
+
+```bash
+node unfight.mjs ../../assets/models/*.glb             # report
+node unfight.mjs --fix ../../assets/models/barrel.glb  # nudge and rewrite, once, on a freshly shrunk file
+```
+
+Fixed this way: barrel, loom, organ, ruin, stone, telescope, tidestair, tower, vane, vine, wall, well. The cistern
+is left as generated (229 flagged pairs are its grate lying on the water, which looks right; lifting them made it
+worse). Fray's one pair is left too. After shrinking a new model, run the report before shipping it.
+
