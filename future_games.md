@@ -64,5 +64,6 @@ If picking the next 2-3 games to build, the strongest picks for filling actual t
 
 ## Notes
 
+- For a newer list written after game-133, with twenty pitches built on mechanics the collection lacks, see [docs/generic/game-ideas.md](docs/generic/game-ideas.md).
 - Check [docs/generic/suggestions.md](docs/generic/suggestions.md) before starting any of these — that doc tracks genre/mechanic ideas independent of theme and should stay in sync (mark items off in both docs when completed).
 - Follow the standard scaffold: pick an engine per the patterns in [docs/kaplay/](docs/kaplay/), [docs/phaser/](docs/phaser/), or [docs/threejs/](docs/threejs/); write a `game-plan.md` in the new `game-0##/` folder; update [js/gamedata.js](js/gamedata.js) and [README.md](README.md) on completion.

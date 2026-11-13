@@ -33,6 +33,7 @@ This directory is the **canonical reference for AI-assisted development** in thi
 - **Wrack & Wonder:** Generate the laws that define the puzzle from the seed, including meanings, word order, reagent essences, opposition, and timing; write objectives against effects so every generated vocabulary remains solvable. Keep the bot honest by allowing its notebook to record only evidence, and prove gated regions inaccessible with the same movement rules used by the game and its route finder.
 - [generic/sounds.md](generic/sounds.md) — Procedural Web Audio API sound design patterns (incl. look-ahead sequenced music with side-chain pump, sim-stamped events mapped onto the audio clock, melodies generated from chords and a seed, gated reverb, and arcade ambience; and keyboard clacks, a PC speaker and a floppy drive from one second of noise (THE LONG HELIX), and a chiptune engine with NES-style pulse duty cycles, a key per sector and boss and bonus tunes (STARBLAZER '86))
 - [generic/suggestions.md](generic/suggestions.md) — Future game ideas and backlog
+- [generic/game-ideas.md](generic/game-ideas.md) — Twenty detailed pitches (written after game-133), each built on a mechanic the collection does not have yet
 
 ---
 
@@ -49,7 +50,7 @@ This directory is the **canonical reference for AI-assisted development** in thi
 | A three.js pattern, addon, or gotcha | [threejs/threejs-api.md](threejs/threejs-api.md) |
 | Architecture, module layout, event/state patterns, bugs & fixes that span engines | [generic/learnings.md](generic/learnings.md) |
 | A procedural Web Audio sound recipe or sound-design principle | [generic/sounds.md](generic/sounds.md) |
-| A future game idea or backlog item | [generic/suggestions.md](generic/suggestions.md) |
+| A future game idea or backlog item | [generic/suggestions.md](generic/suggestions.md), or [generic/game-ideas.md](generic/game-ideas.md) for a full pitch |
 
 A new engine (not Kaplay/Phaser/three.js) gets its own `docs/<engine>/<engine>-api.md` file and a new section in this index.
 
