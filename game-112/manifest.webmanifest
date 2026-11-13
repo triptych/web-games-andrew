@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Quill & Legion",
+  "short_name": "Quill & Legion",
+  "description": "Quill & Legion — recruit creature stacks, deploy them on a hex field, and fight with a deck of orders. A hand-inked fantasy tactics roguelike in three.js.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f0e4c4",
+  "theme_color": "#f0e4c4",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

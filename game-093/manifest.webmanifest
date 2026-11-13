@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Dawnshard Saga",
+  "short_name": "Dawnshard Saga",
+  "description": "Dawnshard Saga — an HD-2D fantasy JRPG: a pixel-art party in a living 3D diorama. Turn-based battles with Break and Boost, a world to cross, towns full of quests and eight heroes to recruit.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0d1c",
+  "theme_color": "#0a0d1c",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

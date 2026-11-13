@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Keepfire",
+  "short_name": "Keepfire",
+  "description": "A lane-based castle defence with an incremental heart, in three.js. Emberhold is the last keep in Aldmere and starts as one squat tower with a single archer on it; waves of procedurally generated…",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a120c",
+  "theme_color": "#1a120c",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

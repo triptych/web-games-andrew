@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "VENDETTA OVERDRIVE",
+  "short_name": "VENDETTA OVER…",
+  "description": "VENDETTA OVERDRIVE — an 80s action-movie revenge FPS. Roxy Kane tears through an alien invasion of Neo Angeles with procedurally generated guns to find the alien who killed her father.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#120a1e",
+  "theme_color": "#120a1e",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Ironhollow Depths",
+  "short_name": "Ironhollow De…",
+  "description": "An 8-bit top-down dungeon crawler with a classic CRT-era action-RPG feel. Guide a pixel-art knight through torch-lit brick dungeons, hack down monsters with your sword, grab gold treasure, and…",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

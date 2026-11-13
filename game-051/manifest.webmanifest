@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Sigilborn",
+  "short_name": "Sigilborn",
+  "description": "Sigilborn: a fantasy gacha auto-battler. Summon procedurally generated heroes, lead them as the Overlord, climb the Endless Spire, and build an idle citadel with a mine, a farm and a forge.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#120c24",
+  "theme_color": "#120c24",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Rainglass",
+  "short_name": "Rainglass",
+  "description": "Rainglass — a cozy lo-fi game on a rainy night train. Guide a single raindrop across a misted window to wipe it clear, spot what is out there, and keep a postcard from every station.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1c1420",
+  "theme_color": "#1c1420",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

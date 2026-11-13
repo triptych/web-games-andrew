@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Hollow Gambit",
+  "short_name": "Hollow Gambit",
+  "description": "Hollow Gambit — a gothic chess-tactics RPG: summon a party of strange pieces, move them like fairy chess, and settle every capture in a turn-based tactics duel.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08060b",
+  "theme_color": "#08060b",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

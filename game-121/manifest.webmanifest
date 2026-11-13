@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "ARCANA WAGON",
+  "short_name": "ARCANA WAGON",
+  "description": "ARCANA WAGON — a first-person fortune-teller adventure: read the crystal ball, lay the tarot, learn the language of the universe, unmask a plot against the King, and maybe fall in love.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0618",
+  "theme_color": "#0b0618",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

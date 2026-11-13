@@ -4700,8 +4700,10 @@ built but never listed; game-038 shipped without its card style).
    ```bash
    ONLY=GAME_FOLDER node dev/screenshots.mjs        # writes garden/img/games/GAME_FOLDER.jpg
    ONLY=GAME_FOLDER node dev/add-meta.mjs           # og:image / twitter:image tags into GAME_FOLDER/index.html
+   ONLY=GAME_FOLDER python3 dev/make-icons.py       # GAME_FOLDER/icons/*.png from that picture (needs Pillow)
+   ONLY=GAME_FOLDER node dev/add-pwa.mjs            # manifest.webmanifest + install block in index.html
    ```
-   **Open the picture and look at it.** The generic tool clicks past the title and photographs whatever follows; a game with a menu or story before its first scene just gets its title screen (fine as a floor, but a real scene is better). For those, write a `GAME_FOLDER/dev/preview.mjs` that sets a moment up through the debug hooks, as game-098, game-100 and game-101 do, and copy the best frame to `garden/img/games/`. Commit the jpg and the `index.html` meta block together with the game.
+   **Open the picture and look at it.** The generic tool clicks past the title and photographs whatever follows; a game with a menu or story before its first scene just gets its title screen (fine as a floor, but a real scene is better). For those, write a `GAME_FOLDER/dev/preview.mjs` that sets a moment up through the debug hooks, as game-098, game-100 and game-101 do, and copy the best frame to `garden/img/games/`. Commit the jpg, the icons, the `manifest.webmanifest` and the `index.html` meta and `pwa` blocks together with the game (that is what makes it installable).
 
 ---
 

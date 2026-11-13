@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Bumble Basket",
+  "short_name": "Bumble Basket",
+  "description": "Bumble Basket — a cosy fruit-picking puzzle. Drag a bumblebee from fruit to fruit; every hop must share a kind, colour, size or family.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#8fd35a",
+  "theme_color": "#8fd35a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

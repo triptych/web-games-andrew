@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Dragonroll",
+  "short_name": "Dragonroll",
+  "description": "Dragonroll — a 3D board game RPG. Roll the dice round Emberwyld Isle, buy deeds, fight turn-based battles, raid dungeons, forge gear, and face Pyrrhax the Ember Wyrm.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2a6fd0",
+  "theme_color": "#2a6fd0",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

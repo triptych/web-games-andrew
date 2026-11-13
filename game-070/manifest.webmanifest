@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "PHOSPHOR PATROL",
+  "short_name": "PHOSPHOR PATR…",
+  "description": "PHOSPHOR PATROL — a 1982 vector-monitor planet-defence shooter. Fly the SENTRY around a wrapping world, shoot the Reapers and catch the colonists they drop.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#020308",
+  "theme_color": "#020308",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

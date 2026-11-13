@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Doom & Doilies",
+  "short_name": "Doom & Doilies",
+  "description": "Doom & Doilies — an HD-2D idle game about a cute evil overlord who would much rather be baking, sewing, decorating and throwing parties, if only the kingdom didn",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#140e22",
+  "theme_color": "#140e22",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

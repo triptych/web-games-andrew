@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Sugarplum Drop",
+  "short_name": "Sugarplum Drop",
+  "description": "Sugarplum Drop — a cozy Christmas merge puzzle with physics. Drop candies into the jar; two of the same touch and merge into something bigger, from peppermints to gingerbread men, ornaments, presents and the golden Jingle Bell.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1b2340",
+  "theme_color": "#1b2340",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

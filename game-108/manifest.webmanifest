@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Oathstones",
+  "short_name": "Oathstones",
+  "description": "Oathstones — a fantasy match-3 RPG where every hero on the board keeps a different oath: some match by colour, some by shape, some only with every colour at once. Bind them and they join your party.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#120a1e",
+  "theme_color": "#120a1e",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

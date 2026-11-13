@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Quillsworn",
+  "short_name": "Quillsworn",
+  "description": "Quillsworn — a storytellers’ guild RPG. Write a fantasy novel with Thalion Silverquill, Master of the Guild: level up, go on quests, unlock rooms and talents, duel the foes of every writer, and bind your book as HTML, EPUB or PDF.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101416",
+  "theme_color": "#101416",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

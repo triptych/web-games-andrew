@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Rotten to the Core",
+  "short_name": "Rotten to the…",
+  "description": "Rotten to the Core: a light, silly, fruit-based action RPG. Build a fruit hero, descend through procedurally generated cellars, jam catacombs and the boiling Rotten Core, squash rotten fruit and loot kitchenware.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#1a0b14",
+  "theme_color": "#1a0b14",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

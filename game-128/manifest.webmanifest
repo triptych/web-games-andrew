@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Gemheart Saga",
+  "short_name": "Gemheart Saga",
+  "description": "Gemheart Saga — a match-3 fantasy RPG in 32-bit pixel art. Fast, fluid gem battles, four heroes with their own tales and skill trees, gear, quests, and a village that grows to back you.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#120d1c",
+  "theme_color": "#120d1c",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

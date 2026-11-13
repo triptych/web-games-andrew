@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Wyrmbond",
+  "short_name": "Wyrmbond",
+  "description": "Wyrmbond — a dragon-taming tactics RPG: grid-based war-tactics battles, close-up duels, and a roost where you hatch, raise and breed dragons.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2a1a3a",
+  "theme_color": "#2a1a3a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

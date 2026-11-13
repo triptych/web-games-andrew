@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "The First Dragon Prince",
+  "short_name": "The First Dra…",
+  "description": "The First Dragon Prince — raise the half-dragon heir of Aurelmere from ten to eighteen. Lessons, jobs, quests and expeditions, six childhood friends to fall for, and eighteen endings, from Dragon Overlord to the first Dragon King.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#140b12",
+  "theme_color": "#140b12",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

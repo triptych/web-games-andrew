@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Verdant Protocol",
+  "short_name": "Verdant Proto…",
+  "description": "Verdant Protocol — a press-turn RPG of recoding corrupted daemons in a healing, post-apocalyptic world. Find the Hex, recode it, splice your team, and decide what Meridian becomes.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050a0b",
+  "theme_color": "#050a0b",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

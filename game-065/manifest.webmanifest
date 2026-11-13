@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Worldroot",
+  "short_name": "Worldroot",
+  "description": "Worldroot: an idle clicker in a magical forest. Gather motes of light from a seed and grow it into the World Tree. Spirits, upgrades, wisps, spells, seasons, rebirth, trials and the nine realms, with offline progress.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1a22",
+  "theme_color": "#0b1a22",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

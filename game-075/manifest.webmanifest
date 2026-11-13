@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "CHROME CHALICE",
+  "short_name": "CHROME CHALICE",
+  "description": "CHROME CHALICE — a top-down fetch-quest maze adventure reimagined as a 1988 synthwave arcade cabinet. Carry the chalice home through six realms of dragons, keys, mazes and neon.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#05010a",
+  "theme_color": "#05010a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

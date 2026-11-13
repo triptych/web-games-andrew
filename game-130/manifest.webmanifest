@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "Starbase Spooky",
+  "short_name": "Starbase Spoo…",
+  "description": "Starbase Spooky: run a space station for five days, greet funny aliens, answer space questions, fix what breaks and solve the mystery of the station ghost. A 16-bit edutainment adventure for young players.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0d1e",
+  "theme_color": "#0b0d1e",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

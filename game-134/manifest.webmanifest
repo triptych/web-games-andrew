@@ -1,0 +1,40 @@
+{
+  "id": "./",
+  "name": "UFOops!",
+  "short_name": "UFOops!",
+  "description": "UFOops! — a Saturday-morning-cartoon saucer romp. Fly a slightly defective UFO, beam up cows, pigs and farmers, dodge shotguns, agents, tinfoil hats, tanks, lasers and jets, and get graded by your Mother Ship.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2a1458",
+  "theme_color": "#2a1458",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
