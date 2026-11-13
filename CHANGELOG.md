@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Lanternhall** (game-133) v1.0.0: a fantasy visual novel with mini-games where you keep the quest desk of an adventurers' guild for thirty days and try to end them as Guildmaster. DOM-rendered, sim/view layout ([game-plan.md](game-133/game-plan.md)).
+  - **The desk:** petitioners (townsfolk, adventurers, the Crown, the Wild Folk) are dealt from the Handbook tables in [quests.js](game-133/js/sim/data/quests.js); you grade each job Copper to Platinum from its words (creature + number + place + omen, two points a rank) and only the party's report tells you if you were right. Twelve adventurers, Copper rookies to a Platinum legend, go out in parties of up to three, gain experience and rank up or come home hurt ([game.js](game-133/js/sim/game.js)).
+  - **The story:** five chapters, 20 story scenes, five romances with four heart events each, sixteen endings and five epilogues, as scripts run by game-127's scene runner ([story.js](game-133/js/sim/data/story.js), [hearts.js](game-133/js/sim/data/hearts.js), [endings.js](game-133/js/sim/data/endings.js)). The player chooses a name and she/he/they.
+  - **Mini-games:** Stamp Rush, the Cauldron, Cartography, Dragon's Hoard and the Sparring Ring, each a pure state machine ([minigames.js](game-133/js/sim/minigames.js)); a real-time tavern till and nightly room income for the idle streak.
+  - **Look and sound:** 87 images painted with fal (14 characters in four expressions from 2×2 sheets, 30 busts, 12 backdrops, 20 story and ending pictures; [art README](game-133/dev/art/README.md)); 8 music tracks, 18 effects and 20 voiced greetings from ElevenLabs ([audio README](game-133/dev/audio/README.md)).
+  - **Tests:** [simtest.mjs](game-133/dev/simtest.mjs) (250 checks, including every ending reached by a bot route and every petition read back from its text) and [browsertest.mjs](game-133/dev/browsertest.mjs) (desktop, two touch-only phones, blocked storage).
+- Launcher: Lanternhall added to `js/gamedata.js` (genre `story`), its card style to `css/styles.css`, its preview to `garden/img/games/game-133.jpg`.
+- Docs: [learnings.md](docs/generic/learnings.md) § Game 133 (one route per ending, grading from words, expression sheets, keying each cell on its own border, an event field that shadowed its type).
+
 ### Changed
 - **Giant's Vault** (game-132) v1.2.0: Ember the lynx-wolf and the Gorehounds are rigged and animated. Meshy's auto-rigger only takes humanoids, so [rig-quadruped.mjs](game-132/dev/assets/rig-quadruped.mjs) fits a 15-bone quadruped skeleton to each static Meshy model at its own landmarks, skins it (each leg kept apart from the others) and bakes a trot and a lunging bite into the GLB (Ember 471 KB, the hound 280 KB, quantised). [models.js](game-132/js/view/models.js) plays a model's own `walk` and `attack` clips; [actors.js](game-132/js/view/actors.js) plays the bite when Ember bites or a hound attacks, and paces each trot to its speed. No Meshy credits.
 

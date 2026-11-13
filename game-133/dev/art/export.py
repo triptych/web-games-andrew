@@ -42,11 +42,11 @@ def cut(cell, tol=70, inset=10):
     border = np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]]))
     bg = np.isin(lab, border[border > 0])
     # pockets of key colour enclosed by an arm or a strand of hair
-    pockets = near & ~bg & (dist < tol * 0.6)
+    pockets = near & ~bg & (dist < tol * 0.5)
     plab, n = ndimage.label(pockets)
     if n:
         sizes = ndimage.sum(pockets, plab, range(1, n + 1))
-        bg |= np.isin(plab, [i + 1 for i, s in enumerate(sizes) if s > 150])
+        bg |= np.isin(plab, [i + 1 for i, s in enumerate(sizes) if s > 14])
     fg = ~ndimage.binary_dilation(bg, iterations=1)
     # keep the big connected figure, drop specks
     flab, n = ndimage.label(fg)
