@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Lanternhall** (game-133) v1.0.1: the "spar with" drop-down in the Guild tab was a white box with pale text (reported by a player). Only fields inside a settings row were styled; a select in a desk card got the browser's default background with the page's light text colour. Every select and text field is now styled in one rule, and [browsertest.mjs](game-133/dev/browsertest.mjs) fails if any drop-down has a light background.
+
 ### Added
 - **Lanternhall** (game-133) v1.0.0: a fantasy visual novel with mini-games where you keep the quest desk of an adventurers' guild for thirty days and try to end them as Guildmaster. DOM-rendered, sim/view layout ([game-plan.md](game-133/game-plan.md)).
   - **The desk:** petitioners (townsfolk, adventurers, the Crown, the Wild Folk) are dealt from the Handbook tables in [quests.js](game-133/js/sim/data/quests.js); you grade each job Copper to Platinum from its words (creature + number + place + omen, two points a rank) and only the party's report tells you if you were right. Twelve adventurers, Copper rookies to a Platinum legend, go out in parties of up to three, gain experience and rank up or come home hurt ([game.js](game-133/js/sim/game.js)).

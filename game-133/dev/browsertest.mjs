@@ -210,6 +210,7 @@ async function desktop() {
     await until(page, () => __lh.G.mg?.done, 'three rounds of dice play out');
     await click(page, '#mg-close');
 
+    check(await Q(page, () => [...document.querySelectorAll('select')].every((el) => { const m = getComputedStyle(el).backgroundColor.match(/\d+/g).map(Number); return m[0] + m[1] + m[2] < 300; })), 'every drop-down is styled dark like the rest (none left as the browser\'s white box)');
     await page.selectOption('#spar-who', 'tamsin');
     await click(page, '[data-game="spar"]');
     await until(page, () => __lh.G.mg?.game === 'spar' && __lh.G.mg.adv === 'tamsin', 'the Sparring Ring opens with the adventurer chosen');

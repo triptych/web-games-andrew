@@ -3,7 +3,7 @@
 **Genre:** fantasy visual novel with mini-games and light idle elements: a guild-desk management sim with five romances
 **Engine:** vanilla HTML/CSS/JS, DOM rendering. Sim/view split: a pure seeded simulation in `js/sim/`; the UI reads `G` and drains `G.events`
 **Media:** every picture painted with fal (`fal-ai/nano-banana-2`); the music, effects and voices by ElevenLabs
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -198,6 +198,9 @@ one of the sixteen endings reached by its route through real play**; whole games
 - The clerk never appears on stage (only from behind in pictures), so the gender choice changes words, not art.
 
 ## Changelog
+
+### v1.0.1 (2026-11-13)
+- Fixed: the "spar with" drop-down was an unstyled white box with pale text. All selects and text fields share one style now; the browser test checks it.
 
 ### v1.0.0 (2026-11-13)
 - First release: thirty days in five chapters (20 story scenes), 12 adventurers, petitions graded from their
