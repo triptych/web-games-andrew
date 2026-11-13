@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
-import { MODEL_FILES } from '../model-files.js';
+import { MODEL_FILES, ANIM_FILES } from '../model-files.js';
 
 const loader = new GLTFLoader();
 const cache = {};
@@ -32,6 +32,13 @@ function load(name) {
         });
     }
     return cache[name];
+}
+
+const clips = {};
+/** An attack clip from assets/anims/<name>.glb (bones only; played on the model already loaded). */
+function loadClip(name) {
+    clips[name] ||= new Promise((res) => loader.load(`assets/anims/${name}.glb`, (g) => res(g.animations[0] || null), undefined, () => res(null)));
+    return clips[name];
 }
 
 /**
@@ -67,6 +74,13 @@ export function model(name, h, opts = {}) {
             const walk = mixer.clipAction(m.anims[0]);
             walk.play();
             g.userData.mixer = mixer; g.userData.walk = walk; g.userData.clipLen = m.anims[0].duration;
+            if (ANIM_FILES.has(name)) loadClip(name).then((clip) => {
+                if (!clip || g.userData.disposed) return;
+                const atk = mixer.clipAction(clip);
+                atk.setLoop(THREE.LoopOnce, 1);
+                atk.clampWhenFinished = false;
+                g.userData.attack = atk; g.userData.attackLen = clip.duration;
+            });
         }
     });
     return g;

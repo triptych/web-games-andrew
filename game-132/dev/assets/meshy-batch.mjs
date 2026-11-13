@@ -1,4 +1,4 @@
-// meshy-batch.mjs WORKDIR [names...] — make every 3D model for TITAN'S VAULT with the Meshy CLI (0.4.0).
+// meshy-batch.mjs WORKDIR [names...] — make every 3D model for GIANT'S VAULT with the Meshy CLI (0.4.0).
 //
 // For each reference in dev/art/prompts.mjs (group `refs`):
 //   1. the reference image: a fal render if WORKDIR/../raw/<ref>.png exists, else Meshy text-to-image

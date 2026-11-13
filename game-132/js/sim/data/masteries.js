@@ -1,4 +1,4 @@
-// TITAN'S VAULT: the three masteries, their skills and the hybrid synergies.
+// GIANT'S VAULT: the three masteries, their skills and the hybrid synergies.
 // Pure data. Every number the rules use is here or in config.js; the sim reads it, the UI prints it,
 // and the art prompts (dev/art) are written from the `art` lines.
 //
@@ -13,21 +13,21 @@ export const SKILL_MAX = 5;
 export const MASTERIES = {
     warfare: {
         name: 'Warfare', res: 'rage', color: '#e0623a', hex: 0xe0623a,
-        titan: 'Aster of the Iron Oath',
+        giant: 'Aster of the Iron Oath',
         blurb: 'Steel, momentum and fury. Rage is earned by hitting and being hit, and it drains away when the fighting stops: stand still and it is gone.',
         rankBonus: { lifePct: 3, armorPct: 2 },       // per mastery rank
         art: 'a battered bronze greatsword crossed with a war-axe over a red oath-shield',
     },
     storm: {
         name: 'Storm', res: 'mana', color: '#5cc8ff', hex: 0x5cc8ff,
-        titan: 'Ilyra the Skyfather\'s Daughter',
+        giant: 'Ilyra the Skyfather\'s Daughter',
         blurb: 'Lightning that chains, shocks and calls the sky down. Mana flows back steadily, so the question is never "if" but "how fast".',
         rankBonus: { lightningPct: 3, mana: 6 },
         art: 'a forked bolt of blue lightning striking a silver circlet',
     },
     umbra: {
         name: 'Umbra', res: 'essence', color: '#a77bff', hex: 0xa77bff,
-        titan: 'Morrow, Keeper of the Dusk Gate',
+        giant: 'Morrow, Keeper of the Dusk Gate',
         blurb: 'Shadow, shades and stolen life. Essence is torn from the dying: every kill feeds the next spell.',
         rankBonus: { shadowPct: 3, essence: 4 },
         art: 'a violet skull wreathed in shadow smoke above a crescent moon',
@@ -56,7 +56,7 @@ export const CLASSES = {
     },
 };
 
-/** Two masteries make a hybrid with its own name and a synergy that neither tree has alone (Titan Quest's rule). */
+/** Two masteries make a hybrid with its own name and a synergy that neither tree has alone (the classic dual-mastery rule). */
 export const HYBRIDS = {
     'storm+warfare': {
         name: 'Thunderborn', synergy: 'galvanic',
@@ -126,7 +126,7 @@ export const SKILLS = {
         art: 'a spinning vortex of steel blades and red wind',
     },
     wrath: {
-        mastery: 'warfare', tier: 4, kind: 'active', name: 'Titan\'s Wrath', icon: 6,
+        mastery: 'warfare', tier: 4, kind: 'active', name: 'Giant\'s Wrath', icon: 6,
         cost: 50, spendAll: true, cd: 24, el: 'phys',
         fx: { type: 'nova', mult: 6.0, radius: 6.5, stun: 1.5, perRage: 0.012 },
         per: { mult: 0.8 },

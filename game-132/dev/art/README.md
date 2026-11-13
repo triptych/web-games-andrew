@@ -1,4 +1,4 @@
-# TITAN'S VAULT — the painted art (fal)
+# GIANT'S VAULT — the painted art (fal)
 
 Everything in `../../art/` was made on 2026-11-12 with [fal](https://fal.ai) (`fal-ai/nano-banana-2`, PNG; 2K for the
 title and the icon sheets, 1K for the rest) and exported to WebP by `export.py`. About 50 images in all, roughly $4.
@@ -14,8 +14,8 @@ python3 -I game-132/dev/art/export.py RAW      # RAW holds <name>.png for each j
 
 ## The four shared system prompts
 
-They are what make fifty separate renders read as one set. All begin "You are the … of TITAN'S VAULT, a dark mythic
-action RPG: gothic-mythic fusion of ruined Greek temples, drowned marshes, shadow-drenched crypts and titan forges of
+They are what make fifty separate renders read as one set. All begin "You are the … of GIANT'S VAULT, a dark mythic
+action RPG: gothic-mythic fusion of ruined Greek temples, drowned marshes, shadow-drenched crypts and giant forges of
 bronze and fire."
 
 | Kind | The rest of the system prompt |

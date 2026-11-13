@@ -1,4 +1,4 @@
-// TITAN'S VAULT: item generation, names, prices, gems and drops. Pure.
+// GIANT'S VAULT: item generation, names, prices, gems and drops. Pure.
 // Items live once in G.items[id]; the bag, the equipment, the pet and the floor hold ids.
 
 import { ITEM, GLOBE } from '../config.js';
@@ -122,7 +122,7 @@ function itemName(G, it) {
         return [p && AFFIXES[p.k].name, baseName, s && AFFIXES[s.k].name].filter(Boolean).join(' ');
     }
     if (it.rarity === 'rare') {
-        const A = ['Grim', 'Storm', 'Bone', 'Dusk', 'Iron', 'Tide', 'Ash', 'Titan', 'Raven', 'Ember', 'Oath', 'Gloom'];
+        const A = ['Grim', 'Storm', 'Bone', 'Dusk', 'Iron', 'Tide', 'Ash', 'Giant', 'Raven', 'Ember', 'Oath', 'Gloom'];
         const B = ['Bite', 'Song', 'Ward', 'Mark', 'Coil', 'Fang', 'Veil', 'Crest', 'Brand', 'Grasp', 'Wake', 'Thorn'];
         return `${G.rng.pick(A)} ${G.rng.pick(B)}`;
     }

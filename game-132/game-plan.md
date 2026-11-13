@@ -1,4 +1,4 @@
-# TITAN'S VAULT
+# GIANT'S VAULT
 
 **Genre:** isometric action RPG (loot hunt), single player
 **Engine:** three.js r165, sim/view layout. Art by fal, 3D models by Meshy, music, effects and voices by ElevenLabs; every
@@ -13,11 +13,11 @@ source of truth: if the two disagree, the code is right and this file has a bug.
 
 ## 0. The pitch in one paragraph
 
-Before the gods left the world they chained the Titans beneath it and set wardens to watch them. The gods are gone,
+Before the gods left the world they chained the Giants beneath it and set wardens to watch them. The gods are gone,
 the wardens are few, and under the mountain Kolossar has begun to pull. You are a Vaultwarden. You pick one of three
 oaths (**Ironsworn** steel, **Stormcaller** lightning, **Shadebinder** shadow), take a second at level 6 and become one
-of three hybrids, and fight down through a drowned marsh, a city of tombs and a titan's forge to bind Kolossar again.
-Then the Vault cracks open and the endless **Rifts** begin. It plays like Diablo II's dread wearing Titan Quest's
+of three hybrids, and fight down through a drowned marsh, a city of tombs and a giant's forge to bind Kolossar again.
+Then the Vault cracks open and the endless **Rifts** begin. It plays like Diablo II's dread wearing Greek
 mythology at Torchlight II's speed: big packs, loud colours on dark stone, loot that fountains, and a lynx-wolf who
 carries your junk to town.
 
@@ -38,7 +38,7 @@ Three ingredients, always mixed:
 
 | Ingredient | From | In the game |
 |---|---|---|
-| **Classical ruin** | Titan Quest | Fluted columns, meander friezes, bronze and marble, hoplite helmets, Greek names |
+| **Classical ruin** | Greek myth | Fluted columns, meander friezes, bronze and marble, hoplite helmets, Greek names |
 | **Gothic dread** | Diablo II | Darkness as the default, tombs, bone, candle-pools of light, monsters that were once people |
 | **Saturated readability** | Torchlight II | Teal, violet and molten orange accent glows; rarity beams; chunky silhouettes |
 
@@ -54,7 +54,7 @@ is the only thing that glows straight up. Each area has its own fog, sky and key
 | — | **Lantern's Rest** (town) | — | — | Warm lanterns in a cold night. Merchant, chronicler, waystone, stash, rift obelisk. |
 | I | **The Drowned Wilds** (1–5) → **Temple of the Tide-Eye** (5–8) | Skyllith, Maw of the Drowned Temple | the Tide-Key | Marsh, reeds, half-sunk colonnades. Teal and green. |
 | II | **The Ashen Necropolis** (9–13) → **The Ossuary Depths** (13–17) | Morwen, the Ossuary Queen | the Soul-Key | Tombs under a violet sky, ash falling like snow. |
-| III | **The Bronze Halls** (18–22) → **The Titan's Vault** (22–26) | Kolossar, the Chained Titan | the Flame-Key | Forge-halls, bronze plates, furnace light. |
+| III | **The Bronze Halls** (18–22) → **The Giant's Vault** (22–26) | Kolossar, the Chained Giant | the Flame-Key | Forge-halls, bronze plates, furnace light. |
 | ∞ | **Vault Rifts**, tier 1, 2, 3… (26 + tier) | a Rift Guardian | — | Every biome at once, violet and gold. |
 
 A first playthrough is about 60–90 minutes for a person (the bot does it in about 25 minutes of game time at full
@@ -70,11 +70,11 @@ changes at 66% and 33%).
 - **Act II:** Morwen was a warden for sixty years. Kolossar spoke to her through the stone and promised the dead would
   never have to sleep; she has been forging a key out of fallen wardens' souls ever since. She is the warning: this is
   what listening to him does.
-- **Act III:** the Bronze Halls are the forge that made the chains. At the bottom, Kolossar. You can't kill a titan
+- **Act III:** the Bronze Halls are the forge that made the chains. At the bottom, Kolossar. You can't kill a giant
   (a scorched letter in the halls says so); you **bind** him with his own broken chains, which is what the boss fight's
   final phase is.
 - **Ending card:** the chains hold, but the fight cracked the Vault, and through the cracks are rifts into everywhere
-  the titans ever touched. The endgame is not a postscript; it is the story's last line.
+  the giants ever touched. The endgame is not a postscript; it is the story's last line.
 
 ### 1.4 Environmental storytelling
 
@@ -122,7 +122,7 @@ repeats every 15–25 seconds. These are asserted as bands in `dev/simtest.mjs` 
   monsters (poise 0.08–0.12) stagger from most big skills; Sentinels (0.25) and bosses (0.5–0.6) almost never do from
   one hit. This makes big skills *feel* big and makes interrupting a charging Sentinel a skill.
 - **Stagger stat.** Maces have +20% stagger; `staggerPct` rolls on weapons. Leap Slam and Thunderstrike have explicit
-  stagger. Stun (Titan's Wrath, 1.5 s) is a separate, longer state capped at 2 s.
+  stagger. Stun (Giant's Wrath, 1.5 s) is a separate, longer state capped at 2 s.
 - **Telegraphs.** Every attack that can take more than ~30% of the player's life is preceded by a red ground ring for
   0.6 s (`MON.telegraph`): boss slams, Sentinel charges, the Thunderous elite nova, the Molten death blast. If it was
   in a ring, it was fair.
@@ -131,7 +131,7 @@ repeats every 15–25 seconds. These are asserted as bands in `dev/simtest.mjs` 
 
 ### 2.4 Screen-clearing AoE, on purpose
 
-The ultimates (Titan's Wrath, Tempest, Harvest) clear a screen. That is the point: AoE is the payoff for building and
+The ultimates (Giant's Wrath, Tempest, Harvest) clear a screen. That is the point: AoE is the payoff for building and
 managing a resource, and the 24–28 s cooldowns keep it a beat, not a state. The density table is tuned so an
 ultimate usually catches 6–12 monsters.
 
@@ -184,7 +184,7 @@ kills to feed Essence; Blood Pact pays both on every kill.
 **Attributes.** Might: +1% physical damage and +0.5% armour per point. Cunning: +0.2% critical chance and +0.5%
 attack speed. Spirit: +1% lightning and shadow damage and +1 mana. Vitality: +4 life. 3 points per level.
 
-### 3.2 How dual mastery works (Titan Quest's rule, tightened)
+### 3.2 How dual mastery works (the classic dual-mastery rule, tightened)
 
 1. You start with your class's mastery. At **level 6** a shrine in town offers the other two; you take one, forever.
 2. **Skill points**: 2 per level (78 by level 40). Each mastery has a **mastery bar** (ranks 0–10) and 7 skills
@@ -220,7 +220,7 @@ falls behind a pure class. `per` = added each rank above 1. Full text in `data/m
 | 2 | War Cry | buff | +22% → +42% damage 7 s; taunts and breaks armour | 30 Rage / 14 s |
 | 2 | Bloodlust | passive | +4% → +16% attack speed, life on hit | — |
 | 3 | Whirlwind | channel | 85% → 125% every 0.3 s while moving | 16 Rage/s |
-| 4 | Titan's Wrath | ultimate | 600% → 920% in 6.5 m, 1.5 s stun, +1.2%/Rage over 50 | all Rage (≥ 50) / 24 s |
+| 4 | Giant's Wrath | ultimate | 600% → 920% in 6.5 m, 1.5 s stun, +1.2%/Rage over 50 | all Rage (≥ 50) / 24 s |
 
 **Storm (Mana)**
 
@@ -258,12 +258,12 @@ WARFARE  ██████████ 10                        STORM  ██�
  T2  War Cry ●●●○○ 3   (the burst window)       T2  Storm Shield ●●●○○ 3 (the panic button)
      Bloodlust ●●●○○ 3 (speed → more arcs)          Conduit ●○○○○ 1
  T3  Whirlwind ○○○○○ 0 (skipped)               T3  Thunderstrike ●●●●○ 4 (big hit on elites)
- T4  Titan's Wrath ●●○○○ 2                      T4  Tempest (locked: bar 7)
+ T4  Giant's Wrath ●●○○○ 2                      T4  Tempest (locked: bar 7)
 ```
 
 **How it plays:** Leap into a pack → War Cry → Cleave. Every Cleave hit has a 20% chance to arc a Chain Lightning
 (Galvanic Edge); Static Charge's crits Shock the pack and each lightning crit pays 3 Rage back, so Cleave on a big pack
-is self-sustaining. Thunderstrike deletes the elite, Titan's Wrath clears the room when Rage tops out. The Storm tree
+is self-sustaining. Thunderstrike deletes the elite, Giant's Wrath clears the room when Rage tops out. The Storm tree
 is there to turn melee hits into lightning, not to cast from range: that is the hybrid's identity. Its chase item is
 **Thunderguard's Edge** (Cleave becomes lightning and arcs to 2 more), which makes every Cleave a Galvanic trigger *and*
 a lightning crit source.
@@ -294,7 +294,7 @@ or defensive bulk (Cruel = +% physical, Crackling = +% lightning, Hale = + life,
 attributes and utility (of the Bear = Might, of Warding = all resist, of Haste = cooldown reduction, of Fortune = magic
 find…). An item has at most 3 prefixes and 3 suffixes; slots restrict what can roll where (movement speed only on
 boots, attack speed never on chests). Some stats are **capped** (attack speed 30, crit 12, CDR 25, move 20): caps keep
-one stat from eating a build. The rarest suffix, **of the Titan** (+1 to all skills of a mastery), only rolls on
+one stat from eating a build. The rarest suffix, **of the Giant** (+1 to all skills of a mastery), only rolls on
 amulets, helms and weapons. Full table: `AFFIXES` in `data/items.js`.
 
 The tooltip shows each roll's **quality** (how far between lo and hi it landed) as a small bar, so "is this a good
@@ -539,11 +539,12 @@ The sim was written so that co-op is a transport problem, not a rewrite:
 
 ## Testing
 
-See [dev/README.md](dev/README.md). `simtest.mjs` (424 checks): purity, data, world proofs on 60 seeds per generator,
+See [dev/README.md](dev/README.md). `simtest.mjs` (432 checks): purity, data, world proofs on 60 seeds per generator,
 every rule, every active skill, legendary powers and synergies, loot, determinism and save round trips (mid-fight and
 through a portal), and a bot that plays the whole campaign and three rift tiers with every class at skill 1 and 0.4,
 with per-step invariants and asserted balance bands. `browsertest.mjs` drives the real page with real keys, mouse and
-clicks on desktop, real touches on two phones, and with storage blocked.
+clicks on desktop, real touches on two phones, and with storage blocked; it also checks that the narrator reads the
+first card and stops when it closes.
 
 ## Balance notes
 
@@ -560,9 +561,13 @@ What the bot found and what changed because of it:
   level-17 monsters and still won, so levels meant nothing. Kill experience is 20 + 9 × level now (`combat.js`).
 - **It was too easy.** Even a skill-0.3 bot finished with no deaths. Monster base damage went from 4 to 6.5
   (`MON.dmg`); deaths are now 0–9 a run (median 2–3).
-- **The skill dial barely moves deaths.** A skill-0.4 bot (dodges 40% of telegraphs, drinks later, sometimes picks
-  the third-best skill) dies about as often as the perfect one, because most damage in an ARPG is not telegraphed.
-  Survival comes from gear and the build, which is genre-true, but it means the telegraphs are only tested on bosses.
+- **The skill dial barely moved deaths** at first, because most damage in an ARPG is not telegraphed. v1.1.0 added
+  more that can be dodged: every third swing of an elite melee monster is a heavy blow behind a red ring (2.2×), and
+  slow projectiles (orbs, bone rings, the hydra's spray, at most 11 m/s) can be sidestepped. The bot now sidesteps
+  them too, and steps out of a ring in the open direction that gets furthest from its centre. `simtest` measures
+  the share of damage taken that was dodgeable: about 44% for the perfect bot and 56% for a skill-0.4 bot. The
+  perfect bot's share stays high because a ring that appears while it is locked in a 0.5–0.7 s cast lands before it
+  can move, which is the rule for a person too.
 - **Areas were skipped.** A bot that took the exit as soon as it was level enough met Kolossar at 14–17; clearing
   three quarters of each area (as a person does) put it at 24–28.
 - **Stalls** (a mover catching corners, bolts clipping walls, loot in walls, dithering, unfillable rift bars, a
@@ -570,21 +575,37 @@ What the bot found and what changed because of it:
 
 Bands asserted in `simtest.mjs`: the perfect bot binds Kolossar with every class on every seed and clears rift tier
 3; a skill-0.4 bot usually finishes; the median level at Kolossar is 18–28; the median campaign is 400–1,800 s of
-game time; the perfect bot's median deaths ≤ 6.
+game time; the perfect bot's median deaths ≤ 6; the weak bot takes a larger share of dodgeable damage (by 15% or
+more) and dies at least as often.
 
 ## Open questions / next steps
 
 - A human pass on real hardware: it has only run under SwiftShader. Pacing, hit feel, readability in a big fight and
   whether the loot loop is moreish are unjudged by a person.
-- Voices (a narrator for the cards, boss taunts, barks) were planned and not made; the rift music track failed on
-  ElevenLabs and the rifts borrow Act III's.
-- Walls are textured boxes; there are no cut-aways, so a tall wall can hide the player for a moment.
-- Only the humanoids are rigged; the pet, hounds, wraiths, gorgons and two bosses move with a code gait. There are no
-  attack clips: attacks are a lunge.
-- Multiplayer is the written design in §6.5, not built.
-- Seasons and ladders (§4.5) are design only.
+- Only the humanoids are rigged; the pet, hounds, wraiths, gorgons and two bosses move with a code gait and lunge to
+  attack.
+- No barks (short lines for the hero, the pet and townsfolk); only the narrator and the bosses speak.
+- The wall cut-away sinks the walls just south of the player; a monster or a drop behind a wall elsewhere on screen
+  can still be hidden.
+- Multiplayer (§6.5) and seasons and ladders (§4.5) are written designs only. They are not planned: the game is
+  single-player.
 
 ## Changelog
+
+### v1.1.0 (2026-11-13)
+- Renamed for its Giants: the game is GIANT'S VAULT, Kolossar is the Chained Giant, and the items, affixes and
+  skills carry the new name (Giant's Wrath, Giant's Tread, "of the Giant", Gigantic).
+  The three narrator lines that said the word were re-recorded. Saves start fresh (a new storage key).
+- Voices: the narrator reads the six story cards, and the three bosses speak when they see you, at each phase and as
+  they die, with a Voices volume slider and the music ducking underneath. The rifts have their own music.
+- Meshy attack clips for the ten rigged models (a sword slash, a spell cast, a ground slam, a strike), played at the
+  attack's own speed.
+- Wall cut-away: walls between the camera and the player sink to a stub and rise again when you've passed.
+- More to dodge: elite melee monsters wind up a telegraphed heavy blow every third swing, and slow projectiles can be
+  sidestepped; the bot's skill dial now changes how much of that it eats.
+- Tests: the browser test no longer leaves an unkillable training dummy for the bot to fight, or rare packs next to
+  a level-1 hero on the phones (both caused intermittent failures, including the landscape phone one), and a timed-
+  out check now prints the game's mode, screens, life, level and area.
 
 ### v1.0.0 (2026-11-12)
 - First release: three classes and three hybrids, 21 skills, three acts and six generated areas, three bosses, elites,

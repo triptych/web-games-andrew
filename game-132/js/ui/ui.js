@@ -37,13 +37,13 @@ export class UI {
         }
         for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => { audio.ui('close'); this.closeTop(); });
 
-        const sfx = $('set-sfx'), music = $('set-music'), touch = $('set-touch'), filter = $('set-filter'), nums = $('set-numbers');
-        sfx.value = settings.sfx; music.value = settings.music; touch.value = settings.touch; filter.value = settings.filter; nums.checked = settings.numbers;
+        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), touch = $('set-touch'), filter = $('set-filter'), nums = $('set-numbers');
+        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; touch.value = settings.touch; filter.value = settings.filter; nums.checked = settings.numbers;
         const changed = () => {
-            Object.assign(settings, { sfx: +sfx.value, music: +music.value, touch: touch.value, filter: filter.value, numbers: nums.checked });
+            Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, touch: touch.value, filter: filter.value, numbers: nums.checked });
             onSettings(settings);
         };
-        for (const el of [sfx, music, touch, filter, nums]) el.addEventListener('change', changed);
+        for (const el of [sfx, music, voice, touch, filter, nums]) el.addEventListener('change', changed);
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
         $('skills-ic').setAttribute('style', masteryIcon('warfare'));
         document.querySelector('#hud-btns .ic-items').setAttribute('style', EXTRA.bag);
@@ -63,7 +63,7 @@ export class UI {
         $(id).hidden = true;
         this.stack = this.stack.filter((s) => s !== id);
         if (id === 'panel') this.onPanelClosed?.();
-        if (id === 'card') this.nextCard();
+        if (id === 'card') { this.audio.stopVoice(); this.nextCard(); }
         if (this.top()) this.focusFirst(this.top());
         else this.onResume?.();        // the last screen closed: main.js drops the press that closed it, right now
     }
@@ -105,6 +105,7 @@ export class UI {
         $('card-title').textContent = c.title;
         $('card-text').textContent = c.text;
         this.openScreen('card');
+        this.audio.voice(`vo-card-${id}`, { card: true });     // the narrator reads it (stops when the card closes)
     }
     lore(title, text) {
         $('card-art').removeAttribute('src');
@@ -233,7 +234,8 @@ export class UI {
                 case 'ascend': this.toast(`Ascension ${e.n}: a free attribute point.`, 'big'); break;
                 case 'waystone': this.toast(`Waystone found: ${AREAS[e.area].name}`); break;
                 case 'area': if (e.id !== 'town') this.toast(AREAS[e.id].name + (e.tier ? ` · Tier ${e.tier}` : ''), 'big'); break;
-                case 'bossDead': this.toast(`${e.name} is slain!`, 'big'); break;
+                case 'aggro': if (e.boss) this.toast(`"${BOSSES[e.boss].taunt[0]}"`, 'legendary'); break;
+                case 'bossDead': this.toast(`"${BOSSES[e.boss].death}"`, 'legendary'); this.toast(`${e.name} is slain!`, 'big'); break;
                 case 'bossPhase': if (e.line) this.toast(`"${e.line}"`, 'legendary'); break;
                 case 'guardian': this.toast(`The Rift Guardian: ${e.name}`, 'legendary'); break;
                 case 'riftDone': this.toast(`Rift tier ${e.tier} cleared! Tier ${e.tier + 1} is open.`, 'big'); break;

@@ -55,12 +55,45 @@ export function buildLevel(G, view) {
     const wm = new THREE.MeshStandardMaterial({ map: wallTex, color: def.tex === 'wilds' ? 0x6a7a62 : def.tex === 'vault' ? 0x8a6a4a : def.tex === 'temple' ? 0xa8b8b8 : 0x8a8090, roughness: 0.9 });
     const walls = new THREE.InstancedMesh(wg, wm, Math.max(1, cells.length));
     const m4 = new THREE.Matrix4();
+    const tall = new Float32Array(cells.length);           // each wall's full height factor
+    const now = new Float32Array(cells.length);            // its height factor this frame (cut away near the player)
+    const at = new Int32Array(A.w * A.h).fill(-1);        // cell → wall instance
+    const setWall = (i, f) => { const [x, y] = cells[i]; m4.makeScale(1, f, 1).setPosition(x + 0.5, (H * f) / 2, y + 0.5); walls.setMatrixAt(i, m4); };
     cells.forEach(([x, y], i) => {
-        const jitter = def.tex === 'wilds' ? 0.75 + ((x * 7 + y * 13) % 5) * 0.12 : 1;
-        m4.makeScale(1, jitter, 1).setPosition(x + 0.5, (H * jitter) / 2, y + 0.5);
-        walls.setMatrixAt(i, m4);
+        tall[i] = now[i] = def.tex === 'wilds' ? 0.75 + ((x * 7 + y * 13) % 5) * 0.12 : 1;
+        at[y * A.w + x] = i;
+        setWall(i, tall[i]);
     });
     walls.count = cells.length;
+    // wall cut-away: the camera sits south of the player looking north, so walls just south of the player (in a cone
+    // that widens toward the camera) sink to a stub while the player is behind them, then rise again
+    const STUB = 0.12, cut = new Set();
+    const cutAway = (G2, dt) => {
+        const P = G2.player, want = new Set();
+        const px = P.x, py = P.y;
+        for (let y = Math.floor(py); y <= Math.floor(py + 4); y++) {
+            const dz = y + 0.5 - py;
+            if (dz < -0.2) continue;
+            const half = 1.3 + Math.max(0, dz) * 0.35;
+            for (let x = Math.floor(px - half); x <= Math.floor(px + half); x++) {
+                if (x < 0 || y < 0 || x >= A.w || y >= A.h) continue;
+                const i = at[y * A.w + x];
+                if (i >= 0 && Math.abs(x + 0.5 - px) <= half + 0.5) want.add(i);
+            }
+        }
+        for (const i of want) cut.add(i);
+        const k = 1 - Math.exp(-dt * 10);
+        let dirty = false;
+        for (const i of cut) {
+            const target = want.has(i) ? Math.min(STUB, tall[i]) : tall[i];
+            const v = now[i] + (target - now[i]) * k;
+            now[i] = Math.abs(v - target) < 0.01 ? target : v;
+            setWall(i, now[i]);
+            dirty = true;
+            if (!want.has(i) && now[i] === tall[i]) cut.delete(i);
+        }
+        if (dirty) walls.instanceMatrix.needsUpdate = true;
+    };
     group.add(walls);
     disposables.push(wg, wm);
 
@@ -116,7 +149,9 @@ export function buildLevel(G, view) {
     }
     return {
         group, feats,
+        walls, cutAway,
         update(G2, dt, time) {
+            cutAway(G2, dt);
             for (const f of G2.features) {
                 const o = feats.get(f.id);
                 if (!o) continue;

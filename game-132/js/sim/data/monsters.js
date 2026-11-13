@@ -1,4 +1,4 @@
-// TITAN'S VAULT: monsters, bosses and elite affixes. Pure data.
+// GIANT'S VAULT: monsters, bosses and elite affixes. Pure data.
 // hp and dmg are multipliers of the level curve in config.js (MON.hp(level), MON.dmg(level)).
 // ai: 'melee' walks in and swings; 'ranged' keeps its distance and shoots; 'caster' shoots slow orbs and raises
 // help; 'charger' winds up and rushes. poise: a hit bigger than poise × max life staggers it (bosses have a lot).
@@ -36,7 +36,7 @@ export const MONSTERS = {
         atk: 2.6, xp: 1.4, poise: 0.12, el: 'shadow', proj: { speed: 7, radius: 0.5 }, raises: 'thrall', model: 'mon-hag', h: 1.7, color: 0x5a4a7a,
         art: 'a gaunt hunched old witch in rotting black-violet burial wraps, long grey hair, a crooked staff topped with a small skull, glowing violet eyes',
     },
-    // ---------------------------------------------------------- Act III: the Titan's Vault
+    // ---------------------------------------------------------- Act III: the Giant's Vault
     sentinel: {
         name: 'Bronze Sentinel', act: 3, ai: 'charger', hp: 1.8, dmg: 1.4, speed: 2.2, radius: 0.8, reach: 1.8,
         atk: 1.8, xp: 1.8, poise: 0.25, el: 'phys', armor: 0.3, model: 'mon-sentinel', h: 2.4, color: 0xb08040,
@@ -62,6 +62,8 @@ export const BOSSES = {
         abilities: ['slam', 'spray', 'summon:gorehound'], phases: [0.5],
         art: 'a monstrous sea-hydra with three eel-like heads full of needle teeth, barnacled teal scales, a crab-like armoured body and claws, drowned temple gold jewellery',
         taunt: ['The tide remembers your kind, Warden.', 'Sink with the rest of them!', 'More! Rise from the deep!'],
+        death: 'The tide... will take you... in the end.',
+        voice: 'Draconius - Feral, Demonic & Dangerous',
     },
     morwen: {
         name: 'Morwen, the Ossuary Queen', act: 2, hp: 30, dmg: 1.7, speed: 3.0, radius: 1.0, reach: 9,
@@ -69,13 +71,17 @@ export const BOSSES = {
         abilities: ['bonering', 'blink', 'summon:thrall', 'volley'], phases: [0.66, 0.33],
         art: 'a tall regal undead queen in a gown woven from bones and violet silk, a crown of finger bones, skeletal hands, a long bone sceptre, floating hem',
         taunt: ['Kneel, little warden. My court has room for one more.', 'Bones, to me!', 'You will make a lovely chandelier.'],
+        death: 'Sixty years... and I never once... rested.',
+        voice: 'Kristen – Cold Evil Queen Villain',
     },
     kolossar: {
-        name: 'Kolossar, the Chained Titan', act: 3, hp: 44, dmg: 2.0, speed: 2.2, radius: 2.2, reach: 3.4,
+        name: 'Kolossar, the Chained Giant', act: 3, hp: 44, dmg: 2.0, speed: 2.2, radius: 2.2, reach: 3.4,
         atk: 1.8, xp: 60, poise: 0.6, el: 'fire', model: 'boss-kolossar', h: 6.0, color: 0xc0602a,
         abilities: ['slam', 'quake', 'meteor', 'summon:sentinel'], phases: [0.66, 0.33],
-        art: 'a colossal stone-and-magma titan with broken golden chains hanging from his wrists and neck, molten cracks across his body, a bearded crowned head of basalt, burning eyes',
+        art: 'a colossal stone-and-magma giant with broken golden chains hanging from his wrists and neck, molten cracks across his body, a bearded crowned head of basalt, burning eyes',
         taunt: ['Ten thousand years in chains, and they send ME a child?', 'The chains are rust, Warden. So are you.', 'Burn! Let the sky fall with me!'],
+        death: 'Chains... again. I will wait. I am very... patient.',
+        voice: 'Bloodgrin VF - Evil, Demonic Villain',
     },
 };
 

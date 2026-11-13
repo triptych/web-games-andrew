@@ -1,4 +1,4 @@
-// TITAN'S VAULT: the three.js view. Reads G every frame and answers its events; never changes G.
+// GIANT'S VAULT: the three.js view. Reads G every frame and answers its events; never changes G.
 // Sim (x, y) maps to world (x, 0, y). The camera looks down from the south at about 52°, so sim "up" (−y) is screen up.
 
 import * as THREE from 'three';

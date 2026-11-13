@@ -1,4 +1,4 @@
-// TITAN'S VAULT: entering areas, town, waystones, the town portal, bosses, quests and rifts. Pure.
+// GIANT'S VAULT: entering areas, town, waystones, the town portal, bosses, quests and rifts. Pure.
 
 import { RIFT, POTION } from '../config.js';
 import { childSeed } from '../rng.js';

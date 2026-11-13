@@ -1,4 +1,4 @@
-// TITAN'S VAULT: the player's derived stats. Pure.
+// GIANT'S VAULT: the player's derived stats. Pure.
 // recompute(G) folds level, attributes, mastery bars, passive skills, gear, gems, sets and timed buffs into
 // G.player.stats. It runs whenever any of those change (and on load), never every step.
 

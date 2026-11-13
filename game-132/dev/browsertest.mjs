@@ -2,7 +2,7 @@
  * browsertest.mjs — the real game in real Chromium (SwiftShader WebGL).
  *
  * desktop (1280×760): boot to the title with no errors, the ← Games link on top → New Warden → a class by click →
- *   the intro card closed with a real Enter → I opens the inventory and Escape closes it → K opens skills, a click
+ *   the narrator reading the intro card, the card closed with a real Enter (which silences him) → I opens the inventory and Escape closes it → K opens skills, a click
  *   learns War Cry's prerequisite and slots → real WASD walks → into the Wilds → a real '1' key with the mouse on a
  *   monster attacks it → Q drinks a potion → Escape pauses and the sim stops → Settings on top of Pause, Escape
  *   with a slider focused closes it → Space on the focused Resume button resumes → T opens a portal to town and
@@ -67,8 +67,10 @@ async function open(viewport, { touch = false, nostorage = false, q = '' } = {})
 const check = (cond, msg) => { if (!cond) { fails++; console.log('  FAIL', msg); } else console.log('  ok', msg); return cond; };
 const Q = (page, fn, arg) => page.evaluate(fn, arg);
 const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, `bt-${name}.png`) }); };
+// what the game was doing when a wait timed out (mode, open screens, life)
+const state = (page) => Q(page, () => `mode ${window.__tv?.mode}, screens [${window.__tv?.ui.stack}], life ${Math.round(window.__tv?.G?.player.life)}, level ${window.__tv?.G?.player.level}, kills ${window.__tv?.G?.stats.kills}, area ${window.__tv?.G?.area.id}, seed ${window.__tv?.G?.seed}`).catch(() => '?');
 const until = (page, fn, msg, timeout = 30000, arg = null) =>
-    page.waitForFunction(fn, arg, { timeout, polling: 100 }).then(() => check(true, msg), () => check(false, msg));
+    page.waitForFunction(fn, arg, { timeout, polling: 100 }).then(() => check(true, msg), async () => check(false, `${msg} (${await state(page)})`));
 const click = (page, sel) => Q(page, (s) => { const e = document.querySelector(s); if (!e) return false; e.click(); return true; }, sel);
 const visible = (page, id) => Q(page, (i) => !document.getElementById(i).hidden, id);
 const backLinkOk = (page) => Q(page, () => {
@@ -105,7 +107,9 @@ const arena = (page) => Q(page, () => {
     __tv.act({ t: 'enter', id: 'gate' });
     const P = G.player;
     const m = G.mons.slice().sort((a, b) => Math.hypot(a.x - P.x, a.y - P.y) - Math.hypot(b.x - P.x, b.y - P.y))[0];
-    for (const o of G.mons) if (o !== m) o.aggro = false;
+    // only the dummy: a rare pack nearby can kill a level-1 hero mid-test, and the death screen covers the HUD
+    G.mons = G.mons.filter((o) => o === m || Math.hypot(o.x - m.x, o.y - m.y) > 30);
+    G.shots = []; G.zones = [];
     P.x = m.x - 1.4; P.y = m.y; m.aggro = true; m.life = m.max = 1e6; m.dmg = 0.01;
     return m.id;
 });
@@ -123,11 +127,13 @@ async function desktop() {
     await click(page, '#title-menu [data-act="new"]');
     await until(page, () => !document.getElementById('classes').hidden && document.querySelectorAll('.class-card').length === 3, 'New Warden shows the three classes');
     await shot(page, 'desktop-classes');
-    await click(page, '.class-card[data-cls="ironsworn"]');
+    await page.click('.class-card[data-cls="ironsworn"]');      // a real click: the first gesture starts the sound
     await until(page, () => __tv.mode === 'play' && !document.getElementById('card').hidden, 'picking the Ironsworn starts play with the intro card');
+    await until(page, () => __tv.audio.voicePlaying === 'vo-card-intro', 'the narrator reads the intro card', 8000);
     await Q(page, () => document.getElementById('card-ok').focus());
     await page.keyboard.press('Enter');
     await until(page, () => document.getElementById('card').hidden, 'Enter closes the story card');
+    check(await Q(page, () => __tv.audio.voicePlaying === null), 'closing the card stops the narrator');
     await until(page, () => __tv.view.info.models.loaded >= 4, 'the Meshy models load', 60000);
 
     await page.keyboard.press('KeyI');
@@ -201,7 +207,8 @@ async function desktop() {
     await until(page, () => __tv.mode === 'play' && __tv.G.player.ranks.leap === 1 && __tv.G.area.id === 'wilds', 'Continue restores the saved game');
 
     // the bot plays on in the page
-    await Q(page, () => { for (const id of [...__tv.ui.stack]) __tv.ui.closeScreen(id); __tv.ff(200); });
+    // the unkillable training dummy from arena() goes first: it follows the bot and pins it down (1 seed in 9)
+    await Q(page, (id) => { __tv.G.mons = __tv.G.mons.filter((m) => m.id !== id); for (const id of [...__tv.ui.stack]) __tv.ui.closeScreen(id); __tv.ff(200); }, mid);
     await until(page, () => __tv.G.player.level >= 5 && __tv.G.stats.kills > 40, 'the bot plays the real game in the page (level 5+)', 60000);
     await Q(page, () => { for (const id of [...__tv.ui.stack]) __tv.ui.closeScreen(id); });
     await page.waitForTimeout(1500);

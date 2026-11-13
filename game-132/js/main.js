@@ -1,4 +1,4 @@
-// TITAN'S VAULT — entry point. Boots the view, runs the fixed-step simulation, routes input and events, and moves
+// GIANT'S VAULT — entry point. Boots the view, runs the fixed-step simulation, routes input and events, and moves
 // between the title, class choice, play, the panels and death.
 //
 // ?debug=1 exposes window.__tv for the dev/ harnesses; &fast=N runs N× simulation per frame; &q=low draws less;
@@ -23,14 +23,14 @@ const LOW = params.get('q') === 'low';
 
 const settings = loadSettings();
 const audio = new Audio();
-audio.setVolumes(settings.sfx, settings.music);
+audio.setVolumes(settings.sfx, settings.music, settings.voice);
 const canvas = document.getElementById('view');
 const input = new Input(canvas);
 const view = new View(canvas, document.getElementById('overlay'), { low: LOW });
 view.overlay.numbers = settings.numbers;
 const ui = new UI({
     audio, settings,
-    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); view.overlay.numbers = s.numbers; if (G) act(G, { t: 'filter', level: s.filter }); updateTouch(); },
+    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); view.overlay.numbers = s.numbers; if (G) act(G, { t: 'filter', level: s.filter }); updateTouch(); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
 });
 // back from a menu: the press that closed it must not also act in the game. Flushed the moment the last screen
