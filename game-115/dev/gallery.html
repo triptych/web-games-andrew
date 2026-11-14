@@ -19,8 +19,11 @@ import { BUILDINGS, BUILDING_IDS } from '../js/sim/data/buildings.js';
 import { paintBuilding, paintScaffold } from '../js/view/buildings.js';
 import { charStrip, heroLook, villagerLook, heroKey, villagerKey, FW, FH, FRAMES } from '../js/view/chars.js';
 import { tree, rock, plant, stump } from '../js/view/nature.js';
+import { loadArt } from '../js/view/art.js';
 const out = document.getElementById('out');
 const params = new URLSearchParams(location.search);
+// the painted sprites by default; ?code=1 shows the code-drawn ones the game falls back to
+if (!params.has('code')) await loadArt();
 const only = params.get('only');
 function section(t) { const h = document.createElement('h2'); h.textContent = t; out.appendChild(h); const r = document.createElement('div'); r.className = 'row'; out.appendChild(r); return r; }
 function cell(row, c, label, scale = 1, px = false) {

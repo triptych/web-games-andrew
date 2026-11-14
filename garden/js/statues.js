@@ -8,6 +8,7 @@ import { Batch, xf, under } from './materials.js';
 import { lathe } from './architecture.js';
 import { rng, TAU } from './util.js';
 import { canvas, toTexture } from './textures.js';
+import { drawGameIcon, iconsReady } from './game-icons.js';
 
 const PED_H = 1.25;
 export const STATUE_TOP = 3.6; // pick cylinder height above the ground
@@ -87,11 +88,8 @@ function drawPlaque(ctx, x0, y0, W, H, game, genre) {
     ctx.beginPath();
     ctx.arc(cx, cy, r, 0, TAU);
     ctx.fill();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = `${r * 1.15}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
     ctx.fillStyle = '#000';
-    ctx.fillText(game.icon, cx, cy + r * 0.06);
+    drawGameIcon(ctx, game, cx, cy, r * 1.72, { shape: 'circle' });
     // title, engraved
     const tx = x0 + H * 0.95, tw = W - H * 1.1;
     ctx.textAlign = 'left';
@@ -121,7 +119,7 @@ function drawPlaque(ctx, x0, y0, W, H, game, genre) {
 function buildAtlases(statues, cellW) {
     const W = cellW, H = cellW / 2;
     const pages = [];
-    statues.forEach((st, i) => {
+    const drawAll = () => statues.forEach((st, i) => {
         const p = Math.floor(i / PER_PAGE), k = i % PER_PAGE;
         if (!pages[p]) {
             const c = canvas(W * ATLAS_COLS, H * ATLAS_ROWS);
@@ -131,13 +129,20 @@ function buildAtlases(statues, cellW) {
         drawPlaque(pages[p].ctx, col * W, row * H, W, H, st.game, st.genre);
         st.atlas = { page: p, u0: col / ATLAS_COLS, v0: 1 - (row + 1) / ATLAS_ROWS, du: 1 / ATLAS_COLS, dv: 1 / ATLAS_ROWS };
     });
-    return pages.map(({ c }) => {
+    drawAll();
+    const textures = pages.map(({ c }) => {
         const t = toTexture(c);
         t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
         t.generateMipmaps = true;
         t.minFilter = THREE.LinearMipmapLinearFilter;
         return t;
     });
+    // plaques drawn before their game's painted icon loaded show its emoji until this redraw
+    iconsReady(statues.map((st) => st.game)).then(() => {
+        drawAll();
+        for (const t of textures) t.needsUpdate = true;
+    });
+    return textures;
 }
 
 // --------------------------------------------------------------- sculpting

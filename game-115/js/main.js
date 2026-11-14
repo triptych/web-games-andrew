@@ -5,6 +5,7 @@
 
 import { STEP, MAX_FRAME, OFFLINE } from './config.js';
 import { View } from './view/view.js';
+import { loadArt, ART } from './view/art.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
@@ -20,6 +21,7 @@ const NODEMO = DEBUG && params.get('demo') === '0';
 
 const settings = loadSettings();
 if (params.get('q') != null && DEBUG) settings.quality = +params.get('q');
+loadArt();                                   // painted sprites arrive in the background; code-drawn ones stand in
 const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music);
 const input = new Input();
@@ -246,7 +248,7 @@ function frame(now) {
     view.frame(G, dt, time);
     if (mode === 'play') {
         ui.hud(G, dt);
-        audio.tick(G.hour ?? hourOf(G.t), G.weather, dt);
+        audio.tick(G.hour ?? hourOf(G.t), G.weather, dt, G.festival);
     } else audio.tick(11, 'clear', dt);
 }
 
@@ -270,6 +272,7 @@ requestAnimationFrame((t) => { last = t; frame(t); });
 if (DEBUG) {
     window.__hw = {
         get G() { return G; },
+        art: ART,                               // painted art: .done, .loaded, .total, .failed
         get mode() { return mode; },
         get paused() { return paused; },
         seen, view, ui, audio, input,

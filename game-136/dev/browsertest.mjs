@@ -128,8 +128,11 @@ async function desktop() {
     await until(page, () => document.querySelectorAll('.shelf-item').length === 1, 'the gift bed is on the shelf');
 
     // pick the bed up and put it down with the real mouse
+    const camBefore = await Q(page, () => __pp.view.cam.top);
     await clickSel(page, '.shelf-item');
     await until(page, () => __pp.placing && __pp.placing.id === __pp.G.items[0].id, 'clicking the shelf picks the bed up');
+    await page.waitForTimeout(400);
+    check(await Q(page, (c) => __pp.view.cam.top === c, camBefore), 'the room does not move when a thing is picked up');
     const t = await tileAt(page, 2, 2);
     await page.mouse.move(t.x, t.y, { steps: 3 });
     await until(page, () => __pp.placing?.spec?.x === 2 && __pp.placing?.spec?.y === 2, 'the ghost follows the mouse to the tile');

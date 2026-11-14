@@ -11,6 +11,7 @@ import { Batch, xf, under } from './materials.js';
 import { lathe, gearShape } from './architecture.js';
 import { canvas, toTexture, glowSprite } from './textures.js';
 import { genreOf } from './genres.js';
+import { drawGameIcon, iconsReady } from './game-icons.js';
 import { rng, TAU, lerp, clamp } from './util.js';
 
 export const HALL_R = 30;   // the hall's wall
@@ -904,6 +905,8 @@ export class Works {
         band.tex.wrapS = THREE.RepeatWrapping;
         band.tex.repeat.set(2, 1);
         this._drawBand(band);
+        // drawn with emoji where an icon had not loaded yet; draw it again once they all have
+        iconsReady(this.env.games).then(() => this._drawBand(band));
         const bandMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 1.75, 1.1, 48, 1, true), band.material);
         bandMesh.position.y = 7.6;
         s.add(bandMesh);
@@ -1285,13 +1288,15 @@ export class Works {
         ctx.font = `600 54px ${MONO}`;
         ctx.textBaseline = 'middle';
         const games = [...this.env.games].sort(() => scr.r() - 0.5);
+        const icon = Math.min(56, h * 0.8);
         let x = 20;
         for (const g of games) {
-            const text = `${g.icon} ${g.title.toUpperCase()}   ◆   `;
-            const tw = ctx.measureText(text).width;
+            const text = `${g.title.toUpperCase()}   ◆   `;
+            const tw = icon + 14 + ctx.measureText(text).width;
             if (x + tw > w - 20) break;
+            drawGameIcon(ctx, g, x + icon / 2, h / 2, icon);
             ctx.fillStyle = genreOf(g).accent;
-            ctx.fillText(text, x, h / 2 + 2);
+            ctx.fillText(text, x + icon + 14, h / 2 + 2);
             x += tw;
         }
         scanlines(ctx, w, h);
@@ -1359,7 +1364,8 @@ export class Works {
             ctx.textAlign = 'left';
             ctx.fillStyle = '#ffffff';
             ctx.font = `700 ${Math.round(h * 0.06)}px Georgia, serif`;
-            ctx.fillText(`${g.icon} ${g.title}`, 10, h - 15, w - 20);
+            drawGameIcon(ctx, g, 22, h - 15, 24);
+            ctx.fillText(g.title, 40, h - 15, w - 50);
         } else if (scr.kind === 'model') {
             if (st.m === undefined || t > st.until) {
                 st.m = Math.floor(scr.r() * this.models.length);
@@ -1534,16 +1540,14 @@ export class Works {
             const cols = 13, rows = Math.ceil(games.length / cols);
             const gw = w * 0.62, cs = Math.min(gw / cols, (h - 40) / rows);
             const sel = Math.floor(t / 2.2) % games.length;
-            ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.font = `${Math.floor(cs * 0.62)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
             games.forEach((g, i) => {
                 const x = 14 + (i % cols) * cs + cs / 2, y = 36 + Math.floor(i / cols) * cs + cs / 2;
                 if (i === sel) {
                     ctx.fillStyle = genreOf(g).accent;
                     ctx.fillRect(x - cs / 2 + 1, y - cs / 2 + 1, cs - 2, cs - 2);
                 }
-                ctx.fillText(g.icon, x, y + 1);
+                drawGameIcon(ctx, g, x, y, cs - 6);
             });
             ctx.textAlign = 'left';
             ctx.fillStyle = '#ffd98a';
@@ -1553,7 +1557,8 @@ export class Works {
             const px = 14 + cols * cs + 20, pw = w - px - 14;
             ctx.fillStyle = genreOf(g).accent;
             ctx.font = `700 26px Georgia, serif`;
-            ctx.fillText(`${g.icon} ${g.title}`, px, 60, pw);
+            drawGameIcon(ctx, g, px + 18, 60, 36);
+            ctx.fillText(g.title, px + 44, 60, pw - 44);
             ctx.fillStyle = '#d9c08a';
             ctx.font = `13px ${MONO}`;
             ctx.fillText(`${g.id} · v${g.version} · ${genreOf(g).short}`, px, 90, pw);

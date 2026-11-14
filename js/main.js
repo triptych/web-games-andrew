@@ -1,4 +1,4 @@
-import games from './gamedata.js';
+import games, { gameIcon } from './gamedata.js';
 
 // Newest-first ordering used everywhere in the browser
 const gamesNewestFirst = [...games].reverse();
@@ -36,7 +36,7 @@ class GameRenderer {
         return `
             <div class="game-card ${game.cssClass}" data-game="${game.folder}" data-title="${game.title}" data-search="${searchText}">
                 <div class="game-preview ${game.cssClass}">
-                    <div class="preview-icon">${game.icon}</div>
+                    <div class="preview-icon"><img class="game-icon-img" src="${gameIcon(game)}" alt="" width="96" height="96" loading="lazy" decoding="async"></div>
                 </div>
                 <div class="game-title">${game.title} ${versionBadge(game)}</div>
                 <div class="game-description">
@@ -146,7 +146,7 @@ class Carousel {
             <div class="carousel-slide ${game.cssClass}" data-game="${game.folder}" data-title="${game.title}">
                 <div class="carousel-slide-bg ${game.cssClass}"></div>
                 <div class="carousel-slide-content">
-                    <div class="carousel-icon">${game.icon}</div>
+                    <div class="carousel-icon"><img class="game-icon-img" src="${gameIcon(game, 192)}" alt="" width="192" height="192" decoding="async"></div>
                     <div class="carousel-text">
                         <h2>${game.title} ${versionBadge(game)}</h2>
                         <p>${game.description}</p>

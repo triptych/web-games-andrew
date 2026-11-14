@@ -356,8 +356,22 @@ h1 {
 }
 
 .preview-icon {
-    font-size: 2.4em;
-    opacity: 0.8;
+    line-height: 0;
+}
+
+.preview-icon .game-icon-img {
+    width: 84px;
+    height: 84px;
+}
+
+/* a game's painted icon (game-NNN/icons/), sized by the em of its container */
+.game-icon-img {
+    display: block;
+    width: 1em;
+    height: 1em;
+    border-radius: 22%;
+    object-fit: cover;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
 }
 
 .game-title {

@@ -9,7 +9,7 @@
 // copy answers instantly (so the game opens offline and on a dead connection),
 // and a fresh copy is fetched in the background for the next load.
 // ============================================================
-const CACHE = 'lanternwake-v2';
+const CACHE = 'lanternwake-v3';
 
 // Only the entry points need pre-caching; every module, style and worker file
 // is added to the cache the first time it is actually requested.

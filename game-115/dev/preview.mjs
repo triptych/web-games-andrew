@@ -22,6 +22,7 @@ if (PKG) await page.route('https://unpkg.com/**', (r) => { const f = path.join(P
 await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 await page.goto(`${BASE}/game-115/index.html?debug=1&q=2&demo=0`);
 await page.waitForFunction(() => window.__hw && __hw.mode === 'title', null, { timeout: 120000 });
+await page.waitForFunction(() => __hw.art.done, null, { timeout: 120000 });     // the painted sprites, not the stand-ins
 await page.evaluate(async () => {
     __hw.start(11);
     __hw.ff(6200);                                  // about 26 days: a lived-in town

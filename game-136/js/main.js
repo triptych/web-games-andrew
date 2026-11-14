@@ -651,8 +651,9 @@ function frame(now) {
                 if (cmd && cmd.t !== 'finish') doAct(cmd); else { bot = null; if (cmd) finish(); }
             }
         }
-        const ctxR = $('ctx').hidden ? null : $('ctx').getBoundingClientRect();
-        const top = $('topbar').getBoundingClientRect().bottom + 8, bottom = innerHeight - Math.min($('shelf').getBoundingClientRect().top, ctxR ? ctxR.top : Infinity) + 8;
+        // room for the action bar is always kept, so the room never jumps when you pick something up
+        const reserve = innerHeight < 500 ? 50 : 58;
+        const top = $('topbar').getBoundingClientRect().bottom + 8, bottom = innerHeight - $('shelf').getBoundingClientRect().top + 8 + reserve;
         view.setInsets(Math.round(top), Math.round(bottom));
     } else if (mode === 'photo') {
         const top = $('photo-top').getBoundingClientRect().bottom + 6, bottom = innerHeight - $('photo-panel').getBoundingClientRect().top + 6;

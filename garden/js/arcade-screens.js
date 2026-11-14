@@ -8,12 +8,12 @@
 
 import * as THREE from 'three';
 import { rng } from './util.js';
+import { drawGameIcon, iconsReady } from './game-icons.js';
 
 const TW = 160, TH = 120;          // a title or high-score screen: authentically low resolution
 const SW = 240, SH = 126;          // a demo still, cropped from the 1200x630 preview picture
 const MW = 256, MH = 72;           // a marquee
 export const PIXEL_FONT = '"Press Start 2P", "Courier New", monospace';
-const EMOJI = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 
 const canvas = (w, h) => Object.assign(document.createElement('canvas'), { width: w, height: h });
 const grid = (n, cw, ch) => {
@@ -102,10 +102,9 @@ function drawTitle(ctx, ox, oy, game, genre, r) {
     ctx.textAlign = 'right';
     ctx.fillText('HI ' + String(10000 + Math.floor(r() * 89999)).padStart(6, '0'), ox + TW - 4, oy + 3);
     // the game's icon
+    drawGameIcon(ctx, game, ox + TW / 2, oy + 30, 32);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `26px ${EMOJI}`;
-    ctx.fillText(game.icon, ox + TW / 2, oy + 32);
     // its name: a drop shadow in the second accent, then the accent
     const lines = wrap(game.title, 18);
     ctx.font = `8px ${PIXEL_FONT}`;
@@ -153,8 +152,7 @@ function drawScores(ctx, ox, oy, game, genre, r) {
     }
     ctx.fillStyle = '#8a8fb0';
     ctx.textAlign = 'center';
-    ctx.font = `14px ${EMOJI}`;
-    ctx.fillText(game.icon, ox + TW / 2, oy + TH - 12);
+    drawGameIcon(ctx, game, ox + TW / 2, oy + TH - 12, 16);
     ctx.restore();
 }
 
@@ -182,8 +180,7 @@ function drawMarquee(ctx, ox, oy, game, genre) {
     ctx.fillRect(ox, oy + MH - 4, MW, 4);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = `20px ${EMOJI}`;
-    ctx.fillText(game.icon, ox + 18, oy + MH / 2);
+    drawGameIcon(ctx, game, ox + 20, oy + MH / 2, 30);
     const lines = wrap(game.title, 12);
     let size = 18;
     ctx.font = `${size}px ${PIXEL_FONT}`;
@@ -225,16 +222,25 @@ export function buildAtlases(cabinets) {
     const tx = tc.getContext('2d'), sx = sc.getContext('2d'), mx = mc.getContext('2d');
     sx.fillStyle = '#000';
     sx.fillRect(0, 0, sc.width, sc.height);
-    for (const cab of cabinets) {
-        const r = rng('attract-' + cab.game.id);
-        const tcol = cab.id % tg.cols, trow = Math.floor(cab.id / tg.cols);
-        drawTitle(tx, tcol * TW, trow * TH * 2, cab.game, cab.genre, r);
-        drawScores(tx, tcol * TW, trow * TH * 2 + TH, cab.game, cab.genre, r);
-        drawMarquee(mx, (cab.id % mg.cols) * MW, Math.floor(cab.id / mg.cols) * MH, cab.game, cab.genre);
-    }
+    const drawCells = () => {
+        for (const cab of cabinets) {
+            const r = rng('attract-' + cab.game.id);
+            const tcol = cab.id % tg.cols, trow = Math.floor(cab.id / tg.cols);
+            drawTitle(tx, tcol * TW, trow * TH * 2, cab.game, cab.genre, r);
+            drawScores(tx, tcol * TW, trow * TH * 2 + TH, cab.game, cab.genre, r);
+            drawMarquee(mx, (cab.id % mg.cols) * MW, Math.floor(cab.id / mg.cols) * MH, cab.game, cab.genre);
+        }
+    };
+    drawCells();
     const titles = atlasTexture(tc, true), shots = atlasTexture(sc, false), marquees = atlasTexture(mc, false);
     const has = new Float32Array(n);
     const out = { titles, shots, marquees, tg, sg, mg, has, loaded: 0, onShot: null, disposed: false };
+    // the cells were drawn with each game's emoji where its painted icon had not loaded yet
+    iconsReady(cabinets.map((c) => c.game)).then(() => {
+        if (out.disposed) return;
+        drawCells();
+        titles.needsUpdate = marquees.needsUpdate = true;
+    });
 
     // the demo stills are the Library's preview pictures; whichever arrive are drawn in as they come
     let dirty = false, timer = 0;

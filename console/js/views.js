@@ -7,14 +7,20 @@
 import { genreOf } from '../../garden/js/genres.js';
 import { esc, clamp, excerpt, gameNo, thumbUrl, playUrl, azLetter, markText, descSnippet, searchGames } from './util.js';
 import { ICONS } from './icons.js';
+import { gameIcon } from '../../js/gamedata.js';
 
 let uid = 0;
 const HOLD_MS = 520;
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
 
-/** A game's picture over its emoji, which shows if the picture is missing. */
+/** A game's painted icon (game-NNN/icons/, made with fal), as a little tile. */
+export function gameIconHTML(g, size = 96) {
+    return `<i class="gi" style="background-image:url('${gameIcon(g, size)}')"></i>`;
+}
+
+/** A game's picture over its painted icon, which shows if the picture is missing. */
 export function gameArt(g) {
-    return `<span class="art-icon" aria-hidden="true">${g.icon}</span><img src="${thumbUrl(g)}" alt="" decoding="async" onload="this.classList.add('in')" onerror="this.remove()">`;
+    return `<span class="art-icon" aria-hidden="true">${gameIconHTML(g, 192)}</span><img src="${thumbUrl(g)}" alt="" decoding="async" onload="this.classList.add('in')" onerror="this.remove()">`;
 }
 
 const pad3 = (n) => String(n).padStart(3, '0');
@@ -135,7 +141,7 @@ export class ListView extends View {
         const meta = it.meta != null && it.meta !== '' ? `<span class="r-meta">${it.cycle ? '◂ ' : ''}${esc(it.meta)}${it.cycle ? ' ▸' : ''}</span>` : '';
         const chev = it.chev === false || it.cycle ? '' : `<span class="r-chev" aria-hidden="true">${it.ext ? '↗' : '›'}</span>`;
         return `<${tag} ${attrs} class="${cls}" role="option" id="r${this.id}-${i}" data-i="${i}" tabindex="-1" aria-selected="false"${accent ? ` style="--accent:${accent}"` : ''}>
-            <span class="r-icon" aria-hidden="true">${it.icon ?? (g ? g.icon : '')}</span>
+            <span class="r-icon" aria-hidden="true">${it.icon ?? (g ? gameIconHTML(g) : '')}</span>
             <span class="r-body"><span class="r-label"><span class="r-text">${it.labelHTML ?? esc(it.label ?? g?.title ?? '')}</span></span>${it.subHTML ? `<span class="r-sub">${it.subHTML}</span>` : ''}</span>
             ${g ? `<span class="r-fav" aria-hidden="true">${fav ? '★' : ''}</span>` : ''}${meta}${chev}
         </${tag}>`;
