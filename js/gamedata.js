@@ -2098,7 +2098,7 @@ const games = [
         description: "A cozy isometric room builder in three.js with a claymation look. Pinch furniture, toys, rugs, lamps and pictures out of plasticine at the Clay Bench (sixteen things, three sizes, three to five shapes each, sixteen clay colours in two slots, patterns, painted pictures, warm or cool lamps), then place them in cut-away diorama rooms: beds and sofas on the floor, rugs underneath, lamps, plants and toys up on tables, desks, shelves and mantels, pictures and clocks on the walls. Eight rooms are each for someone, with a brief of needs and wishes: Pip's first room, Mo's reading nook, the twins' playroom, Nonna's kitchen, Mr. Biscuit's living room, Juno's attic studio, Fern's greenhouse parlour and Grandma Clay's cabin, plus a Free Studio. Finish a room to be rated on the brief, colour harmony, balance, fullness, variety and cosiness, with up to three stars. Then photograph it: turn the room, set the light from morning to night (the lamps and the fire glow), add a film filter and a miniature tilt-shift blur, frame it as an instant photo or a postcard, save or share it, keep it in an album, or copy a link that rebuilds your diorama for whoever opens it. Every model and the clay shader with its thumbprints are made in code; the portraits, the title and the paintings in the frames are by fal; music and sound by ElevenLabs. Mouse, keyboard or touch.",
         icon: '🏺',
         folder: 'game-136',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'pinch-and-place',
         genre: 'cozy',
         tags: [

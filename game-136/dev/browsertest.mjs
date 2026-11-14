@@ -150,6 +150,31 @@ async function desktop() {
     await clickSel(page, '.kind-btn[data-kind="floorlamp"]');
     await clickSel(page, '#bench-c1 [data-c="tomato"]');
     await until(page, () => __pp.ui.recipe.kind === 'floorlamp' && __pp.ui.recipe.colors[1] === 'tomato', 'picking a kind and a colour sets the recipe');
+    // every kind at every size stands on the turntable, never inside it (a large rug was buried in v1.0.0)
+    const buried = await Q(page, async () => {
+        const out = [];
+        const tableTop = (b) => { b.table.updateMatrixWorld(true); const g = b.table.geometry; g.computeBoundingBox(); return g.boundingBox.max.y * b.table.scale.y + b.table.position.y; };
+        for (const btn of document.querySelectorAll('.kind-btn')) {
+            for (let size = 0; size < 3; size++) {
+                __pp.bench.setRecipe({ ...__pp.ui.recipe, kind: btn.dataset.kind, size, variant: 0, motif: 0 });
+                if (__pp.bench.wall) continue;
+                const top = tableTop(__pp.bench);
+                let modelTop = -Infinity;
+                __pp.bench.model.updateMatrixWorld(true);
+                __pp.bench.model.traverse((o) => { if (o.isMesh) { o.geometry.computeBoundingBox(); const bb = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld); modelTop = Math.max(modelTop, bb.max.y); } });
+                if (modelTop < top + 0.02) out.push(`${btn.dataset.kind} size ${size}: top ${modelTop.toFixed(3)} under the turntable ${top.toFixed(3)}`);
+            }
+        }
+        __pp.bench.setRecipe(__pp.ui.recipe);
+        return out;
+    });
+    check(buried.length === 0, `every floor thing at every size shows above the bench's turntable ${buried.slice(0, 3).join('; ')}`);
+    await clickSel(page, '.kind-btn[data-kind="rug"]');
+    await clickSel(page, '#bench-size .chip:nth-child(3)');
+    await page.waitForTimeout(600);
+    await shot(page, 'desktop-bench-rug');
+    await clickSel(page, '.kind-btn[data-kind="floorlamp"]');
+    await clickSel(page, '#bench-c1 [data-c="tomato"]');
     await page.waitForTimeout(600);
     await shot(page, 'desktop-bench');
     const clay0 = await Q(page, () => __pp.G.clay);
