@@ -69,7 +69,9 @@ export class UI {
     toast(text) {
         const t = el('div', 'toast');
         t.textContent = text;
-        $('toasts').appendChild(t);
+        const box = $('toasts');
+        box.appendChild(t);
+        while (box.children.length > 2) box.firstChild.remove();   // never a wall of toasts over the room
         setTimeout(() => t.remove(), 2700);
         window.A11Y?.announce?.(text);
     }

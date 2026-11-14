@@ -124,6 +124,8 @@ function startBuild() {
     $('hud').hidden = false;
     $('photo-ui').hidden = true;
     ui.resetGoals();
+    // small screens start with the brief folded away; its summary line still counts the goals
+    $('goals').open = innerWidth >= 640 && innerHeight >= 500;
     lastEval = evaluate(G);
     refresh();
     audio.playMusic('build');
@@ -287,8 +289,9 @@ function specFromPoint(x, y) {
     } else if (K.layer === 'small' && p.item != null && p.itemPoint && KINDS[item(p.item)?.kind]?.surface) {
         spec = { x: Math.floor(p.itemPoint.x), y: Math.floor(p.itemPoint.z), rot: placing.rot };
     } else if (p.floor) {
+        // the pointed tile is always inside the footprint (rounding a centre that sits on a tile edge isn't)
         const [fw, fd] = footprint(it, placing.rot);
-        spec = { x: Math.round(p.floor.px - fw / 2), y: Math.round(p.floor.pz - fd / 2), rot: placing.rot };
+        spec = { x: Math.floor(p.floor.px) - Math.floor((fw - 1) / 2), y: Math.floor(p.floor.pz) - Math.floor((fd - 1) / 2), rot: placing.rot };
     }
     if (!spec) return false;
     const same = placing.spec && JSON.stringify(spec) === JSON.stringify(placing.spec);
@@ -648,7 +651,8 @@ function frame(now) {
                 if (cmd && cmd.t !== 'finish') doAct(cmd); else { bot = null; if (cmd) finish(); }
             }
         }
-        const top = $('topbar').getBoundingClientRect().bottom + 8, bottom = innerHeight - $('shelf').getBoundingClientRect().top + 8;
+        const ctxR = $('ctx').hidden ? null : $('ctx').getBoundingClientRect();
+        const top = $('topbar').getBoundingClientRect().bottom + 8, bottom = innerHeight - Math.min($('shelf').getBoundingClientRect().top, ctxR ? ctxR.top : Infinity) + 8;
         view.setInsets(Math.round(top), Math.round(bottom));
     } else if (mode === 'photo') {
         const top = $('photo-top').getBoundingClientRect().bottom + 6, bottom = innerHeight - $('photo-panel').getBoundingClientRect().top + 6;
