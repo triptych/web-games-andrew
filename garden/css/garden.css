@@ -168,7 +168,7 @@ kbd {
 .title-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 .title-actions .btn-primary { font-size: 1.2rem; padding: 0.7em 1.8em; }
 .title-foot { margin: 1.5em 0 0; font-size: 1rem; color: var(--ink-dim); }
-.title-foot a { color: var(--ink-dim); }
+.title-foot a { color: var(--ink-dim); white-space: nowrap; }
 .title-foot span { margin: 0 0.5em; }
 .title-count {
     position: absolute;
