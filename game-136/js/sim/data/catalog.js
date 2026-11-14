@@ -122,6 +122,15 @@ export const KINDS = {
         fp: [[1, 1], [2, 1], [2, 2]], cost: [1, 2, 3], h: [0, 0, 0],
         tags: ['art'], variants: ['Frame', 'Round', 'Pennant'], slots: ['Frame', 'Paint'],
         motifs: ['Sun', 'Flower', 'Cat', 'Hills', 'Heart', 'Boat'], colors: ['butter', 'sky'],
+        // the paintings in the frames are painted with fal (dev/art/prompts.mjs); these say what each shows
+        motifArt: [
+            'a big round golden sun with wavy rays over a pale blue sky, no face on the sun',
+            'three bright tulips, red, yellow and pink, with green leaves in a little blue vase',
+            'a fat ginger cat curled up asleep on a cushion, eyes closed',
+            'rolling green hills with a winding path, a tiny red cottage and fluffy white clouds',
+            'a big plump red heart surrounded by little pink dots',
+            'a little sailing boat with a white sail on wavy blue sea under a small cloud',
+        ],
     },
     clock: {
         name: 'Clock', emoji: '🕰️', group: 'Wall', layer: 'wall',

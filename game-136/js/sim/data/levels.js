@@ -10,7 +10,7 @@
 
 export const LEVELS = [
     {
-        id: 'pip', name: "Pip's First Room", who: 'Pip', w: 5, d: 5, clay: 22,
+        id: 'pip', art: 'a small six-year-old child with a round face, messy ginger hair and freckles, wearing striped blue pyjamas, hugging a tiny clay teddy bear, sleepy happy smile', name: "Pip's First Room", who: 'Pip', w: 5, d: 5, clay: 22,
         blurb: "Pip is moving out of the cot and into a real room. A bed, a light for the dark, and something soft underfoot.",
         door: { wall: 'R', u: 3 }, windows: [{ wall: 'L', u: 1, w: 2 }], blocked: [],
         gifts: [{ kind: 'bed', size: 0, variant: 0, colors: ['cocoa', 'sky'], motif: 0 }],
@@ -25,7 +25,7 @@ export const LEVELS = [
         ],
     },
     {
-        id: 'mo', name: "Mo's Reading Nook", who: 'Mo', w: 5, d: 6, clay: 26,
+        id: 'mo', art: 'a bookish teenager with short black curly hair, big round glasses and a mustard cardigan, holding an open book against their chest, gentle smile', name: "Mo's Reading Nook", who: 'Mo', w: 5, d: 6, clay: 26,
         blurb: "Mo reads three books a week and wants a corner to do it in: a deep chair, good light and the books close by.",
         door: { wall: 'L', u: 4 }, windows: [{ wall: 'R', u: 2, w: 2 }], blocked: [],
         gifts: [],
@@ -40,7 +40,7 @@ export const LEVELS = [
         ],
     },
     {
-        id: 'twins', name: "The Twins' Playroom", who: 'Ada & Otto', w: 6, d: 6, clay: 28,
+        id: 'twins', art: 'two cheerful seven-year-old twins side by side, a girl with two puffy brown pigtails in a red dungaree dress and a boy with a mop of brown hair in a green t-shirt, grinning', name: "The Twins' Playroom", who: 'Ada & Otto', w: 6, d: 6, clay: 28,
         blurb: "Ada and Otto need somewhere to put all of it. Lots of toys, somewhere soft to sit on the floor, and a way through the mess.",
         door: { wall: 'R', u: 4 }, windows: [{ wall: 'L', u: 2, w: 2 }], blocked: [],
         gifts: [],
@@ -55,7 +55,7 @@ export const LEVELS = [
         ],
     },
     {
-        id: 'nonna', name: "Nonna's Kitchen Corner", who: 'Nonna Rosa', w: 6, d: 5, clay: 30,
+        id: 'nonna', art: 'a warm Italian grandmother with grey hair in a bun, rosy cheeks, small gold earrings and a floral apron, holding a wooden spoon, laughing', name: "Nonna's Kitchen Corner", who: 'Nonna Rosa', w: 6, d: 5, clay: 30,
         blurb: "Sunday lunch is at Nonna's. She needs a table with chairs around it, and she likes the place warm and bright.",
         door: { wall: 'L', u: 5 }, windows: [{ wall: 'R', u: 1, w: 2 }], blocked: [],
         gifts: [],
@@ -70,7 +70,7 @@ export const LEVELS = [
         ],
     },
     {
-        id: 'biscuit', name: "Mr. Biscuit's Living Room", who: 'Mr. Biscuit', w: 7, d: 6, clay: 40,
+        id: 'biscuit', art: 'a plump friendly older gentleman with a bald head, a big white walrus moustache, a brown waistcoat and a bow tie, holding a teacup and saucer, beaming', name: "Mr. Biscuit's Living Room", who: 'Mr. Biscuit', w: 7, d: 6, clay: 40,
         blurb: "Mr. Biscuit has friends round for tea every evening. A sofa, a table for the teapot, a rug under it, and lamps for after dark.",
         door: { wall: 'R', u: 5 }, windows: [{ wall: 'L', u: 2, w: 3 }], blocked: [],
         gifts: [],
@@ -87,7 +87,7 @@ export const LEVELS = [
         ],
     },
     {
-        id: 'juno', name: "Juno's Starlight Studio", who: 'Juno', w: 6, d: 6, clay: 30,
+        id: 'juno', art: 'a young artist with a short lilac bob haircut, a dark blue hoodie covered in paint dabs and a pencil tucked behind one ear, calm dreamy smile', name: "Juno's Starlight Studio", who: 'Juno', w: 6, d: 6, clay: 30,
         blurb: "Juno draws comics late into the night under the attic roof. A desk, a chair, a lamp on the desk, and cool, calm colours.",
         door: { wall: 'L', u: 5 }, windows: [{ wall: 'R', u: 1, w: 2 }], blocked: [[3, 3]],
         gifts: [],
@@ -102,7 +102,7 @@ export const LEVELS = [
         ],
     },
     {
-        id: 'fern', name: "Fern's Greenhouse Parlour", who: 'Fern', w: 7, d: 7, clay: 40,
+        id: 'fern', art: 'a cheerful gardener woman in her forties with long braided auburn hair, green dungarees and soil on her cheek, holding a small potted fern', name: "Fern's Greenhouse Parlour", who: 'Fern', w: 7, d: 7, clay: 40,
         blurb: "Fern's plants have taken over the house. Give them a room of their own, with the sunniest spots for the thirstiest ones, and a seat for Fern.",
         door: { wall: 'R', u: 5 }, windows: [{ wall: 'L', u: 1, w: 2 }, { wall: 'L', u: 4, w: 2 }], blocked: [],
         gifts: [],
@@ -117,7 +117,7 @@ export const LEVELS = [
         ],
     },
     {
-        id: 'cabin', name: "Grandma's Cabin", who: 'Grandma Clay', w: 8, d: 7, clay: 50,
+        id: 'cabin', art: 'a sweet tiny grandmother with fluffy white hair, little round spectacles and a knitted lavender shawl, holding a lump of clay in her hands, kind wrinkled smile', name: "Grandma's Cabin", who: 'Grandma Clay', w: 8, d: 7, clay: 50,
         blurb: "The cosiest room of all, for the person who taught everyone to pinch clay. A fire, a bed, a chair by the fire, and light in every corner.",
         door: { wall: 'R', u: 5 }, windows: [{ wall: 'L', u: 5, w: 2 }], blocked: [[5, 4]],
         gifts: [],
