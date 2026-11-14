@@ -1,5 +1,4 @@
 {
-  "id": "./",
   "name": "Island Walker",
   "short_name": "Island Walker",
   "description": "A first-person walking simulator on a wholly procedural island, rendered by a 3D engine built from scratch — no three.js, no WebGL, just JavaScript transforming and shading triangles into a 2D…",

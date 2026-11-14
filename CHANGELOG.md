@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Install any game from the browser:** installing a second game updated the first one's app instead of making a new one. Every generated manifest had `id: './'`, and a manifest `id` resolves against the site's origin, so all the games shared one app identity. [dev/add-pwa.mjs](dev/add-pwa.mjs) now leaves `id` out, so it defaults to each game's own `start_url`. A game installed from the first release has to be uninstalled and installed again.
+
 ### Added
 - **Install any game from the browser.** Every game except game-037 (which already had its own) now has a `manifest.webmanifest`, `icons/` (cut from its Garden picture) and a block in its `index.html` that loads [lib/pwa.js](lib/pwa.js).
   - [sw.js](sw.js) is one shared service worker, registered per game with the game's folder as scope: network first, cached copy as the fallback, so a shipped update shows on the next load and a game that has been played opens offline. Range requests, partial and opaque responses are never cached.

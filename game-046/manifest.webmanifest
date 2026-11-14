@@ -1,5 +1,4 @@
 {
-  "id": "./",
   "name": "Quiverspire",
   "short_name": "Quiverspire",
   "description": "A room-based roguelite archery game in three.js. Stand still and your archer fires on the nearest enemy; move and you stop shooting, so every room is a rhythm of dodge, plant your feet, loose arrows…",
