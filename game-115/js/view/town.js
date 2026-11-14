@@ -12,7 +12,9 @@ import { seasonOf, hourOf, locPos, hall as hallOf, isNight } from '../sim/core.j
 import { Terrain } from './terrain.js';
 import { Nav, roadTiles } from './nav.js';
 import { tex, spriteMaterial, spriteGeometry, LEAN } from './stage.js';
-import { paintBuilding, paintScaffold, paintBlades } from './buildings.js';
+import { paintBuilding, paintScaffold, millSails } from './buildings.js';
+import { ART, art } from './art.js';
+import { clearPortraits } from '../portrait.js';
 import { tree, rock, plant, stump, shadowTex, glowTex } from './nature.js';
 import { charStrip, heroLook, villagerLook, heroKey, villagerKey, FW, FH, FRAMES, FRAME } from './chars.js';
 import { canvas, ctx2, INK, box, poly, circle, ellipse, line, softShadow, PX } from './paint.js';
@@ -99,6 +101,7 @@ export class Town {
         this.dummy = new THREE.Object3D();
         // the merchant's cart
         const cm = spriteMaterial(this.stage.shared, tex(cartCanvas()), {});
+        this.cartArt = false;
         this.cart = new THREE.Mesh(this.geo, cm);
         this.cart.rotation.x = -LEAN; this.cart.scale.set(1.5, 1.1, 1); this.cart.visible = false;
         this.group.add(this.cart);
@@ -163,14 +166,14 @@ export class Town {
             const sp = this.nodeSprite(key, season, 0);
             if (!rec || rec.cap < list.length) {
                 if (rec) { this.group.remove(rec.mesh); rec.mesh.dispose(); }
-                const mat = spriteMaterial(this.stage.shared, this.texFor(sp.c, {}, `n:${key}:${season}`), { instanced: true, sway: key.startsWith('tree') && !key.includes('stump') ? 0.05 : key.startsWith('flax') ? 0.04 : 0 });
+                const mat = spriteMaterial(this.stage.shared, this.texFor(sp.c, {}, `n:${sp.id}`), { instanced: true, sway: key.startsWith('tree') && !key.includes('stump') ? 0.05 : key.startsWith('flax') ? 0.04 : 0 });
                 const mesh = new THREE.InstancedMesh(this.geo, mat, Math.max(16, Math.ceil(list.length * 1.3)));
                 mesh.frustumCulled = false;
                 this.group.add(mesh);
-                rec = { mesh, cap: mesh.count = mesh.instanceMatrix.count, season };
+                rec = { mesh, cap: mesh.count = mesh.instanceMatrix.count, sid: sp.id };
                 this.nodeMeshes.set(key, rec);
             }
-            if (rec.season !== season) { rec.mesh.material.uniforms.map.value = this.texFor(sp.c, {}, `n:${key}:${season}`); rec.season = season; }
+            if (rec.sid !== sp.id) { rec.mesh.material.uniforms.map.value = this.texFor(sp.c, {}, `n:${sp.id}`); rec.sid = sp.id; }
             rec.mesh.count = list.length;
             list.forEach((n, i) => { this.setNode(rec.mesh, i, n, sp, 0); this.nodeSlots.set(n.id, { mesh: rec.mesh, i, sp }); });
             rec.mesh.instanceMatrix.needsUpdate = true;
@@ -217,14 +220,15 @@ export class Town {
                 const s = paintBuilding(b.type, lvShow);
                 e.sprite = s;
                 const old = e.mesh.material;
-                e.mesh.material = spriteMaterial(this.stage.shared, this.texFor(s.c, {}, `b:${b.type}:${lvShow}`), { emi: this.texFor(s.e, {}, `be:${b.type}:${lvShow}`) });
+                e.mesh.material = spriteMaterial(this.stage.shared, this.texFor(s.c, {}, `b:${s.id}`), { emi: this.texFor(s.e, {}, `be:${s.id}`) });
                 if (old) old.dispose();
                 e.mesh.scale.set(s.w, s.h, 1);
                 e.lv = lvShow;
                 if (b.type === 'mill') {
-                    if (!e.blades) { e.blades = new THREE.Group(); e.blades.rotation.x = -LEAN; const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), spriteMaterial(this.stage.shared, this.texFor(paintBlades(lvShow), {}, `bl:${lvShow}`), {})); m.name = 'b'; e.blades.add(m); this.group.add(e.blades); }
-                    else e.blades.children[0].material.uniforms.map.value = this.texFor(paintBlades(lvShow), {}, `bl:${lvShow}`);
-                    e.blades.children[0].scale.set(190 / PX, 190 / PX, 1);
+                    const sails = millSails(lvShow);
+                    if (!e.blades) { e.blades = new THREE.Group(); e.blades.rotation.x = -LEAN; const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), spriteMaterial(this.stage.shared, this.texFor(sails.c, {}, sails.id), {})); m.name = 'b'; e.blades.add(m); this.group.add(e.blades); }
+                    else e.blades.children[0].material.uniforms.map.value = this.texFor(sails.c, {}, sails.id);
+                    e.blades.children[0].scale.set(sails.size, sails.size, 1);
                 }
             }
             const s = e.sprite;
@@ -246,7 +250,7 @@ export class Town {
             if (b.bld) {
                 if (!e.scaf) {
                     const sc2 = paintScaffold(d.w, Math.max(1.6, s.h * 0.92));
-                    e.scaf = new THREE.Mesh(this.geo, spriteMaterial(this.stage.shared, this.texFor(sc2.c, {}, `sf:${d.w}:${Math.round(s.h * 10)}`), { }));
+                    e.scaf = new THREE.Mesh(this.geo, spriteMaterial(this.stage.shared, this.texFor(sc2.c, {}, sc2.id), { }));
                     e.scaf.rotation.x = -LEAN; e.scaf.scale.set(sc2.w, sc2.h, 1);
                     this.group.add(e.scaf);
                 }
@@ -307,10 +311,10 @@ export class Town {
         const d = BUILDINGS[g.type];
         const s = paintBuilding(g.type, 1);
         if (!this.ghost) { this.ghost = new THREE.Mesh(this.geo, null); this.ghost.rotation.x = -LEAN; this.group.add(this.ghost); }
-        if (this.ghost.userData.type !== g.type) {
-            this.ghost.material = spriteMaterial(this.stage.shared, this.texFor(s.c, {}, `b:${g.type}:1`), { emi: this.texFor(s.e, {}, `be:${g.type}:1`) });
+        if (this.ghost.userData.type !== s.id) {
+            this.ghost.material = spriteMaterial(this.stage.shared, this.texFor(s.c, {}, `b:${s.id}`), { emi: this.texFor(s.e, {}, `be:${s.id}`) });
             this.ghost.material.transparent = true; this.ghost.material.alphaToCoverage = false;
-            this.ghost.userData.type = g.type;
+            this.ghost.userData.type = s.id;
         }
         this.ghost.visible = true;
         this.ghost.material.uniforms.uAlpha.value = 0.72;
@@ -334,13 +338,15 @@ export class Town {
         if (!w) { w = new Walker(kind, id); this.walkers.set(wid, w); }
         if (w.key !== key) {
             w.key = key;
-            const t = this.texFor(canvasFn(), { pixel: true }, 'c:' + key);
+            const strip = canvasFn();
+            const t = this.texFor(strip, { pixel: !strip.painted }, 'c:' + (strip.painted ? 'art:' + key : key));
+            w.cw = CHAR_H * (strip.fw || FW) / (strip.fh || FH);
             if (!w.mesh) {
                 w.mat = spriteMaterial(this.stage.shared, t, { rect: [0, 0, 1 / FRAMES, 1], alphaCoverage: false });
                 w.mat.transparent = true;
                 w.mesh = new THREE.Mesh(this.geo, w.mat);
                 w.mesh.rotation.x = -LEAN;
-                w.mesh.scale.set(CHAR_W, CHAR_H, 1);
+                w.mesh.scale.set(w.cw, CHAR_H, 1);
                 w.mesh.renderOrder = 5;
                 this.group.add(w.mesh);
             } else w.mat.uniforms.map.value = t;
@@ -534,7 +540,7 @@ export class Town {
             w.mesh.visible = w.alpha > 0.04;
             const bob = w.mode === 'walk' ? Math.abs(Math.sin(w.t * 8)) * 0.03 : w.mode === 'idle' ? Math.sin(w.t * 2 + w.id) * 0.006 : 0;
             w.mesh.position.set(w.x, bob - 0.02, w.y + 0.1);
-            w.mesh.scale.set(CHAR_W * w.face, CHAR_H, 1);
+            w.mesh.scale.set((w.cw || CHAR_W) * w.face, CHAR_H, 1);
             u.uHi.value = this.sel && this.sel.kind === (w.kind === 'h' ? 'hero' : 'villager') && this.sel.id === w.id ? 1 : 0;
             if (w.mesh.visible && ns < 190) {
                 sdw.position.set(w.x + 0.04, 0.03, w.y + 0.1); sdw.rotation.set(0, 0, 0); sdw.scale.set(0.9, 1, 0.5); sdw.updateMatrix();
@@ -547,7 +553,24 @@ export class Town {
     }
 
     // ---------------------------------------------------------------- per-frame
+    /** A batch of painted art arrived: drop every cached texture and let each sprite pick its picture again. */
+    refreshArt() {
+        this.artV = ART.v;
+        for (const t of this.texCache.values()) t.dispose();
+        this.texCache.clear();
+        for (const e of this.bmap.values()) { e.lv = -1; if (e.scaf) { this.group.remove(e.scaf); e.scaf = null; } }
+        for (const rec of this.nodeMeshes.values()) { this.group.remove(rec.mesh); rec.mesh.dispose(); }
+        this.nodeMeshes.clear(); this.nodeSlots.clear(); this.nodeDirty = true;
+        for (const w of this.walkers.values()) w.key = '';
+        if (this.ghost) this.ghost.userData.type = null;
+        const ca = art('cart');
+        if (ca && !this.cartArt) { this.cart.material.uniforms.map.value = tex(ca.img); this.cart.scale.set(ca.w, ca.h, 1); this.cartArt = true; }
+        clearPortraits();
+        document.body.classList.toggle('painted', ART.loaded > 0);
+    }
+
     update(G, dt, time, ui = {}) {
+        if (this.artV !== ART.v) this.refreshArt();
         this.sel = ui.selected || null;
         this.speed = ui.speed || 1;
         const season = seasonOf(G.day);

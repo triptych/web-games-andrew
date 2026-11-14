@@ -2,8 +2,10 @@
 // in a one-room study with a desk, and on the desk a glass sphere with a
 // galaxy turning inside it. Click the sphere to fall into it (see galaxy.js), or
 // the train ticket beside it to board the Violet Line (see subway.js), or the
-// papers on the other side to read an old maintenance log. Beside the
-// desk an old television shows the island's secret places, live (see hut-tv.js).
+// papers on the other side to read an old maintenance log, or the little
+// Pocket Garden handheld propped up at the front to go to the console (see
+// hut-console.js). Beside the desk an old television shows the island's
+// secret places, live (see hut-tv.js).
 // Like the Works, the room is built on the first visit, with its own scene and
 // a stand-in `world` for the walking controls.
 
@@ -14,6 +16,7 @@ import { buildFireplace } from './fireplace.js';
 import { signMesh, signTexture } from './architecture.js';
 import { glowSprite } from './textures.js';
 import { HutTV } from './hut-tv.js';
+import { HutConsole } from './hut-console.js';
 import { PLAZA_R, PATH_HALF } from './layout.js';
 import { rng, TAU } from './util.js';
 
@@ -222,7 +225,7 @@ void main() {
 }`;
 
 export class Hut {
-    /** @param {object} env { renderer, ui, mats, camera, quality, tv (channels), onChannel } */
+    /** @param {object} env { renderer, ui, mats, camera, quality, tv (channels), onChannel, titles (the game list, for the handheld) } */
     constructor(env) {
         this.env = env;
         this.scene = new THREE.Scene();
@@ -253,6 +256,8 @@ export class Hut {
         this._ticket();
         this._papers();
         this._portrait();
+        // the Pocket Garden handheld, propped up at the front of the desk between the sphere and the papers
+        this.handheld = new HutConsole({ scene: this.scene, mats: this.mats, renderer: env.renderer, titles: env.titles, x: DESK.x - 0.3, y: DESK.h + 0.035, z: DESK.z + 0.24, yaw: 0.22 });
         if (env.tv?.length) {
             // the television on its cabinet, between the desk and the bookshelf, facing the room
             this.tv = new HutTV({ renderer: env.renderer, scene: this.scene, camera: env.camera, mats: this.mats, quality: env.quality, channels: env.tv, onChannel: env.onChannel, x: 1.85, z: -R_Z + 0.38, ry: -0.12 });
@@ -618,8 +623,9 @@ export class Hut {
         return this._door;
     }
 
-    setHover(on, ticket = false, tv = false, papers = false) {
+    setHover(on, ticket = false, tv = false, papers = false, handheld = false) {
         this.hoverTarget = on ? 1 : 0;
+        this.handheld.setHover(handheld);
         this.ticketTarget = ticket ? 1 : 0;
         this.papersTarget = papers ? 1 : 0;
         this.tv?.setHover(tv);
@@ -628,6 +634,7 @@ export class Hut {
     /** `away` is true while the room isn't on screen (falling through the sphere). */
     update(dt, t, away = false) {
         this.tv?.update(dt, t, this.env.camera, away);
+        this.handheld.update(dt, t, away);
         this.time = t;
         this.hover += ((this.hoverTarget || 0) - this.hover) * Math.min(1, dt * 8);
         this.orbUniforms.uTime.value = t;

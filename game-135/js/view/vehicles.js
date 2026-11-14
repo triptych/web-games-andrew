@@ -19,6 +19,17 @@ const cyl = (r, len, m, x, y, z, axis = 'x') => {
 /** How far each Meshy model must be turned for its front to be +Z (checked on dev/gallery.html). */
 export const YAW = { dump: Math.PI / 2, dozer: Math.PI / 2, digger: Math.PI / 2, roller: Math.PI / 2, crane: Math.PI / 2, wrecker: Math.PI / 2, loader: Math.PI / 2, mixer: Math.PI / 2 };
 
+// Where each wheeled model's wheels are, in the model's own units (1 tall, nose along -x, axles along z), found by
+// dev/assets/wheels.mjs. models.js cuts them out of the mesh so they can turn. The roller's first entry is its drum.
+const W2 = (x, r, a, b) => [{ x, y: r, r, z0: -b, z1: -a }, { x, y: r, r, z0: a, z1: b }];
+export const WHEELS = {
+    dump: [...W2(-0.457, 0.19, 0.18, 0.372), ...W2(0.013, 0.19, 0.209, 0.372), ...W2(0.464, 0.19, 0.153, 0.372)],
+    mixer: [...W2(-0.424, 0.182, 0.228, 0.378), ...W2(0.044, 0.178, 0.203, 0.378), ...W2(0.424, 0.166, 0.202, 0.384)],
+    loader: [...W2(-0.194, 0.178, 0.05, 0.373), ...W2(0.502, 0.274, 0.023, 0.443)],
+    roller: [{ x: -0.407, y: 0.246, r: 0.246, z0: -0.356, z1: 0.356 }, ...W2(0.442, 0.274, 0.044, 0.422)],
+    crane: [...W2(-0.269, 0.106, 0.141, 0.254), ...W2(0.135, 0.11, 0.142, 0.254), ...W2(0.372, 0.11, 0.145, 0.254)],
+};
+
 /** A blocky toy of each vehicle. */
 function standIn(id) {
     const V = VEH[id], g = new THREE.Group(), body = mat(V.color), L = V.len, W = 2.2;
@@ -44,8 +55,14 @@ export class Vehicles {
         this.body = new THREE.Group();          // bobs and pops inside the root
         this.root.add(this.body);
         this.models = {};
+        this.wheels = {};               // vehicle id → [{ o: the wheel's pivot, r: its radius in metres }]
         for (const V of VEHICLES) {
-            const g = model('veh-' + V.id, { len: V.len * 1.15 }, standIn(V.id), { yaw: YAW[V.id] });
+            const g = model('veh-' + V.id, { len: V.len * 1.15 }, standIn(V.id), {
+                yaw: YAW[V.id], wheels: WHEELS[V.id],
+                // the wheels cut out of the model: each turns by the distance driven over its own radius
+                onLoad: (holder) => holder.traverse((o) => { if (o.name === 'wheel') this.wheels[V.id].push({ o, r: o.userData.wheelR * holder.scale.x }); }),
+            });
+            this.wheels[V.id] = [];
             g.visible = false;
             this.body.add(g);
             this.models[V.id] = g;
@@ -95,6 +112,9 @@ export class Vehicles {
         this.body.scale.set(k, 2 - k, k);
         this.body.position.y = Math.abs(Math.sin(time * 14)) * 0.03 + Math.abs(Math.sin(G.odo * 1.3)) * 0.05;
         this.body.rotation.x = -p.v * 0.004;
+
+        // the model's nose is along its -x, so rolling forward turns the wheels the positive way about z
+        for (const w of this.wheels[G.veh]) w.o.rotation.z += (p.v * dt) / w.r;
 
         this.heap.visible = G.veh === 'dump' && G.cargo.dump > 0;
         this.bucket.forEach((r, i) => { r.visible = G.veh === 'loader' && G.cargo.loader > i; });

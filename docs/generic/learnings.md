@@ -7130,7 +7130,42 @@ A side-view arcade abduction game in Canvas 2D (sim/view), first drawn entirely 
 - **A press dropped by a cooldown (found by the browser test).** Symptom: pressing E right after clicking a vehicle did nothing. Cause: the DOM's choice was handed to one sim step and cleared, and the sim ignores swaps during the 0.35 s cooldown. A pending choice now waits for the cooldown instead of being dropped ([main.js](../../game-135/js/main.js)).
 - **Picture prompts: objects grow faces unless told what each part is.** Symptom (spotted by the owner): the title's trucks had four eyes: eyes in the windscreen and eyes for headlights, and the bulldozer a second face on its blade. Cause: a shared style prompt with "big expressive eyes", written for the portraits, plus "friendly headlights". Use a separate system prompt for anything that is not a person ("ordinary toys, NOT characters: no faces, no eyes, no mouths") and name what each part is ("round headlights that are just lamps", "empty dark glass cab windows"). Check a picture of things against the 3D models it stands for.
 - **Meshy: ask for the moving part to be left off, and build it in code.** The crane and the wrecker were prompted "no cable, no hook, no ball"; the cable, hook, beam, ball and chain are a few boxes that can swing. Scale a vehicle by its longest side on the ground (a boom would shrink the truck under it); ask buildings to stand "on a thin square base" so stretching to a footprint has something flat to fit. All eight vehicles came back nose along +X and all six buildings door on +Z; a gallery page with an arrow per model settles it in one screenshot ([gallery.html](../../game-135/dev/gallery.html)).
+- **A Meshy model's wheels can be cut out and turned (v1.0.1).** Symptom (reported by the owner): the trucks slid along with frozen wheels, because each model is one solid mesh. Fix without regenerating anything: find the wheels once offline (dark tyre vertices touching the ground, clustered along the length; the radius whose rim is covered all the way round, [wheels.mjs](../../game-135/dev/assets/wheels.mjs)), then at load move every triangle wholly inside a wheel's cylinder to its own mesh on a pivot, sharing the vertex buffers ([models.js](../../game-135/js/view/models.js) `splitWheels`), and turn it by distance over radius. Look at the result with the wheels turned part-way: a hand-added fourth crane axle turned out to be an outrigger leg.
 - **Meshy's thumbnails are free icons.** `meshy download --asset thumbnail.primary` gives a transparent render of the finished model: cropped, they are the toy-box buttons, and they match the models exactly.
 - **Load models by a URL relative to the module** (`new URL('../../assets/models/x.glb', import.meta.url)`), not to the page, or a dev page in another folder 404s.
 - **ElevenLabs' status replies are long.** Each poll echoes every prompt and URL twice. Start everything, do other work, then poll once per batch of sessions and write the downloads as one shell line of `session generation signature` triples.
 
+
+## Game 115 HEARTHWICK v1.1.0: repainting a finished code-drawn game with fal and ElevenLabs (2026-11-14)
+
+A cozy town builder whose 95 building stages, trees, people and sounds were all drawn and synthesised in code got painted art and
+recorded audio in one session, with the code versions kept as the fallback. What the next repaint should know:
+
+- **One sheet per building type, every upgrade stage on it.** "The same tavern at four upgrade stages, keeping its colours and
+  its hanging sign" gave stages that read as one building growing; separate generations would have changed it at every upgrade.
+  The same for trees ("the SAME oak in spring, summer, autumn, winter") and heroes ("the same man and woman, left column novice
+  gear ... right column legendary"), so a hero who buys better armour is still recognisably them.
+- **Say "strict front elevation" for a leaning-sprite game.** The pilot's tavern and farm came back at a corner angle, which looks
+  wrong on a sprite that faces a fixed camera. "The front wall parallel to the picture plane, seen from slightly above so the roof
+  shows; side walls hidden; NOT isometric, NOT a corner view" fixed it for all 28 building sheets.
+- **Grid sheets break in every way at once; cut defensively** ([export.py](../../game-115/dev/art/export.py)). In 42 sheets:
+  captions under each building, drawn divider lines (light and dark), a 3×2 asked for that came back 4×2 twice, five subjects for a
+  three-cell row, a wide hall straddling a column line, two houses in one cell. Cut at the emptiest line near the even-grid line;
+  split specific rows by their real gaps; drop thin long pieces, pieces wholly below the subject and specks. A dark-line remover
+  must require light on both sides of the line: the first version ate a dark timber watchtower and sliced roof tops off inns.
+- **Glow maps can be found instead of painted.** "Windows glow softly with warm lamplight" in the prompt, then: warm, bright blobs
+  whose 2-px surroundings are much darker. Thatch, wheat and plaster are warm and bright too, but have no dark frame.
+- **One painted pose can drive an existing frame strip.** The town already animated pixel people from an 8-frame strip (idle,
+  four walk, two work, sit). Building that strip from the painting with canvas transforms (a ±3° waddle and a 4-px bob to walk, a
+  lean to work, a squash to sit) kept every walker, flip and frame timer unchanged, and portraits became a crop of frame 0.
+- **Ask for no smoke and still un-mix it.** Two chimneys came back with lavender wisps over the magenta; they survived keying
+  because a blend of grey and magenta is not "near the key". Estimate the key fraction from the magenta excess (min(r, b) − g),
+  un-mix it near the edges, then drop what is still magenta-tinted, judged on the colours as painted.
+- **Swap art in once.** Loading 247 files in parallel and re-texturing the town per batch caused repeated full texture rebuilds;
+  one `ART.v++` when everything has landed is enough, with the code sprites standing in until then.
+- **Test with Playwright routing when no local server is allowed.** A `--import` module that wraps `chromium.launch` and routes
+  `http://game.local/**` to the files on disk (with range requests, which `<audio>` uses) ran the repo's own browser tests
+  unchanged with `BASE=http://game.local`. A music `<audio>` element aborts its own range requests while buffering: ignore aborted
+  `.mp3` requests, but still fail on any HTTP error.
+- **ElevenLabs: run nodes with `generations_count: 1`** when nobody is there to pick between takes (the default is 4 for effects).
+  The estimate said 7,700 credits; the run cost 4,200.
