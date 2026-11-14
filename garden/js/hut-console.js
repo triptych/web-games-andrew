@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { glowSprite } from './textures.js';
 
 // the device's size on the desk (the console's own shape: width is 0.565 of the height)
-const H = 0.17, W = H * 0.565, T = 0.02;
+const H = 0.2, W = H * 0.565, T = 0.02;
 // the painted face, in pixels (same ratio)
 const PH = 900, PW = Math.round(PH * 0.565);
 const px = (f) => f * PH;   // a fraction of the device's height, in face pixels
@@ -310,13 +310,13 @@ export class HutConsole {
         // the painted face, just proud of the front
         const face = new THREE.Mesh(
             new THREE.PlaneGeometry(W, H),
-            new THREE.MeshStandardMaterial({ map: faceTex, transparent: true, alphaTest: 0.5, roughness: 0.42, emissive: 0xffffff, emissiveMap: faceTex, emissiveIntensity: 0.1 }),
+            new THREE.MeshStandardMaterial({ map: faceTex, transparent: true, alphaTest: 0.5, roughness: 0.5 }),
         );
         face.position.z = T / 2 + 0.0004;
         device.add(face);
         // the LCD over the bezel's black glass
         const toW = (pxv) => (pxv / PH) * H;
-        const screen = new THREE.Mesh(new THREE.PlaneGeometry(toW(S.w), toW(S.h)), new THREE.MeshBasicMaterial({ map: this.lcdTex, toneMapped: false }));
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(toW(S.w), toW(S.h)), new THREE.MeshBasicMaterial({ map: this.lcdTex, color: 0xb0b0b0 }));
         screen.position.set(toW(S.x + S.w / 2) - W / 2, H / 2 - toW(S.y + S.h / 2), T / 2 + 0.0008);
         this.screen = screen;
         device.add(screen);
@@ -351,9 +351,9 @@ export class HutConsole {
         this.restY = device.position.y;
 
         // a soft mint glow off the screen, brighter when the pointer is on it
-        this.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowSprite(), color: 0x7dffb8, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.18 }));
-        this.glow.scale.set(0.3, 0.3, 1);
-        this.light = new THREE.PointLight(0x7dffb8, 0.5, 1.4, 2);
+        this.glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowSprite(), color: 0x7dffb8, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.05 }));
+        this.glow.scale.set(0.16, 0.16, 1);
+        this.light = new THREE.PointLight(0x7dffb8, 0.15, 0.8, 2);
         holder.add(this.glow, this.light);
 
         // a generous invisible target round the whole device
@@ -479,9 +479,9 @@ export class HutConsole {
         }
         this.press = Math.max(0, this.press - dt * 2.5);
         this.device.position.y = this.restY + this.hover * 0.012;
-        this.screen.material.color.setScalar(1 + this.press * 1.5);
-        this.glow.material.opacity = 0.14 + 0.04 * Math.sin(t * 2.2) + this.hover * 0.25 + this.press * 0.6;
-        this.glow.scale.setScalar(0.26 + this.hover * 0.12 + this.press * 0.3);
-        this.light.intensity = 0.45 + this.hover * 0.6 + this.press * 2;
+        this.screen.material.color.setScalar(0.69 + this.hover * 0.12 + this.press * 0.6);
+        this.glow.material.opacity = 0.04 + 0.015 * Math.sin(t * 2.2) + this.hover * 0.1 + this.press * 0.4;
+        this.glow.scale.setScalar(0.16 + this.hover * 0.06 + this.press * 0.2);
+        this.light.intensity = 0.15 + this.hover * 0.3 + this.press * 1.5;
     }
 }
