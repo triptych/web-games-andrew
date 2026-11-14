@@ -63,7 +63,9 @@ async function open(viewport, { touch = false, nostorage = false, keepStorage = 
     errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
-    page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
+    // a music <audio> element cancels its own range requests as it buffers: an aborted .mp3 is not a failure (a 404 still is)
+    page.on('requestfailed', (r) => { if (!r.url().includes('favicon') && !(/\.mp3$/.test(r.url()) && /ABORTED/.test(r.failure()?.errorText || ''))) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
+    page.on('response', (r) => { if (r.status() >= 400 && !r.url().includes('favicon')) errors.push(`http ${r.status()}: ${r.url()}`); });
     await page.goto(`${BASE}/game-115/index.html?debug=1${EXTRA}`);
     await page.waitForFunction(() => window.__hw && __hw.mode === 'title', null, { timeout: 120000 });
     return page;
@@ -156,6 +158,13 @@ async function desktop() {
     const L = await layout(page);
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
     check(await Q(page, () => __hw.G.demo && __hw.G.buildings.length > 10), 'a town is running behind the title');
+    await until(page, () => __hw.art.done, 'the painted art has loaded', 120000);
+    check(await Q(page, () => __hw.art.failed.length === 0 && __hw.art.loaded === __hw.art.total && __hw.art.total > 200), 'every painted sprite and glow map loaded');
+    check(await Q(page, () => {
+        // the town is drawn with the paintings, not the code sprites
+        const b = __hw.G.buildings[0];
+        return [...__hw.view.town.bmap.values()].every((e) => e.sprite && String(e.sprite.id).startsWith('art:'));
+    }), 'every building on screen uses its painting');
     await shot(page, 'desktop-title');
 
     await click(page, '#title-menu [data-act="howto"]');
@@ -166,6 +175,9 @@ async function desktop() {
     await click(page, '#title-menu [data-act="new"]');
     await until(page, () => __hw.mode === 'play' && document.getElementById('title').hidden && !document.getElementById('hud').hidden, 'New Town starts play and shows the HUD');
     check(await Q(page, () => __hw.G.buildings.length === 1 && __hw.G.villagers.length === 1), 'a new town is one hut and one neighbour');
+    // the click was a gesture: the audio context is up, every recorded clip decodes and the day theme plays
+    await until(page, () => __hw.audio.loaded.clips === __hw.audio.loaded.of, 'every recorded effect and ambience loop decodes', 60000);
+    await until(page, () => __hw.audio.tracks && !__hw.audio.tracks.day.el.paused && __hw.audio.fileMusic, 'the recorded day theme is playing', 30000);
     await shot(page, 'desktop-start');
 
     // ---- gathering by hand, with the real mouse

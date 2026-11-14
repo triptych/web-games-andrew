@@ -1,10 +1,13 @@
 // Trees, boulders and the little wild things, painted at high resolution with soft gradients.
 // A tree comes in four shapes and four seasons; the shape is chosen by the node's seed.
 
+import { art } from './art.js';
 import { canvas, ctx2, PX, INK, rnd, mix, lighten, darken, lin, rad, circle, ellipse, poly, line, box, softShadow } from './paint.js';
 
 const cache = new Map();
-const memo = (key, fn) => { let v = cache.get(key); if (!v) { v = fn(); cache.set(key, v); } return v; };
+const memo = (key, fn) => { let v = cache.get(key); if (!v) { v = fn(); v.id = key; cache.set(key, v); } return v; };
+/** The painted picture by name as { c, w, h, id }, or null while it has not loaded (then the code painter draws it). */
+const painted = (name) => { const a = art(name); return a ? { c: a.img, w: a.w, h: a.h, id: `art:${name}` } : null; };
 
 const LEAF = [
     ['#8fd06a', '#6dbb55', '#4f9a45'],      // spring
@@ -38,6 +41,8 @@ function trunk(g, x, y, w, h, bark) {
 
 /** variant 0 oak, 1 pine, 2 birch, 3 round fruit tree. season 0..3. Returns { c, w, h } (w, h in tiles). */
 export function tree(variant, season) {
+    const p = painted(`tree${variant % 4}-${season}`);
+    if (p) return p;
     return memo(`tree:${variant}:${season}`, () => {
         const W = Math.round(PX * 1.5), H = Math.round(PX * 2.3);
         const c = canvas(W, H), g = ctx2(c);
@@ -85,6 +90,8 @@ export function tree(variant, season) {
 }
 
 export function stump() {
+    const p = painted('stump');
+    if (p) return p;
     return memo('stump', () => {
         const c = canvas(PX * 0.7, PX * 0.55), g = ctx2(c);
         const cx = c.width / 2, by = c.height - 6;
@@ -98,6 +105,8 @@ export function stump() {
 
 /** variant 0..3 boulders; season 3 adds snow. */
 export function rock(variant, season) {
+    const p = painted(`rock${variant % 4}`);
+    if (p) return p;
     return memo(`rock:${variant}:${season}`, () => {
         const W = Math.round(PX * 1.0), H = Math.round(PX * 0.85);
         const c = canvas(W, H), g = ctx2(c);
@@ -123,6 +132,8 @@ export function rock(variant, season) {
 
 /** kind: bush | flax | herbp | mush. full=false is the picked-over version. */
 export function plant(kind, full, season, variant = 0) {
+    const p = painted(`${kind}${full ? 1 : 0}`);
+    if (p) return p;
     return memo(`plant:${kind}:${full}:${season}:${variant}`, () => {
         const W = Math.round(PX * 0.9), H = Math.round(PX * 0.8);
         const c = canvas(W, H), g = ctx2(c);

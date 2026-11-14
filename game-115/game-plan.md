@@ -1,8 +1,8 @@
 # Hearthwick
 
 **Genre:** cozy town builder with idle progress and a hero economy
-**Engine:** three.js r165, no asset files (every sprite, tile, sound and tune is made in code)
-**Status:** v1.0.0
+**Engine:** three.js r165. Since v1.1.0 the sprites are painted with fal and the music and sound come from ElevenLabs ([art](dev/art/README.md), [audio](dev/audio/README.md)); the original code-drawn sprites and synthesised sound stay in as the fallback for anything that does not load. The ground, water, effects and UI are still drawn in code.
+**Status:** v1.1.0
 
 ---
 
