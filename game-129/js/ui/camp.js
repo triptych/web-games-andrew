@@ -1,10 +1,10 @@
 // HOLLOWDEEP — the camp menu: each hero's stats, gear and skills; the pack; the quest log; save and settings.
 // Works in town and in the dungeon (not in battle). Goes through send() like everything else.
 
-import { $, el, porUrl, icon, itemName, gearLine } from './common.js';
+import { $, el, porUrl, icon, itemName, gearLine, diffBits, upgradeTags } from './common.js';
 import { CLASSES } from '../sim/data/classes.js';
-import { itemDef, gearStats, CONSUMABLES } from '../sim/data/items.js';
-import { heroStats, knownSkills, canEquip, xpNext } from '../sim/stats.js';
+import { itemDef, CONSUMABLES } from '../sim/data/items.js';
+import { heroStats, knownSkills, canEquip, xpNext, compareGear } from '../sim/stats.js';
 import { isComplete } from '../sim/game.js';
 import { progressText } from '../sim/quests.js';
 import { NPCS } from '../sim/data/town.js';
@@ -42,7 +42,7 @@ export class CampUI {
     }
 
     _btn(label, sub, fn, opts = {}) {
-        const b = el('button.btn' + (opts.cls ? '.' + opts.cls : ''), { onclick: fn }, [label, sub ? el('small', { text: sub }) : null]);
+        const b = el('button.btn' + (opts.cls ? '.' + opts.cls : ''), { onclick: fn }, [label, sub ? el('small', { text: sub }) : null, opts.extra]);
         if (opts.disabled) b.disabled = true;
         return b;
     }
@@ -83,12 +83,12 @@ export class CampUI {
         if (usable.length) {
             body.append(el('h3', { text: 'Could wear' }));
             const list = el('div.list');
-            for (const [e, i] of usable) {
-                const d = itemDef(e.id);
-                const cur = c.eq[d.slot] ? gearStats(c.eq[d.slot]) : {};
-                const nw = gearStats(e);
-                const diff = ['atk', 'def', 'mag', 'res'].map((k) => [k, (nw[k] || 0) - (cur[k] || 0)]).filter(([, v]) => v).map(([k, v]) => `${k.toUpperCase()} ${v > 0 ? '+' : ''}${v}`).join(' ');
-                const b = this._btn(itemName(e), diff || gearLine(e), () => this.send({ t: 'equip', cid: c.id, inv: i }));
+            // upgrades first, each showing what it changes against what's worn now
+            const rows = usable.map(([e, i]) => [e, i, compareGear(c, e)]).sort((a, b) => b[2].gain - a[2].gain);
+            for (const [e, i, cmp] of rows) {
+                const bits = diffBits(cmp);
+                const extra = el('span.ups', {}, el('span.up', {}, [cmp.better ? el('b', { text: '▲ upgrade' }) : null, ...(bits.length ? bits : [el('span', { text: 'no change' })])]));
+                const b = this._btn(itemName(e), gearLine(e), () => this.send({ t: 'equip', cid: c.id, inv: i }), { extra, cls: cmp.better ? 'upgrade' : '' });
                 b.prepend(icon(e.id));
                 list.append(b);
             }
@@ -125,13 +125,16 @@ export class CampUI {
                 const c = G.roster.find((x) => x.id === id);
                 const s = heroStats(c);
                 const ok = p.kind === 'equip' ? canEquip(c, d) : helps(it, c, s);
+                // equipping: what it would change for this hero, ▲ when it's an upgrade
+                const cmp = p.kind === 'equip' && ok ? compareGear(c, e) : null;
+                const extra = cmp ? el('span.ups', {}, el('span.up', {}, [cmp.better ? el('b', { text: '▲ upgrade' }) : null, ...diffBits(cmp)])) : null;
                 list.append(this._btn(c.name, `HP ${c.hp}/${s.hp} · MP ${c.mp}/${s.mp}`, () => {
                     // Stay on this list while the stack lasts, so a second hero can drink straight away. The pick is
                     // settled before send(), because send() re-renders the camp at once.
                     this.pick = p.kind === 'use' && (e.n || 1) > 1 ? p : null;
                     this.send(p.kind === 'use' ? { t: 'use', inv: p.inv, target: c.id } : { t: 'equip', cid: c.id, inv: p.inv });
                     this.render(this.G);
-                }, { disabled: !ok }));
+                }, { disabled: !ok, extra, cls: cmp?.better ? 'upgrade' : '' }));
             }
             list.append(this._btn('← Cancel', null, () => { this.pick = null; this.render(G); }));
             body.append(list);
@@ -150,7 +153,8 @@ export class CampUI {
             }
             if (d.type === 'gear') acts.push(this._btn('Equip', null, () => { this.pick = { kind: 'equip', inv: i, id: e.id }; this.render(G); }));
             if (d.type !== 'quest') acts.push(this._btn('Drop', null, () => this.send({ t: 'discard', inv: i }), { cls: 'danger' }));
-            list.append(el('div.card', {}, [icon(e.id), el('div.info', {}, [el('b', { text: `${itemName(e)}${e.n > 1 ? ' ×' + e.n : ''}` }), el('small', { text: gearLine(e) || d.desc || '' })]), el('div.acts', {}, acts)]));
+            const ups = d.type === 'gear' ? upgradeTags(G.party.map((id) => G.roster.find((c) => c.id === id)).filter(Boolean), e) : null;
+            list.append(el('div.card' + (ups ? '.upgrade' : ''), {}, [icon(e.id), el('div.info', {}, [el('b', { text: `${itemName(e)}${e.n > 1 ? ' ×' + e.n : ''}` }), el('small', { text: gearLine(e) || d.desc || '' }), ups]), el('div.acts', {}, acts)]));
         }
         body.append(list);
     }

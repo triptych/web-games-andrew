@@ -1,10 +1,10 @@
 // HOLLOWDEEP — Brindlemoor: the square and its six places. Each place is a painted backdrop, a townsperson who
 // talks (voiced), and the things you can do there. Everything goes out through send(); nothing here changes G.
 
-import { $, el, porUrl, icon, itemName, gearLine, toast } from './common.js';
+import { $, el, porUrl, icon, itemName, gearLine, toast, upgradeTags } from './common.js';
 import { PLACES, NPCS, STORY } from '../sim/data/town.js';
 import { CLASSES } from '../sim/data/classes.js';
-import { itemDef, gearStats, sellPrice, CONSUMABLES } from '../sim/data/items.js';
+import { itemDef, sellPrice, CONSUMABLES } from '../sim/data/items.js';
 import { STRATA, stratumOf } from '../sim/data/monsters.js';
 import { heroStats, canEquip } from '../sim/stats.js';
 import { shopStock, buyPrice, storyFor, isComplete } from '../sim/game.js';
@@ -67,7 +67,9 @@ export class TownUI {
     }
 
     _btn(label, sub, fn, opts = {}) {
-        const b = el('button.btn' + (opts.cls ? '.' + opts.cls : ''), { onclick: fn, title: opts.title }, [label, sub ? el('small', { text: sub }) : null]);
+        const kids = [label, sub ? el('small', { text: sub }) : null];
+        // with an extra line (the ▲ upgrade tags), the text goes in one column so the price keeps its place on the right
+        const b = el('button.btn' + (opts.cls ? '.' + opts.cls : ''), { onclick: fn, title: opts.title }, opts.extra ? [el('span.txt', {}, [...kids, opts.extra])] : kids);
         if (opts.disabled) b.disabled = true;
         if (opts.act) b.dataset.act = opts.act;
         return b;
@@ -128,12 +130,11 @@ export class TownUI {
                 const d = itemDef(id);
                 const users = d.type === 'gear' ? party.filter((c) => canEquip(c, d)) : [];
                 let tagline = gearLine({ id });
-                if (d.type === 'gear' && users.length) {
-                    const better = users.filter((c) => { const cur = c.eq[d.slot]; const a = gearStats({ id }); const b = cur ? gearStats(cur) : {}; return (a.atk || 0) + (a.def || 0) + (a.mag || 0) + (a.res || 0) > (b.atk || 0) + (b.def || 0) + (b.mag || 0) + (b.res || 0); });
-                    tagline += ` · for ${users.map((c) => c.name).join(', ')}${better.length ? ' ▲' : ''}`;
-                }
-                const b = this._btn(d.name, tagline, () => { this.send({ t: 'buy', id }); }, { disabled: G.gold < buyPrice(id), act: 'buy' });
+                if (d.type === 'gear' && users.length) tagline += ` · for ${users.map((c) => c.name).join(', ')}`;
+                const ups = d.type === 'gear' ? upgradeTags(party, { id }) : null;
+                const b = this._btn(d.name, tagline, () => { this.send({ t: 'buy', id }); }, { disabled: G.gold < buyPrice(id), act: 'buy', extra: ups });
                 b.dataset.id = id;
+                if (ups) b.classList.add('upgrade');
                 b.prepend(icon(id));
                 b.append(el('span.price', { text: buyPrice(id).toLocaleString() }));
                 list.append(el('div.item', {}, b));
@@ -143,7 +144,10 @@ export class TownUI {
             for (const [i, e] of G.inv.entries()) {
                 const d = itemDef(e.id);
                 if (!d || d.type === 'quest') continue;
-                const b = this._btn(`${itemName(e)}${e.n > 1 ? ' ×' + e.n : ''}`, gearLine(e), () => this.send({ t: 'sell', inv: i }), { act: 'sell' });
+                // an upgrade nobody is wearing yet still says so here, before it's sold off
+                const ups = d.type === 'gear' ? upgradeTags(G.party.map((id) => G.roster.find((c) => c.id === id)).filter(Boolean), e) : null;
+                const b = this._btn(`${itemName(e)}${e.n > 1 ? ' ×' + e.n : ''}`, gearLine(e), () => this.send({ t: 'sell', inv: i }), { act: 'sell', extra: ups });
+                if (ups) b.classList.add('upgrade');
                 b.prepend(icon(e.id));
                 b.append(el('span.price', { text: sellPrice(e).toLocaleString() }));
                 list.append(el('div.item', {}, b));

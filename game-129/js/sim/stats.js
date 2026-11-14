@@ -2,8 +2,8 @@
 
 import { CLASSES, SKILLS } from './data/classes.js';
 import { MONSTERS, stratumOf, echoName } from './data/monsters.js';
-import { gearStats } from './data/items.js';
-import { XP_NEXT, monsterScale, MON_POWER, MON_HP } from '../config.js';
+import { gearStats, itemDef } from './data/items.js';
+import { XP_NEXT, monsterScale, MON_POWER, MON_HP, BACK_ROW_MELEE } from '../config.js';
 
 const STATS = ['hp', 'mp', 'atk', 'def', 'mag', 'res', 'spd', 'luk'];
 
@@ -38,6 +38,34 @@ export function canEquip(c, def) {
     if (!def || def.type !== 'gear') return false;
     if (def.slot === 'acc') return true;
     return CLASSES[c.cls].gear.includes(def.kind);
+}
+
+/** How much a piece of gear (gearStats) is worth to a hero of class `cls`: casters weigh magic over attack, and a
+ *  back-row archer's melee weapon only lands at BACK_ROW_MELEE. (The bot keeps its own simpler score.) */
+export function gearScore(g, cls) {
+    if (!g) return 0;
+    const magic = cls === 'mage' || cls === 'priest';
+    const back = CLASSES[cls]?.row === 'back' && !magic;
+    const atk = (g.atk || 0) * (back && g.slot === 'weapon' && !g.ranged ? BACK_ROW_MELEE : 1);
+    return atk * (magic ? 0.3 : 1) + (g.mag || 0) * (magic ? 1.2 : 0.2) + (g.def || 0) + (g.res || 0) * 0.6 + (g.hp || 0) * 0.15
+        + (g.mp || 0) * (magic ? 0.3 : 0) + (g.spd || 0) * 0.5 + (g.luk || 0) * 0.2 + (g.crit || 0) * 20;
+}
+
+const DIFF = [['atk', 'ATK'], ['def', 'DEF'], ['mag', 'MAG'], ['res', 'RES'], ['hp', 'HP'], ['mp', 'MP'], ['spd', 'SPD'], ['luk', 'LUK']];
+
+/** What wearing `entry` instead of what's in that slot now would do for hero `c`: null if they can't wear it, else
+ *  { better, gain, diff: [[label, change]...], ranged: +1 gained / −1 lost / 0 } with only the stats that change. */
+export function compareGear(c, entry) {
+    const d = itemDef(entry.id);
+    if (!canEquip(c, d)) return null;
+    const nw = gearStats(entry), cur = c.eq[d.slot] ? gearStats(c.eq[d.slot]) : null;
+    const diff = [];
+    for (const [k, l] of DIFF) { const v = (nw[k] || 0) - (cur?.[k] || 0); if (v) diff.push([l, v]); }
+    const cr = Math.round(((nw.crit || 0) - (cur?.crit || 0)) * 100);
+    if (cr) diff.push(['crit', cr, '%']);
+    const ranged = (nw.ranged ? 1 : 0) - (cur?.ranged ? 1 : 0);
+    const gain = gearScore(nw, c.cls) - gearScore(cur, c.cls);
+    return { better: gain > 0.05, gain, diff, ranged };
 }
 
 /** A monster of id `mid` met on `floor`: its scaled stats and its (echo) name. */
