@@ -2095,4 +2095,15 @@ const games = [
 ];
 
 
+/**
+ * URL of a game's painted icon (made with fal; see dev/game-icons.json and
+ * dev/make-icons.py). It resolves against this module, so it works from any
+ * page: the Garden, classic.html and Pocket Garden alike.
+ * Sizes on disk: 32 (favicon-32), 96 (lists and cards), 180, 192, 512.
+ */
+export function gameIcon(game, size = 96) {
+    const file = size === 32 ? 'favicon-32.png' : `icon-${size}.png`;
+    return new URL(`../${game.folder}/icons/${file}`, import.meta.url).href;
+}
+
 export default games;

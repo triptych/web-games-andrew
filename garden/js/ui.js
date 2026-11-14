@@ -3,6 +3,7 @@
 
 import { esc, excerpt, store, GARDEN_VERSION } from './util.js';
 import { GENRES, genreOf } from './genres.js';
+import { iconHTML } from './game-icons.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -168,7 +169,7 @@ export class UI {
             const g = genreOf(game);
             el.style.setProperty('--accent', g.accent);
             el.innerHTML = `
-                <div class="tt-head"><div class="tt-icon">${game.icon}</div>
+                <div class="tt-head"><div class="tt-icon">${iconHTML(game)}</div>
                 <div><p class="tt-genre">${esc(g.emoji)} ${esc(g.short)}</p>
                 <h3>${this.isStarred(game) ? '<span class="tt-star" title="Starred">★</span>' : ''}${esc(game.title)}${game.version ? `<span class="tt-ver">v${esc(game.version)}</span>` : ''}</h3></div></div>
                 <p class="tt-desc">${esc(excerpt(game.description, 230))}</p>
@@ -187,7 +188,7 @@ export class UI {
         const g = genreOf(game);
         const card = $('card');
         card.style.setProperty('--accent', g.accent);
-        $('card-icon').textContent = game.icon;
+        $('card-icon').innerHTML = iconHTML(game, 192);
         $('card-genre').textContent = `${g.emoji} ${g.short} · ${g.name}`;
         $('card-title').textContent = game.title;
         $('card-meta').textContent = `${game.version ? 'Version ' + game.version + ' · ' : ''}${game.id}`;
@@ -253,7 +254,7 @@ export class UI {
             <div class="lib-item" style="--accent:${g.accent}">
                 <div class="lib-thumb" aria-hidden="true">
                     <img src="garden/img/games/${esc(game.id)}.jpg" alt="" width="1200" height="630" loading="lazy" decoding="async" onerror="this.remove()">
-                    <span class="lib-icon">${game.icon}</span>
+                    <span class="lib-icon">${iconHTML(game)}</span>
                 </div>
                 <div class="lib-text"><strong>${esc(game.title)}</strong>${game.version ? `<span class="ver">v${esc(game.version)}</span>` : ''}
                     <p>${esc(excerpt(game.description, 180))}</p></div>

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **A painted icon for every game.** All 135 games have their own icon, painted with fal (`fal-ai/nano-banana-2`) in one shared style: a bold centred subject on a full-bleed background, readable down to a browser tab. The subject for each game and the style prompt are in [dev/game-icons.json](dev/game-icons.json). Each game keeps its icons in its own folder (`game-NNN/icons/`): `icon-512.png` (the painting), `icon-192.png`, `icon-180.png`, `icon-96.png` and `favicon-32.png`.
+  - **Favicons:** every game page links `icons/favicon-32.png` and `icons/icon-192.png` as its favicon, replacing the emoji and blank favicons a few games had (game-031, 094, 095, 121). The block is written by [dev/add-pwa.mjs](dev/add-pwa.mjs).
+  - **Install icons:** each game's `manifest.webmanifest` icons (`any` and `maskable`) and its apple-touch-icon are now the painting instead of a crop of its screenshot. game-037 (Lanternwake), which has its own manifest, swaps its two SVG icons for the PNGs and gains the favicon and apple-touch-icon (its worker cache is now `lanternwake-v3`).
+  - [dev/make-icons.py](dev/make-icons.py) is rewritten: `--src` takes the 1024 px fal paintings, crops away the white margin or rounded white corners some came back with so every icon is full-bleed, and writes all five sizes; without `--src` it re-derives the smaller sizes from `icon-512.png`, and a game with no painting still falls back to its Garden picture.
+  - The itch.io exporter ([dev/itch/export.mjs](dev/itch/export.mjs)) keeps the favicon links and files when it strips the install block.
+- **The launchers show the painted icons where they showed each game's emoji.** `gameIcon(game, size)` in [js/gamedata.js](js/gamedata.js) gives an icon's URL from any page. The emoji stays in `gamedata.js` as data (the Lighthouse Arcade picks each game's plush toy from it) and is drawn as a stand-in on a canvas until the painting has loaded.
+  - **Garden of Games** v1.18.0: the statue plaques' medallions, the hub hologram, the tooltip, the game card, the Library rows, the arcade cabinets' title screens, high-score screens and marquees, the claw machine's swing tags and prize panel, the fortune teller's lucky game, and the Works' ticker, game screens and library screen. [game-icons.js](garden/js/game-icons.js) loads them, and each canvas atlas is redrawn once its icons have arrived.
+  - **Pocket Garden** v1.2.0: the game rows, the art behind every box-art picture (shown when a picture is missing) and the loading screen.
+  - **Classic list:** the carousel and the game cards.
+
 ### Fixed
 - **Install any game from the browser:** installing a second game updated the first one's app instead of making a new one. Every generated manifest had `id: './'`, and a manifest `id` resolves against the site's origin, so all the games shared one app identity. [dev/add-pwa.mjs](dev/add-pwa.mjs) now leaves `id` out, so it defaults to each game's own `start_url`. A game installed from the first release has to be uninstalled and installed again.
 

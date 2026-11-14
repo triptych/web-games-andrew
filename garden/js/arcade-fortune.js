@@ -8,6 +8,7 @@
 
 import * as THREE from 'three';
 import { rng, store, esc, clamp, damp, TAU } from './util.js';
+import { iconHTML } from './game-icons.js';
 
 export const FORTUNES = [
     'A fish you have not yet caught is already thinking about you.',
@@ -485,7 +486,7 @@ export class FortuneTeller {
         const gb = $('fortune-game');
         if (L.game) {
             gb.hidden = false;
-            gb.innerHTML = `<span aria-hidden="true">${esc(L.game.icon || '🎮')}</span> Your lucky game: <b>${esc(L.game.title)}</b>`;
+            gb.innerHTML = `${iconHTML(L.game, 96, 'inline')} Your lucky game: <b>${esc(L.game.title)}</b>`;
         } else gb.hidden = true;
         $('fortune-log').textContent = `${this.read.size} of ${FORTUNES.length} fortunes read`;
         this.card.hidden = false;

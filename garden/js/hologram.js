@@ -8,6 +8,7 @@ import { lathe } from './architecture.js';
 import { HUB_Y } from './terrain.js';
 import { genreOf } from './genres.js';
 import { canvas, glowSprite } from './textures.js';
+import { drawGameIcon, iconImage } from './game-icons.js';
 import { TAU, damp, angleDiff, excerpt } from './util.js';
 import { GLSL_NOISE } from './sky.js';
 
@@ -158,10 +159,9 @@ function drawCard(c, game, index, total) {
     ctx.arc(cx, cy, R - 6, 0, TAU);
     ctx.stroke();
     ctx.setLineDash([]);
+    const painted = drawGameIcon(ctx, game, cx, cy, 190, { size: 192 });
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.font = '150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-    ctx.fillText(game.icon, cx, cy + 8);
     ctx.font = '600 26px system-ui, sans-serif';
     ctx.fillStyle = g.accent;
     ctx.fillText(`${g.emoji} ${g.short}`.toUpperCase(), cx, cy + R + 40, 330);
@@ -212,6 +212,7 @@ function drawCard(c, game, index, total) {
     ctx.fillStyle = 'rgba(200,250,255,0.8)';
     ctx.font = '22px system-ui, sans-serif';
     ctx.fillText('touch the light to visit', W - 60, H - 46);
+    return painted;
 }
 
 export class Hologram {
@@ -336,7 +337,16 @@ export class Hologram {
         const n = this.games.length;
         this.index = ((i % n) + n) % n;
         this.front = 1 - this.front;
-        drawCard(this.canvases[this.front], this.current, this.index, n);
+        const front = this.front, index = this.index, game = this.current;
+        if (!drawCard(this.canvases[front], game, index, n)) {
+            // drawn with the emoji: draw it again once the painted icon arrives, if it is still showing
+            iconImage(game, 192).addEventListener('load', () => {
+                if (this.front !== front || this.index !== index) return;
+                drawCard(this.canvases[front], game, index, n);
+                this.textures[front].needsUpdate = true;
+            }, { once: true });
+        }
+        iconImage(this.games[(this.index + 1) % n], 192); // fetch the next card's icon ahead of time
         this.textures[this.front].needsUpdate = true;
         this.uniforms.uTex.value = this.textures[this.front];
         this.uniforms.uPrev.value = this.textures[1 - this.front];

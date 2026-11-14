@@ -304,7 +304,10 @@ kbd {
     -webkit-backdrop-filter: blur(6px);
 }
 .tooltip .tt-head { display: flex; gap: 12px; align-items: center; }
-.tooltip .tt-icon { font-size: 2.2rem; line-height: 1; }
+.tooltip .tt-icon { flex: none; width: 2.8rem; height: 2.8rem; }
+/* a game's painted icon (game-NNN/icons/, made with fal), filling the slot it sits in */
+.game-icon-img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 22%; }
+.game-icon-img.inline { display: inline-block; width: 1.5em; height: 1.5em; vertical-align: -0.4em; border-radius: 25%; }
 .tooltip .tt-genre { margin: 0; font: 600 0.72rem var(--sans); letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent, var(--gold)); }
 .tooltip h3 { margin: 0.1em 0 0; font: 600 1.25rem/1.15 var(--display); letter-spacing: 0.02em; }
 .tooltip .tt-ver { font: 500 0.8rem var(--sans); color: var(--ink-dim); margin-left: 0.3em; }
@@ -424,7 +427,8 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     display: grid;
     place-items: center;
     font-size: 2.4rem;
-    border-radius: 50%;
+    border-radius: 22%;
+    overflow: hidden;
     background: radial-gradient(circle at 40% 35%, #f6e7c0, #b8904c);
     box-shadow: 0 0 0 2px var(--accent, var(--gold)), 0 0 24px color-mix(in srgb, var(--accent, #d9b46a) 50%, transparent);
 }
@@ -500,9 +504,9 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
 .lib-item:hover { background: rgba(255, 255, 255, 0.04); border-color: rgba(217, 180, 106, 0.25); }
 .lib-thumb { position: relative; width: 128px; height: 67px; display: grid; place-items: center; border-radius: 8px; overflow: hidden; background: rgba(255, 255, 255, 0.07); }
 .lib-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.lib-icon { width: 48px; height: 48px; display: grid; place-items: center; font-size: 1.7rem; border-radius: 50%; }
+.lib-icon { width: 48px; height: 48px; display: grid; place-items: center; font-size: 1.7rem; border-radius: 22%; overflow: hidden; }
 /* with a screenshot, the icon shrinks to a badge in its corner */
-.lib-thumb img + .lib-icon { position: absolute; left: 4px; bottom: 4px; width: 26px; height: 26px; font-size: 0.95rem; background: rgba(11, 16, 32, 0.78); }
+.lib-thumb img + .lib-icon { position: absolute; left: 4px; bottom: 4px; width: 28px; height: 28px; font-size: 0.95rem; background: rgba(11, 16, 32, 0.78); box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6); }
 .lib-text { min-width: 0; }
 .lib-text strong { font: 600 1.08rem var(--display); }
 .lib-text .ver { font: 500 0.75rem var(--sans); color: var(--ink-dim); margin-left: 0.4em; }
@@ -516,7 +520,7 @@ input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--gold); }
     .lib-item { grid-template-columns: 96px 1fr; }
     .lib-thumb { width: 96px; height: 50px; }
     .lib-icon { width: 40px; height: 40px; font-size: 1.4rem; }
-    .lib-thumb img + .lib-icon { width: 22px; height: 22px; font-size: 0.8rem; }
+    .lib-thumb img + .lib-icon { width: 24px; height: 24px; font-size: 0.8rem; }
     .lib-actions { grid-column: 1 / -1; }
     .lib-actions .btn { flex: 1; }
     .lib-actions .btn-star { flex: 0 0 auto; }

@@ -9,6 +9,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { GENRES } from './genres.js';
 import { rng, TAU } from './util.js';
+import { drawGameIcon, iconsReady } from './game-icons.js';
 
 // ------------------------------------------------------------------ which toy
 
@@ -418,24 +419,29 @@ export function tagAtlas(games) {
     const cell = Math.min(128, Math.floor(2048 / n));
     const c = Object.assign(document.createElement('canvas'), { width: cell * n, height: cell * n });
     const x = c.getContext('2d');
-    x.textAlign = 'center';
-    x.textBaseline = 'middle';
-    games.forEach((g, i) => {
+    const draw = () => games.forEach((g, i) => {
         const cx = (i % n) * cell + cell / 2, cy = Math.floor(i / n) * cell + cell / 2;
         x.fillStyle = '#fff6e2';
         x.beginPath();
         x.arc(cx, cy, cell * 0.47, 0, TAU);
         x.fill();
+        x.fillStyle = '#222';
+        drawGameIcon(x, g, cx, cy, cell * 0.84, { shape: 'circle' });
         x.strokeStyle = '#d9a84a';
         x.lineWidth = cell * 0.06;
+        x.beginPath();
+        x.arc(cx, cy, cell * 0.44, 0, TAU);
         x.stroke();
-        x.font = `${Math.round(cell * 0.56)}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif`;
-        x.fillStyle = '#222';
-        x.fillText(g.icon || '★', cx, cy + cell * 0.04);
     });
+    draw();
     const t = new THREE.CanvasTexture(c);
     t.colorSpace = THREE.SRGBColorSpace;
     t.anisotropy = 4;
+    // tags drawn before a game's painted icon loaded show its emoji until this redraw
+    iconsReady(games).then(() => {
+        draw();
+        t.needsUpdate = true;
+    });
     return { tex: t, n };
 }
 

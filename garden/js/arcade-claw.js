@@ -11,6 +11,7 @@ import { makeToy, tagAtlas } from './arcade-toys.js';
 import { neonTexture } from './arcade-screens.js';
 import { GENRES } from './genres.js';
 import { store, esc, clamp, lerp, damp, hashString, TAU } from './util.js';
+import { iconHTML } from './game-icons.js';
 
 // the machine, in metres (local: the front faces +z)
 const W = 1.22, D = 1.0, BASE_H = 0.82, CASE_TOP = 2.0;
@@ -503,7 +504,7 @@ export class ClawMachine {
         $('claw-kicker').textContent = isNew ? 'New for your shelf' : 'You won another';
         $('claw-name').textContent = `${t.userData.name} plush`;
         $('claw-from').textContent = `from ${game.title}`;
-        $('claw-stats').innerHTML = [`<span>${esc(game.icon || '')} ${esc(genre.short)}</span>`, isNew ? '<span class="fc-best">First of its kind</span>' : ''].join('');
+        $('claw-stats').innerHTML = [`<span>${iconHTML(game, 96, 'inline')} ${esc(genre.short)}</span>`, isNew ? '<span class="fc-best">First of its kind</span>' : ''].join('');
         $('claw-fact').textContent = PRAISE[hashString(game.id) % PRAISE.length](game.title);
         $('claw-log').textContent = `${this.won.size} of ${this.games.length} plush won`;
         this.cardEl.hidden = false;
