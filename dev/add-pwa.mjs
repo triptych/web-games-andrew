@@ -62,7 +62,8 @@ for (const game of games) {
         ?.replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')) || game.description;
 
     const manifest = {
-        id: './',
+        // no `id`: it would resolve against the site's origin, giving every game the same app identity.
+        // Left out, the id defaults to start_url, which is each game's own folder.
         name: game.title,
         short_name: shortName(game.title),
         description,

@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Install any game from the browser:** installing a second game updated the first one's app instead of making a new one. Every generated manifest had `id: './'`, and a manifest `id` resolves against the site's origin, so all the games shared one app identity. [dev/add-pwa.mjs](dev/add-pwa.mjs) now leaves `id` out, so it defaults to each game's own `start_url`. A game installed from the first release has to be uninstalled and installed again.
+
 ### Added
 - **Pocket Garden** v1.0.0 ([console/](console/)): a third way into the collection, beside the Garden and the classic list. The games on a retro handheld, a mint-and-charcoal music player drawn entirely in CSS, with a backlit LCD (scanlines, glass, a status bar with a battery) and a working click wheel. Vanilla HTML, CSS and JS, no build step.
   - **The click wheel** ([wheel.js](console/js/wheel.js)): turn the ring with a finger or a mouse drag (24 detents a turn, clockwise goes down), or with the mouse wheel; tap MENU, ⏮, ⏭ or ⏯ on the ring; the center selects and holding it stars the game. Spinning fast takes bigger steps and flashes the A–Z letter. Every click, blip, star sparkle, cartridge thunk and boot chime is synthesised with Web Audio ([sound.js](console/js/sound.js)), with optional haptics on phones.
