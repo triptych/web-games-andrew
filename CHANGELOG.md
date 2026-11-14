@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Pinch & Place** (game-136) v1.0.1: on the Clay Bench, a medium or large rug showed no preview, just the empty turntable (reported by the owner). The turntable grew with the thing on it in all three directions, so for a 3-tile rug its top rose about 9 cm and buried the 4 cm rug (and the feet of big beds and sofas). It now grows sideways only and its top stays just under the floor ([bench.js](game-136/js/view/bench.js)). The browser test now puts every floor thing at every size on the bench and checks it stands above the turntable.
+
 ### Added
 - **Pinch & Place** (game-136) v1.0.0: a cozy isometric room builder with a claymation look, in three.js r165 with the sim/view layout ([game-plan.md](game-136/game-plan.md)).
   - **Systems** ([js/sim/](game-136/js/sim/)): everything the player does is a command to `act()`: pinch a thing at the Clay Bench (16 kinds from beds to clocks, 3 sizes, 3–5 shapes, 16 clay colours in two slots, rug patterns, painted pictures, warm or cool lamps; [catalog.js](game-136/js/sim/data/catalog.js)), place it on the floor, under furniture (rugs), on top of a surface (small things) or on a wall, move, turn, stow, squish for a full refund, undo. Eight rooms for eight clients with needs and wishes and a Free Studio ([levels.js](game-136/js/sim/data/levels.js)); eleven goal types including walkability, a flood fill from the door ([room.js](game-136/js/sim/room.js), [rate.js](game-136/js/sim/rate.js)); a 0–100 rating of the brief plus colour harmony, balance, fullness, variety and cosiness, with up to three stars; a planner bot ([bot.js](game-136/js/sim/bot.js)) for tests, balance and the title demo.

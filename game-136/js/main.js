@@ -683,6 +683,7 @@ if (DEBUG) {
         get mode() { return mode; },
         get placing() { return placing; },
         get selected() { return selected; },
+        get bench() { return bench; },
         seen, view, ui, audio, input, evaluate: () => evaluate(G),
         /** Skip the menus: open a room (unlocking every room first) and start building. */
         start(id = 'pip', seedN = 1) { G = newGame(seedN); for (const l of LEVELS) G.progress[l.id] = G.progress[l.id] || { stars: 0, score: 0 }; if (id !== 'pip') { for (const l of LEVELS) G.progress[l.id].stars = Math.max(1, G.progress[l.id].stars); } act(G, { t: 'level', id }); startBuild(); return G; },

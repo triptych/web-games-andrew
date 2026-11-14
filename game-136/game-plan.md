@@ -2,7 +2,7 @@
 
 **Genre:** Cozy decorating / light puzzle (isometric diorama builder)
 **Engine:** three.js r165 (procedural clay models and shader); art by fal, music and effects by ElevenLabs
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -117,6 +117,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the catalogue, 
 - More things: a television, a bathtub, a kitchen counter; wallpaper and floor choices per room.
 
 ## Changelog
+
+### v1.0.1 (2026-11-14)
+- Fixed: a medium or large rug was hidden inside the Clay Bench's turntable, which grew in height as well as width for big things. It grows sideways only now; the browser test checks every floor thing at every size stands on it.
 
 ### v1.0.0 (2026-11-14)
 - First release: the Clay Bench (16 kinds, 3 sizes, 3–5 shapes, 16 colours, patterns, painted pictures, warm or cool lamps), eight rooms with briefs and the Free Studio, placing on floors, rugs, surfaces and walls, ratings with stars, photo mode with four lights, seven filters, two lenses, a miniature blur and three frames, saving, sharing, links that rebuild the diorama, and an album. Art by fal, music and effects by ElevenLabs.

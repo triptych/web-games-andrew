@@ -39,7 +39,7 @@ export class Bench {
         this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
         this.scene = stage(this.renderer);
         this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 50);
-        this.table = mesh(puck(1.6, 1.7, 0.18, 0.06, 1.5, 2, 32), clay(0xd9b48a), 0, -0.1, 0);
+        this.table = mesh(puck(1.6, 1.7, 0.18, 0.06, 1.5, 2, 32), clay(0xd9b48a), 0, -0.095, 0);   // its top sits at y = -0.005
         this.scene.add(this.table);
         this.spin = new THREE.Group();
         this.scene.add(this.spin);
@@ -59,7 +59,9 @@ export class Bench {
         this.model.position.x -= c.x; this.model.position.z -= wall ? 0 : c.z;
         this.spin.add(this.model);
         const k = Math.max(1, ...KINDS[r.kind].fp[r.size]);
-        this.table.scale.setScalar(Math.max(0.6, k * 0.62));
+        // grow the turntable sideways only: scaled up in height its top rose through rugs and bed legs
+        const sc = Math.max(0.6, k * 0.62);
+        this.table.scale.set(sc, 1, sc);
         this.table.visible = !wall;
         this.wall = wall;
         this.squish = 1;
