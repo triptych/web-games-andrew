@@ -47,7 +47,7 @@ function paintFace(L) {
     const c = document.createElement('canvas');
     c.width = PW;
     c.height = PH;
-    const x = c.getContext('2d');
+    const x = c.getContext('2d', { willReadFrequently: true });
     const R = px(0.058);
     // the plastic: the 155deg gradient, its edge, an inner highlight
     const ang = (155 - 90) * (Math.PI / 180);
@@ -254,6 +254,7 @@ function paintFace(L) {
 
     // everything outside the rounded body is see-through
     x.globalCompositeOperation = 'destination-in';
+    x.fillStyle = '#000';   // opaque: this fill's alpha becomes the face's alpha
     roundRect(x, 0, 0, PW, PH, R);
     x.fill();
     return c;
@@ -311,7 +312,7 @@ export class HutConsole {
         // width away and would burn pale mint plastic to white, so it shows the console's colours as they are
         const face = new THREE.Mesh(
             new THREE.PlaneGeometry(W, H),
-            new THREE.MeshBasicMaterial({ map: faceTex, transparent: true, alphaTest: 0.5, color: 0xc4c4c4 }),
+            new THREE.MeshBasicMaterial({ map: faceTex, transparent: true, alphaTest: 0.5, color: 0xdedede }),
         );
         face.position.z = T / 2 + 0.0004;
         device.add(face);
