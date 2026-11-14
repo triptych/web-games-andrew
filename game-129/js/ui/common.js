@@ -1,6 +1,7 @@
 // HOLLOWDEEP — small DOM helpers shared by the UI modules.
 
 import { itemDef, gearStats } from '../sim/data/items.js';
+import { compareGear } from '../sim/stats.js';
 
 export const $ = (id) => document.getElementById(id);
 
@@ -46,6 +47,32 @@ export function gearLine(entry) {
     if (g.crit) bits.push(`crit +${Math.round(g.crit * 100)}%`);
     if (g.ranged) bits.push('ranged');
     return g.desc && g.type !== 'gear' ? g.desc : bits.join(' · ') || g.desc || '';
+}
+
+/** The stat changes of a gear comparison (compareGear) as coloured bits: "ATK +4 DEF −1 ranged". */
+export function diffBits(cmp) {
+    const bits = cmp.diff.map(([l, v, u = '']) => el('span' + (v > 0 ? '.plus' : '.minus'), { text: `${l} ${v > 0 ? '+' : '−'}${Math.abs(v)}${u}` }));
+    if (cmp.ranged) bits.push(el('span' + (cmp.ranged > 0 ? '.plus' : '.minus'), { text: cmp.ranged > 0 ? '+ranged' : '−ranged' }));
+    return bits;
+}
+
+/** Heroes for whom `entry` would be an upgrade over what they wear now, best gain first: [{ c, cmp }]. */
+export function upgradesFor(heroes, entry) {
+    return heroes.map((c) => ({ c, cmp: compareGear(c, entry) })).filter((u) => u.cmp?.better).sort((a, b) => b.cmp.gain - a.cmp.gain);
+}
+
+/** "▲ Brom  ATK +4 DEF −1" lines for the heroes this would improve, heroes who'd get the same change sharing a line;
+ *  null when it improves nobody. */
+export function upgradeTags(heroes, entry) {
+    const groups = new Map();
+    for (const { c, cmp } of upgradesFor(heroes, entry)) {
+        const key = JSON.stringify([cmp.diff, cmp.ranged]);
+        if (!groups.has(key)) groups.set(key, { names: [], cmp });
+        groups.get(key).names.push(c.name);
+    }
+    if (!groups.size) return null;
+    return el('span.ups', {}, [...groups.values()].map(({ names, cmp }) =>
+        el('span.up', { title: `An upgrade for ${names.join(', ')}` }, [el('b', { text: `▲ ${names.join(', ')}` }), ...diffBits(cmp)])));
 }
 
 export function toast(text, big = false) {
