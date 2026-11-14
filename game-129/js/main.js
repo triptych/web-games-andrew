@@ -17,7 +17,7 @@ import { Hud } from './ui/hud.js';
 import { BattleUI } from './ui/battle.js';
 import { TownUI } from './ui/town.js';
 import { CampUI } from './ui/camp.js';
-import { $, toast, porUrl, itemName } from './ui/common.js';
+import { $, toast, porUrl, itemName, upgradesFor } from './ui/common.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { VOICES, NARRATION, HERO_LINE } from './voices.js';
 
@@ -187,8 +187,18 @@ function showMode() {
 }
 
 // ------------------------------------------------------------------ events
+const partyNow = () => G.party.map((id) => G.roster.find((c) => c.id === id)).filter(Boolean);
+// " ▲ An upgrade for Brom." after a find, when the gear beats what someone in the party wears (with several finds,
+// each upgrade is named)
+const ups = (list) => {
+    const hits = list.map((d) => ({ id: d.id, plus: d.plus || 0 })).map((e) => [e, upgradesFor(partyNow(), e).map((u) => u.c.name)]).filter(([, n]) => n.length);
+    if (!hits.length) return '';
+    if (list.length === 1) return ` ▲ An upgrade for ${hits[0][1].join(', ')}.`;
+    return hits.map(([e, n]) => ` ▲ ${itemName(e)}: an upgrade for ${n.join(', ')}.`).join('');
+};
 const LINES = {
-    chest: (e) => (e.gold ? `Found ${e.gold.toLocaleString()} gold.` : `Found ${itemName({ id: e.id, plus: e.plus || 0 })}.`),
+    chest: (e) => (e.gold ? `Found ${e.gold.toLocaleString()} gold.` : `Found ${itemName({ id: e.id, plus: e.plus || 0 })}.${ups([e])}`),
+    won: (e) => (e.drops?.length ? `Spoils: ${e.drops.map((d) => itemName({ id: d.id, plus: d.plus || 0 })).join(', ')}.${ups(e.drops)}` : null),
     trap: (e) => ({ blade: 'A blade trap! Everyone is cut.', gas: 'Poison gas! The party is poisoned.', bolt: 'A lightning rune! Everyone is burned.' })[e.kind],
     disarm: (e) => `${G.roster.find((c) => c.id === e.cid)?.name} disarms a trap.`,
     fountain: () => 'The fountain\'s cold water restores you.',

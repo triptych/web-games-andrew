@@ -133,6 +133,15 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 .item { display: flex; align-items: center; gap: 8px; }
 .item .btn { flex: 1; display: flex; align-items: center; gap: 8px; }
 .item .price { margin-left: auto; color: var(--gold); white-space: nowrap; }
+/* "▲ Brom ATK +4 DEF −1": gear that would be an upgrade, and by how much */
+.ups { display: block; margin-top: 3px; }
+.up { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; font-size: 12px; font-weight: 400; line-height: 1.35; }
+.up b, .card .info .up b { color: var(--good); font-family: var(--sans); font-weight: 700; }
+.up .plus { color: var(--good); }
+.up .minus { color: var(--bad); }
+.item .btn .txt { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 8px; }
+.item .btn .txt .ups { flex-basis: 100%; }
+.btn.upgrade, .card.upgrade { border-color: rgba(127, 209, 122, 0.55); }
 .icon { width: 32px; height: 32px; flex: none; background-size: 128px 128px; image-rendering: auto; }
 .card { display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px solid var(--edge-dim); border-radius: 8px; background: rgba(255, 255, 255, 0.03); }
 .card .face { width: 56px; height: 56px; border-radius: 6px; background: #222 center / cover; flex: none; border: 1px solid var(--edge-dim); }
