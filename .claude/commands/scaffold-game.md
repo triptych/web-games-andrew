@@ -4800,6 +4800,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] On a 390 px phone the HUD has a second row: the pause button is out of the flex row and a test taps it for real (game-096).
 - [ ] A turn-based game counts undrained `G.events` as busy: right after a command the sim has changed but the view has not heard yet, and a key pressed in that frame is wiped when the animation arrives (game-097). Tests wait for `events.length === 0 && !view.busy`.
 - [ ] A drag that moves the camera never also places or builds; a press that wandered ~10 px isn't a tap (game-067).
+- [ ] A thing placed under the pointer is anchored on the pointed tile (`floor(p) - floor((size - 1) / 2)`), never on a rounded centre: for an even footprint the centre sits on a tile edge and a tap lands a row off (game-136).
 
 **Rendering (three.js)**
 - [ ] Every `pow()` base in a shader is clamped to [0, 1]; with bloom, a single NaN pixel smears into a blinking box. SwiftShader doesn't produce the NaN, so headless tests never show it (game-065). A colour set with `.copy(0xff8800)` instead of `.set()` is NaN too (game-074).
@@ -4808,6 +4809,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Nothing on a still screen flashes: no mirror-polished metal turning in the light under bloom, no full-screen flash more than twice a second, and a calm setting that follows `prefers-reduced-motion`. Measure it: read frames back and count points whose brightness swings by more than a quarter (game-088's coins swung 4.8% of the screen; see `game-088/dev/flicker.mjs`).
 - [ ] Bloom's threshold is above 1 in a sunlit scene: the composer works in linear HDR before tone mapping, so bright sand under a 2.4 sun blooms into a milky haze over everything (game-088). Let only emissive, `toneMapped: false` glows cross it.
 - [ ] A leaf or banner drawn from both sides gets a second set of vertices for its back: one set with both windings averages its normals to zero, which is NaN in the shader (game-088's palm fronds).
+- [ ] Lights that come and go (lamps, torches) are lent from a fixed pool made at boot: changing the number of lights recompiles every material, a hitch each time one is placed (game-136).
 - [ ] Only the parts meant to move are registered as moving; auto-collecting everything with a `userData` reference spun whole buildings (game-066).
 - [ ] Vehicles and characters are posed from the ground sampled under them, not from a banking angle with a sign to get wrong (game-069).
 - [ ] A third-person camera's wall check samples densely and includes its end point (game-071).

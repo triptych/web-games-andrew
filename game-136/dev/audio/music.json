@@ -1,0 +1,5 @@
+{
+ "title": { "seconds": 45, "prompt": "Cosy whimsical instrumental theme for the title screen of a claymation stop-motion children's film: plucky ukulele, glockenspiel, pizzicato strings and soft brushed snare, a hummable playful melody, warm and handmade, 100 bpm, ends so it can loop" },
+ "build1": { "seconds": 60, "prompt": "Gentle cosy background music for decorating a doll's house: soft kalimba and marimba melody, light fingerpicked acoustic guitar, upright bass, relaxed 88 bpm, calm and content, unobtrusive under play, ends so it can loop" },
+ "build2": { "seconds": 60, "prompt": "Playful cosy craft-time background music: felt piano, music box, warm clarinet, light shaker and finger snaps, gentle bouncy 96 bpm, warm and unobtrusive under play, ends so it can loop" }
+}

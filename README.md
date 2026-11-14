@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-135 games, `game-001` through `game-135`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+136 games, `game-001` through `game-136`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -175,6 +175,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 133 | [Lanternhall](game-133/) | A fantasy visual novel behind the quest desk of an adventurers' guild: grade petitions from their words, send Copper rookies and a Platinum legend, five mini-games, five romances, thirty days to become Guildmaster, sixteen endings; fal art, ElevenLabs music, effects and voices | DOM |
 | 134 | [UFOops!](game-134/) | A Saturday-morning-cartoon saucer romp: beam up cows, pigs and farmers, drop livestock on agents, tinfoil hats and tanks, dodge lasers and jets, and get a report card from Mother after every episode; fal art, ElevenLabs music, effects and voices | Canvas 2D |
 | 135 | [Hard Hat Harbor](game-135/) | A 90s toy-truck CD-ROM in 3D: eight construction vehicles, ten voiced jobs from the mayor and townsfolk (potholes, a rockslide, a bridge, a demolition, a park, houses), stars and a Golden Hard Hat; Meshy models, fal art, ElevenLabs music, effects and voices | three.js |
+| 136 | [Pinch & Place](game-136/) | A claymation diorama builder: pinch furniture, toys, rugs, lamps and pictures out of clay, place them in isometric rooms for eight clients, get rated, and photograph the result with lights, filters, a miniature blur and share links; fal art, ElevenLabs music and effects | three.js |
 
 ### Highlights
 

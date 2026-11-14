@@ -1679,6 +1679,17 @@ h1 {
     box-shadow: 0 0 14px rgba(246, 194, 28, 0.6);
 }
 
+.game-preview.pinch-and-place,
+.carousel-slide-bg.pinch-and-place {
+    background: radial-gradient(circle at 70% 60%, #f6cf57 0%, #f28a3a 28%, transparent 29%), radial-gradient(circle at 30% 70%, #8fd6b0 0%, #4f9a5a 18%, transparent 19%), linear-gradient(135deg, #f4e6d0 0%, #e8b48a 55%, #b07a50 100%);
+}
+
+.game-card.pinch-and-place .play-button {
+    background: linear-gradient(135deg, #e8553f, #f28a3a, #f6cf57);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(242, 138, 58, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

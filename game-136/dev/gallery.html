@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pinch &amp; Place — model gallery</title>
+<style>html,body{margin:0;background:#e9e2d6;font:12px system-ui}canvas{display:block}#cap{position:fixed;left:8px;top:8px}</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+import * as THREE from 'three';
+import { KINDS, KIND_IDS } from '../js/sim/data/catalog.js';
+import { buildModel } from '../js/view/models.js';
+const q = new URLSearchParams(location.search);
+const size = +(q.get('size') ?? 1);
+const kinds = q.get('kind') ? q.get('kind').split(',') : KIND_IDS;
+const W = innerWidth, H = innerHeight;
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+r.setSize(W, H); r.shadowMap.enabled = true; r.toneMapping = THREE.NeutralToneMapping; r.outputColorSpace = THREE.SRGBColorSpace;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0xe9e2d6);
+scene.add(new THREE.HemisphereLight(0xfff4e6, 0x8a7a6a, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(-6, 14, 10); sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -30, right: 30, top: 30, bottom: -30 }); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0xd8cfc0 }));
+floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: 0xcfc6b6 }));
+wall.position.z = -0.05; scene.add(wall);
+const items = [];
+for (const k of kinds) { const K = KINDS[k]; for (let v = 0; v < K.variants.length; v++) items.push({ kind: k, size, variant: v, motif: v % (K.motifs?.length || 1), colors: K.colors, lump: 17 + v }); }
+const COLS = 7, tw = Math.floor(W / COLS), th = tw;
+const cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+r.setScissorTest(true);
+r.autoClear = false;
+r.setClearColor(0xe9e2d6); r.clear();
+items.forEach((it, i) => {
+  const m = buildModel(it);
+  const wallThing = KINDS[it.kind].layer === 'wall';
+  if (wallThing) m.position.set(0, 1.2, 0);
+  wall.visible = wallThing;
+  scene.add(m);
+  const box = new THREE.Box3().setFromObject(m), c = box.getCenter(new THREE.Vector3()), sz = box.getSize(new THREE.Vector3()).length() * 0.55;
+  if (wallThing) { cam.position.set(c.x + 3, c.y + 2, c.z + 8); } else cam.position.set(c.x + 6, c.y + 5, c.z + 6);
+  cam.lookAt(c); Object.assign(cam, { left: -sz, right: sz, top: sz, bottom: -sz }); cam.updateProjectionMatrix();
+  const x = (i % COLS) * tw, y = H - (Math.floor(i / COLS) + 1) * th;
+  r.setViewport(x, y, tw, th); r.setScissor(x, y, tw, th);
+  r.render(scene, cam);
+  scene.remove(m);
+  const lab = document.createElement('div'); lab.textContent = it.kind + ' · ' + KINDS[it.kind].variants[it.variant];
+  Object.assign(lab.style, { position: 'fixed', left: x + 4 + 'px', top: H - y - th + 4 + 'px' }); document.body.appendChild(lab);
+});
+setTimeout(() => {   // the paintings load late: draw the wall row again
+  r.setScissorTest(false); window.READY = true;
+}, 300);
+</script>
+</body>
+</html>
