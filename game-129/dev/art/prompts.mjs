@@ -33,6 +33,11 @@ export const ICONS = {
         'a lit brass lantern', 'a skull with a candle on it'],
 };
 
+// the touch pad, in the order of its buttons in index.html (top row, then bottom row)
+export const PAD_ICONS = ['a straight arrow pointing LEFT (a sidestep)', 'a straight arrow pointing UP (walk forward)', 'a straight arrow pointing RIGHT (a sidestep)',
+    'a curved arrow bending round anticlockwise, pointing to the LEFT (turn left)', 'a straight arrow pointing DOWN (step back)',
+    'a curved arrow bending round clockwise, pointing to the RIGHT (turn right)'];
+
 // Grid sheets: several subjects per request at 2K, so each cell comes back at about the size of a 1K single image.
 // export.py cuts them in the same order. BOSS_SHEETS and TEX_SHEETS name what is in each cell, in reading order.
 export const BOSS_SHEETS = [
@@ -114,6 +119,13 @@ export function requests() {
                 + 'Plain flat solid magenta (#ff00ff) background everywhere, no shadows, no labels, no text.',
             resolution: '2K', aspect_ratio: '1:1' } });
     }
+    // the touch pad's six buttons, in the pad's own order (export.py cuts them into art/icons/pad.webp)
+    out.push({ name: 'icons-pad', input: {
+        prompt: 'A 3 by 2 grid of six game control icons for a dark-fantasy dungeon RPG, each centred in its own cell with wide empty space around it, nothing overlapping. '
+            + 'Every icon is a single thick chunky arrow made of carved aged bronze with a dark outline, worn edges, warm torchlight from the top left and a faint amber glow, all six in exactly the same style, size and material. '
+            + `In reading order: ${list(PAD_ICONS)}. `
+            + 'Plain flat solid magenta (#ff00ff) background everywhere, no shadows, no circles or buttons behind the arrows, no labels, no text.',
+        resolution: '2K', aspect_ratio: '3:2' } });
     for (const r of out) r.input = { ...r.input, system_prompt: SYSTEM, output_format: 'png' };
     return out;
 }
