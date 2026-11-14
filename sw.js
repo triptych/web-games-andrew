@@ -9,7 +9,10 @@
  * the next load (no stale index.html paired with new scripts), and once a game
  * has been played online its files are in the cache, so it opens offline too.
  * Nothing is pre-cached beyond the page itself: a game's audio and models can
- * be large, and only what was actually requested is worth keeping.
+ * be large, and only what was actually requested is worth keeping. A page can
+ * ask for more by posting { type: 'precache', urls: [...] } to its worker
+ * (Pocket Garden sends its scripts, so it opens offline after one visit); the
+ * worker answers { type: 'precached', count }.
  *
  * Cross-origin: only the CDNs the games import from (three.js, Kaplay data and
  * fonts), and only responses the browser let the page read (not opaque).
@@ -63,6 +66,26 @@ async function fromNetwork(request, timeoutMs) {
         return response;
     } finally { clearTimeout(timer); }
 }
+
+// a page in this scope asks for its own files to be kept (same rules as fetch)
+self.addEventListener('message', (event) => {
+    const data = event.data;
+    if (!data || data.type !== 'precache' || !Array.isArray(data.urls)) return;
+    event.waitUntil((async () => {
+        let count = 0;
+        for (const u of data.urls.slice(0, 200)) {
+            try {
+                const url = new URL(u, self.registration.scope);
+                if (!cacheable(url)) continue;
+                const request = new Request(url.href);
+                const response = await fetch(request, { cache: 'no-cache' });
+                await remember(request, response);
+                if (response.ok) count++;
+            } catch (e) { /* offline or refused: it gets cached when next used */ }
+        }
+        if (event.source && event.source.postMessage) event.source.postMessage({ type: 'precached', count });
+    })());
+});
 
 self.addEventListener('fetch', (event) => {
     const { request } = event;
