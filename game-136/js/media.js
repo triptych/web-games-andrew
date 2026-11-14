@@ -2,6 +2,9 @@
 // Art: fal (dev/art/). Sound: ElevenLabs (dev/audio/). Anything missing falls back to code:
 // the portraits to an emoji, the wall paintings to clay shapes, the sounds to Web Audio blips.
 
+/** The game folder, from this module's own URL, so dev pages in dev/ load the same files. */
+export const ROOT = new URL('../', import.meta.url).href;
+
 export const ART = {
     title: 'art/title.webp',
     portraits: ['pip', 'mo', 'twins', 'nonna', 'biscuit', 'juno', 'fern', 'cabin'],   // art/por-<id>.webp
