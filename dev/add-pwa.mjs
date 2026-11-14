@@ -4,15 +4,16 @@
  * For each game in js/gamedata.js this writes
  *   game-NNN/manifest.webmanifest   name, description, icons, colours (from gamedata and the page)
  * and puts a block in the game's index.html, right after </title>:
+ *   the favicon (icons/favicon-32.png, and icons/icon-192.png for sharp screens),
  *   <link rel="manifest">, apple-touch-icon, a theme-color if the page has none,
  *   and <script src="../lib/pwa.js" defer> (service worker + install button).
  *
- * The icons come from dev/make-icons.py. The service worker is /sw.js.
+ * The icons are painted with fal and sized by dev/make-icons.py. The service worker is /sw.js.
  *
  * Safe to re-run: the block sits between "pwa" comments and is replaced in
  * place. game-037 (Lanternwake) ships its own manifest and worker and is left
- * alone; an older hand-written <link rel="manifest"> elsewhere in a page
- * (game-038) is replaced by the generated one.
+ * alone; an older hand-written <link rel="manifest"> or <link rel="icon">
+ * elsewhere in a page (game-038, game-031) is replaced by the generated one.
  *
  *   python3 dev/make-icons.py && node dev/add-pwa.mjs
  *   ONLY=game-001 node dev/add-pwa.mjs
@@ -48,14 +49,15 @@ for (const game of games) {
     const dir = path.join(ROOT, game.folder);
     const file = path.join(dir, 'index.html');
     if (!fs.existsSync(file)) { console.log(`skip ${game.id}: no index.html`); continue; }
-    for (const size of [180, 192, 512]) {
-        if (!fs.existsSync(path.join(dir, 'icons', `icon-${size}.png`))) { problems.push(`${game.id}: icons/icon-${size}.png missing (run dev/make-icons.py)`); }
+    for (const icon of ['icon-180.png', 'icon-192.png', 'icon-512.png', 'favicon-32.png']) {
+        if (!fs.existsSync(path.join(dir, 'icons', icon))) { problems.push(`${game.id}: icons/${icon} missing (run dev/make-icons.py)`); }
     }
 
     let html = fs.readFileSync(file, 'utf8');
     // drop a previous run's block and any hand-written manifest link, then read what the page says
     html = html.replace(new RegExp(`[ \\t]*${reEscape(START)}[\\s\\S]*?${reEscape(END)}\\r?\\n?`), '');
     html = html.replace(/[ \t]*<link\s+rel=["']manifest["'][^>]*>[ \t]*\r?\n?/i, '');
+    html = html.replace(/[ \t]*<link\s+rel=["'](?:shortcut )?icon["'][^>]*>[ \t]*\r?\n?/gi, '');
     const themeMatch = html.match(/<meta\s+name=["']theme-color["']\s+content=["']([^"']*)["']/i);
     const theme = themeMatch && HEX.test(themeMatch[1]) ? themeMatch[1] : '#0a0a1a';
     const description = (html.match(/<meta\s+name=["']description["']\s+content=["']([^"']*)["']/i)?.[1]
@@ -84,6 +86,8 @@ for (const game of games) {
 
     const lines = [
         START,
+        `<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">`,
+        `<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">`,
         `<link rel="manifest" href="manifest.webmanifest">`,
         `<link rel="apple-touch-icon" href="icons/icon-180.png">`,
         ...(themeMatch ? [] : [`<meta name="theme-color" content="${esc(theme)}">`]),

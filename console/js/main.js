@@ -10,11 +10,11 @@ import { Store, FAV_KEY } from './store.js';
 import { sfx, unlockAudio, setSound } from './sound.js';
 import { attachWheel } from './wheel.js';
 import { ICONS } from './icons.js';
-import { ListView, DetailView, CoverFlowView, SearchView, TextView, gameArt } from './views.js';
+import { ListView, DetailView, CoverFlowView, SearchView, TextView, gameArt, gameIconHTML } from './views.js';
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.1.0';
+export const CONSOLE_VERSION = '1.2.0';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -617,7 +617,7 @@ class App {
         const L = $('load');
         const gen = genreOf(g);
         L.style.setProperty('--accent', gen.accent);
-        L.querySelector('.ld-icon').textContent = g.icon;
+        L.querySelector('.ld-icon').innerHTML = gameIconHTML(g, 192);
         L.querySelector('.ld-title').textContent = g.title;
         L.querySelector('.ld-sub').textContent = `${gen.emoji} ${gen.short} · No.${String(gameNo(g)).padStart(3, '0')}`;
         L.hidden = false;

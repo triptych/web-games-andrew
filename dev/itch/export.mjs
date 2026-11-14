@@ -38,9 +38,14 @@ export async function buildItch(options = {}) {
     copyGame(gameDir, outDir);
 
     fs.writeFileSync(path.join(outDir, 'index.html'), hideLauncherLinks(stripInstallBlock(fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'))));
-    // the install manifest, its icons and the worker mean nothing inside itch.io's frame
+    // the install manifest, its icons and the worker mean nothing inside itch.io's frame;
+    // the favicon stays (a tab opened on the game's own page still shows it)
     fs.rmSync(path.join(outDir, 'manifest.webmanifest'), { force: true });
-    fs.rmSync(path.join(outDir, 'icons'), { recursive: true, force: true });
+    const icons = path.join(outDir, 'icons');
+    for (const f of fs.existsSync(icons) ? fs.readdirSync(icons) : []) {
+        if (!FAVICONS.includes(f)) fs.rmSync(path.join(icons, f), { recursive: true, force: true });
+    }
+    if (fs.existsSync(icons) && !fs.readdirSync(icons).length) fs.rmSync(icons, { recursive: true });
     const shared = vendorRepoFiles(gameDir, outDir, repoDir);
     const three = await vendorThree(fs.readFileSync(path.join(outDir, 'index.html'), 'utf8'), outDir, pkg);
     fs.writeFileSync(path.join(outDir, 'index.html'), three.html);
@@ -187,8 +192,12 @@ function parseThreeMap(html) {
 }
 
 // dev/add-pwa.mjs puts the manifest link and lib/pwa.js between "pwa" comments.
+const FAVICONS = ['favicon-32.png', 'icon-192.png'];
+
+/** Drops the install block (manifest, home-screen icon, worker) but keeps its favicon links. */
 function stripInstallBlock(html) {
-    return html.replace(/[ \t]*<!-- pwa:start[\s\S]*?<!-- pwa:end -->[ \t]*\r?\n?/, '');
+    return html.replace(/([ \t]*)<!-- pwa:start[\s\S]*?<!-- pwa:end -->[ \t]*\r?\n?/, (block, indent) =>
+        (block.match(/<link\s+rel=["']icon["'][^>]*>/g) || []).map((l) => `${indent}${l}\n`).join(''));
 }
 
 // The "← Games" link back to the repo launcher means nothing on itch.io. Some

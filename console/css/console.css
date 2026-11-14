@@ -738,6 +738,19 @@ button {
 .r-icon .emo {
     font-size: 0.95em;
 }
+/* a game's painted icon (game-NNN/icons/, made with fal) */
+.gi {
+    display: block;
+    width: 1em;
+    height: 1em;
+    background: center / cover no-repeat;
+    border-radius: 22%;
+}
+.r-icon .gi {
+    width: 1.3em;
+    height: 1.3em;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
 .r-body {
     flex: 1;
     min-width: 0;
@@ -901,6 +914,11 @@ mark {
     place-items: center;
     font-size: 2.6em;
     line-height: 1;
+}
+.art-icon .gi {
+    width: min(1.6em, 60%);
+    height: auto;
+    aspect-ratio: 1;
 }
 :is(.pv-art, .hero-frame, .cart-art, .cf-item, .reel-art, .sl-art) img {
     position: absolute;
@@ -1791,6 +1809,12 @@ kbd {
 .ld-icon {
     font-size: clamp(32px, 12cqh, 56px);
     line-height: 1;
+}
+.ld-icon .gi {
+    display: inline-block;
+    width: 1.4em;
+    height: 1.4em;
+    vertical-align: middle;
 }
 .ld-title {
     margin: 6px 0 0;
