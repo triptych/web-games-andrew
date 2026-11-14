@@ -265,6 +265,12 @@ const MOVE_KEYS = { KeyW: ['move', 'f'], ArrowUp: ['move', 'f'], KeyS: ['move', 
     KeyA: ['turn', -1], ArrowLeft: ['turn', -1], KeyD: ['turn', 1], ArrowRight: ['turn', 1] };
 const held = new Set();
 let lastDevice = 'keys';
+// Turning is held back: a quarter turn takes only ~0.13 s, so re-sending it whenever the last one ends turned the
+// party two or three times for one ordinary press. A press turns once; holding turns again only after TURN_HOLD ms,
+// then every TURN_EVERY ms. Walking still repeats as soon as each step ends.
+const TURN_HOLD = 420, TURN_EVERY = 300;
+const turnPress = { at: 0, sent: true, last: 0, cmd: null };
+function pressTurn(cmd) { turnPress.at = performance.now(); turnPress.sent = false; turnPress.cmd = cmd; }
 
 window.addEventListener('keydown', (e) => {
     const tag = e.target?.tagName;
@@ -285,7 +291,7 @@ window.addEventListener('keydown', (e) => {
         if (e.code === 'KeyM') { openScreen('mapview'); return; }
         if ((e.code === 'Enter' || e.code === 'Space') && tag !== 'BUTTON') { const t = tileAt(G, G.pos.x, G.pos.y); if (t === 'up' || t === 'down') send({ t: 'stairs' }); return; }
         const m = MOVE_KEYS[e.code];
-        if (m) { held.add(e.code); if (!e.repeat) tryMove(m); }
+        if (m) { held.add(e.code); if (!e.repeat) { if (m[0] === 'turn') pressTurn(m); tryMove(m); } }
     } else if (G.mode === 'town' && (e.code === 'ArrowDown' || e.code === 'ArrowUp')) moveFocus('town-body', e.code === 'ArrowDown' ? 1 : -1);
 });
 window.addEventListener('keyup', (e) => held.delete(e.code));
@@ -301,6 +307,12 @@ function moveFocus(id, dir) {
 
 function tryMove([t, v]) {
     if (!G || G.mode !== 'dungeon' || view.busy || stack.length) return false;
+    if (t === 'turn') {
+        // the press's own turn goes as soon as the view is free; repeats wait for a real hold
+        const now = performance.now();
+        if (turnPress.sent && (now - turnPress.at < TURN_HOLD || now - turnPress.last < TURN_EVERY)) return false;
+        turnPress.sent = true; turnPress.last = now;
+    }
     send(t === 'move' ? { t: 'move', dir: v } : { t: 'turn', d: v });
     return true;
 }
@@ -311,6 +323,7 @@ for (const b of document.querySelectorAll('#pad button')) {
     const cmd = b.dataset.move ? ['move', b.dataset.move] : ['turn', +b.dataset.turn];
     b.addEventListener('pointerdown', (e) => {
         e.preventDefault();
+        if (cmd[0] === 'turn') pressTurn(cmd);
         tryMove(cmd);
         clearInterval(padTimer);
         padTimer = setInterval(() => tryMove(cmd), 230);
@@ -348,6 +361,7 @@ function pollPad() {
     const dirs = [[12, 'ArrowUp'], [13, 'ArrowDown'], [14, 'ArrowLeft'], [15, 'ArrowRight']];
     for (const [i, code] of dirs) {
         if (edge(i)) {
+            if (G.mode === 'dungeon' && !stack.length && MOVE_KEYS[code][0] === 'turn') pressTurn(MOVE_KEYS[code]);
             if (G.mode === 'battle') battle.key(code);
             else if (stack.length || G.mode === 'town') moveFocus(stack[stack.length - 1] || 'town-body', code === 'ArrowDown' || code === 'ArrowRight' ? 1 : -1);
         }
@@ -364,6 +378,8 @@ function frame(now) {
     pollPad();
     if (G && mode === 'game') {
         // held keys keep walking once each step's animation ends
+        // a turn tapped during the last animation still happens, even if the key is already up
+        if (G.mode === 'dungeon' && !view.busy && !turnPress.sent && performance.now() - turnPress.at < TURN_HOLD) tryMove(turnPress.cmd);
         if (G.mode === 'dungeon' && !view.busy) for (const k of held) { if (MOVE_KEYS[k] && tryMove(MOVE_KEYS[k])) break; }
         if (bot && !view.busy && !battle.busy && !stack.length) {
             for (let i = 0; i < FAST; i++) { const c = botCommand(G, bot); send(c); if (G.mode === 'battle' || view.busy) break; }
