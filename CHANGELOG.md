@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Hard Hat Harbor** (game-135) v1.0.1: the wheels did not turn when the vehicles moved (reported by the owner). Each Meshy model is one solid mesh with its wheels baked in. The wheels are now found once ([wheels.mjs](game-135/dev/assets/wheels.mjs): rings of dark tyre vertices standing on the ground) and cut out of the mesh as it loads, every triangle wholly inside a wheel's cylinder moving to its own part on a pivot ([models.js](game-135/js/view/models.js) `splitWheels`), and each turns by the distance driven over its own radius, backwards in reverse: six wheels on the dump truck, the mixer and the crane, four on the tractor (big and small at their own rates), and the road roller's drum and two rear wheels. The three tracked vehicles are unchanged. The browser test drives forward and back and checks the wheels turned each way.
 - **Install any game from the browser:** installing a second game updated the first one's app instead of making a new one. Every generated manifest had `id: './'`, and a manifest `id` resolves against the site's origin, so all the games shared one app identity. [dev/add-pwa.mjs](dev/add-pwa.mjs) now leaves `id` out, so it defaults to each game's own `start_url`. A game installed from the first release has to be uninstalled and installed again.
 
 ### Added

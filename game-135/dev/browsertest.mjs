@@ -134,6 +134,11 @@ async function desktop() {
     await until(page, (a) => Math.abs(__hh.G.p.a - a) > 0.3, 'holding → steers', 40000, a0);
     await page.keyboard.up('ArrowRight'); await page.keyboard.up('ArrowUp');
     check(await truckOnScreen(page), 'the truck is on screen');
+    await until(page, () => { const w = __hh.view.vehicles.wheels.dump; return w.length === 6 && w.every((x) => x.o.rotation.z > 0.5 && x.r > 0.5 && x.r < 1.5); }, 'the dump truck has six wheels cut out of its model, and they have turned');
+    const wz = await Q(page, () => __hh.view.vehicles.wheels.dump[0].o.rotation.z);
+    await page.keyboard.down('ArrowDown');
+    await until(page, (z) => __hh.G.p.v < -1 && __hh.view.vehicles.wheels.dump[0].o.rotation.z < z, 'reversing turns them the other way', 40000, wz);
+    await page.keyboard.up('ArrowDown');
 
     await page.keyboard.press('Digit2');
     await until(page, () => __hh.G.veh === 'dozer' && __hh.seen.switch >= 1, 'the 2 key climbs into the bulldozer');
@@ -210,6 +215,8 @@ async function desktop() {
 
     const m = await Q(page, () => ({ ...__hh.view.info.models }));
     check(m.loaded === 14 && m.failed === 0, `all 14 Meshy models loaded (${m.loaded} loaded, ${m.failed} failed)`);
+    const wn = await Q(page, () => Object.fromEntries(Object.entries(__hh.view.vehicles.wheels).map(([k, v]) => [k, v.length])));
+    check(wn.dump === 6 && wn.mixer === 6 && wn.crane === 6 && wn.loader === 4 && wn.roller === 3 && wn.dozer === 0, `every wheeled vehicle's wheels turn (${JSON.stringify(wn)}); tracks do not`);
     await Q(page, () => __hh.ff(3600, (G) => G.jobs.square.step === 3 && G.jobs.square.prog && G.jobs.square.prog.n === 2));
     check(await Q(page, () => Object.values(__hh.G.jobs).filter((j) => j.st === 'done').length === 9), 'the bot plays on to the last beam of the last job');
     await shot(page, 'desktop-late');
