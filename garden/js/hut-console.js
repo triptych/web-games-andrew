@@ -303,14 +303,15 @@ export class HutConsole {
         shape.quadraticCurveTo(-W / 2, -H / 2, -W / 2 + R, -H / 2);
         const body = new THREE.ExtrudeGeometry(shape, { depth: T - bev * 2, bevelEnabled: true, bevelThickness: bev, bevelSize: bev * 0.6, bevelSegments: 3, curveSegments: 6 });
         body.translate(0, 0, -T / 2 + bev);
-        const plastic = new THREE.MeshStandardMaterial({ color: 0xa6dcc2, roughness: 0.45, metalness: 0 });
+        const plastic = new THREE.MeshStandardMaterial({ color: 0x4f8a70, roughness: 0.6, metalness: 0 });
 
         const device = new THREE.Group();
         device.add(new THREE.Mesh(body, plastic));
-        // the painted face, just proud of the front
+        // the painted face, just proud of the front. It is unlit: the sphere's light is a hand's
+        // width away and would burn pale mint plastic to white, so it shows the console's colours as they are
         const face = new THREE.Mesh(
             new THREE.PlaneGeometry(W, H),
-            new THREE.MeshStandardMaterial({ map: faceTex, transparent: true, alphaTest: 0.5, roughness: 0.5 }),
+            new THREE.MeshBasicMaterial({ map: faceTex, transparent: true, alphaTest: 0.5, color: 0xc4c4c4 }),
         );
         face.position.z = T / 2 + 0.0004;
         device.add(face);
