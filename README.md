@@ -34,6 +34,10 @@ Set pieces between the paths open onto places of their own:
 
 The garden grows with the collection. A game's `genre` field picks its path (a game without one is placed by its tags), newer games stand nearer the hub, and paths lengthen and the island widens as games are added. The original card grid is still at [classic.html](classic.html). Code lives in [garden/](garden/), and [garden/dev/](garden/dev/) drives it in real Chromium: [browsertest.mjs](garden/dev/browsertest.mjs) on desktop and on touch-only phones (plus the fox and the pier), one for the pirate wharf and its galleon ([shiptest.mjs](garden/dev/shiptest.mjs)), and one test each for the Observatory ([towertest.mjs](garden/dev/towertest.mjs)), the Starlight Carousel ([carouseltest.mjs](garden/dev/carouseltest.mjs)), the Lighthouse Arcade ([arcadetest.mjs](garden/dev/arcadetest.mjs)), the undersea ([seatest.mjs](garden/dev/seatest.mjs)), the Springwood ([foresttest.mjs](garden/dev/foresttest.mjs)), Gearfall ([gearfalltest.mjs](garden/dev/gearfalltest.mjs)), the Works' lift and the Robot Foundry ([foundrytest.mjs](garden/dev/foundrytest.mjs), with [foundryview.html](garden/dev/foundryview.html) to look round the Foundry on its own), the Hut and the Violet Line ([subwaytest.mjs](garden/dev/subwaytest.mjs)), Cinderpeak ([cindertest.mjs](garden/dev/cindertest.mjs)), the Glowing Well ([welltest.mjs](garden/dev/welltest.mjs)) and the Silver Comet and its worlds ([rockettest.mjs](garden/dev/rockettest.mjs)). [walktest.mjs](garden/dev/walktest.mjs) checks that auto-walks between random spots on the island all arrive, and that the sky's reflection refresh compiles no shaders.
 
+### Pocket Garden (handheld launcher)
+
+[console/](console/) is a third way in: the whole collection on a retro handheld, a mint-and-charcoal music player with a glowing library screen and a working click wheel. Turn the ring (finger, mouse drag, mouse wheel or arrow keys) to scroll, spin fast to fly through the list with a big A–Z letter, press the center to select and hold it to star a game. Browse **All Games** (A to Z), **New Arrivals**, **Genres**, **Favorites** (the same stars as the Garden's, under its `garden.starred` key), **Recently Played** and **Cover Flow**, or **Search** titles and descriptions by typing or by spelling on the wheel's letter rail. Every game opens as a cartridge with its picture on the label, its genre, version, tags and full description; ⏮ ⏭ or a swipe flips to the next one, and ⏯ pushes the cartridge into the slot and boots the game. **Shuffle** spins a reel and lands on one at random. Five shells (Mint, Charcoal, Tangerine, Lilac and see-through Atomic Purple), four screen tints, synthesised clicks and haptics. On a phone the phone becomes the device (sideways, the wheel moves beside the screen); on a wide screen the highlighted game's box art stands beside it and its picture lights the room. Each cartridge has its own link (`console/#game-135`). Vanilla HTML, CSS and JS; [console/dev/browsertest.mjs](console/dev/browsertest.mjs) drives it on desktop, on two touch-only phones, with reduced motion and with storage blocked.
+
 | # | Game | Genre | Engine |
 |---|------|-------|--------|
 | 001 | [Space Shooter](game-001/) | Arcade shooter | Canvas |
@@ -328,6 +332,7 @@ See each game's own README/folder for full details, or browse the descriptions l
 2. Click **Enter the Garden**, walk up from the dock and wander the paths, or open the 📚 Library for a searchable list
 3. Click a statue (tap, then **Play**, on phones) to open its game in a new tab
 4. Prefer a plain list? [classic.html](classic.html) is the original card launcher
+5. Or pick up the [Pocket Garden](console/), a retro handheld with a click wheel
 
 ### Running Locally
 
@@ -388,11 +393,12 @@ When building or modifying games, consult these docs for framework APIs, confirm
 web-games-andrew/
 ├── index.html              # 3D garden launcher (three.js)
 ├── classic.html            # The original card-grid launcher
+├── console/                # Pocket Garden: the handheld launcher (js/, css/, dev/ browser test)
 ├── garden/                 # Garden launcher code (js/, css/, img/, dev/ browser tests)
 ├── css/                    # Shared stylesheets
 ├── js/                     # Shared JavaScript modules
 │   ├── main.js
-│   └── gamedata.js         # Metadata for every game (drives both launchers)
+│   └── gamedata.js         # Metadata for every game (drives all three launchers)
 ├── lib/
 │   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
 │   ├── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)

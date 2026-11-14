@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#141719">
+    <title>Pocket Garden — Andrew Wooldridge's Games</title>
+    <meta name="description" content="Andrew Wooldridge's browser games on a retro handheld: a glowing library screen, a working click wheel, cartridges for every game, genres, search and favorites shared with the Garden.">
+    <link rel="canonical" href="https://triptych.github.io/web-games-andrew/console/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Andrew Wooldridge's Games">
+    <meta property="og:title" content="Pocket Garden — a retro handheld for Andrew Wooldridge's games">
+    <meta property="og:description" content="Spin the click wheel through every game in the collection, flip through the cartridges, and press play.">
+    <meta property="og:url" content="https://triptych.github.io/web-games-andrew/console/">
+    <meta property="og:image" content="https://triptych.github.io/web-games-andrew/garden/img/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pocket Garden — a retro handheld for Andrew Wooldridge's games">
+    <meta name="twitter:description" content="Spin the click wheel through every game in the collection, flip through the cartridges, and press play.">
+    <meta name="twitter:image" content="https://triptych.github.io/web-games-andrew/garden/img/og-image.jpg">
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='10' y='2' width='44' height='60' rx='10' fill='%239fdcc0'/%3E%3Crect x='16' y='8' width='32' height='24' rx='3' fill='%23161a1c'/%3E%3Ccircle cx='32' cy='46' r='11' fill='%2326292c'/%3E%3Ccircle cx='32' cy='46' r='4' fill='%239fdcc0'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rubik:wght@500;700;800&family=Silkscreen&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/console.css">
+</head>
+<body>
+    <div class="ambient" id="ambient" aria-hidden="true"></div>
+    <div class="room" aria-hidden="true"></div>
+
+    <main class="stage">
+        <aside class="legend" aria-label="Controls">
+            <p class="legend-kicker">Quick controls</p>
+            <ul>
+                <li><span class="lk">TURN</span> Spin the ring to scroll</li>
+                <li><span class="lk">CENTER</span> Select · hold to star</li>
+                <li><span class="lk">MENU</span> Back</li>
+                <li><span class="lk">PLAY</span> Play the highlighted game</li>
+                <li><span class="lk">◂◂ ▸▸</span> Page · flip cartridges</li>
+            </ul>
+            <ul class="legend-keys">
+                <li><kbd>↑</kbd><kbd>↓</kbd> scroll</li>
+                <li><kbd>Enter</kbd> select · <kbd>Esc</kbd> back</li>
+                <li><kbd>Space</kbd> play · <kbd>F</kbd> star</li>
+                <li>Type anything to search</li>
+            </ul>
+            <nav class="legend-links">
+                <a href="../index.html">🌿 Walk the Garden</a>
+                <a href="../classic.html">📋 Classic list</a>
+            </nav>
+        </aside>
+
+        <div class="device" id="device" data-shell="mint" data-glow="mint">
+            <div class="shell-top" aria-hidden="true">
+                <span class="led" id="led"></span>
+                <span class="slot"><span>GAME SLOT</span></span>
+                <span class="hold"><i></i>HOLD</span>
+            </div>
+
+            <div class="bezel">
+                <div class="screen">
+                    <div class="lcd" id="lcd" data-view="list">
+                        <header class="status">
+                            <button type="button" class="st-back" id="st-back" aria-label="Back" hidden>‹</button>
+                            <span class="st-play" id="st-play" aria-hidden="true">▶</span>
+                            <span class="st-title" id="st-title">Pocket Garden</span>
+                            <span class="st-right">
+                                <span class="st-fav" id="st-fav">★0</span>
+                                <span class="battery" id="battery" aria-hidden="true"><i></i></span>
+                            </span>
+                        </header>
+                        <div class="views" id="views"></div>
+
+                        <div class="az" id="az" aria-hidden="true"></div>
+                        <div class="toast" id="toast" aria-hidden="true"></div>
+                        <div class="reel" id="reel" hidden aria-hidden="true"></div>
+
+                        <div class="load" id="load" hidden role="status">
+                            <div class="ld-cart"><span class="ld-icon"></span></div>
+                            <p class="ld-title"></p>
+                            <p class="ld-sub"></p>
+                            <div class="ld-bar"><i></i></div>
+                            <p class="ld-word">Loading</p>
+                        </div>
+
+                        <div class="boot" id="boot" aria-hidden="true">
+                            <div class="boot-logo">
+                                <svg viewBox="0 0 48 48" class="boot-sprout"><path class="stem" d="M24 44V22"/><path class="leaf l" d="M24 28c-9 0-14-5-14-14 8 0 14 4 14 14z"/><path class="leaf r" d="M24 23c0-8 5-14 15-14 0 9-6 14-15 14z"/></svg>
+                                <p class="boot-name">pocket<b>garden</b></p>
+                            </div>
+                            <div class="boot-bar"><i></i></div>
+                            <p class="boot-text"><span id="boot-count">0</span> cartridges found</p>
+                        </div>
+                    </div>
+                    <div class="glass" aria-hidden="true"></div>
+                </div>
+            </div>
+
+            <div class="deck">
+                <div class="brandline" aria-hidden="true">
+                    <span class="brand">pocket<b>garden</b></span>
+                    <span class="model" id="model">PG</span>
+                </div>
+                <div class="controls">
+                    <div class="wheel" id="wheel" role="group" aria-label="Click wheel: turn to scroll">
+                        <span class="wheel-dots" aria-hidden="true"></span>
+                        <span class="wheel-glint" aria-hidden="true"></span>
+                        <button type="button" class="wb wb-menu" data-btn="menu" aria-label="Menu: back">MENU</button>
+                        <button type="button" class="wb wb-prev" data-btn="prev" aria-label="Previous">
+                            <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M2 1v10M12 1L3 6l9 5zM22 1l-9 5 9 5z"/></svg>
+                        </button>
+                        <button type="button" class="wb wb-next" data-btn="next" aria-label="Next">
+                            <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M22 1v10M12 1l9 5-9 5zM2 1l9 5-9 5z"/></svg>
+                        </button>
+                        <button type="button" class="wb wb-play" data-btn="play" aria-label="Play highlighted game">
+                            <svg viewBox="0 0 24 12" aria-hidden="true"><path d="M3 1l8 5-8 5zM15 1v10M20 1v10"/></svg>
+                        </button>
+                        <button type="button" class="wheel-center" id="wheel-center" aria-label="Select (hold to favorite)"></button>
+                    </div>
+                </div>
+                <div class="grille" aria-hidden="true"></div>
+            </div>
+        </div>
+
+        <aside class="sleeve" id="sleeve" aria-label="Highlighted game"></aside>
+    </main>
+
+    <div class="sr-only" id="live" aria-live="polite"></div>
+    <noscript><p class="noscript">Pocket Garden needs JavaScript. <a href="../classic.html">Browse the game list instead.</a></p></noscript>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
