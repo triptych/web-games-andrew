@@ -5,6 +5,8 @@ import { charStrip, heroLook, villagerLook, heroKey, villagerKey, FW, FH } from 
 import { ITEMS } from './sim/data/items.js';
 
 const cache = new Map();
+/** Forget every portrait (the painted art arrived). */
+export const clearPortraits = () => cache.clear();
 /** kind 'h' for a hero (or a recruit), 'v' for a villager (or a newcomer). */
 export function portrait(p, kind, G) {
     let key, opts;
@@ -16,8 +18,15 @@ export function portrait(p, kind, G) {
     if (u) return u;
     const strip = charStrip(key, opts());
     const c = document.createElement('canvas');
-    c.width = FW; c.height = FH;
-    c.getContext('2d').drawImage(strip, 0, 0, FW, FH, 0, 0, FW, FH);
+    if (strip.painted) {
+        // a painted figure: head and shoulders, the top 60% of the standing pose
+        const top = strip.fh - 2 - strip.figH, sh = strip.figH * 0.6;
+        c.width = 96; c.height = 104;
+        c.getContext('2d').drawImage(strip, 6, top, strip.fw - 12, sh, 0, 0, 96, 104);
+    } else {
+        c.width = FW; c.height = FH;
+        c.getContext('2d').drawImage(strip, 0, 0, FW, FH, 0, 0, FW, FH);
+    }
     u = c.toDataURL();
     cache.set(key, u);
     return u;

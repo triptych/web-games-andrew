@@ -4,6 +4,7 @@
 // also fills an emissive layer, so windows, forges and lanterns glow at night.
 
 import { BUILDINGS } from '../sim/data/buildings.js';
+import { art } from './art.js';
 import {
     canvas, ctx2, PX, INK, rnd, mix, lighten, darken, lin, rad, rr, box, poly, circle, ellipse, line, softShadow, glow,
 } from './paint.js';
@@ -793,6 +794,11 @@ PAINT.statue = () => {
 // ---------------------------------------------------------------- scaffolding and bunting
 /** The wooden frame that stands around something being built. */
 export function paintScaffold(wTiles, hTiles) {
+    const a = art('scaffold');
+    if (a) {
+        const w = wTiles + 0.3, h = Math.min(hTiles * 1.05, w * a.h / a.w);
+        return { c: a.img, e: BLANK(), w, h, id: `art:scaffold:${w}:${h.toFixed(2)}` };
+    }
     const P = newP(wTiles + 0.3, hTiles);
     const g = P.g, rng = rnd(7);
     const x = 8, w = P.W - 16, by = P.H - 6, h = P.H - 16;
@@ -804,15 +810,40 @@ export function paintScaffold(wTiles, hTiles) {
         line(g, x + 4, y + 6, x + w * 0.5, y - h / 4 + 6, 'rgba(90,60,30,.8)', 3);
     }
     for (let k = 0; k < 4; k++) { const sx = x + 14 + rng() * (w - 28); box(g, sx, by - 12, 14, 12, '#9a9488', 2, INK, 1.4); }
-    return { c: P.c, e: P.e, w: P.W / PX, h: P.H / PX };
+    return { c: P.c, e: P.e, w: P.W / PX, h: P.H / PX, id: `sf:${wTiles}:${hTiles.toFixed(2)}` };
+}
+
+let blank = null;
+const BLANK = () => blank || (blank = canvas(2, 2));
+
+/** The painted picture of a building at a level, if it has loaded: the same shape as a code sprite. */
+function artBuilding(type, lv) {
+    const d = BUILDINGS[type];
+    const a = art(d.names ? `${type}${Math.min(lv, d.names.length)}` : type);
+    if (!a) return null;
+    return {
+        c: a.img, e: a.emi || BLANK(), w: a.w, h: a.h, id: `art:${a.name}`,
+        smoke: a.smoke.map(([x, y]) => ({ x: x * a.w, y: y * a.h })),
+        door: { x: a.w / 2, y: a.h },
+        extra: a.hub ? { hub: { x: a.hub[0] * a.w, y: a.hub[1] * a.h } } : {},
+    };
 }
 
 const cache = new Map();
-/** The sprite for a building type at a level: { c, e, w, h, smoke, door, extra }. */
+/** The sprite for a building type at a level: { c, e, w, h, smoke, door, extra, id }. Painted art when it has loaded,
+ *  else the code painter's. `id` names the picture, for texture caches. */
 export function paintBuilding(type, lv) {
+    lv = Math.max(1, lv);
+    const a = artBuilding(type, lv);
+    if (a) return a;
     const key = `${type}:${lv}`;
     let v = cache.get(key);
-    if (!v) { v = PAINT[type](Math.max(1, lv)); cache.set(key, v); }
+    if (!v) { v = PAINT[type](lv); v.id = key; cache.set(key, v); }
     return v;
+}
+/** The windmill's sails: { c, size } (size in tiles), painted when loaded. */
+export function millSails(lv) {
+    const a = art('sails');
+    return a ? { c: a.img, size: a.w, id: 'art:sails' } : { c: paintBlades(lv), size: 190 / PX, id: `bl:${lv}` };
 }
 export const hasPainter = (type) => !!PAINT[type];

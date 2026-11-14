@@ -3,6 +3,7 @@
 // outfit. A one-pixel ink outline is added at the end, which is most of what makes them read as sprites.
 
 import { canvas, ctx2, INK } from './paint.js';
+import { art } from './art.js';
 
 export const FW = 20, FH = 30, FRAMES = 8;
 export const FRAME = { idle: 0, walk: 1, work: 5, sit: 7 };
@@ -124,7 +125,7 @@ function outline(c) {
 
 /** Options for a hero: class look plus gear tiers. */
 export function heroLook(h, weaponTier, armorTier, charmTier) {
-    const base = { skin: h.look.skin, hair: h.look.hair, style: h.look.style };
+    const base = { skin: h.look.skin, hair: h.look.hair, style: h.look.style, art: heroArt(h, weaponTier, armorTier) };
     const at = armorTier || 0, wt = weaponTier || 0;
     const ac = ARMOR_TIER[at];
     const wc = WEAPON_TIER[wt];
@@ -143,7 +144,7 @@ export function villagerLook(v, special) {
     const o = v.look;
     const [shirt, pants] = VILLAGER[o.outfit % 6];
     const hats = [null, 'straw', 'cap', 'kerchief'];
-    const base = { skin: o.skin, hair: o.hair, style: o.style, body: shirt, legs: pants, hat: hats[o.hat % 4], capColor: shirt, weapon: v.job != null && o.outfit % 3 === 0 ? 'basket' : null };
+    const base = { skin: o.skin, hair: o.hair, style: o.style, body: shirt, legs: pants, hat: hats[o.hat % 4], capColor: shirt, weapon: v.job != null && o.outfit % 3 === 0 ? 'basket' : null, art: villagerArt(v, special) };
     if (special === 'brenna') return { ...base, body: '#5f9a6a', hat: 'kerchief', weapon: 'basket' };
     if (special === 'thorne') return { ...base, body: '#7a5a48', legs: '#3a3a42', hat: null, trim: '#5a3d28', shoulders: '#7a7a82' };
     if (special === 'pip') return { ...base, body: '#d9884a', hat: 'cap', capColor: '#4a7ab0', weapon: 'basket' };
@@ -153,9 +154,48 @@ export function villagerLook(v, special) {
     return base;
 }
 
+// ---------------------------------------------------------------- painted people
+// The painted cast: each hero class as two people in three gear tiers, twelve villagers and the six special folk.
+// A painted figure is one standing pose; the strip's frames move it (a bob and a waddle to walk, a lean to work,
+// a squash to sit), so the town's frame logic is the same for both kinds of sprite.
+const GEAR = (t) => (t >= 4 ? 2 : t >= 2 ? 1 : 0);
+export function heroArt(h, wt = 0, at = 0) {
+    const who = (h.look.skin + h.look.hair + h.look.style) % 2 ? 'b' : 'a';
+    return `${h.cls}-${who}${GEAR(Math.max(wt || 0, at || 0))}`;
+}
+export function villagerArt(v, special) {
+    if (special) return special;
+    const o = v.look;
+    return `folk${(o.skin * 5 + o.hair * 3 + o.outfit * 7 + o.hat * 11 + o.style) % 12}`;
+}
+export const AFW = 120, AFH = 160;                       // a painted frame, px (the figure is 1.2 tiles tall)
+function artStrip(a) {
+    const c = canvas(AFW * FRAMES, AFH), g = ctx2(c);
+    const k = Math.min((AFH - 8) / a.img.height, (AFW - 4) / a.img.width);
+    const w = a.img.width * k, h = a.img.height * k;
+    const pose = [[0, 0, 1, 1], [-3, 0, 1, 1], [0, -4, 0.98, 1.02], [3, 0, 1, 1], [0, -4, 0.98, 1.02], [5, 0, 1, 0.98], [8, 2, 1.02, 0.95], [0, 0, 1.05, 0.84]];
+    pose.forEach(([deg, dy, sx, sy], f) => {
+        g.save();
+        g.translate(f * AFW + AFW / 2, AFH - 2 + dy);         // feet on the bottom edge
+        g.rotate(deg * Math.PI / 180);
+        g.scale(sx, sy);
+        g.drawImage(a.img, -w / 2, -h, w, h);
+        g.restore();
+    });
+    c.fw = AFW; c.fh = AFH; c.painted = true; c.figH = h;
+    return c;
+}
+
 const cache = new Map();
-/** A strip of FRAMES frames, each FW×FH, outlined. */
+/** A strip of FRAMES frames, outlined pixel art FW×FH each, or a painted figure AFW×AFH each when its picture has
+ *  loaded. The canvas carries its frame size as .fw/.fh. */
 export function charStrip(key, opts) {
+    const a = opts.art && art(opts.art);
+    if (a) {
+        let s = cache.get('art:' + a.name);
+        if (!s) { s = artStrip(a); cache.set('art:' + a.name, s); }
+        return s;
+    }
     let c = cache.get(key);
     if (c) return c;
     c = canvas(FW * FRAMES, FH);
@@ -163,6 +203,7 @@ export function charStrip(key, opts) {
     g.imageSmoothingEnabled = false;
     for (let f = 0; f < FRAMES; f++) drawFrame(g, f * FW, f, opts);
     outline(c);
+    c.fw = FW; c.fh = FH;
     cache.set(key, c);
     return c;
 }

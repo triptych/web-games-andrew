@@ -1,0 +1,1509 @@
+{
+"ppt": 112,
+"sprites": {
+"alchemist1": {
+"e": "b/alchemist1-e.webp",
+"f": "b/alchemist1.webp",
+"smoke": [
+[
+0.439,
+0.01
+]
+],
+"t": [
+2.5,
+2.702
+]
+},
+"alchemist2": {
+"e": "b/alchemist2-e.webp",
+"f": "b/alchemist2.webp",
+"smoke": [],
+"t": [
+2.5,
+2.82
+]
+},
+"alchemist3": {
+"e": "b/alchemist3-e.webp",
+"f": "b/alchemist3.webp",
+"smoke": [],
+"t": [
+2.319,
+3.2
+]
+},
+"apiary1": {
+"e": "b/apiary1-e.webp",
+"f": "b/apiary1.webp",
+"t": [
+2.4,
+1.444
+]
+},
+"apiary2": {
+"f": "b/apiary2.webp",
+"t": [
+2.4,
+1.323
+]
+},
+"apiary3": {
+"e": "b/apiary3-e.webp",
+"f": "b/apiary3.webp",
+"t": [
+2.4,
+1.853
+]
+},
+"archer-a0": {
+"f": "c/archer-a0.webp",
+"t": [
+0.75,
+1.2
+]
+},
+"archer-a1": {
+"f": "c/archer-a1.webp",
+"t": [
+0.822,
+1.2
+]
+},
+"archer-a2": {
+"f": "c/archer-a2.webp",
+"t": [
+0.838,
+1.2
+]
+},
+"archer-b0": {
+"f": "c/archer-b0.webp",
+"t": [
+0.712,
+1.2
+]
+},
+"archer-b1": {
+"f": "c/archer-b1.webp",
+"t": [
+0.773,
+1.2
+]
+},
+"archer-b2": {
+"f": "c/archer-b2.webp",
+"t": [
+0.777,
+1.2
+]
+},
+"bench": {
+"f": "b/bench.webp",
+"t": [
+1.0,
+0.665
+]
+},
+"brenna": {
+"f": "c/brenna.webp",
+"t": [
+0.733,
+1.2
+]
+},
+"bush0": {
+"f": "n/bush0.webp",
+"t": [
+0.903,
+0.802
+]
+},
+"bush1": {
+"f": "n/bush1.webp",
+"t": [
+0.903,
+0.8
+]
+},
+"carpenter1": {
+"e": "b/carpenter1-e.webp",
+"f": "b/carpenter1.webp",
+"smoke": [],
+"t": [
+3.5,
+2.143
+]
+},
+"carpenter2": {
+"f": "b/carpenter2.webp",
+"smoke": [],
+"t": [
+3.5,
+2.295
+]
+},
+"carpenter3": {
+"e": "b/carpenter3-e.webp",
+"f": "b/carpenter3.webp",
+"smoke": [],
+"t": [
+3.5,
+2.377
+]
+},
+"cart": {
+"f": "b/cart.webp",
+"t": [
+1.6,
+1.405
+]
+},
+"cleric-a0": {
+"f": "c/cleric-a0.webp",
+"t": [
+0.76,
+1.2
+]
+},
+"cleric-a1": {
+"f": "c/cleric-a1.webp",
+"t": [
+0.762,
+1.2
+]
+},
+"cleric-a2": {
+"f": "c/cleric-a2.webp",
+"t": [
+0.81,
+1.2
+]
+},
+"cleric-b0": {
+"f": "c/cleric-b0.webp",
+"t": [
+0.768,
+1.2
+]
+},
+"cleric-b1": {
+"f": "c/cleric-b1.webp",
+"t": [
+0.773,
+1.2
+]
+},
+"cleric-b2": {
+"f": "c/cleric-b2.webp",
+"t": [
+0.825,
+1.2
+]
+},
+"dock1": {
+"e": "b/dock1-e.webp",
+"f": "b/dock1.webp",
+"t": [
+2.8,
+1.758
+]
+},
+"dock2": {
+"e": "b/dock2-e.webp",
+"f": "b/dock2.webp",
+"t": [
+2.8,
+2.167
+]
+},
+"dock3": {
+"e": "b/dock3-e.webp",
+"f": "b/dock3.webp",
+"t": [
+2.8,
+1.827
+]
+},
+"farm1": {
+"f": "b/farm1.webp",
+"t": [
+4.6,
+1.547
+]
+},
+"farm2": {
+"e": "b/farm2-e.webp",
+"f": "b/farm2.webp",
+"t": [
+4.6,
+1.999
+]
+},
+"farm3": {
+"e": "b/farm3-e.webp",
+"f": "b/farm3.webp",
+"t": [
+4.6,
+2.467
+]
+},
+"farm4": {
+"e": "b/farm4-e.webp",
+"f": "b/farm4.webp",
+"t": [
+4.6,
+2.883
+]
+},
+"fenn": {
+"f": "c/fenn.webp",
+"t": [
+0.909,
+1.2
+]
+},
+"flax0": {
+"f": "n/flax0.webp",
+"t": [
+0.514,
+0.514
+]
+},
+"flax1": {
+"f": "n/flax1.webp",
+"t": [
+0.711,
+0.8
+]
+},
+"flowerbed": {
+"e": "b/flowerbed-e.webp",
+"f": "b/flowerbed.webp",
+"t": [
+1.0,
+0.676
+]
+},
+"folk0": {
+"f": "c/folk0.webp",
+"t": [
+0.668,
+1.2
+]
+},
+"folk1": {
+"f": "c/folk1.webp",
+"t": [
+0.752,
+1.2
+]
+},
+"folk10": {
+"f": "c/folk10.webp",
+"t": [
+0.532,
+1.2
+]
+},
+"folk11": {
+"f": "c/folk11.webp",
+"t": [
+0.694,
+1.2
+]
+},
+"folk2": {
+"f": "c/folk2.webp",
+"t": [
+0.659,
+1.2
+]
+},
+"folk3": {
+"f": "c/folk3.webp",
+"t": [
+0.577,
+1.2
+]
+},
+"folk4": {
+"f": "c/folk4.webp",
+"t": [
+0.607,
+1.2
+]
+},
+"folk5": {
+"f": "c/folk5.webp",
+"t": [
+0.699,
+1.2
+]
+},
+"folk6": {
+"f": "c/folk6.webp",
+"t": [
+0.522,
+1.2
+]
+},
+"folk7": {
+"f": "c/folk7.webp",
+"t": [
+0.701,
+1.2
+]
+},
+"folk8": {
+"f": "c/folk8.webp",
+"t": [
+0.653,
+1.2
+]
+},
+"folk9": {
+"f": "c/folk9.webp",
+"t": [
+0.525,
+1.2
+]
+},
+"fountain": {
+"f": "b/fountain.webp",
+"t": [
+2.0,
+1.444
+]
+},
+"guild1": {
+"e": "b/guild1-e.webp",
+"f": "b/guild1.webp",
+"t": [
+3.5,
+2.499
+]
+},
+"guild2": {
+"e": "b/guild2-e.webp",
+"f": "b/guild2.webp",
+"t": [
+3.5,
+2.81
+]
+},
+"guild3": {
+"e": "b/guild3-e.webp",
+"f": "b/guild3.webp",
+"t": [
+3.5,
+2.486
+]
+},
+"guild4": {
+"f": "b/guild4.webp",
+"t": [
+3.5,
+2.013
+]
+},
+"guild5": {
+"e": "b/guild5-e.webp",
+"f": "b/guild5.webp",
+"t": [
+3.5,
+2.142
+]
+},
+"hall1": {
+"e": "b/hall1-e.webp",
+"f": "b/hall1.webp",
+"smoke": [
+[
+0.745,
+0.027
+]
+],
+"t": [
+3.5,
+2.598
+]
+},
+"hall2": {
+"e": "b/hall2-e.webp",
+"f": "b/hall2.webp",
+"smoke": [
+[
+0.316,
+0.01
+],
+[
+0.907,
+0.01
+]
+],
+"t": [
+3.5,
+2.577
+]
+},
+"hall3": {
+"e": "b/hall3-e.webp",
+"f": "b/hall3.webp",
+"smoke": [
+[
+0.334,
+0.01
+]
+],
+"t": [
+3.5,
+2.679
+]
+},
+"hall4": {
+"e": "b/hall4-e.webp",
+"f": "b/hall4.webp",
+"smoke": [
+[
+0.139,
+0.01
+]
+],
+"t": [
+3.5,
+3.053
+]
+},
+"hall5": {
+"e": "b/hall5-e.webp",
+"f": "b/hall5.webp",
+"smoke": [
+[
+0.499,
+0.01
+]
+],
+"t": [
+3.119,
+3.2
+]
+},
+"hall6": {
+"e": "b/hall6-e.webp",
+"f": "b/hall6.webp",
+"smoke": [
+[
+0.483,
+0.01
+]
+],
+"t": [
+3.491,
+3.2
+]
+},
+"healer1": {
+"e": "b/healer1-e.webp",
+"f": "b/healer1.webp",
+"t": [
+2.6,
+1.268
+]
+},
+"healer2": {
+"e": "b/healer2-e.webp",
+"f": "b/healer2.webp",
+"t": [
+2.6,
+3.113
+]
+},
+"healer3": {
+"f": "b/healer3.webp",
+"t": [
+2.6,
+1.849
+]
+},
+"henhouse1": {
+"e": "b/henhouse1-e.webp",
+"f": "b/henhouse1.webp",
+"t": [
+2.5,
+2.489
+]
+},
+"henhouse2": {
+"f": "b/henhouse2.webp",
+"t": [
+2.5,
+1.835
+]
+},
+"henhouse3": {
+"f": "b/henhouse3.webp",
+"t": [
+2.5,
+1.498
+]
+},
+"herbgarden1": {
+"f": "b/herbgarden1.webp",
+"t": [
+2.5,
+1.022
+]
+},
+"herbgarden2": {
+"f": "b/herbgarden2.webp",
+"t": [
+2.5,
+1.818
+]
+},
+"herbgarden3": {
+"e": "b/herbgarden3-e.webp",
+"f": "b/herbgarden3.webp",
+"t": [
+2.5,
+1.788
+]
+},
+"herbp0": {
+"f": "n/herbp0.webp",
+"t": [
+0.832,
+0.555
+]
+},
+"herbp1": {
+"f": "n/herbp1.webp",
+"t": [
+0.992,
+0.8
+]
+},
+"house1": {
+"e": "b/house1-e.webp",
+"f": "b/house1.webp",
+"smoke": [
+[
+0.22,
+0.01
+],
+[
+0.77,
+0.01
+]
+],
+"t": [
+2.5,
+1.783
+]
+},
+"house2": {
+"e": "b/house2-e.webp",
+"f": "b/house2.webp",
+"smoke": [
+[
+0.22,
+0.21
+],
+[
+0.939,
+0.01
+]
+],
+"t": [
+2.5,
+2.005
+]
+},
+"house3": {
+"e": "b/house3-e.webp",
+"f": "b/house3.webp",
+"smoke": [],
+"t": [
+2.039,
+3.2
+]
+},
+"house4": {
+"e": "b/house4-e.webp",
+"f": "b/house4.webp",
+"smoke": [],
+"t": [
+2.5,
+1.636
+]
+},
+"inn1": {
+"f": "b/inn1.webp",
+"smoke": [
+[
+0.622,
+0.01
+]
+],
+"t": [
+3.5,
+2.805
+]
+},
+"inn2": {
+"e": "b/inn2-e.webp",
+"f": "b/inn2.webp",
+"smoke": [
+[
+0.301,
+0.01
+],
+[
+0.773,
+0.01
+]
+],
+"t": [
+3.5,
+2.395
+]
+},
+"inn3": {
+"e": "b/inn3-e.webp",
+"f": "b/inn3.webp",
+"smoke": [
+[
+0.214,
+0.01
+]
+],
+"t": [
+3.5,
+2.002
+]
+},
+"inn4": {
+"f": "b/inn4.webp",
+"smoke": [],
+"t": [
+3.5,
+2.093
+]
+},
+"itemshop1": {
+"f": "b/itemshop1.webp",
+"smoke": [],
+"t": [
+2.5,
+1.484
+]
+},
+"itemshop2": {
+"e": "b/itemshop2-e.webp",
+"f": "b/itemshop2.webp",
+"smoke": [],
+"t": [
+2.5,
+1.351
+]
+},
+"itemshop3": {
+"e": "b/itemshop3-e.webp",
+"f": "b/itemshop3.webp",
+"smoke": [
+[
+0.202,
+0.01
+]
+],
+"t": [
+2.5,
+1.877
+]
+},
+"itemshop4": {
+"e": "b/itemshop4-e.webp",
+"f": "b/itemshop4.webp",
+"smoke": [],
+"t": [
+2.5,
+1.438
+]
+},
+"lantern": {
+"f": "b/lantern.webp",
+"t": [
+0.332,
+1.5
+]
+},
+"library1": {
+"e": "b/library1-e.webp",
+"f": "b/library1.webp",
+"smoke": [],
+"t": [
+3.5,
+2.772
+]
+},
+"library2": {
+"e": "b/library2-e.webp",
+"f": "b/library2.webp",
+"smoke": [
+[
+0.533,
+0.01
+]
+],
+"t": [
+3.5,
+2.901
+]
+},
+"loom1": {
+"e": "b/loom1-e.webp",
+"f": "b/loom1.webp",
+"smoke": [],
+"t": [
+2.5,
+1.811
+]
+},
+"loom2": {
+"e": "b/loom2-e.webp",
+"f": "b/loom2.webp",
+"smoke": [
+[
+0.302,
+0.01
+]
+],
+"t": [
+2.5,
+1.82
+]
+},
+"loom3": {
+"e": "b/loom3-e.webp",
+"f": "b/loom3.webp",
+"smoke": [
+[
+0.764,
+0.113
+]
+],
+"t": [
+2.5,
+1.819
+]
+},
+"mage-a0": {
+"f": "c/mage-a0.webp",
+"t": [
+0.834,
+1.2
+]
+},
+"mage-a1": {
+"f": "c/mage-a1.webp",
+"t": [
+0.78,
+1.2
+]
+},
+"mage-a2": {
+"f": "c/mage-a2.webp",
+"t": [
+0.854,
+1.2
+]
+},
+"mage-b0": {
+"f": "c/mage-b0.webp",
+"t": [
+0.836,
+1.2
+]
+},
+"mage-b1": {
+"f": "c/mage-b1.webp",
+"t": [
+0.782,
+1.2
+]
+},
+"mage-b2": {
+"f": "c/mage-b2.webp",
+"t": [
+0.845,
+1.2
+]
+},
+"market1": {
+"e": "b/market1-e.webp",
+"f": "b/market1.webp",
+"t": [
+2.6,
+2.351
+]
+},
+"market2": {
+"e": "b/market2-e.webp",
+"f": "b/market2.webp",
+"t": [
+2.6,
+1.05
+]
+},
+"market3": {
+"e": "b/market3-e.webp",
+"f": "b/market3.webp",
+"t": [
+2.6,
+1.563
+]
+},
+"mill1": {
+"e": "b/mill1-e.webp",
+"f": "b/mill1.webp",
+"hub": [
+0.5,
+0.36
+],
+"t": [
+1.543,
+3.4
+]
+},
+"mill2": {
+"e": "b/mill2-e.webp",
+"f": "b/mill2.webp",
+"hub": [
+0.5,
+0.33
+],
+"t": [
+1.627,
+3.4
+]
+},
+"mill3": {
+"e": "b/mill3-e.webp",
+"f": "b/mill3.webp",
+"hub": [
+0.35,
+0.33
+],
+"t": [
+2.0,
+2.783
+]
+},
+"mine1": {
+"f": "b/mine1.webp",
+"t": [
+3.4,
+2.126
+]
+},
+"mine2": {
+"e": "b/mine2-e.webp",
+"f": "b/mine2.webp",
+"t": [
+3.4,
+2.398
+]
+},
+"mine3": {
+"e": "b/mine3-e.webp",
+"f": "b/mine3.webp",
+"t": [
+3.4,
+2.498
+]
+},
+"mush0": {
+"f": "n/mush0.webp",
+"t": [
+0.16,
+0.197
+]
+},
+"mush1": {
+"f": "n/mush1.webp",
+"t": [
+0.885,
+0.8
+]
+},
+"orchard1": {
+"f": "b/orchard1.webp",
+"t": [
+3.4,
+1.567
+]
+},
+"orchard2": {
+"e": "b/orchard2-e.webp",
+"f": "b/orchard2.webp",
+"t": [
+3.4,
+2.393
+]
+},
+"orchard3": {
+"e": "b/orchard3-e.webp",
+"f": "b/orchard3.webp",
+"t": [
+3.4,
+2.38
+]
+},
+"orla": {
+"f": "c/orla.webp",
+"t": [
+0.643,
+1.2
+]
+},
+"pebbles": {
+"f": "n/pebbles.webp",
+"t": [
+1.077,
+0.55
+]
+},
+"pip": {
+"f": "c/pip.webp",
+"t": [
+0.854,
+1.2
+]
+},
+"quarry1": {
+"f": "b/quarry1.webp",
+"t": [
+3.4,
+1.955
+]
+},
+"quarry2": {
+"f": "b/quarry2.webp",
+"t": [
+3.4,
+2.085
+]
+},
+"quarry3": {
+"f": "b/quarry3.webp",
+"t": [
+3.4,
+2.231
+]
+},
+"quarry4": {
+"f": "b/quarry4.webp",
+"t": [
+3.4,
+2.248
+]
+},
+"rock0": {
+"f": "n/rock0.webp",
+"t": [
+0.977,
+0.8
+]
+},
+"rock1": {
+"f": "n/rock1.webp",
+"t": [
+0.764,
+0.95
+]
+},
+"rock2": {
+"f": "n/rock2.webp",
+"t": [
+1.314,
+0.8
+]
+},
+"rock3": {
+"f": "n/rock3.webp",
+"t": [
+0.953,
+0.8
+]
+},
+"rogue-a0": {
+"f": "c/rogue-a0.webp",
+"t": [
+0.743,
+1.2
+]
+},
+"rogue-a1": {
+"f": "c/rogue-a1.webp",
+"t": [
+0.857,
+1.2
+]
+},
+"rogue-a2": {
+"f": "c/rogue-a2.webp",
+"t": [
+0.863,
+1.2
+]
+},
+"rogue-b0": {
+"f": "c/rogue-b0.webp",
+"t": [
+0.727,
+1.2
+]
+},
+"rogue-b1": {
+"f": "c/rogue-b1.webp",
+"t": [
+0.846,
+1.2
+]
+},
+"rogue-b2": {
+"f": "c/rogue-b2.webp",
+"t": [
+0.846,
+1.2
+]
+},
+"sails": {
+"f": "b/sails.webp",
+"t": [
+1.9,
+1.9
+]
+},
+"scaffold": {
+"f": "b/scaffold.webp",
+"t": [
+3.5,
+3.295
+]
+},
+"smithy1": {
+"e": "b/smithy1-e.webp",
+"f": "b/smithy1.webp",
+"smoke": [
+[
+0.245,
+0.01
+],
+[
+0.811,
+0.014
+]
+],
+"t": [
+3.5,
+2.006
+]
+},
+"smithy2": {
+"e": "b/smithy2-e.webp",
+"f": "b/smithy2.webp",
+"smoke": [
+[
+0.29,
+0.11
+],
+[
+0.768,
+0.01
+]
+],
+"t": [
+3.5,
+2.773
+]
+},
+"smithy3": {
+"f": "b/smithy3.webp",
+"smoke": [
+[
+0.483,
+0.01
+],
+[
+0.508,
+0.01
+]
+],
+"t": [
+3.5,
+2.447
+]
+},
+"stables1": {
+"e": "b/stables1-e.webp",
+"f": "b/stables1.webp",
+"t": [
+3.5,
+1.396
+]
+},
+"stables2": {
+"e": "b/stables2-e.webp",
+"f": "b/stables2.webp",
+"t": [
+3.5,
+2.894
+]
+},
+"statue": {
+"e": "b/statue-e.webp",
+"f": "b/statue.webp",
+"t": [
+1.112,
+2.7
+]
+},
+"storehouse1": {
+"f": "b/storehouse1.webp",
+"t": [
+2.5,
+1.303
+]
+},
+"storehouse2": {
+"f": "b/storehouse2.webp",
+"t": [
+2.5,
+1.852
+]
+},
+"storehouse3": {
+"f": "b/storehouse3.webp",
+"t": [
+2.5,
+1.307
+]
+},
+"storehouse4": {
+"e": "b/storehouse4-e.webp",
+"f": "b/storehouse4.webp",
+"t": [
+2.5,
+1.541
+]
+},
+"stump": {
+"f": "n/stump.webp",
+"t": [
+0.713,
+0.55
+]
+},
+"tavern1": {
+"e": "b/tavern1-e.webp",
+"f": "b/tavern1.webp",
+"smoke": [
+[
+0.32,
+0.057
+],
+[
+0.69,
+0.01
+]
+],
+"t": [
+3.5,
+2.299
+]
+},
+"tavern2": {
+"e": "b/tavern2-e.webp",
+"f": "b/tavern2.webp",
+"smoke": [
+[
+0.269,
+0.079
+],
+[
+0.823,
+0.01
+]
+],
+"t": [
+3.5,
+2.571
+]
+},
+"tavern3": {
+"e": "b/tavern3-e.webp",
+"f": "b/tavern3.webp",
+"smoke": [
+[
+0.26,
+0.01
+],
+[
+0.652,
+0.01
+]
+],
+"t": [
+3.5,
+2.474
+]
+},
+"tavern4": {
+"e": "b/tavern4-e.webp",
+"f": "b/tavern4.webp",
+"smoke": [
+[
+0.491,
+0.01
+]
+],
+"t": [
+3.5,
+2.415
+]
+},
+"thorne": {
+"f": "c/thorne.webp",
+"t": [
+0.903,
+1.2
+]
+},
+"tree0-0": {
+"f": "n/tree0-0.webp",
+"t": [
+1.95,
+1.93
+]
+},
+"tree0-1": {
+"f": "n/tree0-1.webp",
+"t": [
+1.95,
+1.928
+]
+},
+"tree0-2": {
+"f": "n/tree0-2.webp",
+"t": [
+1.95,
+1.937
+]
+},
+"tree0-3": {
+"f": "n/tree0-3.webp",
+"t": [
+1.95,
+1.966
+]
+},
+"tree1-0": {
+"f": "n/tree1-0.webp",
+"t": [
+1.91,
+2.25
+]
+},
+"tree1-1": {
+"f": "n/tree1-1.webp",
+"t": [
+1.912,
+2.25
+]
+},
+"tree1-2": {
+"f": "n/tree1-2.webp",
+"t": [
+1.948,
+2.25
+]
+},
+"tree1-3": {
+"f": "n/tree1-3.webp",
+"t": [
+1.949,
+2.25
+]
+},
+"tree2-0": {
+"f": "n/tree2-0.webp",
+"t": [
+1.939,
+2.25
+]
+},
+"tree2-1": {
+"f": "n/tree2-1.webp",
+"t": [
+1.95,
+2.21
+]
+},
+"tree2-2": {
+"f": "n/tree2-2.webp",
+"t": [
+1.95,
+2.216
+]
+},
+"tree2-3": {
+"f": "n/tree2-3.webp",
+"t": [
+1.912,
+2.25
+]
+},
+"tree3-0": {
+"f": "n/tree3-0.webp",
+"t": [
+1.95,
+2.021
+]
+},
+"tree3-1": {
+"f": "n/tree3-1.webp",
+"t": [
+1.95,
+2.04
+]
+},
+"tree3-2": {
+"f": "n/tree3-2.webp",
+"t": [
+1.95,
+2.044
+]
+},
+"tree3-3": {
+"f": "n/tree3-3.webp",
+"t": [
+1.95,
+2.076
+]
+},
+"tuck": {
+"f": "c/tuck.webp",
+"t": [
+0.858,
+1.2
+]
+},
+"warrior-a0": {
+"f": "c/warrior-a0.webp",
+"t": [
+0.599,
+1.2
+]
+},
+"warrior-a1": {
+"f": "c/warrior-a1.webp",
+"t": [
+0.823,
+1.2
+]
+},
+"warrior-a2": {
+"f": "c/warrior-a2.webp",
+"t": [
+1.038,
+1.2
+]
+},
+"warrior-b0": {
+"f": "c/warrior-b0.webp",
+"t": [
+0.931,
+1.2
+]
+},
+"warrior-b1": {
+"f": "c/warrior-b1.webp",
+"t": [
+1.042,
+1.2
+]
+},
+"warrior-b2": {
+"f": "c/warrior-b2.webp",
+"t": [
+1.155,
+1.2
+]
+},
+"watchtower1": {
+"e": "b/watchtower1-e.webp",
+"f": "b/watchtower1.webp",
+"t": [
+1.511,
+3.7
+]
+},
+"watchtower2": {
+"e": "b/watchtower2-e.webp",
+"f": "b/watchtower2.webp",
+"t": [
+1.513,
+3.7
+]
+},
+"watchtower3": {
+"e": "b/watchtower3-e.webp",
+"f": "b/watchtower3.webp",
+"t": [
+1.741,
+3.7
+]
+},
+"well": {
+"f": "b/well.webp",
+"t": [
+1.05,
+1.357
+]
+},
+"woodshed1": {
+"e": "b/woodshed1-e.webp",
+"f": "b/woodshed1.webp",
+"t": [
+3.5,
+2.292
+]
+},
+"woodshed2": {
+"e": "b/woodshed2-e.webp",
+"f": "b/woodshed2.webp",
+"t": [
+3.5,
+1.736
+]
+},
+"woodshed3": {
+"e": "b/woodshed3-e.webp",
+"f": "b/woodshed3.webp",
+"t": [
+3.5,
+1.617
+]
+},
+"woodshed4": {
+"e": "b/woodshed4-e.webp",
+"f": "b/woodshed4.webp",
+"t": [
+3.5,
+1.771
+]
+}
+}
+}
