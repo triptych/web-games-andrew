@@ -149,16 +149,142 @@ kbd {
     font: 500 clamp(1.4rem, 4.5vw, 2rem)/1.15 var(--display);
     letter-spacing: 0.04em;
 }
-.title h1 span {
+/* the logo: "Garden of Games" in gold letters that rise in one by one, with a glint that runs along them */
+.title-name {
     display: inline-block;
     margin-top: 0.15em;
     font-size: 1.55em;
     font-weight: 700;
+}
+.title-name .w { display: inline-block; white-space: nowrap; }
+.title-name i {
+    display: inline-block;
+    font-style: normal;
     background: linear-gradient(180deg, #fff3cf, #d9b46a 60%, #a8782e);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
     text-shadow: 0 0 30px rgba(243, 217, 153, 0.25);
+    animation:
+        letter-rise 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) calc(0.35s + var(--i) * 55ms) both,
+        letter-glint 5.5s ease-in-out calc(1.8s + var(--i) * 70ms) infinite;
+}
+@keyframes letter-rise {
+    from { opacity: 0; transform: translateY(0.45em) scale(0.85); filter: blur(6px); }
+    to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes letter-glint {
+    0%, 9%, 100% { transform: none; filter: none; }
+    4% { transform: translateY(-0.06em); filter: brightness(1.5) drop-shadow(0 0 6px rgba(243, 217, 153, 0.75)); }
+}
+.title-kicker, .title-by { animation: title-fade 0.9s ease-out 0.1s both; }
+.title-sub, .loader { animation: title-fade 0.9s ease-out 1.1s both; }
+@keyframes title-fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+.vh {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+}
+
+/* the emblem: a laurel wreath that grows a pair of leaves with each loading step (ui.js sets --g, --s
+   and .on from the loader's progress), round a little island whose sprout flowers when the garden is ready */
+.title-emblem {
+    position: relative;
+    width: clamp(88px, 24vw, 128px);
+    margin: calc(-0.3 * clamp(20px, 5vw, 44px)) auto 0.15em;
+}
+.title-emblem::before {
+    content: "";
+    position: absolute;
+    inset: -14%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(243, 217, 153, 0.3), rgba(143, 246, 255, 0.08) 45%, transparent 70%);
+    animation: emblem-breathe 3.4s ease-in-out infinite;
+}
+.title-emblem svg { position: relative; display: block; width: 100%; height: auto; overflow: visible; }
+.title-emblem .stem, .title-emblem .sprout {
+    fill: none;
+    stroke: #c9a35c;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-dasharray: 1 2; /* a gap longer than the path, so no stray round cap shows at its end */
+    stroke-dashoffset: calc(1 - var(--g, 0));
+    transition: stroke-dashoffset 0.8s ease-out;
+}
+.title-emblem .sprout { stroke: #e6c98a; stroke-width: 1.6; stroke-dashoffset: calc(1 - var(--s, 0)); }
+.title-emblem .leaf, .title-emblem .bud {
+    fill: url(#gl-gold);
+    opacity: 0;
+    transform: scale(0);
+    transition:
+        transform 0.7s cubic-bezier(0.34, 1.7, 0.64, 1) calc(0.15s + var(--d, 0) * 90ms),
+        opacity 0.3s ease calc(0.15s + var(--d, 0) * 90ms);
+}
+.title-emblem .on { opacity: 1; transform: scale(1); }
+.title-emblem .bud { --d: 5; } /* wait for the sprout's stem to reach it */
+.title-emblem .mound { fill: url(#gl-gold); opacity: 0.85; }
+.title-emblem .sea {
+    fill: none;
+    stroke: var(--cyan);
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    stroke-dasharray: 7 3;
+    opacity: 0.7;
+    animation: emblem-sea 2.4s linear infinite;
+}
+.title-emblem .petal, .title-emblem .heart {
+    transform: scale(0);
+    transition: transform 0.8s cubic-bezier(0.34, 1.6, 0.64, 1) calc(0.45s + var(--i, 0) * 70ms);
+}
+.title-emblem .petal { fill: url(#gl-gold); stroke: rgba(168, 120, 46, 0.6); stroke-width: 0.4; }
+.title-emblem .heart { fill: url(#gl-heart); transition-delay: 0.35s; }
+.title-emblem .spark { fill: #fff6dc; opacity: 0; }
+.title.ready .title-emblem .petal, .title.ready .title-emblem .heart { transform: scale(1); }
+.title.ready .title-emblem .heart { animation: emblem-heart 2.6s ease-in-out 1.4s infinite; }
+.title.ready .title-emblem .spark { animation: emblem-spark 3.2s ease-in-out calc(1s + var(--i) * 0.8s) infinite; }
+.title.ready .title-emblem::before { animation: emblem-burst 1.4s ease-out 0.4s both, emblem-breathe 3.4s ease-in-out 1.8s infinite; }
+@keyframes emblem-breathe {
+    0%, 100% { opacity: 0.45; transform: scale(0.94); }
+    50% { opacity: 0.85; transform: scale(1.04); }
+}
+@keyframes emblem-burst {
+    0% { opacity: 0.5; transform: scale(0.9); }
+    35% { opacity: 1; transform: scale(1.25); }
+    100% { opacity: 0.45; transform: scale(0.94); }
+}
+@keyframes emblem-sea { to { stroke-dashoffset: -20; } }
+@keyframes emblem-heart {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.18); }
+}
+@keyframes emblem-spark {
+    0%, 60%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+    75% { opacity: 1; transform: scale(1) rotate(45deg); }
+}
+@media (max-height: 700px) {
+    .title-emblem { width: 64px; margin-top: 0; }
+}
+@media (max-height: 600px) {
+    .title-emblem { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .title-name i, .title-kicker, .title-by, .title-sub, .loader,
+    .title-emblem::before, .title-emblem .sea,
+    .title.ready .title-emblem::before, .title.ready .title-emblem .heart { animation: none; }
+    .title-emblem::before { opacity: 0.6; }
+    .title-emblem .leaf, .title-emblem .bud, .title-emblem .petal, .title-emblem .heart {
+        transform: none;
+        transition: opacity 0.5s ease;
+    }
+    .title-emblem .petal, .title-emblem .heart { opacity: 0; }
+    .title.ready .title-emblem .petal, .title.ready .title-emblem .heart { opacity: 1; }
+    .title.ready .title-emblem .spark { animation: none; opacity: 0.8; }
 }
 .title-sub { margin: 0.6em auto 1.4em; max-width: 30em; font-size: 1.15rem; line-height: 1.45; color: var(--ink-dim); }
 .loader { margin: 0 auto; max-width: 340px; }
