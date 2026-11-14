@@ -77,9 +77,26 @@ export class UI {
     progress(p, text) {
         $('loader-fill').style.width = `${Math.round(p * 100)}%`;
         if (text) $('loader-text').textContent = text;
+        this.grow(p);
+    }
+
+    // The title emblem grows with the load: each wreath leaf (and the sprout's two leaves) carries the
+    // progress at which it appears, the wreath's stems reach the newest pair, and the sprout climbs from
+    // 20% to the last step, reaching each of its leaves as it opens. ready() opens the flower (.title.ready).
+    grow(p) {
+        const title = $('title');
+        this.growers ??= [...title.querySelectorAll('[data-at]')];
+        this.levels ??= [...new Set(this.growers.filter((el) => el.classList.contains('leaf')).map((el) => +el.dataset.at))].sort((a, b) => a - b);
+        for (const el of this.growers) el.classList.toggle('on', p >= +el.dataset.at);
+        const reached = this.levels.filter((at) => p >= at).length;
+        const g = reached ? Math.max(0.03, (reached - 1) / (this.levels.length - 1)) : 0;
+        title.style.setProperty('--g', g.toFixed(3));
+        title.style.setProperty('--s', Math.min(1, Math.max(0, (p - 0.2) / 0.46)).toFixed(3));
     }
 
     ready() {
+        this.grow(1);
+        $('title').classList.add('ready');
         $('loader').hidden = true;
         $('title-actions').hidden = false;
         $('enter').focus({ preventScroll: true });

@@ -47,8 +47,72 @@
     <!-- title / loading screen -->
     <section id="title" class="title">
         <div class="title-card">
+            <div class="title-emblem" aria-hidden="true">
+                <svg viewBox="0 0 120 104" focusable="false">
+                    <defs>
+                        <linearGradient id="gl-gold" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#fff3cf"/><stop offset="0.6" stop-color="#d9b46a"/><stop offset="1" stop-color="#a8782e"/>
+                        </linearGradient>
+                        <radialGradient id="gl-heart"><stop offset="0" stop-color="#f2feff"/><stop offset="1" stop-color="#8ff6ff"/></radialGradient>
+                        <path id="gl-leaf" d="M0 0C3-3.4 9-3.4 13 0C9 3.4 3 3.4 0 0Z"/>
+                        <path id="gl-star" d="M0-5L1.1-1.1L5 0L1.1 1.1L0 5L-1.1 1.1L-5 0L-1.1-1.1Z"/>
+                    </defs>
+                    <g class="wreath">
+                        <path class="stem" pathLength="1" d="M52.1 95.2A38 38 0 0 1 41 25.1"/>
+                        <path class="stem" pathLength="1" d="M67.9 95.2A38 38 0 0 0 79 25.1"/>
+                        <g transform="translate(52.1 95.2) rotate(154) scale(1)"><use class="leaf" href="#gl-leaf" data-at="0.03" style="--d:0"/></g>
+                        <g transform="translate(52.1 95.2) rotate(230) scale(1)"><use class="leaf" href="#gl-leaf" data-at="0.03" style="--d:0"/></g>
+                        <g transform="translate(67.9 95.2) rotate(26) scale(1)"><use class="leaf" href="#gl-leaf" data-at="0.03" style="--d:0"/></g>
+                        <g transform="translate(67.9 95.2) rotate(-50) scale(1)"><use class="leaf" href="#gl-leaf" data-at="0.03" style="--d:0"/></g>
+                        <g transform="translate(38.2 89.1) rotate(177) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.16" style="--d:1"/></g>
+                        <g transform="translate(38.2 89.1) rotate(253) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.16" style="--d:1"/></g>
+                        <g transform="translate(81.8 89.1) rotate(3) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.16" style="--d:1"/></g>
+                        <g transform="translate(81.8 89.1) rotate(-73) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.16" style="--d:1"/></g>
+                        <g transform="translate(27.8 78.1) rotate(200) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.26" style="--d:0"/></g>
+                        <g transform="translate(27.8 78.1) rotate(276) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.26" style="--d:0"/></g>
+                        <g transform="translate(92.2 78.1) rotate(-20) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.26" style="--d:0"/></g>
+                        <g transform="translate(92.2 78.1) rotate(-96) scale(0.9)"><use class="leaf" href="#gl-leaf" data-at="0.26" style="--d:0"/></g>
+                        <g transform="translate(22.5 63.9) rotate(223) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.33" style="--d:1"/></g>
+                        <g transform="translate(22.5 63.9) rotate(299) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.33" style="--d:1"/></g>
+                        <g transform="translate(97.5 63.9) rotate(-43) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.33" style="--d:1"/></g>
+                        <g transform="translate(97.5 63.9) rotate(-119) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.33" style="--d:1"/></g>
+                        <g transform="translate(23.1 48.8) rotate(246) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.45" style="--d:0"/></g>
+                        <g transform="translate(23.1 48.8) rotate(322) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.45" style="--d:0"/></g>
+                        <g transform="translate(96.9 48.8) rotate(-66) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.45" style="--d:0"/></g>
+                        <g transform="translate(96.9 48.8) rotate(-142) scale(0.8)"><use class="leaf" href="#gl-leaf" data-at="0.45" style="--d:0"/></g>
+                        <g transform="translate(29.7 35.1) rotate(269) scale(0.7)"><use class="leaf" href="#gl-leaf" data-at="0.58" style="--d:1"/></g>
+                        <g transform="translate(29.7 35.1) rotate(345) scale(0.7)"><use class="leaf" href="#gl-leaf" data-at="0.58" style="--d:1"/></g>
+                        <g transform="translate(90.3 35.1) rotate(-89) scale(0.7)"><use class="leaf" href="#gl-leaf" data-at="0.58" style="--d:1"/></g>
+                        <g transform="translate(90.3 35.1) rotate(-165) scale(0.7)"><use class="leaf" href="#gl-leaf" data-at="0.58" style="--d:1"/></g>
+                        <g transform="translate(41 25.1) rotate(330) scale(0.7)"><use class="leaf" href="#gl-leaf" data-at="0.66" style="--d:0"/></g>
+                        <g transform="translate(79 25.1) rotate(-150) scale(0.7)"><use class="leaf" href="#gl-leaf" data-at="0.66" style="--d:0"/></g>
+                    </g>
+                    <path class="mound" d="M42 82Q60 69 78 82Z"/>
+                    <path class="sea" d="M30 83q5-3 10 0t10 0t10 0t10 0t10 0t10 0"/>
+                    <path class="sprout" pathLength="1" d="M60 79C57.5 70 62.5 60 60 47"/>
+                    <g transform="translate(59.4 68) rotate(205) scale(0.6)"><use class="bud" href="#gl-leaf" data-at="0.38"/></g>
+                    <g transform="translate(60.9 59) rotate(-28) scale(0.52)"><use class="bud" href="#gl-leaf" data-at="0.52"/></g>
+                    <g transform="translate(60 42)">
+                        <g transform="rotate(0)"><ellipse class="petal" cy="-6.6" rx="3.5" ry="6.6" style="--i:0"/></g>
+                        <g transform="rotate(60)"><ellipse class="petal" cy="-6.6" rx="3.5" ry="6.6" style="--i:1"/></g>
+                        <g transform="rotate(120)"><ellipse class="petal" cy="-6.6" rx="3.5" ry="6.6" style="--i:2"/></g>
+                        <g transform="rotate(180)"><ellipse class="petal" cy="-6.6" rx="3.5" ry="6.6" style="--i:3"/></g>
+                        <g transform="rotate(240)"><ellipse class="petal" cy="-6.6" rx="3.5" ry="6.6" style="--i:4"/></g>
+                        <g transform="rotate(300)"><ellipse class="petal" cy="-6.6" rx="3.5" ry="6.6" style="--i:5"/></g>
+                        <circle class="heart" r="3.3"/>
+                    </g>
+                    <g transform="translate(43 31) scale(0.9)"><use class="spark" href="#gl-star" style="--i:0"/></g>
+                    <g transform="translate(78 26) scale(1.1)"><use class="spark" href="#gl-star" style="--i:1"/></g>
+                    <g transform="translate(80 50) scale(0.7)"><use class="spark" href="#gl-star" style="--i:2"/></g>
+                    <g transform="translate(40 52) scale(0.6)"><use class="spark" href="#gl-star" style="--i:3"/></g>
+                </svg>
+            </div>
             <p class="title-kicker">Welcome to</p>
-            <h1>Andrew Wooldridge's<br><span>Garden of Games</span></h1>
+            <h1>
+                <span class="vh">Andrew Wooldridge's Garden of Games</span>
+                <span class="title-by" aria-hidden="true">Andrew Wooldridge's</span><br>
+                <span class="title-name" aria-hidden="true"><span class="w"><i style="--i:0">G</i><i style="--i:1">a</i><i style="--i:2">r</i><i style="--i:3">d</i><i style="--i:4">e</i><i style="--i:5">n</i></span> <span class="w"><i style="--i:6">o</i><i style="--i:7">f</i></span> <span class="w"><i style="--i:8">G</i><i style="--i:9">a</i><i style="--i:10">m</i><i style="--i:11">e</i><i style="--i:12">s</i></span></span>
+            </h1>
             <p class="title-sub">An island of statues, each one a browser game. Walk the paths, read the plaques, and step through.</p>
             <div class="loader" id="loader">
                 <div class="loader-bar"><span id="loader-fill"></span></div>
