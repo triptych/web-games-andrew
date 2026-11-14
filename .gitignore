@@ -22,3 +22,7 @@ garden/dev/node_modules/
 game-*/dev/package
 # Python bytecode from the per-game art/audio pipelines
 __pycache__/
+
+# Pocket Garden (console/) test output and a local link to playwright
+console/dev/shots/
+console/dev/node_modules/
