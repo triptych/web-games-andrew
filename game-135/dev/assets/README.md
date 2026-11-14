@@ -20,6 +20,16 @@ node opt.mjs WORK/raw-veh-dump.glb game-135/assets/models/veh-dump.glb 1024
 |---|---|
 | dump, dozer, digger, roller, crane, wrecker, loader, mixer | townhall, school, cannery, barn, house, shop |
 
+## Wheels that turn (v1.0.1)
+
+A Meshy model is one solid mesh, so its wheels don't turn. They are cut out when the model loads:
+
+1. **Find them once**, offline: `node wheels.mjs game-135/assets/models/veh-dump.glb` (in the scratch folder with gltf-transform and sharp; add `all` for the roller's steel drum, which is not dark). It samples the texture at every vertex, keeps the dark ones (tyres), clusters the ones touching the ground along the model's length, and for each cluster takes the radius whose rim is covered by vertices all the way round. Output: `[{ x, y, r, z0, z1 }]` in the model's units, pasted into `WHEELS` in `js/view/vehicles.js`.
+2. **Cut them out at load** (`splitWheels` in `js/view/models.js`): a triangle whose three corners are all inside a wheel's cylinder moves to a new mesh under a pivot at the wheel's centre. The new meshes share the original vertex buffers and material; only the index lists are new, so it costs almost nothing.
+3. **Turn them**: each pivot's `rotation.z += v · dt / r`.
+
+Check a cut with `dev/gallery.html?only=dump&spin=0.9`: the wheels are turned 50°, so a bad cut shows as a torn mudguard. The crane's fourth "axle" in the first table was an outrigger leg (the detector had rightly refused it: its ring was only 67% covered); don't add wheels by hand without looking.
+
 Notes for the next game:
 - **All eight vehicles came back with the nose along +X** (the reference is a three-quarter view from the front left), and all six buildings with the door on +Z. `dev/gallery.html` shows each on a pad with an arrow; `YAW` and `BYAW` hold the correction.
 - **The crane and the wrecker were asked for without cable, hook or ball**, so those can be built in code and move. The crane's reference still drew a hook; the mesh kept only a stub.

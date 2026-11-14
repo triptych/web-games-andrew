@@ -4,7 +4,7 @@
 **Engine:** three.js r165 for the dungeon, DOM for the town, menus and the battle sprites. Art generated with fal
 (`fal-ai/nano-banana-2`); music, sound effects and every voice generated with ElevenLabs. A Web Audio synth stands in
 for any audio file that fails to load.
-**Status:** v1.1.0
+**Status:** v1.1.1
 
 ---
 
@@ -151,6 +151,9 @@ balance bands. `browsertest.mjs`: desktop with real keys, two touch-only phones 
 - Class changes and a skill-point tree; more guardians past the Echoes.
 
 ## Changelog
+
+### v1.1.1 (2026-11-14)
+- Turning no longer over-turns: a press of ← → (A D, the pad's turn buttons, the d-pad) turns once; holding turns again after 0.42 s, then every 0.3 s. A tap during a turn's animation is kept, so a quick double tap still turns twice.
 
 ### v1.1.0 (2026-11-12)
 - The dungeon's box-built props are now textured Meshy models: chests (a closed one, swapped for an open one full of gold), iron wall sconces, the fountain, the stairs up, the stairs down (a flight sunk into a stone-lined hole in the floor), and the lost delver (was a glow).

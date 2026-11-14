@@ -21,7 +21,17 @@
     <meta name="twitter:description" content="Spin the click wheel through every game in the collection, flip through the cartridges, and press play.">
     <meta name="twitter:image" content="https://triptych.github.io/web-games-andrew/garden/img/og-image.jpg">
 
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='10' y='2' width='44' height='60' rx='10' fill='%239fdcc0'/%3E%3Crect x='16' y='8' width='32' height='24' rx='3' fill='%23161a1c'/%3E%3Ccircle cx='32' cy='46' r='11' fill='%2326292c'/%3E%3Ccircle cx='32' cy='46' r='4' fill='%239fdcc0'/%3E%3C/svg%3E">
+    <!-- installable app: manifest, icons, and ../lib/pwa.js for the service worker
+         (data-install="menu": the console offers Install in its own menus, not the pill) -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Pocket Garden">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <script src="../lib/pwa.js" data-install="menu" defer></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Rubik:wght@500;700;800&family=Silkscreen&display=swap" rel="stylesheet">

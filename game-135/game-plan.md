@@ -2,7 +2,7 @@
 
 **Genre:** cozy construction driving game for children (no fail state)
 **Engine:** three.js r165, sim/view layout. Models by Meshy, pictures by fal, music, effects and voices by ElevenLabs; code-built stand-ins and a Web Audio synth as fallbacks
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -138,10 +138,13 @@ What the bot found:
 ## Open questions / next steps
 
 - A human pass on real hardware: the bot is not a person, SwiftShader is not a GPU, and nobody has listened to the audio or judged the voices' casting by ear.
-- The Meshy models are static: wheels don't turn, the excavator's arm doesn't move (it bobs, with flying dirt).
+- The wheels turn (v1.0.1), but the tracks of the bulldozer, excavator and wrecking crane don't, and the excavator's arm doesn't move (it bobs, with flying dirt).
 - Ideas: a free-build sandbox after the finale, a second town, a co-driver mode where the bot drives and the child only presses the button.
 
 ## Changelog
+
+### v1.0.1 (2026-11-14)
+- Fixed: the wheels did not turn. They are now cut out of each Meshy model as it loads (`splitWheels` in `js/view/models.js`, from the table `WHEELS` in `js/view/vehicles.js`) and turn with the distance driven: 25 wheels on five vehicles, the roller's drum included.
 
 ### v1.0.0 (2026-11-13)
 - First release: eight vehicles, ten jobs of eight kinds of work, the job board and voiced townsfolk, stars and the Golden Hard Hat, 14 Meshy models, fal portraits and title, ElevenLabs music, effects and voices, keyboard, gamepad and touch, saves.

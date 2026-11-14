@@ -1,5 +1,4 @@
 {
-  "id": "./",
   "name": "Hearthbound",
   "short_name": "Hearthbound",
   "description": "A cozy fantasy visual novel built with a hand-crafted vanilla JS engine (no game library) - DOM for the story layer, canvas for battles. Inherit a rundown countryside apothecary and spend a season…",

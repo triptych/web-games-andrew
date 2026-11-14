@@ -1475,7 +1475,7 @@ async function boot() {
                     ui.hint('The hatch has jammed shut today.', 4000);
                 }
             } else if (down && kind === 'hut') {
-                hut ??= new Hut({ renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click() });
+                hut ??= new Hut({ renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click(), titles: games.map((g) => g.title) });
                 setBelow(true, 'hut');
                 const s = hut.spawn;
                 controls.teleport(s.x, s.z, s.yaw);
@@ -1723,8 +1723,8 @@ async function boot() {
         ray.setFromCamera(ndc, camera);
         if (roomKind === 'subway') return subway.pick(ray);
         if (roomKind === 'hut') {
-            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.papersHit, hut.doorMesh, ...(hut.tv?.pickables ?? [])], false)[0];
-            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket', tv: 'tv', papers: 'papers' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
+            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.papersHit, ...hut.handheld.pickables, hut.doorMesh, ...(hut.tv?.pickables ?? [])], false)[0];
+            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket', tv: 'tv', papers: 'papers', console: 'console' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
             const o = ray.ray.origin, d = ray.ray.direction;
             if (d.y >= -1e-4) return null;
             const t = -o.y / d.y;
@@ -1907,6 +1907,12 @@ async function boot() {
             } else if (h?.type === 'ticket') {
                 audio.click();
                 startSubway();
+            } else if (h?.type === 'console') {
+                // the handheld lights up, and a moment later you are holding it (console/)
+                audio.click();
+                hut.handheld.boot();
+                ui.hint('Pocket Garden: powering on…', 2000);
+                setTimeout(() => location.assign('console/'), 350);
             } else if (h?.type === 'pool') {
                 subway.touchPool(h.point);
             } else if (h?.type === 'lift') {
@@ -2356,12 +2362,12 @@ async function boot() {
             // the pointer shows a hand over the sphere and the door
             if (entered && !intro && !trip && mouse && !ui.blocking && !controls.look?.moved) {
                 const h = pickBelow(mouse.x, mouse.y);
-                hut.setHover(h?.type === 'orb', h?.type === 'ticket', h?.type === 'tv', h?.type === 'papers');
-                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket' || h?.type === 'tv' || h?.type === 'papers');
+                hut.setHover(h?.type === 'orb', h?.type === 'ticket', h?.type === 'tv', h?.type === 'papers', h?.type === 'console');
+                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket' || h?.type === 'tv' || h?.type === 'papers' || h?.type === 'console');
             } else hut.setHover(false);
             if (!orbHintShown && entered && !trip && Math.hypot(controls.pos.x - hut.orbPos.x, controls.pos.z - hut.orbPos.z) < 2.2) {
                 orbHintShown = true;
-                ui.hint('A sphere of glass on the desk, with something turning inside it · a train ticket beside it, some old papers · and an old television that picks up the island’s secret places: click it to change the channel', 8000);
+                ui.hint('A sphere of glass on the desk, with something turning inside it · a train ticket beside it, some old papers, a little Pocket Garden handheld · and an old television that picks up the island’s secret places: click it to change the channel', 8000);
             }
         } else if (below && roomKind === 'tower') {
             if (scoping) scopeUpdate(dt, t);

@@ -13,12 +13,16 @@
  * the screen with no sideways scroll, tap a row, long-press to star, swipe
  * back, swipe through cartridges, turn the wheel with a finger and tap the
  * instant it stops. Reduced motion: no boot screen, Shuffle and Play skip
- * their animations. Blocked storage: still boots and stars in memory. Screenshots → console/dev/shots/.
+ * their animations. Blocked storage: still boots and stars in memory.
+ * Installable app (the only run with service workers on): the manifest,
+ * every icon and screenshot at its stated size, the worker's scope, the
+ * files it keeps, starting and browsing with the network off, the Install
+ * App menu item and prompt, Settings' install help, and the shortcuts. Screenshots → console/dev/shots/.
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node console/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8077), PW_CHROMIUM_PATH, ONLY=desktop|calm|phones|storage.
+ * Env: BASE (default http://127.0.0.1:8077), PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -42,12 +46,12 @@ const check = (cond, msg) => {
     console.log('  ok  ' + msg);
 };
 
-async function open(viewport, { touch = false, blockStorage = false, init = null, reducedMotion = 'no-preference' } = {}) {
+async function open(viewport, { touch = false, blockStorage = false, init = null, reducedMotion = 'no-preference', serviceWorkers = 'block' } = {}) {
     // a fresh browser for each scenario: touch-gesture state left over from
     // another context's screenshots can swallow the click of a later tap
     const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
     browsers.push(browser);
-    const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: touch, isMobile: touch, reducedMotion });
+    const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: touch, isMobile: touch, reducedMotion, serviceWorkers });
     await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     // the games themselves are not under test: answer their pages with a stub
     await ctx.route(/\/game-\d+\/index\.html$/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>stub</title><p>game</p>' }));
@@ -552,8 +556,118 @@ async function calm() {
     await ctx.close();
 }
 
+// ------------------------------------------------------------------ installable app
+
+async function pwa() {
+    console.log('\nInstallable app (service worker on)');
+    const { ctx, page } = await open({ width: 1280, height: 800 }, { serviceWorkers: 'allow' });
+    await boot(page);
+
+    // the manifest and everything it points at
+    const href = await page.locator('link[rel="manifest"]').getAttribute('href');
+    const res = await page.request.get(new globalThis.URL(href, URL).href);
+    check(res.ok() && /manifest\+json|json/.test(res.headers()['content-type'] || 'application/manifest+json'), `the page links ${href}`);
+    const m = await res.json();
+    check(m.name === 'Pocket Garden' && m.short_name && m.short_name.length <= 14, `named "${m.name}" ("${m.short_name}" under the icon)`);
+    check(m.display === 'standalone' && m.start_url === './' && m.scope === './' && m.id, 'opens standalone, starting and scoped at console/');
+    const icons = m.icons || [];
+    const has = (size, purpose) => icons.some((i) => i.sizes === size && (i.purpose || 'any').split(' ').includes(purpose));
+    check(has('192x192', 'any') && has('512x512', 'any') && has('192x192', 'maskable') && has('512x512', 'maskable'), 'icons at 192 and 512, plain and maskable');
+    const files = [...icons.map((i) => [i.src, i.sizes]), ...(m.screenshots || []).map((s) => [s.src, s.sizes]), ['icons/apple-touch-icon.png', '180x180']];
+    for (const [src, sizes] of files) {
+        const size = await page.evaluate(
+            (u) =>
+                new Promise((ok) => {
+                    const img = new Image();
+                    img.onload = () => ok(`${img.naturalWidth}x${img.naturalHeight}`);
+                    img.onerror = () => ok('error');
+                    img.src = u;
+                }),
+            new globalThis.URL(src, URL).href,
+        );
+        check(sizes === 'any' ? size !== 'error' : size === sizes, `${src} loads at ${size}`);
+    }
+    check((m.screenshots || []).some((s) => s.form_factor === 'wide') && m.screenshots.some((s) => s.form_factor === 'narrow'), 'wide and narrow screenshots for the install dialog');
+    check((m.shortcuts || []).map((s) => s.url).join() === './#search,./#favorites,./#shuffle', 'home-screen shortcuts: Search, Favorites, Shuffle');
+    check((await page.locator('link[rel="apple-touch-icon"]').count()) === 1 && (await page.locator('meta[name="apple-mobile-web-app-capable"]').count()) === 1, 'iOS Add to Home Screen tags');
+
+    // the service worker, scoped to the console, and the files it keeps
+    const scope = await page.evaluate(async () => (await navigator.serviceWorker.ready).scope);
+    check(scope === URL, `a service worker controls ${scope}`);
+    await page.waitForFunction(() => window.pocketGarden.offlineReady > 0, null, { timeout: 15000 });
+    const kept = await page.evaluate(async () => {
+        const want = ['js/main.js', 'js/views.js', 'css/console.css', '../js/gamedata.js', '../garden/js/genres.js'];
+        const out = [];
+        for (const w of want) out.push(!!(await caches.match(new URL(w, location.href).href)));
+        return out;
+    });
+    check(kept.every(Boolean), `its scripts, styles and the game list are cached (${await page.evaluate(() => window.pocketGarden.offlineReady)} files)`);
+    check(!(await page.locator('[aria-label="Install this game"]').count()), 'no "Install this game" pill over the device');
+    const cdp = await ctx.newCDPSession(page);
+    const { installabilityErrors } = await cdp.send('Page.getInstallabilityErrors');
+    await cdp.detach();
+    check(!installabilityErrors.length, `Chromium finds it installable${installabilityErrors.length ? ': ' + JSON.stringify(installabilityErrors) : ''}`);
+
+    // offline: it still starts
+    const before = errors.length;
+    await ctx.setOffline(true);
+    await page.reload();
+    await page.waitForFunction(() => window.pocketGarden && document.querySelectorAll('.view.is-top .row').length >= 10, null, { timeout: 15000 });
+    check(true, 'with the network off, it still starts and lists the games');
+    await page.keyboard.press('Enter');
+    await settle(page, 500);
+    check((await top(page)).title === 'All Games', 'and browses offline');
+    await ctx.setOffline(false);
+    // offline, box art it has never shown can't load (the game's emoji stands
+    // in); any other failure while offline is still an error
+    const offline = errors.splice(before);
+    const failed = offline.filter((e) => e.startsWith('requestfailed'));
+    const art = failed.filter((e) => /\/garden\/img\/games\/game-\d+\.jpg /.test(e));
+    const other = offline.filter((e) => !(e.startsWith('requestfailed') && art.includes(e)) && !/^console: Failed to load resource: net::ERR_(FAILED|INTERNET_DISCONNECTED)/.test(e));
+    errors.push(...other);
+    check(!other.length, `offline, only box art it hasn't shown yet fails to load (${art.length} pictures, emoji instead)`);
+    await boot(page);
+
+    // the browser offers to install: a menu item appears and prompts
+    await page.evaluate(() => {
+        const e = new Event('beforeinstallprompt', { cancelable: true });
+        e.prompt = () => (window.__prompted = true);
+        e.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
+        dispatchEvent(e);
+    });
+    await settle(page);
+    const labels = await page.locator('.view.is-top .row .r-text').allTextContents();
+    check(labels.includes('Install App'), 'when the browser can install it, Install App joins the main menu');
+    await page.evaluate(() => window.pocketGarden.top.setIndex(window.pocketGarden.top.items.findIndex((i) => i.label === 'Install App')));
+    await page.keyboard.press('Enter');
+    await settle(page);
+    check(await page.evaluate(() => window.__prompted === true), 'selecting it opens the browser install prompt');
+    await page.evaluate(() => dispatchEvent(new Event('appinstalled')));
+    await settle(page);
+    check(!(await page.locator('.view.is-top .row .r-text').allTextContents()).includes('Install App'), 'once installed, the item goes away');
+
+    // without a prompt (Safari, Firefox), Settings explains how
+    await page.evaluate(() => window.pocketGarden.top.setIndex(window.pocketGarden.top.items.findIndex((i) => i.label === 'Settings')));
+    await page.keyboard.press('Enter');
+    await settle(page);
+    await page.evaluate(() => window.pocketGarden.top.setIndex(window.pocketGarden.top.items.findIndex((i) => i.label === 'Install as an app')));
+    check((await page.locator('.view.is-top .row.sel .r-meta').textContent()).includes('How?'), 'Settings has Install as an app');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    check((await top(page)).title === 'Install' && (await page.locator('.view.is-top').textContent()).includes('Add to Home Screen'), 'and, with no prompt to show, explains how per browser');
+
+    // home-screen shortcuts
+    for (const [hash, want] of [['#search', 'search'], ['#favorites', 'Favorites']]) {
+        await boot(page, hash);
+        const t = await top(page);
+        check(t.type === want || t.title === want, `the ${hash} shortcut opens ${want}`);
+    }
+    await ctx.close();
+}
+
 try {
     if (!ONLY || ONLY === 'desktop') await desktop();
+    if (!ONLY || ONLY === 'pwa') await pwa();
     if (!ONLY || ONLY === 'calm') await calm();
     if (!ONLY || ONLY === 'phones') {
         await phone({ width: 390, height: 844 }, 'phone');

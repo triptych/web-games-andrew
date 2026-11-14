@@ -1978,7 +1978,7 @@ const games = [
         description: "A first-person dungeon crawler in the tradition of Wizardry and Etrian Odyssey, with PlayStation 2-era looks: painted walls under torchlight in three.js, fog closing the corridor, and big painted monsters standing in front of you, art generated with fal and music, sound and every voice generated with ElevenLabs. Forty years ago the ground under the mountain town of Brindlemoor split open, and the hole has no bottom anyone has found. Hire up to five delvers at the Adventurers' Guild from six classes (Fighter, Knight, Thief, Mage, Priest, Ranger; 33 skills), three in the front row and two shooting and casting from the back; gear them at Odo's, rest them at Marta's inn (or the stables when you're broke), raise the fallen at the Temple of the Dawn, and take work from the voiced townsfolk and the tavern's bounty board: slay the guardians, find a lost locket or a moonpetal, rescue delvers who then join you. Then walk through Old Ansel's gate one grid square at a time, filling in the automap, opening chests, drinking from fountains and dodging the Lantern Reaper that hunts you on deeper floors. Battles are turn-based Wizardry rounds against 48 monsters across eight strata (catacombs, a glowing grotto, drowned halls, a dwarven foundry, a frozen ossuary, a thornwood, a clockwork vault, a starsunk sanctum), with rows, weaknesses, statuses and spells. Every fifth floor a guardian stands in the only way down; beat it and the warp stones send you straight past it next time. Past floor 40 the strata return as Echoes, stronger and stranger: the dungeon never ends. Narrated, voiced heroes, nine music tracks; keyboard, gamepad or touch.",
         icon: '🏰',
         folder: 'game-129',
-        version: '1.1.0',
+        version: '1.1.1',
         cssClass: 'hollowdeep',
         genre: 'dungeon',
         tags: [
@@ -2081,7 +2081,7 @@ const games = [
         description: "A cozy construction game in three.js, made in the spirit of the toy-truck CD-ROM games of the 1990s. You have a toy box of eight vehicles (a dump truck, a bulldozer, an excavator, a road roller, a crane truck, a wrecking crane, a loader tractor and a cement mixer) and a small seaside town that needs fixing. Mayor Maple and five townsfolk hand out ten jobs from a job board, each explained out loud: patch the potholes on Main Street, bulldoze a rockslide into the quarry crusher, crane a new roof onto the school, dig footings, pour concrete and lift the spans of a bridge across the river, lay a farm lane and scoop the rocks out of Farmer Gus's field, swing the wrecking ball at the old cannery and clear the rubble, turn the lot into a park with a duck pond, build three houses on the east bank, a playground, and at last a statue in the town square. Swap vehicle on the spot with a puff, follow the yellow arrow, hold the button to dig and pour, time the crane's swinging hook, and honk the horn whenever you like. Every job changes the town for good, nothing can go wrong, and quick work earns three stars and, in the end, the Golden Hard Hat. Vehicles and buildings are Meshy models; the townsfolk and title are painted with fal; music, effects and every voice are by ElevenLabs. Keyboard, gamepad or touch.",
         icon: '🚜',
         folder: 'game-135',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'hard-hat-harbor',
         genre: 'cozy',
         tags: [
