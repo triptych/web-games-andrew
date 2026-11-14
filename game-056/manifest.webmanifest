@@ -1,5 +1,4 @@
 {
-  "id": "./",
   "name": "Keepfire",
   "short_name": "Keepfire",
   "description": "A lane-based castle defence with an incremental heart, in three.js. Emberhold is the last keep in Aldmere and starts as one squat tower with a single archer on it; waves of procedurally generated…",

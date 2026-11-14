@@ -14,11 +14,13 @@ import { ListView, DetailView, CoverFlowView, SearchView, TextView, gameArt } fr
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.0.0';
+export const CONSOLE_VERSION = '1.1.0';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const wide = matchMedia('(min-width: 760px) and (min-height: 560px)');
+/** Running as an installed app rather than in a browser tab. */
+const standalone = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
 
 const ALL = games.filter((g) => g && g.id && g.folder);
 const NEWEST = [...ALL].sort((a, b) => gameNo(b) - gameNo(a));
@@ -66,18 +68,24 @@ class App {
         const deep = decodeURIComponent(location.hash.slice(1));
         history.replaceState({ d: 1 }, '', this.base);
         this.push(this.homeView(), { animate: false });
-        const g = byId.get(deep);
-        if (g) this.openGame(NEWEST, NEWEST.indexOf(g), { animate: false });
-        this.boot(!g);
+        this.boot(!this.route(deep, { animate: false }));
 
         addEventListener('popstate', (e) => this.onPop(e));
-        // a #game-NNN link followed while the console is already open
+        // a #game-NNN (or #search…) link followed while the console is already open
         addEventListener('hashchange', () => {
-            const g = byId.get(decodeURIComponent(location.hash.slice(1)));
-            if (!g || this.launching || this.top.currentGame?.() === g) return;
+            const hash = decodeURIComponent(location.hash.slice(1));
+            if (!hash || this.launching || this.top.currentGame?.()?.id === hash) return;
             history.replaceState({ d: this.stack.length }, '', this.base);
-            this.openGame(NEWEST, NEWEST.indexOf(g));
+            this.route(hash);
         });
+
+        // installing it as an app (../lib/pwa.js registers the service worker)
+        addEventListener('pwa-installable', () => this.installChanged(true));
+        addEventListener('pwa-installed', () => {
+            this.installChanged(false);
+            this.toast('📲 Pocket Garden is installed');
+        });
+        this.precache();
         addEventListener('storage', (e) => {
             if (e.key === FAV_KEY || e.key === null) {
                 this.store.reload();
@@ -94,6 +102,88 @@ class App {
         });
         wide.addEventListener?.('change', () => this.focused && this.paintFocus(this.focused));
         document.documentElement.classList.add('ready');
+    }
+
+    /**
+     * Open what a link asks for: a game's cartridge (#game-135), or one of
+     * the app's home-screen shortcuts (#search, #favorites, #shuffle, #new,
+     * #genres, #cover). Returns whether it opened anything.
+     */
+    route(hash, { animate = true } = {}) {
+        const g = byId.get(hash);
+        if (g) {
+            this.openGame(NEWEST, NEWEST.indexOf(g), { animate });
+            return true;
+        }
+        const go = {
+            search: () => this.openSearch(''),
+            favorites: () => this.push(this.favoritesView(), { animate }),
+            recent: () => this.push(this.recentView(), { animate }),
+            new: () => this.push(this.gamesList('New Arrivals', NEWEST), { animate }),
+            genres: () => this.push(this.genresView(), { animate }),
+            cover: () => this.push(new CoverFlowView(this, { list: ALPHA, index: 0 }), { animate }),
+            shuffle: () => this.shuffle(),
+        }[hash];
+        if (!go) return false;
+        go();
+        return true;
+    }
+
+    // ------------------------------------------------------------ installing
+
+    canInstall() {
+        return !standalone() && !!window.pwaCanInstall?.();
+    }
+
+    /** The browser said it can (or can no longer) install: show or hide the menu item. */
+    installChanged(available) {
+        const home = this.stack[0];
+        home?.refresh();
+        if (available && !this.installOffered && !standalone()) {
+            this.installOffered = true;
+            setTimeout(() => this.toast('📲 Pocket Garden can be installed as an app'), 2400);
+        }
+    }
+
+    async install() {
+        if (standalone()) return this.toast('Already running as an app');
+        if (window.pwaCanInstall?.()) {
+            const outcome = await window.installGame();
+            if (outcome === 'accepted') this.say('Installing Pocket Garden');
+            this.stack[0]?.refresh();
+            return;
+        }
+        this.push(this.installHelpView());
+    }
+
+    /** Ask the service worker to keep the console's own files, so it opens offline. */
+    precache() {
+        if (!('serviceWorker' in navigator)) return;
+        const files = [
+            './',
+            'css/console.css',
+            'js/main.js',
+            'js/views.js',
+            'js/wheel.js',
+            'js/sound.js',
+            'js/store.js',
+            'js/util.js',
+            'js/icons.js',
+            'manifest.webmanifest',
+            'icons/icon.svg',
+            'icons/icon-192.png',
+            'icons/apple-touch-icon.png',
+            '../js/gamedata.js',
+            '../garden/js/genres.js',
+            '../lib/pwa.js',
+            document.querySelector('link[href*="fonts.googleapis"]')?.href,
+        ].filter(Boolean);
+        navigator.serviceWorker.addEventListener('message', (e) => {
+            if (e.data?.type === 'precached') this.offlineReady = e.data.count;
+        });
+        navigator.serviceWorker.ready
+            .then((reg) => reg.active?.postMessage({ type: 'precache', urls: files.map((f) => new URL(f, location.href).href) }))
+            .catch(() => {});
     }
 
     // ------------------------------------------------------------ screen stack
@@ -704,9 +794,12 @@ class App {
                     },
                     { label: 'Search', icon: ICONS.search, hero: { glyph: ICONS.search, caption: 'By title or description' }, action: () => this.openSearch('') },
                     { label: 'Shuffle', icon: ICONS.shuffle, chev: false, hero: { glyph: ICONS.shuffle, caption: 'Let the console pick' }, action: () => this.shuffle() },
+                    this.canInstall()
+                        ? { label: 'Install App', icon: ICONS.install, chev: false, hero: { glyph: ICONS.install, caption: 'Keep it on your home screen' }, action: () => this.install() }
+                        : null,
                     { label: 'Settings', icon: ICONS.settings, hero: { glyph: ICONS.settings, caption: 'Shell, screen and sound' }, action: () => this.push(this.settingsView()) },
                     { label: 'About', icon: ICONS.about, hero: { glyph: ICONS.about, caption: `Firmware ${CONSOLE_VERSION}` }, action: () => this.push(this.aboutView()) },
-                ];
+                ].filter(Boolean);
             },
         });
     }
@@ -778,6 +871,13 @@ class App {
                     { label: 'Screen', icon: ICONS.screen, meta: GLOWS.find((x) => x[0] === s.glow)?.[1] ?? 'Mint glow', cycle: cycle('glow', GLOWS) },
                     { label: 'Open games', icon: ICONS.tab, meta: s.newTab ? 'New tab' : 'This tab', cycle: flip('newTab', 'Open games in a new tab') },
                     {
+                        label: 'Install as an app',
+                        icon: ICONS.install,
+                        meta: standalone() ? 'Installed' : this.canInstall() ? 'Ready' : 'How?',
+                        chev: false,
+                        action: () => this.install(),
+                    },
+                    {
                         label: 'Clear play history',
                         icon: ICONS.trash,
                         meta: `${this.store.recent.length}`,
@@ -806,6 +906,33 @@ class App {
                 { label: 'Classic list', icon: ICONS.list, href: '../classic.html' },
                 { label: 'About Andrew', icon: ICONS.person, href: 'https://linktr.ee/triptych', ext: true },
             ],
+        });
+    }
+
+    installHelpView() {
+        const ua = navigator.userAgent;
+        const ios = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        const android = /Android/.test(ua);
+        const here = ios
+            ? 'Tap the <b>Share</b> button, then <b>Add to Home Screen</b>.'
+            : android
+              ? 'Open the browser menu (<b>⋮</b>) and choose <b>Install app</b> or <b>Add to Home screen</b>.'
+              : 'Look for the <b>install</b> icon at the right end of the address bar, or open the browser menu and choose <b>Install</b>.';
+        return new TextView(this, {
+            title: 'Install',
+            html: `
+                <h3>Pocket Garden as an app</h3>
+                <p>Installed, it opens in its own window from your home screen, dock or start menu, with no address bar, and it starts even when you are offline.</p>
+                <h3>On this device</h3>
+                <p>${here}</p>
+                <h3>Elsewhere</h3>
+                <ul>
+                    <li><b>iPhone and iPad</b> (Safari): Share, then Add to Home Screen.</li>
+                    <li><b>Android</b> (Chrome, Edge, Samsung Internet, Firefox): browser menu, then Install app.</li>
+                    <li><b>Chrome and Edge</b> on a computer: the install icon in the address bar, or the menu.</li>
+                    <li><b>Safari</b> on a Mac: File, then Add to Dock.</li>
+                    <li>Firefox on a computer can't install sites; it works as a page there.</li>
+                </ul>`,
         });
     }
 

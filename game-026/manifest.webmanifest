@@ -1,5 +1,4 @@
 {
-  "id": "./",
   "name": "Crypt of the Forgotten",
   "short_name": "Crypt of the…",
   "description": "A first-person grid-based dungeon crawler (blobber) with turn-based combat, built in Three.js. Step tile by tile and turn in 90° increments through a fog-shrouded crypt lit by a flickering lantern.…",

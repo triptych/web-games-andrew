@@ -27,5 +27,6 @@ export const ICONS = {
     person: svg('<circle cx="8" cy="5.5" r="3"/><path d="M2.5 14.5c.5-3 2.6-4.5 5.5-4.5s5 1.5 5.5 4.5"/>'),
     keys: svg('<rect x="1.5" y="4" width="13" height="8" rx="1"/><path d="M4 7h.5M7 7h.5M10 7h.5M5 9.5h6"/>'),
     play: svg('<path d="M4.5 2.5v11l9-5.5z" fill="currentColor"/>'),
+    install: svg('<path d="M8 1.5v8.5M4.5 6.5L8 10l3.5-3.5"/><path d="M2 10.5v3.5h12v-3.5"/>'),
     chip: svg('<rect x="4" y="4" width="8" height="8"/><path d="M6 1.5v2.5M10 1.5v2.5M6 12v2.5M10 12v2.5M1.5 6H4M1.5 10H4M12 6h2.5M12 10h2.5"/>'),
 };
