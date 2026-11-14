@@ -1,0 +1,29 @@
+{
+  "id": "./",
+  "name": "Pocket Garden",
+  "short_name": "Pocket Garden",
+  "description": "Andrew Wooldridge's browser games on a retro handheld: spin the click wheel, flip through the cartridges, star your favorites and press play.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#141719",
+  "theme_color": "#141719",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "icons/screenshot-wide.jpg", "sizes": "1280x800", "type": "image/jpeg", "form_factor": "wide", "label": "Pocket Garden with a game's cartridge on screen and its box art beside it" },
+    { "src": "icons/screenshot-narrow.jpg", "sizes": "390x844", "type": "image/jpeg", "form_factor": "narrow", "label": "Pocket Garden on a phone: a cartridge on the screen above the click wheel" }
+  ],
+  "shortcuts": [
+    { "name": "Search", "short_name": "Search", "description": "Search games by title or description", "url": "./#search", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Favorites", "short_name": "Favorites", "description": "Your starred games, shared with the Garden", "url": "./#favorites", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Shuffle", "short_name": "Shuffle", "description": "Let the console pick a game", "url": "./#shuffle", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}
