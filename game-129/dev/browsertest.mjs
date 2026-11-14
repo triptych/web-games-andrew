@@ -150,6 +150,19 @@ async function desktop() {
     await until(page, (d) => __hd.G.pos.d === (d + 1) % 4, 'D turns right', 10000, p0.d);
     await page.keyboard.press('KeyA');
     await until(page, (d) => __hd.G.pos.d === d && !__hd.view.busy, 'A turns back', 10000, p0.d);
+    // turning is held back: an ordinary press (held ~a quarter second) turns once, a long hold keeps turning
+    await Q(page, () => { const w = { d: __hd.G.pos.d, n: 0 }; window.__turns = w; const tick = () => { if (__hd.G.pos.d !== w.d) { w.n++; w.d = __hd.G.pos.d; } if (window.__turns === w) requestAnimationFrame(tick); }; tick(); });
+    await page.keyboard.down('ArrowRight'); await page.waitForTimeout(280); await page.keyboard.up('ArrowRight');
+    await page.waitForTimeout(700);
+    const shortTurns = await Q(page, () => window.__turns.n);
+    check(shortTurns === 1, `a quarter-second press of → turns once (${shortTurns})`);
+    await Q(page, () => { window.__turns.n = 0; });
+    await page.keyboard.down('ArrowLeft'); await page.waitForTimeout(1300); await page.keyboard.up('ArrowLeft');
+    await page.waitForTimeout(500);
+    const longTurns = await Q(page, () => { const n = window.__turns.n; window.__turns = null; return n; });
+    check(longTurns >= 2 && longTurns <= 5, `holding ← keeps turning, slowly (${longTurns} turns in 1.3 s)`);
+    await until(page, () => !__hd.view.busy, 'the view settles', 10000);
+    await Q(page, () => { __hd.faceOpen(); });
     await page.keyboard.press('KeyW');
     await until(page, (p) => __hd.G.pos.x !== p.x || __hd.G.pos.y !== p.y || __hd.G.mode === 'battle', 'W steps forward', 10000, p0);
     await until(page, () => { const c = __hd.view.camera.position; const g = __hd.G.pos; return Math.abs(c.x - g.x * 2) < 0.2 && Math.abs(c.z - g.y * 2) < 0.2; }, 'the camera follows the party', 10000);
