@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Garden of Games** v1.20.1: the old computer in the Hut's loft showed the island from underneath (reported by the owner). The survey's pitch was rotated the wrong way, so far ground sank down the screen and hills leaned away; it now looks down from above, with near ground at the foot of the screen and hills rising toward you, on the full-screen survey and the little screen on the desk alike ([hut-computer.js](garden/js/hut-computer.js)).
+
 ### Added
 - **Garden of Games** v1.20.0: a loft in the Hut ([hut-loft.js](garden/js/hut-loft.js)). A stair of fourteen steps with a banister (and a little cupboard under it) climbs the right-hand wall through the ceiling into a cozy room under the rafters. The ground floor's right-hand window moved to the front wall beside the door to make room.
   - **The stained-glass window** ([stained-glass.js](garden/js/stained-glass.js)): a round rose window in the back gable, drawn on a canvas from a seed, with a new design every time you come up: a palette (Ember, Tide, Meadow, Dusk, Aurora, Harvest, Orchard, Twilight, Lantern), a symmetry, rings of petals, lancets, roundels, wedges, diamonds, scallops or rays, and a picture in the middle (a sun, moon, star, blossom, tree, fish, hearth, compass, fern, swallow, whirl or mountain), every pane mottled like old glass and leaded. Its name is announced as you arrive; the count is kept, so the next visit is new too. By day it throws a tinted shaft of light with dust in it and lays its colours on the floor; at night it glows faintly. The same glass is in a new dormer on the front of the hut's roof, lit from within after dark.

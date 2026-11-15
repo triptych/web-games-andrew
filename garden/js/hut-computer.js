@@ -116,7 +116,8 @@ export class IslandSurvey {
         const P = (x, y, z) => {
             const dx = x - view.tx, dz = z - view.tz;
             const rx = dx * cy - dz * sy, rz = dx * sy + dz * cy;
-            const ry = y * cp - rz * sp, rz2 = y * sp + rz * cp;
+            // looking down from above at `pitch`: farther ground rises up the screen, higher ground comes nearer
+            const ry = y * cp + rz * sp, rz2 = rz * cp - y * sp;
             const d = dist + rz2;
             if (d < 1) return null;
             return [ox + (f * rx) / d, oy - ((f * ry) / d) * ay, d];
