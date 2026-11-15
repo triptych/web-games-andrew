@@ -370,7 +370,7 @@ export class View {
         if (key !== this.mechKey) {
             if (this.mech) this.scene.remove(this.mech);
             this.mech = buildMech(G.hangar.loadout);
-            this.mech.scale.setScalar(1.05);
+            this.mech.scale.setScalar(1.3);
             this.scene.add(this.mech);
             this.mechKey = key;
         }

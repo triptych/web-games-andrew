@@ -28,7 +28,7 @@ export const XP = { first: 10, grow: 7 };        // red voxels for level n: firs
 export const OVERDRIVE = { perKill: 0.018, perHive: 0.2, time: 5, fire: 2, dmg: 1.5 };
 
 export const VOXEL = {
-    size: 0.38,             // a voxel is this big; settled ones stack this high
+    size: 0.3,              // a voxel is this big; settled ones stack this high
     gravity: 26,
     bounce: 0.32,
     friction: 0.55,

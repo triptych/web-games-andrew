@@ -103,7 +103,7 @@ body.in-hangar { background: #1a1030 url('art/hangar.webp') center / cover no-re
 #btn-mag { right: calc(22px + var(--safe-r)); bottom: calc(64px + var(--safe-b)); width: 84px; height: 84px; font-size: 26px; }
 #btn-mag.held { background: #fff; }
 #btn-od { right: calc(118px + var(--safe-r)); bottom: calc(118px + var(--safe-b)); width: 64px; height: 64px; font-family: var(--head); font-size: 22px; background: rgba(255, 60, 96, 0.8); color: #fff; }
-#touch:not([hidden]) ~ #hud .od, body.touch .od { right: calc(10px + var(--safe-r)); bottom: auto; top: calc(96px + var(--safe-t)); width: 120px; }
+body.touch #hud-od { right: calc(10px + var(--safe-r)); bottom: auto; top: calc(96px + var(--safe-t)); width: 120px; }
 
 /* ---------------------------------------------------------------- comms, cut-ins, banners */
 #comm { position: fixed; z-index: 30; left: 50%; transform: translateX(-50%); bottom: calc(14px + var(--safe-b)); width: min(520px, 92vw); display: flex; gap: 10px; align-items: center; background: var(--panel); color: var(--text); border: 3px solid var(--ink); border-radius: 12px; box-shadow: 4px 4px 0 var(--ink); padding: 8px; animation: commin 0.25s ease-out; pointer-events: none; }

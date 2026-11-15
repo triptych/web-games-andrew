@@ -109,7 +109,8 @@ export function buildMech(loadout) {
         const sh = new THREE.Group(); sh.position.set(0.72 * s, 0.62, 0); torso.add(sh);
         sh.add(inked(boxModel([[0.05 * s, 0.05, 0, 0.36, 0.36, 0.42, K], [0.06 * s, -0.3, 0.05, 0.26, 0.5, 0.3, O]])));
         const w = weaponModel(loadout[slot]);
-        if (w) { w.position.set(0.06 * s, -0.55, 0.25); sh.add(w); }
+        // the gun's barrel runs along its +z; the arm hangs along -y and swings forward, so lay the gun along -y
+        if (w) { w.rotation.x = Math.PI / 2; w.position.set(0.06 * s, -0.5, 0.08); sh.add(w); }
         arms[slot] = sh;
     }
     // shoulder pod on the right
