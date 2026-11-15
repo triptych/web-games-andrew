@@ -44,7 +44,8 @@ export const VOXEL = {
 export const COLORS = ['red', 'blue', 'green', 'gold', 'stone', 'crystal', 'rust', 'neon', 'hive'];
 export const COLLECTIBLE = { red: true, blue: true, green: true, gold: true };
 
-export const RESCUE = { radius: 2.2, time: 1.6 };
+export const RESCUE = { radius: 2.2, time: 2.5, guards: 4 };
+export const EVAC = 20;                   // seconds to hold out after the objectives, until the lift arrives (not after a boss)
 export const ENEMY_CAP = 170;
 export const FLOW_EVERY = 0.25;           // seconds between flow-field rebuilds
 export const CHEW = 0.45;                 // an enemy pushing into debris eats one voxel this often
