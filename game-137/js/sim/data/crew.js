@@ -60,7 +60,7 @@ export const crewById = (id) => CREW.find((c) => c.id === id);
 /** The two voices of the story, painted by fal too. */
 export const CAST = {
     kai: { name: 'Kai Arashi', role: 'Pilot, Shardframe Unit-07',
-        art: 'a determined seventeen year old mech pilot with spiky dark blue hair, a red and white plugsuit-style flight suit with a high collar, a headset, fists clenched, intense eyes' },
+        art: 'a determined seventeen year old mech pilot with spiky dark blue hair, a sleek orange and charcoal-grey pilot suit with teal piping and a high collar, a headset, fists clenched, intense eyes' },
     mirei: { name: 'Captain Mirei Tachibana', role: 'Commander, carrier Skylark',
         art: 'a composed woman commander in her thirties with long dark purple hair, a white naval officer coat with gold epaulettes over her shoulders, arms folded, a sharp confident smile' },
 };

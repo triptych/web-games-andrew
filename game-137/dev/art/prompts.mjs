@@ -18,12 +18,13 @@ const STYLE = 'Early-1990s Japanese TV anime cel animation style: hand-painted a
     + 'Original characters and machines that do not resemble any existing anime or game franchise. '
     + 'No text, letters, numbers, logos, signatures, watermarks, frames, borders, speech bubbles or UI anywhere in the image.';
 // The hero mech, described the same way everywhere it appears.
-const MECH = 'Shardframe Unit-07, an original lean bipedal walking mech about eight metres tall, '
-    + 'white armour with red chest and blue shoulder panels, a single glowing green visor eye in an angular head, '
-    + 'a rotary gun on its left arm and a boxy rocket pod on its right shoulder';
+// (The pilot's first title came back white, red and blue with a V-fin, too close to a famous franchise: hence the odd details.)
+const MECH = 'Shardframe Unit-07, an original stocky walking mech about eight metres tall with sunset-orange and charcoal-grey armour, '
+    + 'glowing teal joints, a rounded dome head with a single horizontal teal visor slit (no antenna, no fins, no horns, no face), '
+    + 'backward-bending bird-like digitigrade legs, a rotary gun on its left arm and a chunky boxy rocket pod on its right shoulder';
 const KAIJU = 'giant monsters built entirely out of glowing magenta, violet and cyan cubes, like living voxel sculptures, with no faces';
 const PORTRAIT_BG = 'Head-and-shoulders anime character portrait, facing three-quarters toward the viewer, centred, filling most of the square. '
-    + 'Simple background: a soft two-colour gradient with faint radiating speed lines, like a 1990s anime eyecatch card.';
+    + 'Simple background: a soft two-colour gradient with faint radiating speed lines, as in a 1990s anime eyecatch. The art fills the square to the edges, with no border, frame or paper margin.';
 
 const jobs = [];
 jobs.push({
@@ -59,5 +60,7 @@ jobs.push({
 
 const which = process.argv[2];
 const PILOT = ['title', 'cast-kai', 'crew-hana', 'sector-prairie'];
-const out = !which ? jobs : which === 'pilot' ? jobs.filter((j) => PILOT.includes(j.name)) : jobs.filter((j) => j.group === which);
+// Kept from the pilot: crew-hana and sector-prairie. `node prompts.mjs rest` prints the others.
+const KEPT = ['crew-hana', 'sector-prairie'];
+const out = !which ? jobs : which === 'rest' ? jobs.filter((j) => !KEPT.includes(j.name)) : which === 'pilot' ? jobs.filter((j) => PILOT.includes(j.name)) : jobs.filter((j) => j.group === which);
 console.log(JSON.stringify(out.map(({ group, ...j }) => ({ ...j, system_prompt: STYLE })), null, 1));
