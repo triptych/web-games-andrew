@@ -37,16 +37,16 @@ export const VOXEL = {
     cap: 900,               // voxels alive at once; the oldest settled ones go first
     // what each colour gives
     red: 1,                 // xp
-    blue: 6,                // shield
-    green: 5,               // hp
+    blue: 5,                // shield
+    green: 4,               // hp
     gold: 1,                // credits (scaled by mission tier)
 };
 export const COLORS = ['red', 'blue', 'green', 'gold', 'stone', 'crystal', 'rust', 'neon', 'hive'];
 export const COLLECTIBLE = { red: true, blue: true, green: true, gold: true };
 
-export const RESCUE = { radius: 2.2, time: 2.5, guards: 4 };
-export const EVAC = 20;                   // seconds to hold out after the objectives, until the lift arrives (not after a boss)
-export const ENEMY_CAP = 170;
+export const RESCUE = { radius: 2.2, time: 3.5, guards: 5 };
+export const EVAC = 30;                   // seconds to hold out after the objectives, until the lift arrives (not after a boss)
+export const ENEMY_CAP = 220;
 export const FLOW_EVERY = 0.25;           // seconds between flow-field rebuilds
 export const CHEW = 0.45;                 // an enemy pushing into debris eats one voxel this often
 export const FINISH_DELAY = 2.6;          // seconds of "MISSION COMPLETE" before the debrief

@@ -54,7 +54,7 @@ export const PARTS = {
     barrier: {
         kind: 'core', name: 'Barrier Core', icon: '🔷', cost: [200, 200, 380],
         desc: 'A shield that soaks hits and recharges when you stop getting hit. Blue voxels top it up.',
-        stats: { shield: 45, regen: 9 }, up: 'shield',
+        stats: { shield: 45, regen: 7 }, up: 'shield',
     },
     reactor: {
         kind: 'core', name: 'Overclock Reactor', icon: '🔥', cost: [220, 220, 400],

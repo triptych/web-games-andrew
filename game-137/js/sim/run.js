@@ -4,6 +4,7 @@
 import { MECH, RESCUE, EVAC, FLOW_EVERY, FINISH_DELAY, LOSS_KEEP, OVERDRIVE, COLORS, VOXEL } from '../config.js';
 import { missionById, LAST_MISSION } from './data/missions.js';
 import { UPGRADES } from './data/upgrades.js';
+import { HIVE } from './data/enemies.js';
 import { BOOSTS } from './data/crew.js';
 import { generate, buildFlow, collide, solid, idx, cellOf, inMap } from './world.js';
 import { stepVoxels } from './voxels.js';
@@ -31,14 +32,14 @@ export function startRun(G, id) {
     const mods = boosts.luck ? { luck: 1 } : {};
     const R = {
         mission: id, d: m.d, t: 0, W: L.W,
-        hpScale: 0.7 + 0.3 * m.d, dmgScale: 0.8 + 0.2 * m.d,
+        hpScale: 0.6 + 0.4 * m.d ** 1.3, dmgScale: 0.9 + 0.35 * m.d,
         spawnMul: m.boss ? 0.55 : m.objectives.some((o) => o.kind === 'survive') ? 1.1 : 1,
-        goldValue: Math.round(2 + id * 0.4),
+        goldValue: 1,
         enemies: [], shots: [], voxels: [], nextId: 1, spawnCd: 2.5,
         hives: L.hives.map((h, k) => {
             const cells = [];
             for (let y = -1; y <= 1; y++) for (let x = -1; x <= 1; x++) cells.push(idx(cellOf(h.x) + x, cellOf(h.y) + y));
-            const hp = 520 * (0.7 + 0.3 * m.d);
+            const hp = HIVE.hp * (0.6 + 0.4 * m.d ** 1.3);
             return { id: 'h' + k, x: h.x, y: h.y, hp, max: hp, cells, cd: 2 + k, flash: 0, dead: false };
         }),
         cages: L.cages.map((c, k) => ({ crew: known.has(crew[k]) ? 'civ' : crew[k], x: c.x, y: c.y, prog: 0, freed: false })),

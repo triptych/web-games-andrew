@@ -10,7 +10,7 @@ import { near } from './combat.js';
 
 export function spawnEnemy(R, kind, x, y) {
     const def = ENEMIES[kind];
-    const hpMul = R.hpScale * (1 + R.t / 240);
+    const hpMul = R.hpScale * (1 + R.t / 150);
     const e = {
         id: R.nextId++, kind, x, y, vx: 0, vy: 0, kx: 0, ky: 0, r: def.r,
         hp: def.hp * hpMul, max: def.hp * hpMul, speed: def.speed * R.rng.range(0.9, 1.1),
@@ -25,7 +25,7 @@ export function spawnBoss(R, kind) {
     const M = R.mech;
     // the far side of the map from the mech
     const x = M.x < MAP.w / 2 ? MAP.w - 6 : 6, y = M.y < MAP.h / 2 ? MAP.h - 6 : 6;
-    const hp = def.hp * (0.8 + 0.2 * R.d);
+    const hp = def.hp * R.hpScale;
     const e = {
         id: R.nextId++, kind, boss: true, x, y, vx: 0, vy: 0, kx: 0, ky: 0, r: def.r,
         hp, max: hp, speed: def.speed, cd: 0, atk: 0, fuse: 0, chewT: 0, flash: 0,
@@ -72,7 +72,7 @@ export function spawning(R, dt) {
     // ambient swarm
     R.spawnCd -= dt;
     if (R.spawnCd <= 0) {
-        const rate = (0.7 + 0.45 * R.d) * (1 + R.t / 75) * R.spawnMul;
+        const rate = (2.2 + 1.1 * R.d) * (1 + R.t / 50) * R.spawnMul;
         R.spawnCd += 1 / rate;
         if (alive < ENEMY_CAP) {
             const p = spawnSpot(R, 12, 19);
