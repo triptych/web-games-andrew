@@ -1603,3 +1603,237 @@ body:has(#helm-hud:not([hidden])) .hint { bottom: auto; top: calc(64px + var(--s
     .rk-bar i { transition: none; }
     .rk-critical .rk-air strong, .rk-signal.rk-ping .rk-sig { animation: none; }
 }
+
+/* ------------------------------------------------------------------ the Hut's loft */
+
+/* the wooden flute: a songbook panel at the foot of the screen, the loft still showing above */
+.flute-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 12px max(12px, var(--safe-l)) calc(12px + var(--safe-b));
+    background: linear-gradient(to top, rgba(10, 6, 2, 0.55), rgba(10, 6, 2, 0) 60%);
+    touch-action: none;
+}
+.fl-panel {
+    position: relative;
+    width: min(880px, 100%);
+    padding: 12px 16px 14px;
+    border-radius: 18px;
+    background: linear-gradient(170deg, rgba(74, 46, 26, 0.94), rgba(40, 24, 14, 0.95));
+    border: 2px solid #8a6038;
+    box-shadow: inset 0 0 0 3px rgba(255, 220, 160, 0.08), 0 20px 60px rgba(0, 0, 0, 0.55);
+    color: #f6e7c8;
+    font-family: var(--sans);
+}
+.flute-overlay.fl-glow .fl-panel { animation: fl-glow 1.6s ease-out; }
+@keyframes fl-glow {
+    0% { box-shadow: inset 0 0 0 3px rgba(255, 220, 160, 0.08), 0 0 0 0 rgba(255, 220, 140, 0.9), 0 20px 60px rgba(0, 0, 0, 0.55); }
+    100% { box-shadow: inset 0 0 0 3px rgba(255, 220, 160, 0.08), 0 0 0 40px rgba(255, 220, 140, 0), 0 20px 60px rgba(0, 0, 0, 0.55); }
+}
+.flute-overlay.recording .fl-panel { border-color: #c0403a; }
+.fl-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.fl-head h2 { margin: 0; font: 600 1.15rem var(--display); letter-spacing: 0.04em; color: #ffd99a; white-space: nowrap; }
+.fl-tools { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.fl-btn {
+    appearance: none;
+    border: 1px solid rgba(255, 220, 160, 0.4);
+    background: rgba(255, 230, 190, 0.1);
+    color: #f6e7c8;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font: 600 0.85rem var(--sans);
+    cursor: pointer;
+}
+.fl-btn:hover, .fl-btn:focus-visible { background: rgba(255, 230, 190, 0.22); outline: none; }
+.fl-btn.sm { padding: 4px 9px; font-size: 0.78rem; }
+.fl-rec[aria-pressed="true"] { background: #a8302a; border-color: #ff8a80; }
+.fl-x { width: 34px; padding: 6px 0; }
+.fl-book {
+    margin: 10px 0 4px;
+    max-height: min(38vh, 300px);
+    overflow: auto;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: #f1e2c2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect width='8' height='8' fill='%23f1e2c2'/%3E%3Ccircle cx='2' cy='3' r='.5' fill='%23e2cfa6'/%3E%3C/svg%3E");
+    color: #3a2614;
+}
+.fl-book h3 { margin: 6px 0 4px; font: 600 0.95rem var(--display); color: #6a3a1a; }
+.fl-book ul { list-style: none; margin: 0; padding: 0; }
+.fl-book li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px dashed rgba(106, 58, 26, 0.3); }
+.fl-book li div { display: grid; min-width: 0; }
+.fl-book li b { font: 600 1rem var(--serif); }
+.fl-book li small { color: #6a5038; font-size: 0.78rem; }
+.fl-book li span { display: flex; gap: 4px; flex-shrink: 0; }
+.fl-book .fl-btn { color: #3a2614; border-color: rgba(106, 58, 26, 0.4); background: rgba(255, 255, 255, 0.5); }
+.fl-book .fl-btn:hover { background: #fff; }
+.fl-name { font: 600 1rem var(--serif); color: #3a2614; background: transparent; border: none; border-bottom: 1px dotted rgba(106, 58, 26, 0.5); padding: 0; width: 100%; }
+.fl-name:focus { outline: none; border-bottom-color: #6a3a1a; background: rgba(255, 255, 255, 0.4); }
+.fl-empty { margin: 4px 0; font-size: 0.82rem; color: #6a5038; }
+.fl-staff-wrap { margin-top: 8px; border-radius: 10px; background: rgba(0, 0, 0, 0.28); }
+.fl-staff { display: block; width: 100%; height: auto; aspect-ratio: 960 / 150; }
+.fl-msg { min-height: 1.4em; margin: 6px 2px 8px; font-size: 0.9rem; color: #f0d9b0; text-align: center; }
+.fl-msg kbd, .fl-hole kbd { font: 600 0.75em ui-monospace, monospace; padding: 1px 5px; border-radius: 4px; background: rgba(255, 240, 210, 0.15); border: 1px solid rgba(255, 240, 210, 0.3); }
+.fl-red { color: #ff8a80; }
+/* the flute itself: a wooden tube with eight holes */
+.fl-flute {
+    position: relative;
+    display: grid;
+    grid-template-columns: 0.9fr repeat(8, 1fr) 0.5fr;
+    align-items: center;
+    gap: 4px;
+    height: 64px;
+    padding: 0 10px;
+    border-radius: 32px;
+    background:
+        repeating-linear-gradient(90deg, rgba(90, 50, 20, 0.12) 0 3px, transparent 3px 11px),
+        linear-gradient(180deg, #e2b27a 0%, #c48a50 45%, #9a6436 85%, #7a4a26 100%);
+    box-shadow: inset 0 3px 4px rgba(255, 240, 210, 0.45), inset 0 -4px 6px rgba(60, 30, 10, 0.5), 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+.fl-flute::after { content: ""; grid-column: 10; height: 70%; border-radius: 0 20px 20px 0; border-left: 4px solid #5a3218; }
+.fl-mouth { justify-self: center; width: 26px; height: 14px; border-radius: 50%; background: radial-gradient(#1a0c04 50%, #4a2810 70%, transparent 72%); }
+.fl-hole {
+    appearance: none;
+    position: relative;
+    display: grid;
+    place-items: center;
+    justify-self: center;
+    width: 100%;
+    max-width: 64px;
+    height: 56px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.fl-hole i {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 40%, #0c0602 55%, #3a1e0a 72%, #b07a46 76%);
+    box-shadow: 0 0 0 3px rgba(60, 30, 10, 0.25);
+    transition: transform 0.06s, box-shadow 0.12s, background 0.12s;
+}
+.fl-hole kbd { position: absolute; bottom: -2px; font-size: 0.68rem; color: #3a1e0a; background: rgba(255, 240, 210, 0.55); border-color: rgba(60, 30, 10, 0.3); }
+.fl-hole:hover i, .fl-hole:focus-visible i { box-shadow: 0 0 0 3px var(--c); }
+.fl-hole:focus-visible { outline: none; }
+.fl-hole.on i { transform: scale(0.88); background: radial-gradient(circle at 50% 40%, var(--c) 30%, #3a1e0a 72%, #b07a46 76%); box-shadow: 0 0 18px 4px var(--c); }
+@media (max-width: 560px) {
+    .fl-head h2 { font-size: 0.95rem; }
+    .fl-btn { padding: 5px 9px; font-size: 0.78rem; }
+    .fl-flute { height: 58px; gap: 2px; padding: 0 6px; }
+    .fl-hole i { width: 22px; height: 22px; }
+    .fl-mouth { width: 16px; }
+    .fl-msg { font-size: 0.8rem; }
+}
+@media (max-height: 520px) {
+    .fl-book { max-height: 30vh; }
+    .fl-staff-wrap { max-height: 70px; overflow: hidden; }
+    .fl-staff { height: 70px; width: auto; margin: 0 auto; }
+}
+
+/* the old computer: a beige monitor with an amber Hercules screen, filling the view */
+.herc-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 12px;
+    padding: 12px max(12px, var(--safe-l)) calc(12px + var(--safe-b));
+    background: radial-gradient(ellipse at 50% 45%, rgba(40, 28, 14, 0.55), rgba(6, 4, 2, 0.92));
+}
+.herc-monitor {
+    width: min(960px, 100%, (100vh - 150px) * 1.18);
+    padding: 3.2% 3.2% 2%;
+    border-radius: 22px 22px 16px 16px;
+    background: linear-gradient(175deg, #e6dcc2, #cfc4a8 60%, #b8ad90);
+    box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.6), inset 0 -6px 12px rgba(90, 80, 60, 0.35), 0 30px 80px rgba(0, 0, 0, 0.7);
+}
+.herc-bezel { padding: 3.5%; border-radius: 18px; background: #2c2822; box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.9), inset 0 2px 0 rgba(255, 255, 255, 0.06); }
+.herc-glass {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: 6% / 8%;
+    overflow: hidden;
+    background: #070400;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.95);
+}
+.herc-glass canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 0 3px rgba(255, 170, 0, 0.75)) brightness(1.05);
+    animation: herc-flicker 0.12s steps(2) infinite;
+    touch-action: none;
+    cursor: grab;
+}
+.herc-glass canvas:active { cursor: grabbing; }
+.herc-scan {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.32) 0 1px, transparent 1px 3px),
+        radial-gradient(ellipse at 50% 45%, rgba(255, 200, 120, 0.06), transparent 55%, rgba(0, 0, 0, 0.55));
+}
+@keyframes herc-flicker { from { opacity: 1; } to { opacity: 0.965; } }
+.herc-chin { display: flex; align-items: center; gap: 12px; margin-top: 1.4%; padding: 0 2%; font: 700 clamp(0.6rem, 1.6vw, 0.85rem) var(--sans); letter-spacing: 0.14em; color: #6a604a; }
+.herc-brand { font-family: Georgia, serif; letter-spacing: 0.08em; }
+.herc-led { width: 9px; height: 9px; border-radius: 50%; background: #ffb000; box-shadow: 0 0 8px #ffb000; }
+.herc-model { margin-left: auto; font-weight: 600; font-size: 0.85em; }
+.herc-keys { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 960px; }
+.herc-keys button {
+    appearance: none;
+    min-width: 44px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1px solid #8a8068;
+    background: linear-gradient(#ece4cc, #cfc5aa);
+    box-shadow: 0 3px 0 #8a8068;
+    color: #3a342a;
+    font: 700 0.82rem ui-monospace, monospace;
+    cursor: pointer;
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+.herc-keys button:active { transform: translateY(2px); box-shadow: 0 1px 0 #8a8068; }
+.herc-keys .herc-off { background: linear-gradient(#e6a08a, #c8705a); color: #2a0a04; border-color: #8a4a3a; box-shadow: 0 3px 0 #8a4a3a; }
+@media (pointer: fine) and (min-height: 600px) { .herc-keys button { height: 32px; } }
+
+/* sleeping: the dark comes down, z z Z, and the light comes back */
+.loft-sleep {
+    position: fixed;
+    inset: 0;
+    z-index: 29;
+    display: grid;
+    place-content: center;
+    gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 55%, #141a34, #05060e 75%);
+    color: #e8ddff;
+    text-align: center;
+    font-family: var(--serif);
+}
+.loft-sleep.show { pointer-events: auto; }
+.ls-z { margin: 0; font: 600 2.4rem var(--display); color: #c9b8ff; }
+.ls-z span { display: inline-block; opacity: 0; }
+.loft-sleep.show .ls-z span { animation: ls-z 2.4s ease-in-out infinite; }
+.loft-sleep.show .ls-z span:nth-child(2) { animation-delay: 0.4s; font-size: 1.2em; }
+.loft-sleep.show .ls-z span:nth-child(3) { animation-delay: 0.8s; font-size: 1.5em; }
+@keyframes ls-z { 0% { opacity: 0; transform: translate(0, 10px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translate(14px, -26px); } }
+.ls-text { margin: 0; font-size: 1.25rem; }
+@media (prefers-reduced-motion: reduce) {
+    .herc-glass canvas { animation: none; }
+    .loft-sleep.show .ls-z span { animation: none; opacity: 1; }
+    .flute-overlay.fl-glow .fl-panel { animation: none; }
+}

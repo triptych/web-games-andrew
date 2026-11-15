@@ -5,7 +5,9 @@
 // papers on the other side to read an old maintenance log, or the little
 // Pocket Garden handheld propped up at the front to go to the console (see
 // hut-console.js). Beside the desk an old television shows the island's
-// secret places, live (see hut-tv.js).
+// secret places, live (see hut-tv.js). A stair along the right-hand wall
+// climbs to the loft under the roof: a stained-glass window, a bed, an old
+// computer and a flute, under strings of twinkle lights (see hut-loft.js).
 // Like the Works, the room is built on the first visit, with its own scene and
 // a stand-in `world` for the walking controls.
 
@@ -17,6 +19,8 @@ import { signMesh, signTexture } from './architecture.js';
 import { glowSprite } from './textures.js';
 import { HutTV } from './hut-tv.js';
 import { HutConsole } from './hut-console.js';
+import { Loft, STAIR, HOLE } from './hut-loft.js';
+import { stainedGlass } from './stained-glass.js';
 import { PLAZA_R, PATH_HALF } from './layout.js';
 import { rng, TAU } from './util.js';
 
@@ -135,9 +139,29 @@ export function buildHutExterior(world) {
     win(-W / 2, 0.2, Math.PI / 2);
     win(0, -D / 2, 0);
     win(-1.35, fz, 0);
+    // a dormer in the front of the roof, with the loft's round stained-glass window in it
+    const dz = D / 2 - 0.25;
+    batch.add('wood', new THREE.BoxGeometry(1.3, 1.05, 1.5), at(0, WALL_H + 0.5, dz - 0.75));
+    for (const sx of [-1, 1]) batch.add('darkWood', new THREE.BoxGeometry(0.12, 1.1, 0.12), at(sx * 0.65, WALL_H + 0.5, dz));
+    const gable = new THREE.Shape();
+    gable.moveTo(-0.86, 0);
+    gable.lineTo(0.86, 0);
+    gable.lineTo(0, 0.52);
+    gable.closePath();
+    batch.add('copper', new THREE.ExtrudeGeometry(gable, { depth: 1.75, bevelEnabled: false }), at(0, WALL_H + 1.0, dz + 0.12 - 1.75));
+    batch.add('darkWood', new THREE.TorusGeometry(0.38, 0.05, 8, 32), at(0, WALL_H + 0.5, dz + 0.02));
     // a stack of firewood against the wall
     for (let i = 0; i < 3; i++) for (let k = 0; k < 3 - i; k++) batch.add('bark', new THREE.CylinderGeometry(0.1, 0.1, 0.9, 7), at(W / 2 + 0.2 + i * 0.01, 0.1 + i * 0.19, -0.9 + k * 0.21 + i * 0.1, 0, 1, 1, 1, Math.PI / 2, 0));
     world.root.add(batch.build(mats));
+    // the glass: the same picture as the window inside, lit from within at night
+    const sg = stainedGlass();
+    const glassMat = new THREE.MeshStandardMaterial({ map: sg.texture, emissiveMap: sg.texture, emissive: 0xffffff, emissiveIntensity: 0.3, roughness: 0.3, transparent: true, alphaTest: 0.1 });
+    const rose = new THREE.Mesh(new THREE.CircleGeometry(0.36, 40), glassMat);
+    const rp = toWorld(h, 0, dz + 0.03);
+    rose.position.set(rp.x, base + WALL_H + 0.5, rp.z);
+    rose.rotation.y = h.face;
+    world.root.add(rose);
+    world.glowMats.push({ mat: glassMat, day: 0.35, night: 1.5 });
 
     // the door leaf is the thing you click
     const leaf = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.95, 0.1), mats.darkWood);
@@ -185,6 +209,10 @@ export function buildHutExterior(world) {
 // ------------------------------------------------------------- the inside
 
 const R_X = 3.2, R_Z = 3.0, CEIL = 3.0;   // room half-extents and ceiling height
+const F2 = CEIL + 0.1;                     // the loft floor
+/** On the stair's flight (where you can stand on it), and how high its steps are there. */
+const inStair = (x, z) => x > STAIR.x0 + 0.02 && x < STAIR.x1 - 0.22 && z > STAIR.zTop - 0.1 && z < R_Z - 0.35;
+const stairY = (z) => F2 * THREE.MathUtils.clamp((STAIR.zBot - z) / (STAIR.zBot - STAIR.zTop), 0, 1);
 const DESK = { x: 0, z: -2.1, w: 2.0, d: 0.8, h: 0.78 };
 
 /** A swirl of colour on a sphere: the little galaxy waiting in the glass. */
@@ -238,6 +266,9 @@ export class Hut {
         this.time = 0;
         this.hover = 0;
         this.colliders = [];
+        this.colliders1 = [];   // upstairs, in the loft
+        this.level = 0;         // 0 the room, 1 the loft
+        this.up = 0;            // 0 .. 1 as you climb
         this.mats = { ...env.mats };
         this.mats.plaster = new THREE.MeshStandardMaterial({ color: 0xd9c9ae, roughness: 0.95 });
         this.mats.rug = new THREE.MeshStandardMaterial({ color: 0x5a2f4a, roughness: 1 });
@@ -250,6 +281,7 @@ export class Hut {
         const batch = new Batch();
         this._shell(batch);
         this._furniture(batch);
+        this.loft = new Loft({ hut: this, batch, dims: { R_X, R_Z, CEIL, F: F2 }, collide1: (x, z, w, d) => this._collide(x, z, w, d, this.colliders1) });
         this.scene.add(batch.build(this.mats, { castShadow: false, receiveShadow: false }));
         this._lights();
         this._orb();
@@ -270,20 +302,85 @@ export class Hut {
             ui: env.ui,
             layout: null,
             island: { heightAt: (x, z) => (self.walkable(x, z) ? 1 : -5) },
-            walkHeight: () => 0,
+            walkHeight: (x, z) => self.heightAt(x, z),
             onDeck: () => false,
-            collidersNear: (x, z) => self.grid.get(self._key(x, z)) || [],
+            collidersNear: (x, z) => (self.level ? self.grid1 : self.grid).get(self._key(x, z)) || [],
             onArrive: null,
+            // no grid to plan round things with, but a walk may only cut a corner along level floor,
+            // so a walk up the stair keeps to the stair instead of cutting under it
+            nav: {
+                clear: (ax, az, bx, bz) => {
+                    const n = Math.ceil(Math.hypot(bx - ax, bz - az) / 0.15);
+                    let y = self.heightAt(ax, az);
+                    for (let i = 1; i <= n; i++) {
+                        const x = ax + ((bx - ax) * i) / n, z = az + ((bz - az) * i) / n, h = self.heightAt(x, z);
+                        if (!self.walkable(x, z) || Math.abs(h - y) > 0.3) return false;
+                        y = h;
+                    }
+                    return true;
+                },
+                repair: (x, z, points) => points,
+                find: () => null,
+            },
         };
         this.spawn = { x: 0, z: 0.7, yaw: 0 };
         // walking into this spot goes back out of the door
         this.exit = { x: 0, z: R_Z - 0.5 };
         // where you stand when you come back out of the sphere
         this.deskStand = { x: 0, z: -0.9, yaw: 0, pitch: -0.2 };
+        // up the stair: the window shows its picture of the day; back down: it finds a new one for next time
+        this.onLevel = (L) => {
+            if (L === 1) {
+                this.loft.arrive();
+                env.ui?.zone('The Loft', `Under the rafters · ${stainedGlass().name} in the window`, '#ffc27a');
+                if (!this.loftHinted) {
+                    this.loftHinted = true;
+                    setTimeout(() => env.ui?.hint('The loft · click the bed to sleep the night away, the old computer to sit down at it, or the flute to play · the twinkle lights come on as it gets dark', 9000), 1400);
+                }
+            } else stainedGlass().next();
+        };
     }
 
-    walkable(x, z) {
-        return Math.abs(x) < R_X - 0.35 && Math.abs(z) < R_Z - 0.35;
+    /** Can you stand at (x, z) on the floor you are on? The stair belongs to both. */
+    walkable(x, z, level = this.level) {
+        // the stair is floor near your own level only, so you can't step off the loft onto its middle
+        if (inStair(x, z)) return level ? stairY(z) > F2 / 2 - 0.6 : stairY(z) < F2 / 2 + 0.6;
+        if (Math.abs(x) >= R_X - 0.35 || Math.abs(z) >= R_Z - 0.35) return false;
+        // upstairs, the hole the stair comes up through
+        return !(level === 1 && x > HOLE.x0 && z > HOLE.z0 && z < HOLE.z1 + 0.4);
+    }
+
+    /** The height of the floor (or the step) at (x, z). */
+    heightAt(x, z) {
+        if (inStair(x, z)) return stairY(z);
+        return this.level ? F2 : 0;
+    }
+
+    /** True while the flute, the computer or the bed has you. */
+    get busy() {
+        return this.loft.busy;
+    }
+
+    /** The stair's two ends, for walking up or down it when it is clicked. */
+    stairRoute() {
+        const cx = (STAIR.x0 + STAIR.x1) / 2 - 0.1;
+        const bottom = { x: cx, z: R_Z - 0.45 }, top = { x: cx, z: STAIR.zTop - 0.3 };
+        return this.level ? [{ x: 1.6, z: -0.9 }, top, { x: cx, z: 0.5 }, bottom, { x: 1.4, z: 2.2 }] : [{ x: 1.7, z: 2.3 }, bottom, { x: cx, z: 0.5 }, top, { x: 1.4, z: -0.9 }];
+    }
+
+    /** What the ray points at: something to click, a door, or the floor. */
+    pick(ray) {
+        const L = this.level;
+        const list = L ? [...this.loft.pickables, this.loft.stairHit] : [this.orbHit, this.ticketHit, this.papersHit, ...this.handheld.pickables, this.doorMesh, ...(this.tv?.pickables ?? []), this.loft.stairHit];
+        const hit = ray.intersectObjects(list, false)[0];
+        if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket', tv: 'tv', papers: 'papers', console: 'console', stairs: 'stairs', bed: 'bed', computer: 'computer', flute: 'flute', cat: 'cat', window: 'window' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
+        const o = ray.ray.origin, d = ray.ray.direction;
+        if (d.y >= -1e-4) return null;
+        const y = L ? F2 : 0;
+        const t = (y - o.y) / d.y;
+        if (t < 0) return null;
+        const point = o.clone().addScaledVector(d, t);
+        return this.walkable(point.x, point.z) && !inStair(point.x, point.z) ? { type: 'ground', point, t } : null;
     }
 
     _key(x, z) {
@@ -291,27 +388,33 @@ export class Hut {
     }
 
     _grid() {
-        this.grid = new Map();
-        for (const c of this.colliders) {
+        this.grid = this._gridOf(this.colliders);
+        this.grid1 = this._gridOf(this.colliders1);
+    }
+
+    _gridOf(list) {
+        const grid = new Map();
+        for (const c of list) {
             for (let i = Math.floor((c.x - c.r) / 4); i <= Math.floor((c.x + c.r) / 4); i++) {
                 for (let j = Math.floor((c.z - c.r) / 4); j <= Math.floor((c.z + c.r) / 4); j++) {
                     const k = i * 7919 + j;
-                    if (!this.grid.has(k)) this.grid.set(k, []);
-                    this.grid.get(k).push(c);
+                    if (!grid.has(k)) grid.set(k, []);
+                    grid.get(k).push(c);
                 }
             }
         }
+        return grid;
     }
 
     _box(batch, key, w, h, d, x, y, z, ry = 0) {
         batch.add(key, new THREE.BoxGeometry(w, h, d), xf(x, y, z, ry));
     }
 
-    _collide(x, z, w, d) {
+    _collide(x, z, w, d, list = this.colliders) {
         const n = Math.max(1, Math.ceil(Math.max(w, d) / 0.5));
         for (let i = 0; i < n; i++) {
             const t = n === 1 ? 0 : i / (n - 1) - 0.5;
-            this.colliders.push(w >= d ? { x: x + t * (w - 0.4), z, r: d / 2 + 0.05 } : { x, z: z + t * (d - 0.4), r: w / 2 + 0.05 });
+            list.push(w >= d ? { x: x + t * (w - 0.4), z, r: d / 2 + 0.05 } : { x, z: z + t * (d - 0.4), r: w / 2 + 0.05 });
         }
     }
 
@@ -331,21 +434,34 @@ export class Hut {
         this._box(b, 'darkWood', 0.1, 2.2, 0.2, 0.65, 1.1, R_Z);
         this._box(b, 'darkWood', 1.4, 0.12, 0.2, 0, 2.18, R_Z);
         this._box(b, 'brass', 0.06, 0.06, 0.1, 0.38, 1.0, R_Z - 0.08);
-        this._box(b, 'wood', R_X * 2, 0.1, R_Z * 2, 0, CEIL + 0.05, 0);
-        for (let x = -R_X + 0.6; x < R_X; x += 1.3) this._box(b, 'darkWood', 0.18, 0.22, R_Z * 2, x, CEIL - 0.11, 0);
+        // the ceiling, which is the loft's floor, with a hole for the stair
+        const hw = R_X - HOLE.x0;
+        this._box(b, 'wood', R_X + HOLE.x0, 0.1, R_Z * 2, (HOLE.x0 - R_X) / 2, CEIL + 0.05, 0);
+        this._box(b, 'wood', hw, 0.1, HOLE.z0 + R_Z, (HOLE.x0 + R_X) / 2, CEIL + 0.05, (HOLE.z0 - R_Z) / 2);
+        this._box(b, 'wood', hw, 0.1, R_Z - HOLE.z1, (HOLE.x0 + R_X) / 2, CEIL + 0.05, (HOLE.z1 + R_Z) / 2);
+        for (let x = -R_X + 0.6; x < R_X; x += 1.3) {
+            if (x > HOLE.x0 - 0.1) this._box(b, 'darkWood', 0.18, 0.22, HOLE.z0 + R_Z, x, CEIL - 0.11, (HOLE.z0 - R_Z) / 2);
+            else this._box(b, 'darkWood', 0.18, 0.22, R_Z * 2, x, CEIL - 0.11, 0);
+        }
         // skirting boards
         this._box(b, 'darkWood', R_X * 2, 0.16, 0.06, 0, 0.08, -R_Z + 0.08);
         this._box(b, 'darkWood', 0.06, 0.16, R_Z * 2, -R_X + 0.08, 0.08, 0);
         this._box(b, 'darkWood', 0.06, 0.16, R_Z * 2, R_X - 0.08, 0.08, 0);
-        // two windows with their frames; the glass material is a pale moonlit blue
-        for (const sx of [-1, 1]) {
-            this._box(b, 'window', 0.04, 0.95, 0.95, sx * (R_X - 0.07), 1.65, 0.3);
-            this._box(b, 'darkWood', 0.1, 1.1, 0.08, sx * (R_X - 0.1), 1.65, 0.3 - 0.52);
-            this._box(b, 'darkWood', 0.1, 1.1, 0.08, sx * (R_X - 0.1), 1.65, 0.3 + 0.52);
-            this._box(b, 'darkWood', 0.1, 0.08, 1.12, sx * (R_X - 0.1), 1.17, 0.3);
-            this._box(b, 'darkWood', 0.1, 0.08, 1.12, sx * (R_X - 0.1), 2.13, 0.3);
-            this._box(b, 'darkWood', 0.1, 0.05, 0.95, sx * (R_X - 0.1), 1.65, 0.3);
-            this._box(b, 'darkWood', 0.1, 0.95, 0.05, sx * (R_X - 0.1), 1.65, 0.3);
+        // two windows with their frames, on the left wall and in the front wall by the door
+        // (the stair runs up the right wall); the glass material is a pale moonlit blue
+        for (const [x, z, along, inward, ry] of [[-(R_X - 0.07), 0.3, [0, 1], [1, 0], 0], [-1.9, R_Z - 0.07, [1, 0], [0, -1], Math.PI / 2]]) {
+            // du runs along the wall; the frame stands 3 cm proud of the glass, into the room
+            const put = (key, w, h, d, du, y) => {
+                const k = key === 'window' ? 0 : 0.03;
+                b.add(key, new THREE.BoxGeometry(w, h, d), xf(x + along[0] * du + inward[0] * k, y, z + along[1] * du + inward[1] * k, ry));
+            };
+            put('window', 0.04, 0.95, 0.95, 0, 1.65);
+            put('darkWood', 0.1, 1.1, 0.08, -0.52, 1.65);
+            put('darkWood', 0.1, 1.1, 0.08, 0.52, 1.65);
+            put('darkWood', 0.1, 0.08, 1.12, 0, 1.17);
+            put('darkWood', 0.1, 0.08, 1.12, 0, 2.13);
+            put('darkWood', 0.1, 0.05, 0.95, 0, 1.65);
+            put('darkWood', 0.1, 0.95, 0.05, 0, 1.65);
         }
         // a stone fireplace in the back corner, with a fire burning in it (see fireplace.js)
         this.fireplace = buildFireplace({ batch: b, scene: this.scene, mats: this.mats, x: -R_X + 0.9, back: -R_Z + 0.06, left: -R_X + 0.06, ceil: CEIL });
@@ -419,12 +535,14 @@ export class Hut {
         lamp.position.set(0, CEIL - 0.6, -0.4);
         this.scene.add(lamp);
         this.lamp = lamp;
-        for (const sx of [-1, 1]) {
+        this.moons = [[-(R_X - 0.7), 0.3], [-1.9, R_Z - 0.7]].map(([x, z]) => {
             const m = new THREE.PointLight(0x9bb8ff, 2.5, 5, 2);
-            m.position.set(sx * (R_X - 0.7), 1.6, 0.3);
+            m.position.set(x, 1.6, z);
             this.scene.add(m);
-        }
-        this.scene.add(new THREE.AmbientLight(0x5a4a40, 0.5));
+            return m;
+        });
+        this.ambient = new THREE.AmbientLight(0x5a4a40, 0.5);
+        this.scene.add(this.ambient);
     }
 
     _orb() {
@@ -623,16 +741,36 @@ export class Hut {
         return this._door;
     }
 
-    setHover(on, ticket = false, tv = false, papers = false, handheld = false) {
-        this.hoverTarget = on ? 1 : 0;
-        this.handheld.setHover(handheld);
-        this.ticketTarget = ticket ? 1 : 0;
-        this.papersTarget = papers ? 1 : 0;
-        this.tv?.setHover(tv);
+    /** `type` is what the pointer is over (see pick), or null. */
+    setHover(type = null) {
+        this.hoverTarget = type === 'orb' ? 1 : 0;
+        this.handheld.setHover(type === 'console');
+        this.ticketTarget = type === 'ticket' ? 1 : 0;
+        this.papersTarget = type === 'papers' ? 1 : 0;
+        this.tv?.setHover(type === 'tv');
+        this.loft.setHover(type);
+    }
+
+    /** Which floor you are on: changes only on the stair, past its halfway step. */
+    _level() {
+        const p = this.env.controls?.pos;
+        if (!p) return;
+        if (inStair(p.x, p.z)) {
+            const was = this.level;
+            this.level = stairY(p.z) > F2 / 2 ? 1 : 0;
+            if (was !== this.level) this.onLevel?.(this.level);
+        }
+        this.up = inStair(p.x, p.z) ? stairY(p.z) / F2 : this.level;
     }
 
     /** `away` is true while the room isn't on screen (falling through the sphere). */
     update(dt, t, away = false) {
+        this._level();
+        const sky = this.env.sky?.state;
+        this.loft.update(dt, t, { night: sky?.night ?? 0.5, day: sky?.day ?? 0.5, up: this.up });
+        // the room's own lights step back while you are upstairs, so they don't light the loft from below
+        const down = 1 - this.up * 0.75;
+        for (const m of this.moons) m.intensity = 2.5 * down;
         this.tv?.update(dt, t, this.env.camera, away);
         this.handheld.update(dt, t, away);
         this.time = t;
@@ -653,6 +791,6 @@ export class Hut {
         this.halo.scale.set(s, s, 1);
         this.orbLight.intensity = 3 + Math.sin(t * 1.7) * 0.8 + this.hover * 2;
         this.fireplace.update(dt, t);
-        this.lamp.intensity = 9 + Math.sin(t * 2.1) * 0.25;
+        this.lamp.intensity = (9 + Math.sin(t * 2.1) * 0.25) * down;
     }
 }

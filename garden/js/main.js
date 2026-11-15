@@ -1475,7 +1475,12 @@ async function boot() {
                     ui.hint('The hatch has jammed shut today.', 4000);
                 }
             } else if (down && kind === 'hut') {
-                hut ??= new Hut({ renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click(), titles: games.map((g) => g.title) });
+                hut ??= new Hut({
+                    renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click(), titles: games.map((g) => g.title),
+                    // for the loft: the clock (the bed and the twinkle lights), the walking (the stair, sitting down),
+                    // the sound (the flute) and the island itself (the old computer's survey)
+                    sky, controls, audio, island, landmarks: world.landmarks, islandR: layout.islandR, home: { x: world.hut.cx, z: world.hut.cz },
+                });
                 setBelow(true, 'hut');
                 const s = hut.spawn;
                 controls.teleport(s.x, s.z, s.yaw);
@@ -1483,7 +1488,7 @@ async function boot() {
                 zoneKey = 'hut';
                 if (!hutHintShown) {
                     hutHintShown = true;
-                    setTimeout(() => ui.hint('Click the glowing sphere on the desk · walk back into the door to leave', 9000), 1200);
+                    setTimeout(() => ui.hint('Click the glowing sphere on the desk · a stair by the door climbs to the loft · walk back into the door to leave', 9000), 1200);
                 }
             } else if (down) {
                 works ??= new Works({ renderer, games, sky, island, layout, statues, ui, mats: world.mats });
@@ -1679,6 +1684,8 @@ async function boot() {
             return;
         }
         let d, kind = 'works';
+        // the hut's door is downstairs: the loft floor above it is just floor
+        if (below && roomKind === 'hut' && hut.level) return;
         if (below) {
             d = roomKind === 'hut' ? hut.exit : works.exit;
             kind = roomKind;
@@ -1722,15 +1729,7 @@ async function boot() {
         ndc.set((cx / innerWidth) * 2 - 1, -(cy / innerHeight) * 2 + 1);
         ray.setFromCamera(ndc, camera);
         if (roomKind === 'subway') return subway.pick(ray);
-        if (roomKind === 'hut') {
-            const hit = ray.intersectObjects([hut.orbHit, hut.ticketHit, hut.papersHit, ...hut.handheld.pickables, hut.doorMesh, ...(hut.tv?.pickables ?? [])], false)[0];
-            if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket', tv: 'tv', papers: 'papers', console: 'console' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
-            const o = ray.ray.origin, d = ray.ray.direction;
-            if (d.y >= -1e-4) return null;
-            const t = -o.y / d.y;
-            const point = o.clone().addScaledVector(d, t);
-            return hut.walkable(point.x, point.z) ? { type: 'ground', point, t } : null;
-        }
+        if (roomKind === 'hut') return hut.pick(ray);
         const hit = ray.intersectObjects([works.doorMesh, works.liftHit, ...works.linkPanels], false)[0];
         if (hit && hit.distance < 40) {
             if (hit.object.userData.kind === 'source') return hit.distance < 14 ? { type: 'source', url: works.sourceUrl(hit.object.userData.screen), t: hit.distance } : null;
@@ -1892,7 +1891,18 @@ async function boot() {
             return;
         }
         if (below) {
+            if (roomKind === 'hut' && hut.busy) return;
             const h = pickBelow(x, y);
+            if (roomKind === 'hut' && ['bed', 'computer', 'flute', 'cat', 'window'].includes(h?.type)) {
+                audio.click();
+                hut.loft.activate(h.type);
+                return;
+            }
+            if (h?.type === 'stairs') {
+                audio.click();
+                controls.walkTo(hut.stairRoute());
+                return;
+            }
             if (h?.type === 'source') {
                 // a real new tab, opened inside the click so popup blockers allow it
                 window.open(h.url, '_blank', 'noopener');
@@ -2360,12 +2370,15 @@ async function boot() {
             hut.update(dt, t, !!trip);
             audio.update(night, -100);
             // the pointer shows a hand over the sphere and the door
-            if (entered && !intro && !trip && mouse && !ui.blocking && !controls.look?.moved) {
+            if (entered && !intro && !trip && !hut.busy && mouse && !ui.blocking && !controls.look?.moved) {
                 const h = pickBelow(mouse.x, mouse.y);
-                hut.setHover(h?.type === 'orb', h?.type === 'ticket', h?.type === 'tv', h?.type === 'papers', h?.type === 'console');
-                document.body.classList.toggle('can-hover-pick', h?.type === 'orb' || h?.type === 'door' || h?.type === 'ticket' || h?.type === 'tv' || h?.type === 'papers' || h?.type === 'console');
-            } else hut.setHover(false);
-            if (!orbHintShown && entered && !trip && Math.hypot(controls.pos.x - hut.orbPos.x, controls.pos.z - hut.orbPos.z) < 2.2) {
+                hut.setHover(h?.type);
+                document.body.classList.toggle('can-hover-pick', !!h && h.type !== 'ground');
+            } else {
+                hut.setHover(null);
+                if (hut.busy) document.body.classList.remove('can-hover-pick');
+            }
+            if (!orbHintShown && entered && !trip && !hut.level && Math.hypot(controls.pos.x - hut.orbPos.x, controls.pos.z - hut.orbPos.z) < 2.2) {
                 orbHintShown = true;
                 ui.hint('A sphere of glass on the desk, with something turning inside it · a train ticket beside it, some old papers, a little Pocket Garden handheld · and an old television that picks up the island’s secret places: click it to change the channel', 8000);
             }
