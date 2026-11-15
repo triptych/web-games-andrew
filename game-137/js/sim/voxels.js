@@ -49,7 +49,7 @@ function unsettle(R, v) {
     if (v.s !== SET || v.i < 0) return;
     const W = R.W;
     W.debris[v.i] = Math.max(0, W.debris[v.i] - 1);
-    for (const o of R.voxels) if (o !== v && o.s === SET && o.i === v.i && o.z > v.z) o.z -= 1;
+    for (const o of R.voxels) if (o !== v && o.s === SET && o.i === v.i && o.z > v.z) o.z -= VOXEL.size;
     W.ffDirty = true;
     v.i = -1;
 }
@@ -129,7 +129,7 @@ export function stepVoxels(R, dt, M, magnet, collect) {
             v.x = ox; v.y = oy;
             cx = cellOf(v.x); cy = cellOf(v.y); i = idx(cx, cy);
         }
-        const floor = W.h[i] + W.debris[i];
+        const floor = W.h[i] + W.debris[i] * VOXEL.size;
         if (v.z <= floor) {
             v.z = floor;
             if (v.vz < 0) v.vz = -v.vz * VOXEL.bounce;
@@ -137,7 +137,7 @@ export function stepVoxels(R, dt, M, magnet, collect) {
             const sp = Math.hypot(v.vx, v.vy);
             if (v.vz < VOXEL.settleSpeed * 2 && sp < VOXEL.settleSpeed) {
                 if (W.h[i] === 0 && W.debris[i] < VOXEL.maxStack) {
-                    v.s = SET; v.i = i; v.z = W.debris[i]; W.debris[i]++;
+                    v.s = SET; v.i = i; v.z = W.debris[i] * VOXEL.size; W.debris[i]++;
                     v.x = cx + 0.5; v.y = cy + 0.5; v.vx = v.vy = v.vz = 0;
                     v.life = Math.min(v.life, VOXEL.life);
                     W.ffDirty = true;

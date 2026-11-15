@@ -142,7 +142,7 @@ if (want('rules')) {
     const set = R.voxels.filter((v) => v.s === 1);
     ok(set.length === 6, 'thrown voxels come down and settle');
     ok(JSON.stringify(Vx.countDebris(R)) === JSON.stringify(R.W.debris), 'the debris count matches the settled voxels');
-    ok(set.every((v) => v.z < C.VOXEL.maxStack), `stacks are at most ${C.VOXEL.maxStack} high`);
+    ok(set.every((v) => v.z < C.VOXEL.maxStack * C.VOXEL.size - 1e-9), `stacks are at most ${C.VOXEL.maxStack} high`);
     const cell = set[0].i;
     ok(Wd.blocked(R.W, cell) && !Wd.solid(R.W, cell), 'a settled voxel blocks monsters but not the mech');
     for (let t = 0; t < C.VOXEL.life + 0.5; t += DT) Vx.stepVoxels(R, DT, { ...R.mech, x: -99, y: -99 }, false, () => {});
@@ -179,7 +179,7 @@ if (want('rules')) {
     ok(e.x < 30.5, 'a monster walks towards the mech');
     G = blank(); R = G.run;
     // a wall of voxels between a monster and the mech: it chews through
-    for (let y = 18; y <= 31; y++) for (let k = 0; k < 2; k++) R.voxels.push({ x: 27.5, y: y + 0.5, z: k, vx: 0, vy: 0, vz: 0, c: Vx.C.stone, s: 1, life: 99, i: Wd.idx(27, y) });
+    for (let y = 18; y <= 31; y++) for (let k = 0; k < 2; k++) R.voxels.push({ x: 27.5, y: y + 0.5, z: k * C.VOXEL.size, vx: 0, vy: 0, vz: 0, c: Vx.C.stone, s: 1, life: 99, i: Wd.idx(27, y) });
     for (let y = 18; y <= 31; y++) R.W.debris[Wd.idx(27, y)] = 2;
     for (let y = 17; y <= 32; y += 15) for (let x = 20; x <= 34; x++) setCell(R, x, y, 3);
     R.mech.weapons = [];
