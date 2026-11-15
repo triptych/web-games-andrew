@@ -195,6 +195,7 @@ export class UI {
     }
 
     onEvents(G, events) {
+        let gifts = null;
         for (const e of events) {
             switch (e.type) {
                 case 'launch': this.banner('MISSION START'); this.comm('mirei', 'Shardframe Unit-07, you are cleared for launch. Good hunting, Kai.'); break;
@@ -206,10 +207,20 @@ export class UI {
                 case 'fail': this.banner('UNIT-07 DOWN', true); this.comm('mirei', 'Unit-07 is down! Pulling you out!'); break;
                 case 'overdrive': this.cutin(); break;
                 case 'gift_ready': if (G.mode !== 'mission') this.toast(`🎁 The crew left ${e.n} gift${e.n > 1 ? 's' : ''}`); break;
-                case 'gift': this.toast(e.gift === 'gold' ? `💰 +${e.amount} cr from ${crewById(e.crew).name}` : `${GIFTS[e.gift].icon} ${GIFTS[e.gift].name} from ${crewById(e.crew).name}`); break;
+                case 'gift': (gifts ||= {})[e.crew] = { n: (gifts[e.crew]?.n || 0) + 1, gift: e.gift, amount: (gifts[e.crew]?.amount || 0) + e.amount }; break;
                 case 'nope': this.toast(e.why === 'gold' ? 'Not enough credits.' : 'Already at the top level.'); break;
             }
         }
+        // one line per crew member, however many gifts they left
+        if (gifts) for (const [id, g] of Object.entries(gifts)) {
+            this.toast(g.gift === 'gold' ? `💰 +${g.amount} cr from ${crewById(id).name}` : `${GIFTS[g.gift].icon} ${GIFTS[g.gift].name}${g.n > 1 ? ' ×' + g.n : ''} from ${crewById(id).name}`);
+        }
+    }
+    /** Clear the battle's overlays (cut-in, banner, speed lines, flash). */
+    clearOverlays() {
+        for (const id of ['cutin', 'banner']) $(id).hidden = true;
+        this.speedlines(false);
+        $('flash').style.opacity = 0;
     }
 
     // ------------------------------------------------------------------ hangar

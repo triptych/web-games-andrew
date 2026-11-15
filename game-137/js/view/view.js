@@ -529,8 +529,10 @@ export class View {
         cam.aspect = this.w / this.h;
         // landscape: the mech sits in the left part, beside the panel; portrait: in the top part, above it
         const portrait = this.w < this.h;
-        cam.setViewOffset(this.w, this.h, portrait ? 0 : this.w * 0.2, portrait ? this.h * 0.22 : 0, this.w, this.h);
-        cam.position.set(0, 2.6, 7.6);
+        // portrait: the panel covers the bottom 56%, so stand further back and lift the mech into the top part
+        cam.setViewOffset(this.w, this.h, portrait ? 0 : this.w * 0.2, portrait ? this.h * 0.24 : 0, this.w, this.h);
+        const back = portrait ? 15 : 7.6;
+        cam.position.set(0, 2.6, back);
         cam.lookAt(0, 1.3, 0);
         cam.updateProjectionMatrix();
         this.renderer.render(this.hangarScene, cam);

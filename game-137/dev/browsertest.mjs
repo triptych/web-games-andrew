@@ -95,6 +95,8 @@ const layout = (page) => Q(page, () => {
 /** The canvas isn't one flat colour (the scene drew). */
 const notBlank = (page) => Q(page, () => {
     const c = document.getElementById('view');
+    // render and read in the same task, or the drawing buffer is already cleared
+    __sf.view.renderer.render(__sf.view.scene, __sf.view.camera);
     const g = document.createElement('canvas'); g.width = 64; g.height = 40;
     const x = g.getContext('2d'); x.drawImage(c, 0, 0, 64, 40);
     const d = x.getImageData(0, 0, 64, 40).data, seen = new Set();

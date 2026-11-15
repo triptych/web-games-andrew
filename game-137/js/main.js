@@ -40,7 +40,7 @@ let bot = null, pendingPick = null, wasRunning = false;
 const seen = {};
 
 // ------------------------------------------------------------------ helpers
-function save() { if (G) saveGame(G); }
+function save() { return G ? saveGame(G) : false; }
 function refreshTitle() { document.getElementById('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
@@ -101,7 +101,7 @@ function toMission() {
 function toDebrief() {
     mode = 'debrief';
     ui.showHud(false);
-    ui.speedlines(false);
+    ui.clearOverlays();
     view.setMode('off');
     setBodyHangar(true);
     audio.playMusic('hangar');
