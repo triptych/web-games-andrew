@@ -97,7 +97,7 @@ for (let i = 1; i < tv.n; i++) {
     await page.waitForTimeout(800);
     await shot(shotName(i, tv.names[i]));
     console.log(`      ch ${i + 2}: ${tv.names[i]} · ${live ? 'live' : 'no signal'}`);
-    if (/Arcade|Works/.test(tv.names[i])) check(!live, `${tv.names[i]} has no signal before it is found`);
+    if (/Arcade|Works|Foundry/.test(tv.names[i])) check(!live, `${tv.names[i]} has no signal before it is found`);
     else check(live, `${tv.names[i]} is live`);
 }
 check(errors.length === 0, 'every channel draws without errors' + (errors.length ? ':\n' + errors.join('\n') : ''));
