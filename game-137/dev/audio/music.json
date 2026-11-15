@@ -1,0 +1,7 @@
+{
+ "title": { "seconds": 50, "prompt": "High-energy early-1990s Japanese anime TV opening theme, instrumental: driving J-rock with bright overdriven electric guitars, slap bass, punchy live drums, soaring synth brass and string stabs, heroic hopeful major-key melody carried by the lead guitar, 160 bpm, ends so it can loop" },
+ "hangar": { "seconds": 60, "prompt": "Relaxed 1990s anime slice-of-life background music aboard an airship hangar: mellow city-pop funk instrumental with electric piano, clean funky guitar, warm fretless bass, light drum machine and a saxophone hook, 98 bpm, unobtrusive under talking, ends so it can loop" },
+ "battle1": { "seconds": 60, "prompt": "Intense 1990s mecha anime battle music, instrumental: fast hard rock with chugging distorted guitars, synth lead arpeggios, orchestral hits and pounding drums, an urgent heroic minor-key theme, 170 bpm, ends so it can loop" },
+ "battle2": { "seconds": 60, "prompt": "Driving 1990s anime robot action background music, instrumental: synth-rock with galloping bass, electric guitar riffs, analog synth brass fanfares and tight drums, determined and exciting, 150 bpm, ends so it can loop" },
+ "boss": { "seconds": 60, "prompt": "Dramatic 1990s anime giant monster boss battle music, instrumental: heavy orchestral rock with choir pads, timpani, pipe organ stabs, distorted guitars and a menacing low brass theme, 140 bpm, epic and desperate, ends so it can loop" }
+}
