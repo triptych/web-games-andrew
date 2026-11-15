@@ -131,9 +131,10 @@ Final table (4 seeds each; `node game-137/dev/simtest.mjs`):
 | | skill 1 | skill 0.4 |
 |---|---|---|
 | Campaign finished | 4/4 | 4/4 |
-| Sorties for 12 missions | 49 | 61 |
-| Median lowest HP+shield in a won sortie | 68–91% | 28–83% |
-| Rust Centipede (m8) | 4 wins / 5 tries | 4 / 12 |
+| Sorties for 12 missions | 49 | 56 |
+| Median lowest HP+shield in a won sortie | 50–90% | 26–77% |
+| Rust Centipede (m8) | 4 wins / 5 tries | 4 / 6 |
+| Hive Breaker (m2) | 4 / 4 | 4 / 7 |
 
 Asserted bands: the perfect bot finishes on every seed in ≤ 18 sorties per campaign; the sloppy one needs more sorties; the first three sorties are won first time; the bosses beat the sloppy bot at least once; sortie 1 lasts ≥ 30 s and sortie 9 ≥ 120 s.
 
