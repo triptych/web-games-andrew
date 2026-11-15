@@ -96,8 +96,8 @@ function decide(R, bot) {
     if (boss) {
         const dx = M.x - boss.x, dy = M.y - boss.y, d = Math.hypot(dx, dy) || 1;
         if (boss.st === 'wind' || boss.st === 'act') {
-            if (boss.act === 'stomp' && d < 6) { rx += dx / d * 3; ry += dy / d * 3; }
-            if (boss.act === 'charge') { const px = -Math.sin(boss.dir), py = Math.cos(boss.dir); const side = px * dx + py * dy >= 0 ? 1 : -1; rx += px * side * 3 * skill; ry += py * side * 3 * skill; }
+            if (boss.act === 'stomp' && d < 6.5 && bot.rng() < 0.2 + 0.8 * skill) { rx += dx / d * 3.5; ry += dy / d * 3.5; }
+            if (boss.act === 'charge') { const px = -Math.sin(boss.dir), py = Math.cos(boss.dir); const side = px * dx + py * dy >= 0 ? 1 : -1; rx += px * side * 4 * skill; ry += py * side * 4 * skill; }
         }
         if (d < boss.r + 4) { rx += dx / d * 2.5; ry += dy / d * 2.5; }
     }
@@ -130,7 +130,7 @@ function decide(R, bot) {
     let near = 0;
     const r2 = M.magnet * M.magnet;
     for (const v of R.voxels) if (COLLECTIBLE[COLORS[v.c]] && (v.x - M.x) ** 2 + (v.y - M.y) ** 2 < r2) near++;
-    const mag = skill > 0.3 && near >= 4 && closest > 2.2 && !(boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 7);
+    const mag = skill > 0.6 && near >= 4 && closest > 2.2 && !(boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 7);
     // ---- overdrive: in a crowd, or near the boss
     const od = M.od >= 1 && (crowd >= 6 || (boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 9) || (skill < 0.5 && bot.rng() < 0.02));
     return { x, y, mag, od, pick: null };
@@ -138,6 +138,7 @@ function decide(R, bot) {
 
 /** The next place to go, as target cells for the path field plus a stand-off distance. */
 function pickGoal(R, bot, M, crowd) {
+    const skill = bot.skill;
     const ring = (cx, cy, r) => {
         const out = [];
         for (let y = -r; y <= r; y++) for (let x = -r; x <= r; x++) if (Math.max(Math.abs(x), Math.abs(y)) === r) out.push({ x: cx + x, y: cy + y });
@@ -156,7 +157,7 @@ function pickGoal(R, bot, M, crowd) {
         }
         if (todo.kind === 'boss') {
             const b = R.enemies.find((e) => e.boss);
-            if (b) obj = { x: b.x, y: b.y, cells: ring(cellOf(b.x), cellOf(b.y), 6), stand: 7.5 };
+            if (b) obj = { x: b.x, y: b.y, cells: ring(cellOf(b.x), cellOf(b.y), 7), stand: 6 + 3 * skill };
         }
     }
     const objD = obj ? Math.hypot(obj.x - M.x, obj.y - M.y) : 99;

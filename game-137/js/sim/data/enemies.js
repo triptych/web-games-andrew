@@ -3,16 +3,16 @@
 
 export const ENEMIES = {
     mite: {
-        name: 'Mite', hp: 12, speed: 4.3, r: 0.38, touch: 6, drops: 3,
+        name: 'Mite', hp: 12, speed: 4.4, r: 0.38, touch: 8, drops: 3,
         mix: { red: 7, gold: 0.5, blue: 0.8, green: 0.3 }, color: 0xff4f7a,
     },
     brute: {
-        name: 'Brute', hp: 70, speed: 2.3, r: 0.85, touch: 15, drops: 10, chew: 3,
+        name: 'Brute', hp: 70, speed: 2.4, r: 0.85, touch: 18, drops: 10, chew: 3,
         mix: { red: 5, gold: 2, blue: 1.5, green: 1 }, color: 0x7a5cff,
     },
     spitter: {
         name: 'Spitter', hp: 26, speed: 2.9, r: 0.5, touch: 5, drops: 5, keep: 6.5,
-        shot: { rate: 0.5, dmg: 9, speed: 8, life: 2.6 },
+        shot: { rate: 0.55, dmg: 11, speed: 8.5, life: 2.6 },
         mix: { red: 5, gold: 1, blue: 2, green: 0.5 }, color: 0x2bd6a0,
     },
     boomer: {
@@ -43,7 +43,7 @@ export const BOSSES = {
 export const BOSS_ATTACK = {
     ring: { shots: 18, dmg: 10, speed: 7.5, life: 3.2, wind: 0.6 },
     spiral: { shots: 30, dmg: 9, speed: 7, life: 3.5, wind: 0.5, over: 1.5 },
-    charge: { speed: 3.2, time: 1.1, wind: 0.8 },
+    charge: { speed: 2.8, time: 1.1, wind: 0.9 },
     stomp: { radius: 4.2, dmg: 22, wind: 1.0, terrain: 8 },
     summon: { count: 6, kind: 'mite', wind: 0.6 },
 };
