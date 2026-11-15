@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **SHARDFRAME** (game-137) v1.0.0: a 1990s-anime voxel bullet heaven in three.js r165 with the sim/view layout ([game-plan.md](game-137/game-plan.md)).
+  - **Systems** ([js/sim/](game-137/js/sim/)): a 48×48 voxel battlefield with breakable layers, generated per sortie and proved reachable ([world.js](game-137/js/sim/world.js)); physics voxels that fly, bounce, settle and stack, power-ups when collected and temporary walls when left ([voxels.js](game-137/js/sim/voxels.js)); a flow field that makes monsters go round piles or chew through them; auto-firing weapons, homing rockets, a piercing laser, a lobbed mortar, saw drones and stomps ([combat.js](game-137/js/sim/combat.js)); four Cubeborn, hives and three kaiju ([enemies.js](game-137/js/sim/enemies.js)); level-up cards, Overdrive, rescue/hive/survive/boss objectives and evac ([run.js](game-137/js/sim/run.js)); twelve parts in five slots and twelve rescuable crew whose gifts accrue on a real-time clock that reaches the sim only as a command ([hangar.js](game-137/js/sim/hangar.js)); a skill-dial bot and a hangar bot ([bot.js](game-137/js/sim/bot.js)).
+  - **The look** ([view.js](game-137/js/view/view.js), [models.js](game-137/js/view/models.js)): cel shading with a three-step ramp and ink outlines (inverted hulls) on every voxel, monster, kaiju and part of the mech; instanced terrain, voxels and monsters; white-frame impact flashes; an Overdrive cut-in and speed lines; a hangar turntable over the painted hangar.
+  - **The opening cinematic** ([cinematic.js](game-137/js/cinematic.js)): six painted shots with camera moves, cuts, letterbox bars and subtitles, narrated over the opening theme; Skip, Esc, or Enter/tap for the next shot.
+  - **Art and sound**: title, hangar, ending, three sectors, the pilot, the commander, twelve crew portraits and six cinematic shots by fal ([dev/art/](game-137/dev/art/)); five tunes, 26 effects and 17 voice lines by ElevenLabs ([dev/audio/](game-137/dev/audio/)), with a Web Audio synth fallback.
+  - **Tests**: [simtest.mjs](game-137/dev/simtest.mjs) (purity, data, every rule, the crew clock, 720 maps, determinism, a mid-sortie save round trip, the whole campaign by bot at two skills with asserted bands) and [browsertest.mjs](game-137/dev/browsertest.mjs) (desktop by real keys, two touch-only phones, blocked storage).
+- Launcher: SHARDFRAME in [js/gamedata.js](js/gamedata.js) (genre `arcade`) with its card style, preview picture, icons and install manifest.
+- Docs: [docs/generic/learnings.md § Game 137](docs/generic/learnings.md).
+
 ### Fixed
 - **Pinch & Place** (game-136) v1.0.1: on the Clay Bench, a medium or large rug showed no preview, just the empty turntable (reported by the owner). The turntable grew with the thing on it in all three directions, so for a 3-tile rug its top rose about 9 cm and buried the 4 cm rug (and the feet of big beds and sofas). It now grows sideways only and its top stays just under the floor ([bench.js](game-136/js/view/bench.js)). The browser test now puts every floor thing at every size on the bench and checks it stands above the turntable.
 

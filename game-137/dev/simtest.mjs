@@ -367,6 +367,7 @@ if (want('determinism')) {
     const G = Gm.newGame(7), bot = Bt.makeBot({ seed: 7 });
     G.unlocked = 7;
     Gm.act(G, { t: 'launch', mission: 7 });
+    G.run.mech.inv = 1e9;             // the starter mech must still be standing at 20 s
     run(G, (g) => Bt.botInput(g, bot), 20);
     ok(G.mode === 'mission' && G.run.voxels.length > 0 && G.run.enemies.length > 0, 'mid-sortie with monsters and voxels in the air');
     const copy = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));

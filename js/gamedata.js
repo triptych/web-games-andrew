@@ -2108,6 +2108,23 @@ const games = [
             { emoji: '⭐', label: 'Rated rooms' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-137',
+        title: 'SHARDFRAME',
+        description: "A 1990s-anime voxel bullet heaven in three.js. Pilot Shardframe Unit-07, a sunset-orange walking mech, off the flying carrier Skylark against the Cubeborn, monsters made of glowing cubes. Your guns fire on their own; you move, hold the MAGNET and fire OVERDRIVE (with a cut-in, speed lines and all). Everything you destroy bursts into physics voxels that fly, bounce and stack: red for XP, blue for shield, green for repairs, gold for credits. Pull them in, or leave them lying as temporary walls that monsters and their spit can't pass (yours can) until they fade or get chewed through. The ground is voxels too: rockets, lasers and stomps break rock into rubble cover. Twelve sorties across the Glass Prairie, the Rust Canyons and a Neon Megalopolis: free caged civilians, burn down hives, hold out for the lift, and beat three kaiju. Level up mid-sortie with 13 cards; between sorties, refit the mech with 12 parts in five slots (Vulcan, Scatter, Lance Laser; rockets, mortar, saw drones; plating, barrier, reactor; three kinds of legs). The twelve people you rescue move aboard and, in real time even while the game is closed, leave you gifts: credits, bentos, charms, tune-ups. A narrated opening cinematic (skippable), fal-painted cel art and portraits, ElevenLabs music, effects and voices. Keyboard, gamepad or touch.",
+        icon: '🤖',
+        folder: 'game-137',
+        version: '1.0.0',
+        cssClass: 'shardframe',
+        genre: 'arcade',
+        tags: [
+            { emoji: '🤖', label: 'Mecha' },
+            { emoji: '🧊', label: 'Voxels' },
+            { emoji: '📼', label: '90s anime' },
+            { emoji: '🎁', label: 'Idle crew' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

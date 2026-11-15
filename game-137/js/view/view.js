@@ -505,8 +505,10 @@ export class View {
 
         // ---- camera
         const ease = 1 - Math.exp(-dt * 5);
-        this.focus.x += (M.x - this.focus.x) * ease;
-        this.focus.z += (M.y - this.focus.z) * ease;
+        // follow the mech, but don't show more of the void past the map's edge than needed
+        const cx = Math.max(7, Math.min(MAP.w - 7, M.x)), cz = Math.max(5, Math.min(MAP.h - 8, M.y));
+        this.focus.x += (cx - this.focus.x) * ease;
+        this.focus.z += (cz - this.focus.z) * ease;
         this.shake = Math.max(0, this.shake - dt * 2.5);
         const sx = (Math.random() - 0.5) * this.shake * 0.6, sy = (Math.random() - 0.5) * this.shake * 0.6;
         const pitch = 0.95;
