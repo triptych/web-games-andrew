@@ -1690,6 +1690,17 @@ h1 {
     box-shadow: 0 0 14px rgba(242, 138, 58, 0.6);
 }
 
+.game-preview.shardframe,
+.carousel-slide-bg.shardframe {
+    background: repeating-conic-gradient(from 0deg at 70% 55%, rgba(255, 255, 255, 0.12) 0deg 2deg, transparent 2deg 12deg), radial-gradient(circle at 70% 55%, #ffd23b 0%, #ff7a1a 22%, #ff3df0 48%, #6b4fd8 72%, #1a1030 100%);
+}
+
+.game-card.shardframe .play-button {
+    background: linear-gradient(135deg, #ff7a1a, #ff3060, #2ff0d0);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(255, 122, 26, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
