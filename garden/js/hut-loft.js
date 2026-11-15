@@ -18,8 +18,27 @@ import { rng, TAU, clamp, smoothstep, damp } from './util.js';
 
 export const KNEE = 1.7, RIDGE = 3.5;      // loft knee walls and ridge, above the loft floor
 
-/** The stair: along the right-hand wall, rising from the front (zBot) to the back (zTop). */
-export const STAIR = { x0: 2.28, x1: 3.14, zBot: 2.95, zTop: -0.4, n: 14 };
+/**
+ * The stair, in three parts: two steps up from the room toward the right-hand wall, a landing in
+ * the front corner where it turns, and the main flight up the wall from the landing (zL) to the
+ * back (zTop). Fourteen risers in all, three of them to the landing.
+ */
+export const STAIR = { x0: 2.28, x1: 3.14, zBot: 2.95, zTop: -0.4, n: 14, zL: 2.09, landing: 3, xB: 1.62 };
+
+/** Can you stand on the stair at (x, z)? `zMax` is the front wall less your width. */
+export function onStair(x, z, zMax) {
+    const S = STAIR;
+    if (x > S.x0 + 0.02 && x < S.x1 - 0.22) return z > S.zTop - 0.1 && z < zMax;   // the landing and the main flight
+    return x > S.xB && x <= S.x0 + 0.02 && z > S.zL + 0.05 && z < zMax;          // the two bottom steps
+}
+
+/** The height of the stair underfoot at (x, z), climbing smoothly from 0 to the loft floor F. */
+export function stairHeight(x, z, F) {
+    const S = STAIR, hl = (F / S.n) * S.landing;
+    if (x <= S.x0 + 0.02) return hl * clamp((x - S.xB) / (S.x0 - S.xB), 0, 1);
+    if (z >= S.zL) return hl;
+    return hl + (F - hl) * clamp((S.zL - z) / (S.zL - S.zTop), 0, 1);
+}
 /** The hole in the floor the stair climbs through. */
 export const HOLE = { x0: 2.2, z0: -0.45, z1: 1.9 };
 
@@ -332,12 +351,18 @@ export class Loft {
     /** Fourteen steps up the right-hand wall, a banister, and the rail round the hole above. */
     _stair(b) {
         const S = STAIR, { F } = this.d;
-        const rise = F / S.n, tread = (S.zBot - S.zTop) / S.n, w = S.x1 - S.x0, cx = (S.x0 + S.x1) / 2;
-        for (let k = 0; k < S.n; k++) {
-            const top = (k + 1) * rise, z = S.zBot - (k + 0.5) * tread;
-            this._box(b, 'darkWood', w, top, tread, cx, top / 2, z);
-            this._box(b, 'wood', w + 0.04, 0.035, tread + 0.03, cx - 0.02, top - 0.0175, z + 0.01);
-        }
+        const rise = F / S.n, w = S.x1 - S.x0, cx = (S.x0 + S.x1) / 2;
+        const nMain = S.n - S.landing, tread = (S.zL - S.zTop) / nMain, hl = rise * S.landing;
+        const step = (top, sx, sz, x, z) => {
+            this._box(b, 'darkWood', sx, top, sz, x, top / 2, z);
+            this._box(b, 'wood', sx + 0.03, 0.035, sz + 0.03, x, top - 0.0175, z);
+        };
+        // two steps up from the room, toward the wall, and the landing in the corner
+        const tb = (S.x0 - S.xB - 0.1) / (S.landing - 1);
+        for (let k = 0; k < S.landing - 1; k++) step((k + 1) * rise, tb, S.zBot - S.zL, S.x0 - (S.landing - 1 - k - 0.5) * tb, (S.zBot + S.zL) / 2);
+        step(hl, w, S.zBot - S.zL, cx, (S.zBot + S.zL) / 2);
+        // the main flight, up the wall from the landing
+        for (let k = 0; k < nMain; k++) step(hl + (k + 1) * rise, w, tread, cx, S.zL - (k + 0.5) * tread);
         // a little cupboard door under the high end of the stair, on the room side
         const cz = 0.55, ch = 1.15;
         this._box(b, 'wood', 0.03, ch, 0.62, S.x0 - 0.01, ch / 2 + 0.06, cz);
@@ -345,19 +370,27 @@ export class Loft {
         this._box(b, 'darkWood', 0.045, ch + 0.05, 0.05, S.x0 - 0.02, ch / 2 + 0.06, cz - 0.33);
         this._box(b, 'darkWood', 0.045, ch + 0.05, 0.05, S.x0 - 0.02, ch / 2 + 0.06, cz + 0.33);
         b.add('brass', new THREE.SphereGeometry(0.025, 8, 6), xf(S.x0 - 0.05, 0.62, cz - 0.2));
-        // the banister: a newel post, a baluster on every step, a rail that climbs with the stair
-        const hAt = (z) => F * clamp((S.zBot - z) / (S.zBot - S.zTop), 0, 1);
-        const zNewel = 2.05, bx = S.x0 + 0.03;
-        const newelBase = Math.ceil((S.zBot - zNewel) / tread) * rise;
-        this._box(b, 'darkWood', 0.09, 1.0, 0.09, bx, newelBase + 0.5, zNewel);
-        b.add('darkWood', new THREE.SphereGeometry(0.06, 10, 8), xf(bx, newelBase + 1.04, zNewel));
-        for (let k = 0; k < S.n; k++) {
-            const z = S.zBot - (k + 0.5) * tread;
-            if (z > zNewel - 0.05) continue;
-            const top = (k + 1) * rise, railY = hAt(z) + 0.92;
+        // the banister: a newel post at the turn, a baluster on every step, a rail that climbs with the flight
+        const zNewel = S.zL - 0.04, bx = S.x0 + 0.03;
+        this._box(b, 'darkWood', 0.09, 1.0, 0.09, bx, hl + 0.5, zNewel);
+        b.add('darkWood', new THREE.SphereGeometry(0.06, 10, 8), xf(bx, hl + 1.04, zNewel));
+        for (let k = 0; k < nMain; k++) {
+            const z = S.zL - (k + 0.5) * tread;
+            const top = hl + (k + 1) * rise, railY = stairHeight(cx, z, F) + 0.92;
             this._box(b, 'darkWood', 0.03, railY - top, 0.03, bx, (railY + top) / 2, z);
         }
-        const r0 = new THREE.Vector3(bx, newelBase + 0.95, zNewel), r1 = new THREE.Vector3(bx, F + 0.92, S.zTop);
+        // and a newel at the foot of the bottom steps, with a short rail up to the turn
+        const fx = S.xB + 0.1, fz = S.zL + 0.03;
+        this._box(b, 'darkWood', 0.1, 1.0, 0.1, fx, 0.5, fz);
+        b.add('darkWood', new THREE.SphereGeometry(0.065, 10, 8), xf(fx, 1.04, fz));
+        const f0 = new THREE.Vector3(fx, 0.95, fz), f1 = new THREE.Vector3(bx, hl + 0.95, fz);
+        b.add('darkWood', new THREE.BoxGeometry(f0.distanceTo(f1), 0.05, 0.07), xf((f0.x + f1.x) / 2, (f0.y + f1.y) / 2, fz, 0, 1, 1, 1, 0, Math.atan2(f1.y - f0.y, f1.x - f0.x)));
+        for (let k = 0; k < S.landing - 1; k++) {
+            const x = S.x0 - (S.landing - 1 - k - 0.5) * tb, top = (k + 1) * rise;
+            const railY = 0.95 + ((x - fx) / (bx - fx)) * hl;
+            this._box(b, 'darkWood', 0.03, railY - top, 0.03, x, (railY + top) / 2, fz);
+        }
+        const r0 = new THREE.Vector3(bx, hl + 0.95, zNewel), r1 = new THREE.Vector3(bx, F + 0.92, S.zTop);
         const len = r0.distanceTo(r1), ang = Math.atan2(r1.y - r0.y, r0.z - r1.z);
         b.add('darkWood', new THREE.BoxGeometry(0.07, 0.05, len), xf(bx, (r0.y + r1.y) / 2, (r0.z + r1.z) / 2, 0, 1, 1, 1, ang, 0));
         // upstairs: a rail along the hole's open side and its front edge
@@ -373,12 +406,17 @@ export class Loft {
         this._box(b, 'darkWood', 0.1, 0.12, HOLE.z1 - HOLE.z0, HOLE.x0 - 0.05, this.d.CEIL - 0.04, (HOLE.z0 + HOLE.z1) / 2);
         this._box(b, 'darkWood', this.d.R_X - HOLE.x0, 0.12, 0.1, (HOLE.x0 + this.d.R_X) / 2, this.d.CEIL - 0.04, HOLE.z0 - 0.05);
         this._box(b, 'darkWood', this.d.R_X - HOLE.x0, 0.12, 0.1, (HOLE.x0 + this.d.R_X) / 2, this.d.CEIL - 0.04, HOLE.z1 + 0.05);
-        // something to click to go up or down: the whole flight
-        const hit = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, F + 0.4, S.zBot - S.zTop), new THREE.MeshBasicMaterial({ visible: false }));
+        // something to click to go up or down: the flight and landing, and the bottom steps
+        const hitMat = new THREE.MeshBasicMaterial({ visible: false });
+        const hit = new THREE.Mesh(new THREE.BoxGeometry(w + 0.1, F + 0.4, S.zBot - S.zTop), hitMat);
         hit.position.set(cx, F / 2, (S.zBot + S.zTop) / 2);
-        hit.userData.kind = 'stairs';
-        this.stairHit = hit;
-        this.scene.add(hit);
+        const foot = new THREE.Mesh(new THREE.BoxGeometry(S.x0 - S.xB, hl + 0.1, S.zBot - S.zL), hitMat);
+        foot.position.set((S.x0 + S.xB) / 2, hl / 2, (S.zBot + S.zL) / 2);
+        for (const m of [hit, foot]) {
+            m.userData.kind = 'stairs';
+            this.scene.add(m);
+        }
+        this.stairHits = [hit, foot];
     }
 
     /** The loft's walls and roof: knee walls, two gables, sloping boards on rafters and a ridge beam. */

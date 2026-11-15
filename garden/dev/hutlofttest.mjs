@@ -90,7 +90,7 @@ const name0 = await G('g.hut.loft.glass.name');
 check(/^The \w+ \w+$/.test(name0), `the window has a design: ${name0}`);
 
 // the stair from the room
-await stand(0.4, 1.6, 2.7, 1.4, 0.6);
+await stand(-0.2, 0.6, 2.4, 1.0, 1.9);
 await frames(6);
 await shot('1-stair');
 const sp = await project(2.7, 0.8, 1.6);

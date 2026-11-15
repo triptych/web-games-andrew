@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Garden of Games** v1.20.2: the Hut's stair ran straight into the front wall, so the only way on was to step up sideways (reported by the owner). It now starts with two steps coming out of the front corner toward the room by the door, up to a landing where it turns and climbs the wall; a newel post and a short rail stand at the foot, and the banister starts at the turn. The walking height follows the steps, the landing and the flight, and clicking the stair walks you round the turn ([hut-loft.js](garden/js/hut-loft.js), [hut.js](garden/js/hut.js)).
 - **Garden of Games** v1.20.1: the old computer in the Hut's loft showed the island from underneath (reported by the owner). The survey's pitch was rotated the wrong way, so far ground sank down the screen and hills leaned away; it now looks down from above, with near ground at the foot of the screen and hills rising toward you, on the full-screen survey and the little screen on the desk alike ([hut-computer.js](garden/js/hut-computer.js)).
 
 ### Added

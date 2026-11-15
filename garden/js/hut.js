@@ -19,7 +19,7 @@ import { signMesh, signTexture } from './architecture.js';
 import { glowSprite } from './textures.js';
 import { HutTV } from './hut-tv.js';
 import { HutConsole } from './hut-console.js';
-import { Loft, STAIR, HOLE } from './hut-loft.js';
+import { Loft, STAIR, HOLE, onStair, stairHeight } from './hut-loft.js';
 import { stainedGlass } from './stained-glass.js';
 import { PLAZA_R, PATH_HALF } from './layout.js';
 import { rng, TAU } from './util.js';
@@ -211,8 +211,8 @@ export function buildHutExterior(world) {
 const R_X = 3.2, R_Z = 3.0, CEIL = 3.0;   // room half-extents and ceiling height
 const F2 = CEIL + 0.1;                     // the loft floor
 /** On the stair's flight (where you can stand on it), and how high its steps are there. */
-const inStair = (x, z) => x > STAIR.x0 + 0.02 && x < STAIR.x1 - 0.22 && z > STAIR.zTop - 0.1 && z < R_Z - 0.35;
-const stairY = (z) => F2 * THREE.MathUtils.clamp((STAIR.zBot - z) / (STAIR.zBot - STAIR.zTop), 0, 1);
+const inStair = (x, z) => onStair(x, z, R_Z - 0.35);
+const stairY = (x, z) => stairHeight(x, z, F2);
 const DESK = { x: 0, z: -2.1, w: 2.0, d: 0.8, h: 0.78 };
 
 /** A swirl of colour on a sphere: the little galaxy waiting in the glass. */
@@ -344,7 +344,7 @@ export class Hut {
     /** Can you stand at (x, z) on the floor you are on? The stair belongs to both. */
     walkable(x, z, level = this.level) {
         // the stair is floor near your own level only, so you can't step off the loft onto its middle
-        if (inStair(x, z)) return level ? stairY(z) > F2 / 2 - 0.6 : stairY(z) < F2 / 2 + 0.6;
+        if (inStair(x, z)) return level ? stairY(x, z) > F2 / 2 - 0.6 : stairY(x, z) < F2 / 2 + 0.6;
         if (Math.abs(x) >= R_X - 0.35 || Math.abs(z) >= R_Z - 0.35) return false;
         // upstairs, the hole the stair comes up through
         return !(level === 1 && x > HOLE.x0 && z > HOLE.z0 && z < HOLE.z1 + 0.4);
@@ -352,7 +352,7 @@ export class Hut {
 
     /** The height of the floor (or the step) at (x, z). */
     heightAt(x, z) {
-        if (inStair(x, z)) return stairY(z);
+        if (inStair(x, z)) return stairY(x, z);
         return this.level ? F2 : 0;
     }
 
@@ -363,15 +363,16 @@ export class Hut {
 
     /** The stair's two ends, for walking up or down it when it is clicked. */
     stairRoute() {
-        const cx = (STAIR.x0 + STAIR.x1) / 2 - 0.1;
-        const bottom = { x: cx, z: R_Z - 0.45 }, top = { x: cx, z: STAIR.zTop - 0.3 };
-        return this.level ? [{ x: 1.6, z: -0.9 }, top, { x: cx, z: 0.5 }, bottom, { x: 1.4, z: 2.2 }] : [{ x: 1.7, z: 2.3 }, bottom, { x: cx, z: 0.5 }, top, { x: 1.4, z: -0.9 }];
+        const cx = (STAIR.x0 + STAIR.x1) / 2 - 0.1, lz = (STAIR.zL + R_Z - 0.35) / 2;
+        // in front of the bottom steps, up them onto the landing, turn, and up the flight (or the other way)
+        const foot = { x: STAIR.xB - 0.35, z: lz }, landing = { x: cx, z: lz }, mid = { x: cx, z: 0.5 }, top = { x: cx, z: STAIR.zTop - 0.3 };
+        return this.level ? [{ x: 1.6, z: -0.9 }, top, mid, landing, foot, { x: 0.9, z: 1.8 }] : [foot, landing, mid, top, { x: 1.4, z: -0.9 }];
     }
 
     /** What the ray points at: something to click, a door, or the floor. */
     pick(ray) {
         const L = this.level;
-        const list = L ? [...this.loft.pickables, this.loft.stairHit] : [this.orbHit, this.ticketHit, this.papersHit, ...this.handheld.pickables, this.doorMesh, ...(this.tv?.pickables ?? []), this.loft.stairHit];
+        const list = L ? [...this.loft.pickables, ...this.loft.stairHits] : [this.orbHit, this.ticketHit, this.papersHit, ...this.handheld.pickables, this.doorMesh, ...(this.tv?.pickables ?? []), ...this.loft.stairHits];
         const hit = ray.intersectObjects(list, false)[0];
         if (hit && hit.distance < 40) return { type: { orb: 'orb', ticket: 'ticket', tv: 'tv', papers: 'papers', console: 'console', stairs: 'stairs', bed: 'bed', computer: 'computer', flute: 'flute', cat: 'cat', window: 'window' }[hit.object.userData.kind] ?? 'door', t: hit.distance };
         const o = ray.ray.origin, d = ray.ray.direction;
@@ -757,10 +758,10 @@ export class Hut {
         if (!p) return;
         if (inStair(p.x, p.z)) {
             const was = this.level;
-            this.level = stairY(p.z) > F2 / 2 ? 1 : 0;
+            this.level = stairY(p.x, p.z) > F2 / 2 ? 1 : 0;
             if (was !== this.level) this.onLevel?.(this.level);
         }
-        this.up = inStair(p.x, p.z) ? stairY(p.z) / F2 : this.level;
+        this.up = inStair(p.x, p.z) ? stairY(p.x, p.z) / F2 : this.level;
     }
 
     /** `away` is true while the room isn't on screen (falling through the sphere). */
