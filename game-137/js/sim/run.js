@@ -1,14 +1,14 @@
 // One sortie: the mech on the battlefield until the objectives are done or it goes down.
 // Pure.
 
-import { MECH, RESCUE, EVAC, FLOW_EVERY, FINISH_DELAY, LOSS_KEEP, OVERDRIVE, COLORS, VOXEL } from '../config.js';
+import { MECH, RESCUE, EVAC, FLOW_EVERY, FINISH_DELAY, LOSS_KEEP, OVERDRIVE, COLORS, VOXEL, SHARD_BEAM } from '../config.js';
 import { missionById, LAST_MISSION } from './data/missions.js';
 import { UPGRADES } from './data/upgrades.js';
 import { HIVE } from './data/enemies.js';
 import { BOOSTS } from './data/crew.js';
 import { generate, buildFlow, collide, solid, idx, cellOf, inMap } from './world.js';
 import { stepVoxels } from './voxels.js';
-import { buildHash, fireWeapons, stepShots } from './combat.js';
+import { buildHash, fireWeapons, stepShots, setFocus, focusTarget, fireShardBeam, stepShardBeam } from './combat.js';
 import { spawning, stepEnemies, spawnBoss, spawnEnemy } from './enemies.js';
 import { buildMech, joinCrew, xpFor } from './hangar.js';
 
@@ -45,13 +45,14 @@ export function startRun(G, id) {
         cages: L.cages.map((c, k) => ({ crew: known.has(crew[k]) ? 'civ' : crew[k], x: c.x, y: c.y, prog: 0, freed: false })),
         objectives: m.objectives.map((o) => ({ ...o, done: false })),
         boss: null, bossDown: false, choice: null, pending: 0, mods, boosts,
-        evac: null, over: null, overT: 0, gold: 0, kills: 0, collected: { red: 0, blue: 0, green: 0, gold: 0 }, rescued: [],
+        focus: null, evac: null, over: null, overT: 0, gold: 0, kills: 0, collected: { red: 0, blue: 0, green: 0, gold: 0 }, rescued: [],
     };
     attach(G, R);
     const b = buildMech(G, mods, boosts);
     R.mech = {
         ...b, x: L.spawn.x, y: L.spawn.y, vx: 0, vy: 0, face: -Math.PI / 2, aim: -Math.PI / 2,
         hp: b.maxHp, shield: b.maxShield, shieldT: 0, inv: 1.5, od: boosts.cheer ? 1 : 0, odT: 0,
+        beam: 0, beamCd: 0, beamT: 0, beamA: 0, beamTick: 0, beamLen: 0,
         lvl: boosts.tuneup ? 2 : 1, xp: 0, xpNext: xpFor(boosts.tuneup ? 2 : 1), taken: 0, wading: false, magnet: b.magnet,
     };
     buildFlow(R.W, R.mech.x, R.mech.y);
@@ -92,7 +93,7 @@ export function applyUpgrade(G, R, key) {
 }
 
 // ------------------------------------------------------------------ the step
-/** inp = { x, y, mag, od, pick }: move, MAGNET held, OVERDRIVE pressed, a level-up card (0-2). */
+/** inp = { x, y, mag, od, beam, tap, pick }: move, MAGNET held, OVERDRIVE and SHARD BEAM pressed, a tap on the field ({ x, y } in cells) to focus fire, a level-up card (0-2). */
 export function stepRun(G, inp, dt) {
     const R = G.run, M = R.mech;
     if (R.over) {
@@ -124,6 +125,8 @@ export function stepRun(G, inp, dt) {
     M.magnetOn = mag;
     if (inp.od && M.od >= 1 && M.odT <= 0) { M.od = 0; M.odT = OVERDRIVE.time; R.events.push({ type: 'overdrive' }); }
     M.odT = Math.max(0, M.odT - dt);
+    if (inp.tap) setFocus(R, inp.tap.x, inp.tap.y);
+    if (inp.beam) fireShardBeam(R);
     M.inv = Math.max(0, M.inv - dt);
     M.shieldT = Math.max(0, M.shieldT - dt);
     if (M.shieldT <= 0 && M.shield < M.maxShield) M.shield = Math.min(M.maxShield, M.shield + M.shieldRegen * dt);
@@ -138,7 +141,9 @@ export function stepRun(G, inp, dt) {
     spawning(R, dt);
     stepEnemies(R, dt);
     buildHash(R);
+    focusTarget(R);                       // a dead focus lets go here, before anything aims
     fireWeapons(R, dt, mag);
+    stepShardBeam(R, dt);
     stepShots(R, dt);
     stepVoxels(R, dt, M, mag, (c) => collect(R, c));
 
@@ -186,6 +191,7 @@ function offer(R) {
 function collect(R, c) {
     const M = R.mech, name = COLORS[c];
     R.collected[name]++;
+    if (M.beamT <= 0) M.beam = Math.min(1, M.beam + SHARD_BEAM.perVoxel);
     if (name === 'red') M.xp += VOXEL.red;
     else if (name === 'blue') { if (M.maxShield > 0) M.shield = Math.min(M.maxShield, M.shield + VOXEL.blue); else M.hp = Math.min(M.maxHp, M.hp + 2); }
     else if (name === 'green') M.hp = Math.min(M.maxHp, M.hp + VOXEL.green);

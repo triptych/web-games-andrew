@@ -289,6 +289,48 @@ if (want('rules')) {
     Gm.act(G, { t: 'launch', mission: 1 });
     ok(Gm.act(G, { t: 'abort' }) && G.mode === 'debrief' && !G.debrief.win, 'giving up ends the sortie');
 
+    section('rules: Shard Beam and tap-to-focus');
+    G = blank(); R = G.run;
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT === 0 && !G.events.some((e) => e.type === 'shard_beam'), 'an uncharged Shard Beam does not fire');
+    const need = Math.ceil(1 / C.SHARD_BEAM.perVoxel);
+    Vx.burst(R, 24.5, 24.5, 0.2, need - 1, Vx.C.gold, 0.01);   // gold: red would level up and pause the field
+    run(G, NONE, 1);
+    ok(R.mech.beam < 1 && R.mech.beam > 0.9, `collecting voxels charges it (${need - 1} of ${need})`);
+    Vx.burst(R, 24.5, 24.5, 0.2, 1, Vx.C.blue, 0.01);
+    run(G, NONE, 0.5);
+    ok(R.mech.beam === 1, 'one more voxel of any colour fills it');
+    R.mech.weapons = [];
+    const victims = [En.spawnEnemy(R, 'brute', 30.5, 24.5), En.spawnEnemy(R, 'brute', 36.5, 24.5)];
+    for (const v of victims) v.speed = 0;
+    const wall = setCell(R, 33, 24, 2);
+    G.events.length = 0;
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT > 0 && R.mech.beam === 0 && G.events.some((e) => e.type === 'shard_beam'), 'charged, it fires and the gauge empties');
+    run(G, NONE, C.SHARD_BEAM.time + 0.1);
+    ok(victims.every((v) => v.hp < v.max * 0.5), 'it pierces: both monsters in its line are badly hurt');
+    ok(R.W.h[wall] < 2, 'it cuts through the rock between them');
+    R.mech.beam = 1;
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT <= 0 && R.mech.beamCd > 0, 'during the cooldown a full gauge cannot fire again');
+    run(G, NONE, C.SHARD_BEAM.cooldown);
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT > 0, `after ${C.SHARD_BEAM.cooldown} s it fires again`);
+
+    G = blank(); R = G.run;
+    const near = En.spawnEnemy(R, 'brute', 26.5, 24.5), far = En.spawnEnemy(R, 'brute', 24.5, 30.5);
+    near.speed = far.speed = 0; near.hp = near.max = far.hp = far.max = 1e6;
+    run(G, { ...NONE, tap: { x: 24.8, y: 30.2 } }, DT);
+    ok(R.focus && R.focus.id === far.id && G.events.some((e) => e.type === 'focus'), 'a tap near a monster focuses it');
+    const farHp = far.hp, nearHp = near.hp;
+    run(G, NONE, 1.5);
+    ok(far.hp < farHp && near.hp === nearHp, 'the guns fire at the focused one, not the nearer one');
+    Dm.hurtEnemy(R, far, 1e9);
+    run(G, NONE, 1);
+    ok(R.focus === null && G.events.some((e) => e.type === 'focus_lost') && near.hp < nearHp, 'when it dies the focus lets go and auto-aim takes the nearest again');
+    run(G, { ...NONE, tap: { x: 10.5, y: 10.5 } }, DT);
+    ok(R.focus === null, 'a tap on empty ground clears the focus');
+
     section('rules: bosses');
     G = Gm.newGame(7); G.unlocked = 12; Gm.act(G, { t: 'launch', mission: 4 });
     R = G.run; R.mech.inv = 1e9;
@@ -339,17 +381,42 @@ if (want('hangar')) {
 if (want('maps')) {
     section('maps');
     const { makeRng } = await import('../js/rng.js');
-    let bad = 0, n = 0;
-    for (const m of MISSIONS) for (let s = 1; s <= 60; s++) {
+    const Mf = await import('../js/sim/mapfix.js');
+    const MAPS = +(process.env.MAPS || 12);
+    let bad = 0, n = 0, rock = { prairie: 0, canyon: 0, city: 0 }, per = { prairie: 0, canyon: 0, city: 0 };
+    const problems = [];
+    for (const m of MISSIONS) for (let s = 1; s <= MAPS; s++) {
         const L = Wd.generate(m, makeRng(Gm.hashSeed(s * 31 + m.id)));
         n++;
-        if (!Wd.provedReachable(L)) bad++;
+        let why = '';
+        if (!Wd.provedReachable(L)) why += ' unreachable objective';
         const nh = m.objectives.filter((o) => o.kind === 'hives').reduce((a, o) => a + o.count, 0);
         const nc = m.objectives.filter((o) => o.kind === 'rescue').reduce((a, o) => a + o.crew.length, 0);
-        if (L.hives.length !== nh || L.cages.length !== nc) bad++;
-        if (Wd.solid(L.W, Wd.idx(Wd.cellOf(L.spawn.x), Wd.cellOf(L.spawn.y)))) bad++;
+        if (L.hives.length !== nh || L.cages.length !== nc) why += ' wrong counts';
+        const start = Wd.idx(Wd.cellOf(L.spawn.x), Wd.cellOf(L.spawn.y));
+        const rep = Mf.mapReport(L.W.h, start);
+        if (!rep.startOk) why += ' landing zone not clear';
+        if (rep.narrow) why += ` ${rep.narrow} narrow cells`;
+        if (rep.components !== 1 || rep.stray) why += ` ${rep.components} regions, ${rep.stray} stray cells`;
+        if (rep.deadEnds) why += ` ${rep.deadEnds} dead ends`;
+        if (why) { bad++; problems.push(`m${m.id} s${s}:${why}`); }
+        rock[m.sector] += L.W.h.filter((h, i) => h > 0 && L.W.mat[i] !== Wd.MAT_ID.edge).length / L.W.h.length;
+        per[m.sector]++;
     }
-    ok(bad === 0, `${n} maps (12 missions × 60 seeds): every cage and hive reachable, the right counts, a clear landing zone`);
+    ok(bad === 0, `${n} maps (12 missions × ${MAPS} seeds): objectives reachable, right counts, clear landing zone, every passage 3 wide, one region, no dead ends${problems.length ? ': ' + problems.slice(0, 4).join('; ') : ''}`);
+    const share = (k) => rock[k] / per[k];
+    ok(share('prairie') > 0.12 && share('canyon') > 0.2 && share('city') > 0.14,
+        `the terrain survives the repairs: rock covers ${(share('prairie') * 100).toFixed(0)}% / ${(share('canyon') * 100).toFixed(0)}% / ${(share('city') * 100).toFixed(0)}% of prairie / canyon / city`);
+    ok(C.MAP.w * C.MAP.h >= 10 * 48 * 48, `the board is ${C.MAP.w}×${C.MAP.h}, at least 10× the area of v1.1's 48×48`);
+    // a hand-made cul-de-sac is found and a through-passage is not
+    const h = new Array(C.MAP.w * C.MAP.h).fill(0);
+    for (let y = 0; y < C.MAP.h; y++) for (let x = 0; x < C.MAP.w; x++) if (!x || !y || x === C.MAP.w - 1 || y === C.MAP.h - 1) h[Wd.idx(x, y)] = 3;
+    const box = (x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) h[Wd.idx(x, y)] = 2; };
+    box(40, 40, 60, 42); box(40, 48, 60, 50); box(60, 40, 62, 50);       // a U: open to the west only
+    const start = Wd.idx(30, 45);
+    ok(Mf.mapReport(h, start).deadEnds === 1, 'a U-shaped bay is reported as a dead end');
+    for (let y = 43; y <= 47; y++) for (let x = 60; x <= 62; x++) h[Wd.idx(x, y)] = 0;
+    ok(Mf.mapReport(h, start).deadEnds === 0, 'open its back wall and it is a passage, not a dead end');
 }
 
 // ======================================================================
@@ -385,7 +452,7 @@ if (want('determinism')) {
 if (want('bot')) {
     section('bot: the whole campaign');
     const table = {};
-    const finished = { 1: 0, 0.4: 0 }, sorties = { 1: 0, 0.4: 0 };
+    const finished = { 1: 0, 0.4: 0 }, sorties = { 1: 0, 0.4: 0 }, beams = { 1: 0, 0.4: 0 };
     let bad = null;
     for (const skill of [1, 0.4]) for (let seed = 1; seed <= SEEDS; seed++) {
         const G = Gm.newGame(seed * 101), bot = Bt.makeBot({ skill, seed });
@@ -396,6 +463,7 @@ if (want('bot')) {
             while (G.mode === 'mission') {
                 if (++steps > 120 * 400) { Gm.act(G, { t: 'abort' }); bad = bad || `seed ${seed} m${id}: stuck for 400 s`; break; }
                 Gm.step(G, Bt.botInput(G, bot), DT);
+                for (const ev of G.events) if (ev.type === 'shard_beam') beams[skill]++;
                 G.events.length = 0;
                 const R = G.run;
                 if (!R) break;
@@ -431,6 +499,13 @@ if (want('bot')) {
     ok(bossLosses >= 1, 'the bosses beat a sloppy pilot at least once');
     const t = (id) => med(table[`1:${id}`]?.t || []);
     ok(t(1) >= 30 && t(9) >= 120, `sorties last: mission 1 ${t(1)} s, mission 9 ${t(9)} s`);
+    ok(beams[1] >= sorties[1], `the bot fires the Shard Beam (${beams[1]} times in ${sorties[1]} sorties): it is doing something`);
+    // the beam must not trivialise hives: hive sorties stayed at ~95-110 s before it existed
+    ok(t(6) >= 85 && t(11) >= 85, `hive sorties still take time: mission 6 ${t(6)} s, mission 11 ${t(11)} s`);
+    // v1.0 (before the Shard Beam), 8 seeds: 100 sorties for the perfect bot, 112 for the sloppy one (12.5 and 14 a seed)
+    const per = (k) => sorties[k] / SEEDS;
+    ok(per(1) >= 12.5 * 0.9 && per(1) <= 12.5 * 1.1 && per(0.4) >= 14 * 0.9 && per(0.4) <= 14 * 1.1,
+        `the campaign is as hard as before the beam (within 10% of v1.0): ${per(1).toFixed(1)} and ${per(0.4).toFixed(1)} sorties a seed vs 12.5 and 14`);
 }
 
 console.log(`\n${fails ? `${fails} FAILED` : 'all passed'} (${checks} checks)`);

@@ -48,6 +48,9 @@
     <canvas id="view" aria-label="SHARDFRAME game view"></canvas>
     <div id="flash" aria-hidden="true"></div>
     <div id="speedlines" aria-hidden="true"></div>
+    <div id="danger" aria-hidden="true"></div>
+    <div id="arrows" aria-hidden="true"></div>
+    <div id="reticle" aria-hidden="true" hidden></div>
 
     <!-- HUD -->
     <div id="hud" hidden>
@@ -63,6 +66,7 @@
         <ul id="hud-obj"></ul>
         <div id="hud-boss" hidden><span id="hud-boss-name"></span><div class="track"><div id="hud-boss-hp" class="fill"></div></div></div>
         <div id="hud-od" class="od"><div id="hud-od-fill"></div><span>OVERDRIVE</span></div>
+        <div id="hud-beam" class="od beam"><div id="hud-beam-fill"></div><span id="hud-beam-text">SHARD BEAM</span></div>
     </div>
 
     <!-- Touch deck -->
@@ -70,6 +74,7 @@
         <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
         <button id="btn-mag" class="tbtn" aria-label="Magnet (hold)">🧲<small>HOLD</small></button>
         <button id="btn-od" class="tbtn od" aria-label="Overdrive">OD</button>
+        <button id="btn-beam" class="tbtn" aria-label="Shard Beam">BEAM</button>
     </div>
 
     <!-- comms, cut-ins, banners -->
@@ -171,14 +176,17 @@
             <p>Your guns fire on their own. <b>Move</b> to dodge, <b>hold MAGNET</b> to pull in voxels from range (you move and shoot slower while you hold it), and fire <b>OVERDRIVE</b> when the gauge is full.</p>
             <p>Every monster you destroy bursts into voxels. <span class="c-red">Red</span> = XP (level up mid-sortie), <span class="c-blue">blue</span> = shield, <span class="c-green">green</span> = repair, <span class="c-gold">gold</span> = credits. Walk into them, or magnet them. Voxels you leave lying around are <b>temporary walls</b>: monsters and their shots can't pass them (yours can), until they fade or get chewed through.</p>
             <p>Rockets and lasers break the ground. Blast a road through rock, or a wall into rubble cover.</p>
+            <p>Every voxel you collect charges the <b>SHARD BEAM</b>: a huge piercing beam that cuts through rock. Fire it when it's full; then it cools down for 9 seconds. Tap or click a monster or a hive to <b>focus fire</b> on it (a red reticle); when it's destroyed the guns aim on their own again. Arrows point to your objectives. When the screen edge burns red and the klaxon sounds, you're about to go down.</p>
             <table>
                 <tr><td>Arrows / WASD</td><td>Move</td></tr>
                 <tr><td>Space / Shift (hold)</td><td>Magnet</td></tr>
                 <tr><td>E / X</td><td>Overdrive</td></tr>
+                <tr><td>Q / F</td><td>Shard Beam (when charged)</td></tr>
+                <tr><td>Click / tap the field</td><td>Focus fire on a monster or hive</td></tr>
                 <tr><td>1 · 2 · 3</td><td>Pick a level-up card</td></tr>
                 <tr><td>P / Esc</td><td>Pause</td></tr>
             </table>
-            <p>Touch: drag the left half to move; hold 🧲, tap OD. Gamepad: stick, A (hold) magnet, X/Y overdrive, Start.</p>
+            <p>Touch: drag the left half to move; hold 🧲, tap OD or BEAM; tap the field above or right of your thumb to focus. Gamepad: stick, A (hold) magnet, X/Y overdrive, LB/RB Shard Beam, Start.</p>
             <p>Between sorties: buy and fit parts in the <b>Mech</b> tab. People you rescue join the <b>Crew</b> and leave gifts over real time, even while the game is closed.</p>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
         </div>

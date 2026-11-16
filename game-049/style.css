@@ -285,7 +285,8 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .price { color: var(--gold); font-weight: 700; white-space: nowrap; }
 #shop-greet { font: italic 15px var(--serif); color: #e8d8c0; margin-bottom: 10px; }
 
-.dialog-card { text-align: left; }
+.dialog-card { text-align: left; max-height: calc(100vh - 32px - var(--safe-t) - var(--safe-b)); overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
+#dialog-buttons { position: sticky; bottom: -18px; z-index: 2; padding: 10px 0 4px; background: linear-gradient(180deg, transparent, var(--panel) 30%); }
 #dialog-who { font: 700 18px var(--serif); color: var(--gold); margin-bottom: 8px; }
 #dialog-text { font: 17px/1.55 var(--serif); margin-bottom: 10px; }
 #dialog-goal { font: 700 14px var(--sans); color: #b0e0ff; }

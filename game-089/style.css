@@ -396,3 +396,8 @@ table.keys td:first-child { color: var(--gold2); font-weight: 700; white-space: 
 @media (prefers-reduced-motion: reduce) {
     .rollbtn, .wyrm i.hot, .valor.full, .marker::after { animation: none; }
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

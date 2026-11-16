@@ -22,8 +22,11 @@ const PICK_ORDER = ['salvo', 'dmg', 'rate', 'multi', 'blast', 'hp', 'shield', 'r
 function goalField(R, goals) {
     const N = MAP.w * MAP.h, dist = new Int32Array(N).fill(1e9), q = [];
     for (const g of goals) { if (inMap(g.x, g.y)) { const i = idx(g.x, g.y); dist[i] = 0; q.push(i); } }
+    // the map is big: stop a couple of rings past the mech, which is all followField looks at
+    const M = R.mech, me = inMap(cellOf(M.x), cellOf(M.y)) ? idx(cellOf(M.x), cellOf(M.y)) : -1;
     for (let h = 0; h < q.length; h++) {
         const i = q[h], x = i % MAP.w, y = (i / MAP.w) | 0;
+        if (me >= 0 && dist[me] < 1e9 && dist[i] > dist[me] + 2) break;
         for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
             const nx = x + dx, ny = y + dy;
             if (!inMap(nx, ny)) continue;
@@ -133,7 +136,13 @@ function decide(R, bot) {
     const mag = skill > 0.6 && near >= 4 && closest > 2.2 && !(boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 7);
     // ---- overdrive: in a crowd, or near the boss
     const od = M.od >= 1 && (crowd >= 6 || (boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 9) || (skill < 0.5 && bot.rng() < 0.02));
-    return { x, y, mag, od, pick: null };
+    // the Shard Beam: on the boss, a hive, or a crowd; a careless pilot sometimes wastes it on nothing
+    let beam = false;
+    if (M.beam >= 1 && M.beamCd <= 0) {
+        const hive = R.hives.some((h) => !h.dead && Math.hypot(h.x - M.x, h.y - M.y) < 12);
+        beam = !!(boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 16) || hive || crowd >= 5 || (skill < 0.5 && bot.rng() < 0.03);
+    }
+    return { x, y, mag, od, beam, pick: null };
 }
 
 /** The next place to go, as target cells for the path field plus a stand-off distance. */

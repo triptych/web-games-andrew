@@ -124,3 +124,7 @@ body.title #log, body.title #quick, body.title #cmdform, body.title #bar #b-stat
 }
 @media (max-width: 520px) { .chip { font-size: 14px; padding: 2px 8px; min-height: 34px; }  #b-name { display: none; } #bar { padding-left: 100px; } #b-stats { justify-content: flex-start; font-size: 12px; } #log { font-size: 16px; } }
 @media (prefers-reduced-motion: reduce) { #card { animation-duration: 0.01s; } #b-dread.hot b { animation: none; } }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

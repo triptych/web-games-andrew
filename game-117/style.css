@@ -194,3 +194,7 @@ td:first-child { color: #fff; white-space: nowrap; letter-spacing: 0.08em; paddi
 @keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
 @media (prefers-reduced-motion: reduce) { #comms { transition: none; } }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

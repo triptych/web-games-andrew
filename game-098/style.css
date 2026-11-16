@@ -387,3 +387,7 @@ td:first-child { color: #8a3a2a; white-space: nowrap; font-weight: 600; }
 
 body.calm .nest .egg.wobble, body.calm .pbtn.ready, body.calm #power-cut { animation-duration: 0.01s !important; animation-iteration-count: 1 !important; }
 @media (prefers-reduced-motion: reduce) { .nest .egg.wobble, .pbtn.ready, .dlg-next { animation: none; } }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

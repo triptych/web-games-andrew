@@ -7,14 +7,14 @@
 // hangar painting) and 'mission'.
 
 import * as THREE from 'three';
-import { MAP, VOXEL, MECH, COLORS } from '../config.js';
+import { MAP, VOXEL, MECH, COLORS, SHARD_BEAM, DANGER } from '../config.js';
 import { ENEMIES, BOSSES, MATS } from '../sim/data/enemies.js';
 import { SECTORS, missionById } from '../sim/data/missions.js';
 import { MAT_LIST } from '../sim/world.js';
 import { dronePos } from '../sim/combat.js';
 import { toon, INK, PAL, VOXEL_COLORS, boxModel, buildMech, poseMech, enemyModel, bossModel, hiveSpire, cageModel } from './models.js';
+import { Terrain } from './terrain.js';
 
-const MAX_TERRAIN = MAP.w * MAP.h * MAP.maxH;
 const tmp = new THREE.Object3D();
 const tmpC = new THREE.Color();
 const WHITE = new THREE.Color(1, 1, 1);
@@ -116,7 +116,7 @@ export class View {
         s.add(sun);
         s.fog = new THREE.Fog(0x6b4fd8, 40, 90);
 
-        // ground: a checker of two greens (or reds, or blues) one cell each
+        // ground: painted noise in the sector's colours (see terrain.js), no grid
         this.groundTex = new THREE.CanvasTexture(document.createElement('canvas'));
         const ground = this.ground = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, MAP.h), toon({ map: this.groundTex }));
         ground.rotation.x = -Math.PI / 2;
@@ -127,11 +127,8 @@ export class View {
         s.add(apron);
         this.apron = apron;
 
-        const cube = new THREE.BoxGeometry(1, 1, 1);
-        const cubeInk = new THREE.BoxGeometry(1.08, 1.08, 1.08);
-        this.terrain = instanced(cube, toon(), MAX_TERRAIN, cubeInk);
-        this.terrain.setColorAt(0, WHITE);
-        s.add(this.terrain, this.terrain.userData.ink);
+        // rock: quarter-unit voxels shaped into slopes, in chunks
+        this.terrain = new Terrain(s);
 
         const vs = VOXEL.size;
         this.vox = instanced(new THREE.BoxGeometry(vs, vs, vs), toon(), VOXEL.cap + 50, new THREE.BoxGeometry(vs + 0.07, vs + 0.07, vs + 0.07));
@@ -178,6 +175,19 @@ export class View {
         this.aura = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff3060, transparent: true, opacity: 0.22, depthWrite: false }));
         s.add(this.aura);
 
+        // the Shard Beam: a wide glow around a white-hot core, laid along +x and turned to its angle
+        this.sbeam = new THREE.Group();
+        const glow = new THREE.Mesh(new THREE.BoxGeometry(1, 0.9, 1), new THREE.MeshBasicMaterial({ color: 0x2ff0d0, transparent: true, opacity: 0.55, depthWrite: false }));
+        const core = new THREE.Mesh(new THREE.BoxGeometry(1, 0.35, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        glow.position.x = core.position.x = 0.5;
+        this.sbeam.add(glow, core);
+        this.sbeam.userData = { glow, core };
+        this.sbeam.visible = false;
+        s.add(this.sbeam);
+        this.mechInk = INK.clone();
+        this.ground0 = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        this.ray = new THREE.Raycaster();
+
         this.hiveGroup = new THREE.Group(); s.add(this.hiveGroup);
         this.cageGroup = new THREE.Group(); s.add(this.cageGroup);
 
@@ -195,14 +205,14 @@ export class View {
     setupRun(R) {
         this.runRef = R;
         const m = missionById(R.mission), S = SECTORS[m.sector];
-        // ground checker
-        const c = document.createElement('canvas');
-        c.width = MAP.w * 8; c.height = MAP.h * 8;
-        const g = c.getContext('2d');
-        const a = '#' + new THREE.Color(S.ground).getHexString(), b = '#' + new THREE.Color(S.ground2).getHexString();
-        for (let y = 0; y < MAP.h; y++) for (let x = 0; x < MAP.w; x++) { g.fillStyle = (x + y) % 2 ? a : b; g.fillRect(x * 8, y * 8, 8, 8); }
-        this.groundTex.image = c;
-        this.groundTex.magFilter = THREE.NearestFilter;
+        // the rock and the ground, seeded from the map so a reload looks the same
+        let seed = R.mission * 7919;
+        for (let i = 0; i < R.W.h.length; i += 7) seed = (seed * 31 + R.W.h[i] * 5 + R.W.mat[i]) | 0;
+        this.terrain.reset(R.W, m.sector, seed);
+        this.groundTex.image = this.terrain.paintGround(R.W, m.sector);
+        this.groundTex.magFilter = THREE.LinearFilter;
+        this.groundTex.minFilter = THREE.LinearMipmapLinearFilter;
+        this.groundTex.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
         this.groundTex.colorSpace = THREE.SRGBColorSpace;
         this.groundTex.needsUpdate = true;
         // sky: a vertical painted gradient
@@ -229,30 +239,6 @@ export class View {
         this.focus.set(R.mech.x, 0, R.mech.y);
     }
 
-    rebuildTerrain(W) {
-        let n = 0;
-        for (let i = 0; i < W.h.length; i++) {
-            const h = W.h[i];
-            if (!h) continue;
-            const x = i % MAP.w, y = (i / MAP.w) | 0;
-            const mat = MAT_LIST[W.mat[i]];
-            const base = MAT_COL[mat] ?? PAL.stone;
-            for (let k = 0; k < h; k++) {
-                tmp.position.set(x + 0.5, k + 0.5, y + 0.5);
-                tmp.rotation.set(0, 0, 0);
-                tmp.scale.set(1, 1, 1);
-                tmp.updateMatrix();
-                this.terrain.setMatrixAt(n, tmp.matrix);
-                // alternate shades by layer and a checker, so walls read as voxels
-                tmpC.set(base).multiplyScalar(k === h - 1 ? 1.12 : ((x + y + k) % 2 ? 0.86 : 0.95));
-                this.terrain.setColorAt(n, tmpC);
-                n++;
-            }
-        }
-        setCount(this.terrain, n);
-        this.terrainDirty = false;
-    }
-
     // ================================================================== events → effects
     onEvents(G, events) {
         let sparkBudget = 30;
@@ -265,6 +251,8 @@ export class View {
                 case 'beam': this.beam(e); break;
                 case 'hurt': this.shake = Math.max(this.shake, 0.35); this.hurtT = 0.2; break;
                 case 'stomp': this.ring(e.x, e.y, e.r, 0xffe0a0); break;
+                case 'shard_beam': this.ring(e.x, e.y, 2.5, 0x2ff0d0); this.flash = Math.max(this.flash, 0.5); this.shake = 0.6; break;
+                case 'focus': if (e.id != null) this.ring(e.x, e.y, 1.6, 0xff3060); break;
                 case 'levelup': if (G.run) this.ring(G.run.mech.x, G.run.mech.y, 3, 0xffe060); break;
                 case 'rescue': this.column(e.x, e.y); break;
                 case 'overdrive': if (G.run) this.ring(G.run.mech.x, G.run.mech.y, 5, 0xff3060); this.flash = 0.6; break;
@@ -362,7 +350,7 @@ export class View {
         const R = G.run;
         if (!R) { this.renderer.clear(); return; }
         if (R !== this.runRef) this.setupRun(R);
-        if (this.terrainDirty) this.rebuildTerrain(R.W);
+        if (this.terrainDirty || this.terrain.dirty.size) { this.terrain.sync(R.W); this.terrainDirty = false; }
         const M = R.mech;
 
         // ---- the mech
@@ -371,6 +359,8 @@ export class View {
             if (this.mech) this.scene.remove(this.mech);
             this.mech = buildMech(G.hangar.loadout);
             this.mech.scale.setScalar(1.3);
+            // its own ink, so it can burn red when the mech is about to go down
+            this.mech.traverse((o) => { if (o.material === INK) o.material = this.mechInk; });
             this.scene.add(this.mech);
             this.mechKey = key;
         }
@@ -381,6 +371,18 @@ export class View {
         poseMech(this.mech, { t: time, walk: moving > 0.2 ? this.walk : 0, face: M.face, aim: M.aim ?? M.face, od: M.odT > 0, hurt: this.hurtT > 0, crouch: R.over === 'win' ? 0.6 : 0 });
         this.mech.visible = !(M.inv > 0 && M.hp > 0 && Math.floor(time * 20) % 2 && R.t > 2) && !(R.over === 'lose' && R.overT < 1.6);
         this.mechShadow.position.set(M.x, 0.03, M.y);
+        const danger = M.hp > 0 && M.hp < M.maxHp * DANGER && !R.over;
+        this.mechInk.color.setHex(danger && Math.floor(time * 6) % 2 ? 0xff1f3d : danger ? 0xb0102a : 0x14101c);
+        // the Shard Beam, while it fires
+        this.sbeam.visible = M.beamT > 0;
+        if (this.sbeam.visible) {
+            const L = M.beamLen || SHARD_BEAM.range, w = SHARD_BEAM.width * 2 * (0.85 + Math.sin(time * 60) * 0.15);
+            this.sbeam.position.set(M.x + Math.cos(M.beamA) * 0.9, 1.6, M.y + Math.sin(M.beamA) * 0.9);
+            this.sbeam.rotation.set(0, -M.beamA, 0);
+            this.sbeam.userData.glow.scale.set(L, 1, w);
+            this.sbeam.userData.core.scale.set(L, 1, w * 0.35);
+            this.shake = Math.max(this.shake, 0.25);
+        }
         this.magRing.visible = !!M.magnetOn;
         if (M.magnetOn) { this.magRing.position.set(M.x, 0.1, M.y); this.magRing.scale.setScalar(M.magnet * (0.96 + Math.sin(time * 10) * 0.04)); }
         this.aura.visible = M.odT > 0;
@@ -538,6 +540,15 @@ export class View {
         cam.lookAt(0, 1.3, 0);
         cam.updateProjectionMatrix();
         this.renderer.render(this.hangarScene, cam);
+    }
+
+    /** The sim point (cells) under a screen point (CSS px), on the ground, or null. */
+    screenToGround(cx, cy) {
+        const r = this.canvas.getBoundingClientRect();
+        const ndc = new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+        this.ray.setFromCamera(ndc, this.camera);
+        const p = new THREE.Vector3();
+        return this.ray.ray.intersectPlane(this.ground0, p) ? { x: p.x, y: p.z } : null;
     }
 
     /** Screen position (CSS px) of a sim point, for the tests. */

@@ -4,6 +4,7 @@
 // falls back to a little Web Audio synth (effects) or silence (music, voices): never an error.
 
 import { SFX, MUSIC, VOICES, ROOT } from './media.js';
+import { DANGER } from './config.js';
 
 const SYNTH = {
     vulcan: [{ freq: 220, to: 120, dur: 0.05, type: 'square', vol: 0.06 }],
@@ -32,6 +33,7 @@ const SYNTH = {
     fail: [{ freq: 440, to: 110, dur: 1.0, type: 'sawtooth', vol: 0.1 }],
     spit: [{ freq: 400, to: 150, dur: 0.1, type: 'sine', vol: 0.06 }],
     hatch: [{ freq: 800, to: 300, dur: 0.1, type: 'triangle', vol: 0.06 }],
+    beam: [{ freq: 200, to: 1400, dur: 0.3, type: 'sawtooth', vol: 0.12 }, { freq: 90, to: 60, dur: 0.9, type: 'sawtooth', vol: 0.2, delay: 0.3 }],
 };
 
 export class Audio {
@@ -185,6 +187,9 @@ export class Audio {
         this.stepT -= dt * sp;
         if (sp > 0.5 && this.stepT <= 0) { this.stepT = 2.6; this.play('step', { vol: 0.5, rate: 0.9 + Math.random() * 0.2 }); }
         if (M.hp < M.maxHp * 0.3 && !this.voice.lowHp) { this.voice.lowHp = true; this.say('kai-lowhp'); }
+        // the klaxon: about to go down
+        this.klaxonT = (this.klaxonT || 0) - dt;
+        if (M.hp > 0 && M.hp < M.maxHp * DANGER && this.klaxonT <= 0) { this.klaxonT = 2.4; this.play('alarm', { vol: 0.55, gap: 1 }); }
     }
 
     onEvents(G, events) {
@@ -206,6 +211,8 @@ export class Audio {
                 case 'overdrive': this.play('overdrive'); this.say('kai-overdrive', { force: true }); break;
                 case 'hurt': this.play(e.shield ? 'shield' : 'hurt', { vol: 0.7, gap: 0.12 }); break;
                 case 'stomp': this.play('stomp'); break;
+                case 'shard_beam': this.play('beam', { vol: 1 }); break;
+                case 'focus': if (e.id != null) this.play('click', { vol: 0.6, rate: 1.5 }); break;
                 case 'rescue': this.play('rescue'); this.say('mirei-rescue'); break;
                 case 'boss_in': this.play('roar'); this.play('alarm', { vol: 0.5 }); this.say('mirei-boss', { force: true }); this.say('kai-boss'); this.playMusic('boss'); break;
                 case 'boss_wind': this.play('roar', { vol: 0.35, rate: 1.4, gap: 0.5 }); break;

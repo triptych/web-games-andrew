@@ -5,6 +5,7 @@ import { TOWNS, TOWN, ROADS, REGIONS } from '../sim/data.js';
 import { isOpen, regionOpen, mapPos } from '../sim/world.js';
 import { allQuests } from '../sim/economy.js';
 import { hash3 } from '../rng.js';
+import { pic } from './art.js';
 
 const MW = 1000, MH = 700;
 
@@ -45,20 +46,34 @@ export class MapView {
         this.fit();
         const { ctx, k } = this;
         ctx.setTransform(this.dpr * k, 0, 0, this.dpr * k, 0, 0);
-        // parchment
-        ctx.fillStyle = '#e6d6b0';
-        ctx.fillRect(0, 0, MW, MH);
-        for (let i = 0; i < 160; i++) {
-            ctx.fillStyle = `rgba(120,90,50,${0.03 + hash3(i, 1, 4) * 0.05})`;
-            ctx.beginPath(); ctx.arc(hash3(i, 2, 4) * MW, hash3(i, 3, 4) * MH, 10 + hash3(i, 4, 4) * 40, 0, Math.PI * 2); ctx.fill();
-        }
-        // regions as soft washes around their towns
-        for (const R of REGIONS) {
-            const open = regionOpen(G, R.id);
-            for (const t of TOWNS.filter((x) => x.region === R.id)) {
-                const g = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 150);
-                g.addColorStop(0, hexA(R.color, open ? 0.55 : 0.18)); g.addColorStop(1, hexA(R.color, 0));
-                ctx.fillStyle = g; ctx.fillRect(t.x - 150, t.y - 150, 300, 300);
+        const painted = pic('map');
+        if (painted) {
+            // the painted realm, with a parchment mist over every region whose Waystone road isn't open yet
+            ctx.drawImage(painted, 0, 0, MW, MH);
+            for (const R of REGIONS) {
+                if (regionOpen(G, R.id)) continue;
+                for (const t of TOWNS.filter((x) => x.region === R.id)) {
+                    const g = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 170);
+                    g.addColorStop(0, 'rgba(230,214,176,0.72)'); g.addColorStop(1, 'rgba(230,214,176,0)');
+                    ctx.fillStyle = g; ctx.fillRect(t.x - 170, t.y - 170, 340, 340);
+                }
+            }
+        } else {
+            // parchment
+            ctx.fillStyle = '#e6d6b0';
+            ctx.fillRect(0, 0, MW, MH);
+            for (let i = 0; i < 160; i++) {
+                ctx.fillStyle = `rgba(120,90,50,${0.03 + hash3(i, 1, 4) * 0.05})`;
+                ctx.beginPath(); ctx.arc(hash3(i, 2, 4) * MW, hash3(i, 3, 4) * MH, 10 + hash3(i, 4, 4) * 40, 0, Math.PI * 2); ctx.fill();
+            }
+            // regions as soft washes around their towns
+            for (const R of REGIONS) {
+                const open = regionOpen(G, R.id);
+                for (const t of TOWNS.filter((x) => x.region === R.id)) {
+                    const g = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, 150);
+                    g.addColorStop(0, hexA(R.color, open ? 0.55 : 0.18)); g.addColorStop(1, hexA(R.color, 0));
+                    ctx.fillStyle = g; ctx.fillRect(t.x - 150, t.y - 150, 300, 300);
+                }
             }
         }
         // the fog over regions still dark
@@ -68,6 +83,7 @@ export class MapView {
             const ts = TOWNS.filter((x) => x.region === R.id);
             const cx = ts.reduce((a, t) => a + t.x, 0) / ts.length, cy = ts.reduce((a, t) => a + t.y, 0) / ts.length;
             ctx.fillStyle = regionOpen(G, R.id) ? 'rgba(70,45,20,0.45)' : 'rgba(70,45,20,0.2)';
+            if (painted) { ctx.strokeStyle = 'rgba(240,226,192,0.75)'; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.strokeText(R.name, cx, cy - 58); ctx.fillStyle = 'rgba(70,45,20,0.8)'; }
             ctx.fillText(R.name, cx, cy - 58);
         }
         // roads
@@ -109,6 +125,7 @@ export class MapView {
             }
             if (this.sel === t.id) { ctx.strokeStyle = '#c84a20'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(t.x, t.y, 22, 0, Math.PI * 2); ctx.stroke(); }
             ctx.fillStyle = open ? '#2a1a0a' : 'rgba(60,40,20,0.45)';
+            if (painted) { ctx.strokeStyle = 'rgba(240,226,192,0.85)'; ctx.lineWidth = 5; ctx.lineJoin = 'round'; ctx.strokeText(t.name, t.x, t.y + 30); }
             ctx.fillText(t.name, t.x, t.y + 30);
             if (qt.has(t.id)) {
                 ctx.fillStyle = '#c83a20';

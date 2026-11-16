@@ -234,3 +234,8 @@ body.calm .banner { animation: none; }
 .autoflag { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: var(--c0); border: 2px solid var(--c13); color: var(--c13); padding: 0 10px; font-size: 19px; animation: autoblink 1.2s steps(2) infinite; white-space: nowrap; }
 @keyframes autoblink { 50% { border-color: var(--c0); } }
 body.calm .autoflag { animation: none; }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

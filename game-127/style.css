@@ -377,3 +377,8 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.04
     #panel.bottom .result { width: min(58%, 560px); margin-right: 0; }
     #panel.bottom .result .grid.small { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

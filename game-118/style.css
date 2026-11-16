@@ -279,3 +279,7 @@ table.keys td:first-child { color: var(--pumpkin2); font-weight: 700; white-spac
 @keyframes toast { 0% { opacity: 0; transform: translateY(14px); } 8% { opacity: 1; transform: none; } 82% { opacity: 1; } 100% { opacity: 0; } }
 @media (min-aspect-ratio: 23/20) { #toasts { bottom: 14px; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

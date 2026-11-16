@@ -7,8 +7,9 @@
 import { makeRng } from '../rng.js';
 import { newHangar, buy, equip, collect, idle } from './hangar.js';
 import { startRun, stepRun, abort, attach } from './run.js';
+import { packWorld, unpackWorld } from './world.js';
 
-export const SAVE_V = 1;
+export const SAVE_V = 2;          // 2: the 152x152 map (v1.2); the world is packed
 
 export function newGame(seed = 1) {
     return {
@@ -69,14 +70,21 @@ export function act(G, cmd) {
 
 export function serialize(G) {
     const { rng, events, ...rest } = G;
-    return JSON.parse(JSON.stringify({ ...rest, rngState: rng.state() }));
+    const run = rest.run ? { ...rest.run, W: packWorld(rest.run.W) } : rest.run;
+    return JSON.parse(JSON.stringify({ ...rest, run, rngState: rng.state() }));
 }
 
 export function deserialize(d) {
+    if (d && d.v === 1) {
+        // a v1.1 save: the campaign carries over; a sortie in progress was on the old small map, so
+        // the pilot is back aboard the Skylark instead
+        d = { ...d, v: SAVE_V };
+        if (d.run) d = { ...d, run: null, mode: 'hangar' };
+    }
     if (!d || d.v !== SAVE_V) throw new Error('unknown save version');
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);
-    if (G.run) attach(G, G.run);
+    if (G.run) { G.run.W = unpackWorld(G.run.W); attach(G, G.run); }
     return G;
 }

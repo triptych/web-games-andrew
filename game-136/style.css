@@ -304,3 +304,7 @@ ol { padding-left: 20px; line-height: 1.4; }
     #photo-panel { max-height: 58vh; }
     .shutter { width: 58px; height: 58px; }
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

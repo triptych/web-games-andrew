@@ -2,6 +2,8 @@
 // screen position for their base and a scale in pixels per world unit. Carts are real boxes, projected
 // corner by corner through the road's own projection, so they turn with the road and shrink into the distance.
 
+import { draw as drawArt, pic } from './art.js';
+
 const TAU = Math.PI * 2;
 
 /** Darken (k < 0) or lighten (k > 0) a #rrggbb colour. Returns #rrggbb, so results can be shaded again. */
@@ -157,6 +159,14 @@ export function drawProp(ctx, kind, x, y, s, v, night) {
         case 'waystone': {
             // v: 1 lit, 0 dark
             shadow(ctx, x, y, 500, s);
+            if (drawArt(ctx, v ? 'x-waystone-lit' : 'x-waystone', x, y, 1080 * s, { mode: night ? 'night' : 'day' })) {
+                if (v) {
+                    const g = ctx.createRadialGradient(x, y - 800 * s, 0, x, y - 800 * s, 420 * s);
+                    g.addColorStop(0, 'rgba(255,220,120,0.45)'); g.addColorStop(1, 'rgba(255,220,120,0)');
+                    ctx.fillStyle = g; ctx.fillRect(x - 420 * s, y - 1220 * s, 840 * s, 840 * s);
+                }
+                break;
+            }
             ctx.fillStyle = shade('#8a8478', dim * 0.6);
             ctx.beginPath(); ctx.moveTo(x - 110 * s, y); ctx.lineTo(x - 80 * s, y - 900 * s); ctx.lineTo(x, y - 1000 * s); ctx.lineTo(x + 80 * s, y - 900 * s); ctx.lineTo(x + 110 * s, y); ctx.closePath(); ctx.fill();
             if (v) {
@@ -169,7 +179,18 @@ export function drawProp(ctx, kind, x, y, s, v, night) {
 }
 
 // ------------------------------------------------------------------ town houses (billboards beside the road)
-export function drawHouse(ctx, x, y, s, v, pal, night) {
+export function drawHouse(ctx, x, y, s, v, pal, night, biome = null) {
+    if (biome) {
+        shadow(ctx, x, y, 900, s);
+        if (drawArt(ctx, `h-${biome}${v % 4}`, x, y, (760 + ((v >> 2) % 3) * 110) * s, { mode: night ? 'night' : 'day', flip: !!(v & 16) && biome !== 'star' })) {
+            if (night) {   // lamplight in the windows
+                const g = ctx.createRadialGradient(x, y - 380 * s, 0, x, y - 380 * s, 420 * s);
+                g.addColorStop(0, 'rgba(255,200,110,0.22)'); g.addColorStop(1, 'rgba(255,200,110,0)');
+                ctx.fillStyle = g; ctx.fillRect(x - 420 * s, y - 800 * s, 840 * s, 840 * s);
+            }
+            return;
+        }
+    }
     const w = (520 + (v % 4) * 120) * s, h = (420 + ((v >> 2) % 3) * 160) * s;
     const wall = pal.walls[v % pal.walls.length], roof = pal.roofs[(v >> 1) % pal.roofs.length];
     shadow(ctx, x, y, 900, s);
@@ -201,6 +222,24 @@ export function drawCart(ctx, P, c, night, t) {
     // shadow
     const s0 = q(0, 0, z0 + c.len / 2);
     shadow(ctx, s0.X, s0.Y, c.w * 1.5, s0.s);
+    // the painted wagon, seen from behind: as wide as the box across its rear wheels, rocking a little on the road
+    const art = pic(`c-${c.cls}`);
+    if (art) {
+        const g = q(0, 0, z0 + 70);
+        const w = (c.w + 90) * g.s, h = w * art.naturalHeight / art.naturalWidth;
+        const rock = Math.sin(c.wheel * 0.9 + c.z * 0.01) * 0.012;
+        ctx.save(); ctx.translate(g.X, g.Y); ctx.rotate(rock);
+        drawArt(ctx, `c-${c.cls}`, 0, -Math.abs(Math.sin(c.wheel * 1.7)) * 6 * g.s, h, { mode: night ? 'night' : 'day' });
+        ctx.restore();
+        if (c.lead && night) {
+            const l = q(0, c.h * 0.62, z0);
+            const flick = 1 + Math.sin(t * 9) * 0.06 + Math.sin(t * 23) * 0.04;
+            const gl = ctx.createRadialGradient(l.X, l.Y, 0, l.X, l.Y, 900 * l.s * flick);
+            gl.addColorStop(0, 'rgba(255,210,120,0.4)'); gl.addColorStop(1, 'rgba(255,210,120,0)');
+            ctx.fillStyle = gl; ctx.fillRect(l.X - 900 * l.s, l.Y - 900 * l.s, 1800 * l.s, 1800 * l.s);
+        }
+        return;
+    }
     // wheels behind the body on the far side first: draw all four as ellipses on the sides
     const wheel = (x, z) => {
         const a = q(x, 110, z), r = 110 * a.s;
@@ -309,6 +348,12 @@ export function emblem(ctx, cls, x, y, r, night, t) {
 export function drawOx(ctx, P, x, z, step, night) {
     const a = P(x, 0, z), s = a.s;
     shadow(ctx, a.X, a.Y, 400, s);
+    if (pic('x-ox')) {
+        ctx.save(); ctx.translate(a.X, a.Y); ctx.rotate(Math.sin(step) * 0.03);
+        drawArt(ctx, 'x-ox', 0, -Math.max(0, Math.sin(step * 2)) * 10 * s, 560 * s, { mode: night ? 'night' : 'day', flip: x < 0 });
+        ctx.restore();
+        return;
+    }
     const hide = shade('#8a6a4a', night ? -0.45 : 0), dark = shade('#5a4030', night ? -0.45 : 0);
     const leg = (dx, ph) => {
         const lift = Math.max(0, Math.sin(step + ph)) * 40 * s;
@@ -327,10 +372,17 @@ export function drawOx(ctx, P, x, z, step, night) {
 }
 
 /** A traveller on foot: a small figure at a screen point, scaled. */
-export function drawWalker(ctx, x, y, s, cls, color, cloth, step, night, pose = 0) {
+export function drawWalker(ctx, x, y, s, cls, color, cloth, step, night, pose = 0, mode = null) {
     const dim = night ? -0.4 : 0;
     const bob = Math.abs(Math.sin(step)) * 20 * s;
     shadow(ctx, x, y, 200, s);
+    // the painted traveller: a step is a bob and a sway, an attack is a lean towards the foe
+    if (pic(`t-${cls}`)) {
+        ctx.save(); ctx.translate(x, y - bob); ctx.rotate(pose ? 0.16 : Math.sin(step) * 0.04);
+        drawArt(ctx, `t-${cls}`, 0, 0, 620 * s, { mode: mode || (night ? 'night' : 'day') });
+        ctx.restore();
+        return;
+    }
     ctx.fillStyle = shade('#3a2a20', dim);
     const l1 = Math.sin(step) * 30 * s;
     ctx.fillRect(x - 40 * s, y - 220 * s + Math.max(0, l1), 30 * s, 220 * s - Math.max(0, l1));
@@ -355,9 +407,18 @@ export function drawWalker(ctx, x, y, s, cls, color, cloth, step, night, pose = 
 }
 
 export function drawCampfire(ctx, x, y, s, t) {
-    ellipse(ctx, x, y, 200 * s, 60 * s, '#3a2a20');
     const g = ctx.createRadialGradient(x, y - 100 * s, 0, x, y - 100 * s, 1200 * s);
     g.addColorStop(0, 'rgba(255,170,80,0.35)'); g.addColorStop(1, 'rgba(255,170,80,0)');
+    if (pic('x-campfire')) {
+        ctx.fillStyle = g; ctx.fillRect(x - 1200 * s, y - 1300 * s, 2400 * s, 2400 * s);
+        // the flames breathe: a quick stretch from the base
+        const k = 1 + Math.sin(t * 11) * 0.035 + Math.sin(t * 17) * 0.02;
+        ctx.save(); ctx.translate(x, y + 30 * s); ctx.scale(1, k);
+        drawArt(ctx, 'x-campfire', 0, 0, 360 * s);
+        ctx.restore();
+        return;
+    }
+    ellipse(ctx, x, y, 200 * s, 60 * s, '#3a2a20');
     ctx.fillStyle = g; ctx.fillRect(x - 1200 * s, y - 1300 * s, 2400 * s, 2400 * s);
     for (let i = 0; i < 3; i++) {
         const h = (220 + Math.sin(t * 11 + i * 2) * 60) * s;

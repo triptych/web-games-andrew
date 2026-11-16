@@ -17,11 +17,14 @@
 import { FAMILIES, REGIONS, CLASSES } from '../js/sim/data.js';
 import { drawCreature } from '../js/view/creatures.js';
 import { drawProp, drawCart, drawWalker, drawHouse, shade } from '../js/view/sprites.js';
+import { drawScenery } from '../js/view/scenery.js';
+import { ready, status } from '../js/view/art.js';
 
 const night = new URLSearchParams(location.search).get('night') === '1';
 const c = document.getElementById('c'), ctx = c.getContext('2d');
-const W = 1400, H = 1500;
+const W = 1400, H = 1900;
 c.width = W; c.height = H;
+function drawAll() {
 ctx.fillStyle = night ? '#1a1c2c' : '#7a7a80'; ctx.fillRect(0, 0, W, H);
 ctx.font = '12px system-ui'; ctx.textAlign = 'center'; ctx.fillStyle = '#fff';
 const label = (t, x, y) => { ctx.fillStyle = '#fff'; ctx.fillText(t, x, y); };
@@ -30,13 +33,13 @@ const label = (t, x, y) => { ctx.fillStyle = '#fff'; ctx.fillText(t, x, y); };
 const fams = Object.entries(FAMILIES);
 fams.forEach(([id, f], i) => {
     const x = 80 + (i % 9) * 150, y = 190 + Math.floor(i / 9) * 210;
-    drawCreature(ctx, { ...f, shape: f.shape }, x, y, 0.2, { t: 0.3, flash: 0, dead: 0 }, night);
+    drawCreature(ctx, { ...f, shape: f.shape, fam: id }, x, y, 0.2, { t: 0.3, flash: 0, dead: 0 }, night);
     label(f.name, x, y + 20);
 });
 // wardens
 REGIONS.forEach((R, i) => {
     const x = 110 + i * 220, y = 990;
-    drawCreature(ctx, { shape: R.warden.shape, col: R.warden.col, deco: R.warden.deco, warden: true }, x, y, 0.32, { t: 0.3, flash: 0, dead: 0 }, night);
+    drawCreature(ctx, { shape: R.warden.shape, col: R.warden.col, deco: R.warden.deco, warden: true, fam: R.warden.id }, x, y, 0.32, { t: 0.3, flash: 0, dead: 0 }, night);
     label(R.warden.name, x, y + 20);
 });
 // carts and their travellers, seen from behind and to the right like the game's camera
@@ -49,11 +52,18 @@ classes.forEach((cls, i) => {
     drawWalker(ctx, ox + 60, oy + 10, 0.12, cls, C.color, C.cloth, 0.6, night, i % 2);
     label(C.name, ox, oy + 30);
 });
-// props
-const props = ['tree', 'bush', 'fence', 'cactus', 'rock', 'dune', 'willow', 'mushroom', 'reeds', 'pine', 'deadtree', 'lavarock', 'vent', 'crystal', 'obelisk', 'waystone'];
-props.forEach((k, i) => { const x = 50 + i * 84, y = 1440; drawProp(ctx, k, x, y, 0.08, 1, night); label(k, x, y + 16); });
-drawHouse(ctx, 1380, 1440, 0.07, 5, { walls: ['#e8dcc0'], roofs: ['#a84a3a'] }, night);
-document.title += ' ✓';
+// the countryside, every kind (?art=0 shows the code sprites)
+const kinds = ['oak', 'birch', 'poplar', 'blossom', 'autumn', 'bush', 'rock', 'boulders', 'log', 'stump', 'haystack', 'sheep', 'deer', 'fence', 'tuft', 'flowers', 'pebbles', 'smallrock', 'toadstool', 'windmill',
+    'saguaro', 'barrel', 'pear', 'deadbush', 'bones', 'palm', 'drytuft', 'willow', 'swamptree', 'deadtree', 'giantshroom', 'mossrock', 'reeds', 'lily', 'pine', 'snowpine', 'deadpine', 'icespire', 'snowtuft', 'iceshards',
+    'lavarock', 'obsidian', 'vent', 'ashtree', 'ashtuft', 'ember', 'crystal', 'obelisk', 'startree', 'floatrock', 'glowshroom', 'glowtuft', 'shard'];
+kinds.forEach((k, i) => { const x = 40 + (i % 20) * 68, y = 1420 + Math.floor(i / 20) * 120; drawScenery(ctx, k, x, y, 0.08, 1, night, 0.5); label(k, x, y + 14); });
+// a house from each region, and the Waystones
+['meadow', 'desert', 'mire', 'frost', 'ember', 'star'].forEach((b, i) => drawHouse(ctx, 120 + i * 150, 1860, 0.1, i, { walls: ['#e8dcc0'], roofs: ['#a84a3a'] }, night, b));
+drawProp(ctx, 'waystone', 1050, 1860, 0.11, 0, night); drawProp(ctx, 'waystone', 1180, 1860, 0.11, 1, night);
+}
+drawAll();
+// draw again once the paintings are in
+ready().then(() => { drawAll(); document.title += ' ✓'; window.__art = status(); });
 </script>
 </body>
 </html>

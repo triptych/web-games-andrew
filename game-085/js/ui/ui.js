@@ -9,6 +9,7 @@ import { larderCap, buyPrice, cargoUsed, cargoCap, rationPrice } from '../sim/ec
 import { PANELS, LIVE, journalHtml, itemStats } from './panels.js';
 import { MapView } from '../view/map.js';
 import { drawPortrait } from '../view/portraits.js';
+import { ready as artReady } from '../view/art.js';
 import { bookCount } from '../sim/book.js';
 import { STORY, WAGON_NAMES, LORE } from '../sim/data.js';
 
@@ -254,7 +255,10 @@ export class UI {
                     if (t) { this.mapSel = t; this.audio.ui('click'); }
                 });
             } else this.mapView = null;
-            for (const c of panel.querySelectorAll('canvas[data-portrait]')) drawPortrait(c, JSON.parse(c.dataset.portrait));
+            const portraits = [...panel.querySelectorAll('canvas[data-portrait]')];
+            for (const c of portraits) drawPortrait(c, JSON.parse(c.dataset.portrait));
+            // the paintings may still be on their way: draw again once they're in
+            if (portraits.length) artReady().then(() => { for (const c of portraits) if (c.isConnected) drawPortrait(c, JSON.parse(c.dataset.portrait)); });
             if (this.tab === 'book') this.onCommand({ type: 'bookSeen', n: bookCount(G) });
             this.liveT = 0;
         }

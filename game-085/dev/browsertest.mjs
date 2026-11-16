@@ -117,6 +117,10 @@ async function desktop() {
     await until(page, () => !document.getElementById('letter').hidden, 'Grandmother\'s letter opens');
     await clickSel(page, '#letter-ok');
     await until(page, () => document.getElementById('letter').hidden && __wq.G.letters.length === 0, 'folding it puts it away');
+    // the painted art and the recordings: every file arrives, none fails, the region's music and ambience play
+    await until(page, () => { const a = __wq.art(); return a.ok === a.total && a.failed === 0; }, 'every painted picture loads');
+    await until(page, () => { const s = __wq.sound(); return s.failed.length === 0 && s.decoded.filter((k) => k.startsWith('sfx/')).length >= 29; }, 'every recorded effect decodes');
+    await until(page, () => { const s = __wq.sound(); return s.playing.music === 'music/meadow' && s.playing.amb === 'amb/meadow'; }, 'Meadowmere\'s theme and ambience are playing');
 
     await page.keyboard.press('Digit2');
     await until(page, () => document.querySelector('#tabs .tab.on')?.dataset.tab === 'caravan' && document.getElementById('panel').textContent.includes('Iron-shod Wheels'), 'the 2 key opens the Caravan tab');

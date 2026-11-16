@@ -6,6 +6,7 @@
 import { STEP, MAX_FRAME } from './config.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
+import { status as artStatus } from './view/art.js';
 import { Input } from './input.js';
 import { UI } from './ui/ui.js';
 import { loadSettings, saveSettings, hasSave, savedName, saveGame, loadGame, clearSave } from './save.js';
@@ -235,7 +236,7 @@ function frame(now) {
     view.setFrame(ui.sceneRect());
     view.frame(G, dt, time);
     const T = TOWN[G.at || G.road?.to || 'hearthford'];
-    audio.setScene(T.region, isNight(G));
+    audio.setScene(T.region, isNight(G), mode === 'title', !!G.camp);
     if (mode === 'play') ui.update(G, time);
 }
 
@@ -267,5 +268,9 @@ if (DEBUG) {
         cmd: (c) => command(G, c),
         day(n) { dayOffset += n; checkIn(G, today()); },
         save, hasSave,
+        /** The painted art: how many pictures arrived and failed. */
+        art: () => artStatus(),
+        /** The recordings: which clips are decoded, which failed, what each loop slot is playing. */
+        sound: () => ({ ctx: audio.ctx?.state ?? null, decoded: Object.keys(audio.buf), failed: [...audio.failed], playing: Object.fromEntries(Object.entries(audio.slots).map(([k, v]) => [k, v?.key ?? null])) }),
     };
 }
