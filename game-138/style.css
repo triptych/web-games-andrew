@@ -318,6 +318,11 @@ td:first-child { font-family: var(--head); font-weight: 600; white-space: nowrap
     #bench { height: min(56vh, 260px); left: auto; width: min(380px, 60vw); }
     #info { display: none; }
 }
+@media (max-width: 430px) {
+    .brand-sub { display: none; }
+    .brand-name { font-size: 14px; }
+    .brand { padding-right: 10px; }
+}
 @media (prefers-reduced-motion: reduce) {
     .lamp, .welcome-lamp { animation: none; }
     .pane, .sheet { animation: none; }

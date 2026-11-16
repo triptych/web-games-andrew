@@ -48,9 +48,11 @@ void main() {
     vec3 hit = p + dir * t;
     vec4 col;
     float d = clamp(-hit.z / depth, 0.0, 1.0);
+    // a room is painted once across its depth; a shaft's stones repeat every unit down
+    float dd = shaft > 0.5 ? fract(-hit.z) : d;
     if (t == tz) col = slot(hit.xy + 0.5, 0.0);
-    else if (t == tx) col = dir.x < 0.0 ? slot(vec2(d, hit.y + 0.5), 1.0) : slot(vec2(1.0 - d, hit.y + 0.5), 2.0);
-    else col = dir.y < 0.0 ? slot(vec2(hit.x + 0.5, 1.0 - d), 3.0) : slot(vec2(hit.x + 0.5, d), 4.0);
+    else if (t == tx) col = dir.x < 0.0 ? slot(vec2(dd, hit.y + 0.5), 1.0) : slot(vec2(1.0 - dd, hit.y + 0.5), 2.0);
+    else col = dir.y < 0.0 ? slot(vec2(hit.x + 0.5, 1.0 - dd), 3.0) : slot(vec2(hit.x + 0.5, dd), 4.0);
     // the middle layer
     float tm = (-depth * 0.45 - p.z) / min(dir.z, -1e-4);
     if (tm < t) {
@@ -62,7 +64,7 @@ void main() {
         }
     }
     float flick = 0.92 + 0.08 * sin(uTime * 7.0 + sin(uTime * 3.1) * 2.0);
-    float light = mix(1.0, exp(-d * 3.2), shaft);
+    float light = mix(1.0, exp(-d * 4.0) + (t == tz ? 0.6 : 0.0), shaft);
     vec3 c = col.rgb * tint * light * mix(1.0, flick, glow);
     // a little warmth spilling out of the window
     c += vec3(1.0, 0.7, 0.35) * glow * 0.12 * (1.0 - d);

@@ -173,8 +173,8 @@ function findSpouts(tiles, w, h) {
         if (t.fam !== 'spout') continue;
         const x = c % w, y = (c / w) | 0;
         const dir = t.edges.findIndex((e) => e === '###');
-        // the water micro cell next to the wall: the middle of the edge, one step in
-        const mx = x * 3 + 1 + DX[dir], my = y * 3 + 1 + DY[dir];
+        // the water micro cell against the wall is the tile's centre (the wall is the row or column beyond it)
+        const mx = x * 3 + 1, my = y * 3 + 1;
         out.push({ cx: x, cy: y, dir, mx, my });
     }
     return out;

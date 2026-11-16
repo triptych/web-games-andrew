@@ -107,6 +107,7 @@ export class View {
         if (left === this.inset.left && bottom === this.inset.bottom) return;
         this.inset = { left, bottom };
         this.applyInset();
+        if (this.d) this.frameLevel(false);
     }
     applyInset() {
         const { left, bottom } = this.mode === 'walk' ? { left: 0, bottom: 0 } : this.inset;

@@ -132,6 +132,7 @@ function setLevel(k) {
     cur = k;
     view.showLevel(k);
     view.setPins(G.params);
+    view.frameLevel(false);
     ui.sync(G.params, G.d, cur);
     audio.ui('level');
 }
@@ -233,6 +234,7 @@ function startWalk(tour = false) {
     placeAt(G, cur, 'up');
     view.setMode('walk');
     view.showLevel(G.lv, false);
+    updateInset();
     $('walk').hidden = false;
     $('walk-hint').classList.remove('gone');
     hintT = 6;
@@ -258,6 +260,7 @@ function leaveWalk() {
     $('walk').hidden = true;
     cur = G.lv;
     view.setMode('build');
+    updateInset();
     view.showLevel(cur, false);
     view.setPins(G.params);
     view.frameLevel(false);
