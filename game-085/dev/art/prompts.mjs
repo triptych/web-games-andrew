@@ -258,6 +258,13 @@ export function jobs() {
     out.push({ name: 'icon', group: 'title', key: null, aspect_ratio: '1:1', resolution: '1K',
         prompt: 'An app icon for WanderQuest: Grandmother\'s covered wagon with a cream canvas hood and a glowing brass lantern, three-quarter view, on a deep twilight-blue background with a few stars. '
             + 'Bold, simple and readable at small sizes, centred, filling most of the square, painted edge to edge, no rounded corners, no border.' });
+    // the realm map: an edit of a colour layout drawn from the towns (dev/art/map-ref.py), so each region lands where its towns are
+    out.push({ name: 'map', group: 'title', key: null, edit: 'map-ref.png', aspect_ratio: 'auto', resolution: '2K',
+        prompt: 'Repaint this colour layout as an illustrated antique fantasy map of a realm on aged parchment, in warm hand-painted storybook gouache and ink, seen from above. '
+            + 'Keep every coloured patch exactly where it is and the same size, and paint each as its terrain: the green patch at the lower left is gentle farmland meadows with hedgerows and small woods; '
+            + 'the amber-orange patch along the bottom middle and right is a sandy desert with dunes and mesas; the teal patch at the right is a misty fen and swamp forest with pools; '
+            + 'the pale blue patch at the top right is snowy mountain peaks; the red patch at the top left is dark volcanic land with lava; the violet patch in the centre is a twilight land of crystal spires. '
+            + 'Plain parchment between them, a little sea at the edges is fine. Small painted details only: no towns, no roads, no paths, no buildings, no compass rose, no text, no labels, no letters, no border, no frame.' });
     return out;
 }
 

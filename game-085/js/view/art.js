@@ -126,6 +126,7 @@ export function draw(ctx, name, x, y, h, opts = {}) {
     const img = r.img;
     let w = h * img.naturalWidth / img.naturalHeight;
     if (opts.byWidth) { w = h; h = w * img.naturalHeight / img.naturalWidth; }
+    if (opts.stretchW) w = opts.stretchW;
     const ax = opts.ax ?? 0.5, ay = opts.ay ?? 0;
     const m = ctx.getTransform ? ctx.getTransform() : null;
     const devH = h * (m ? Math.hypot(m.b, m.d) : dpr);

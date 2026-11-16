@@ -461,7 +461,7 @@ export class View {
         const a = pic('bg-' + this.biome);
         if (!a) return false;
         const b = this.biomeK < 1 ? pic('bg-' + this.biomeFrom) : null;
-        const H = Math.max(30, (horizon - R.y) * 0.46), W = R.w, dpr = this.dpr;
+        const H = Math.max(30, (horizon - R.y) * 0.34), W = R.w, dpr = this.dpr;
         let c = this.mtn;
         if (!c || c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) {
             c = this.mtn = document.createElement('canvas');
@@ -495,6 +495,19 @@ export class View {
         const l = P(-ROADW - 200, 0, z), r = P(ROADW + 200, 0, z);
         const top = P(0, 1500, z);
         const s = l.s;
+        // the painted gate: its posts (about a tenth in from each side of the picture) on the road's edges, and the
+        // town's name lettered on its blank signboard (measured: 27-73% across, 21-48% down)
+        if (pic('x-gate')) {
+            const W = (r.X - l.X) / 0.8, H = 2300 * s, x0 = (l.X + r.X) / 2 - W / 2, y0 = l.Y - H;
+            drawArt(ctx, 'x-gate', (l.X + r.X) / 2, l.Y, H, { mode: night ? 'night' : 'day', stretchW: W });
+            const bw = W * 0.4, bh = H * 0.25, bx = x0 + W * 0.5, by = y0 + H * 0.35;
+            const fs = Math.max(6, Math.min(bh * 0.55, (bw / Math.max(6, T.name.length)) * 1.6));
+            ctx.font = `700 ${fs}px Georgia, 'Times New Roman', serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = night ? '#2a2018' : '#3a2a1a';
+            if (fs > 7) ctx.fillText(T.name, bx, by);
+            return;
+        }
         const wood = shade('#6a4a30', night ? -0.4 : 0);
         ctx.fillStyle = wood;
         ctx.fillRect(l.X - 60 * s, top.Y, 120 * s, l.Y - top.Y);

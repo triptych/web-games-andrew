@@ -89,7 +89,7 @@ def white_lines(a):
     return m & white
 
 
-def flood(near):
+def flood(near, top_only=False):
     """Background reachable from the border through `near` pixels (BFS at half resolution)."""
     h, w = near.shape
     small = near[::2, ::2]
@@ -97,10 +97,10 @@ def flood(near):
     seen = np.zeros_like(small)
     q = deque()
     for x in range(sw):
-        for y in (0, sh - 1):
+        for y in ((0,) if top_only else (0, sh - 1)):
             if small[y, x] and not seen[y, x]:
                 seen[y, x] = True; q.append((y, x))
-    for y in range(sh):
+    for y in (range(1) if top_only else range(sh)):
         for x in (0, sw - 1):
             if small[y, x] and not seen[y, x]:
                 seen[y, x] = True; q.append((y, x))
@@ -118,14 +118,14 @@ def grow(mask, px):
     return np.asarray(im.filter(ImageFilter.MaxFilter(px * 2 + 1))) > 127
 
 
-def cut(rgb, glow=False, tol=60):
+def cut(rgb, glow=False, tol=60, keys=None, sky=False):
     """rgb: HxWx3 uint8 crop with background all round it. Returns an RGBA image, trimmed."""
     a = rgb.copy()
     lines = grow(white_lines(a), 3)          # and their anti-aliased edges
-    keys = border_keys(a)
+    keys = keys or border_keys(a)
     d = dist_to(a, keys)
     near = (d < tol) | lines
-    bg = flood(near) | (d < tol * 0.45) | lines
+    bg = flood(near, sky) | (lines if sky else (d < tol * 0.45) | lines)
     alpha = np.where(bg, 0.0, 1.0)
     # un-mix the rim from the main (most common) key colour
     K = keys[0]
@@ -231,13 +231,26 @@ def main(raw, only):
         if j['group'] in ('towns',):
             export_towns(img, j, man)
         elif name == 'title':
+            # past the white paper border the painting came with
+            pale = (img.astype(np.int16).min(axis=2) > 225).mean(axis=1) > 0.6
+            rows = np.where(~pale)[0]
+            img = img[rows[0] + 4: rows[-1] - 4]
             Image.fromarray(img).resize((1920, round(img.shape[0] * 1920 / img.shape[1])), Image.LANCZOS).save(OUT / 'title.webp', quality=80, method=6)
             man['title'] = [1920, round(img.shape[0] * 1920 / img.shape[1])]
             print('title')
+        elif name == 'map':
+            Image.fromarray(img).resize((1400, 980), Image.LANCZOS).save(OUT / 'map.webp', quality=82, method=6)
+            man['map'] = [1400, 980]
+            print('map')
         elif name == 'icon':
             export_icon(img)
         elif j['group'] == 'mountains':
-            im = cut(img, tol=70)
+            # the land runs off the sides and bottom, so the key comes from the sky along the top only
+            h0, w0, _ = img.shape
+            img = img[: h0 - round(h0 * 0.015), round(w0 * 0.015): w0 - round(w0 * 0.015)]   # past any painted frame
+            im = cut(img, tol=70, keys=border_keys(img[:48]), sky=True)
+            tw, th = round(im.width * 0.012), round(im.height * 0.02)      # and the frame of a painting that sat inside one
+            im = im.crop((tw, 0, im.width - tw, im.height - th))
             im = im.convert('RGBa').resize((round(im.width * 560 / im.height), 560), Image.LANCZOS).convert('RGBA')
             im.save(OUT / f'{name}.webp', quality=84, method=6)
             man[name] = [im.width, im.height]
