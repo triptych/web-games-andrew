@@ -7203,3 +7203,36 @@ A 1990s-anime voxel bullet heaven ([game-137](../../game-137/)). Lessons the nex
 - **"Like an eyecatch card" draws a card.** A style reference that names an object can add the object (a paper margin around a portrait). Say "fills the square to the edges, no border, frame or paper margin".
 - **A cinematic made of stills is cheap and reads as 1990s TV.** Six 16:9 paintings with Web Animations camera moves (push, pan, pull), a white-flash cut, letterbox bars, subtitles and one narration take cut at its pauses. Drive its timeline from the main loop's frame time, size each shot from its voice line's duration (with a floor for silence), and make Esc skip, Enter/tap advance and a visible Skip button end it.
 - **Read a WebGL canvas in the same task you render it.** A browser-test "not blank" check that drew the canvas into a 2D canvas later saw one flat colour: without `preserveDrawingBuffer` the buffer is cleared after compositing. Call `renderer.render(scene, camera)` and read back in the same `evaluate`.
+
+## Game 085 WanderQuest v1.4.0: repainting a pseudo-3D road with fal, and scoring it with ElevenLabs (2026-11-16)
+
+An idle caravan RPG first drawn entirely in code (a racing-game road of projected segments, billboard props, boxes for carts),
+repainted with fal and scored with ElevenLabs in one session. What the next retrofit should know:
+
+- **Measure the code sprites, then paint to their sizes.** A Playwright page drew every scenery kind at a known scale and
+  read its bounding box, giving each kind's world height (oak 924, pebbles 48, pine 1392…). Painted sprites drawn at those
+  heights kept every grove, verge and fight framed as before; nothing had to be re-tuned.
+- **Ask for the camera's view.** Carts asked for "from behind and slightly to the right" came back side-on twice. The road
+  camera sits just right of the train, so it sees backs: "a symmetrical REAR view … the two rear wheels edge-on as narrow
+  upright ovals, the front wheels hidden, none of the long sides visible" worked first time.
+- **Sheets save requests but not layout.** 46 requests made 170 pictures (grid sheets of 4–9). One sheet came back 3 rows for
+  a 3×2 grid, one with an uneven key wash, two with white gutters, two with captions. Find objects by the empty gaps between
+  them, fall back to the even grid when the count is wrong, treat white lines (and their anti-aliased edges) as background,
+  and look at a contact sheet on light and dark checks before wiring anything.
+- **A panorama's land touches the frame, so key it from the sky only.** Sampling the key from the whole border took the
+  hills for background; then flood-filling from every edge ate the frost range's mauve shadows (close to that render's mauve
+  key). Sample the top band, flood from the top edge, trim a sliver for paintings that sat inside a frame, and tile mirrored.
+- **Tint the panorama off-screen.** A painted mountain band drawn straight onto the sky can't take the hour's tint without
+  tinting the sky too (`source-atop` hits everything under it). Draw the tiles into a small canvas, haze and tint it there
+  with `source-atop`, then draw that onto the scene.
+- **Mips and tinted copies once, not filters each frame.** Hundreds of billboards a frame drawn from 512-px pictures shimmer
+  and cost; a lazily built chain of halved canvases per picture (and per tint: night, white hit flash, silhouette) fixed both
+  without `ctx.filter`, which Safari lacks.
+- **A map can be an edit of its own data.** A colour layout drawn from the towns' coordinates, edited by
+  `nano-banana-2/edit` into "an antique parchment map, every coloured patch exactly where it is", put each painted region
+  under its towns, so roads and labels still draw on top in code (with a parchment halo for legibility on dark land).
+- **Normalise effects before trimming silence.** One effect came back peaking at −30 dB; a −48 dB trim threshold cut it to
+  0.05 s. Gain to −1 dBFS first, then trim relative to that.
+- **A test can serve the repo without a port.** When starting `http.server` was refused, a `node --import` preload that
+  resolved `playwright` to the global install and wrapped `chromium.launch` to `route()` `http://local.test/**` from disk let
+  the unchanged browser test run with `BASE=http://local.test`.

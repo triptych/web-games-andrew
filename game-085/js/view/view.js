@@ -13,6 +13,7 @@ import { drawProp, drawHouse, drawCart, drawOx, drawWalker, drawCampfire, mix, s
 import { drawCreature, creatureHeight } from './creatures.js';
 import { scatter, sizeOf, drawScenery, Birds } from './scenery.js';
 import { drawSparkle } from './sprites.js';
+import { preload as preloadArt, pic, draw as drawArt } from './art.js';
 
 const SEG = 200;              // world units per road segment
 const MILE = 2000;            // world units per mile of road
@@ -37,6 +38,7 @@ const BIOMES = {
 };
 const BIOME_OF = REGIONS.map((r) => r.biome);
 const NIGHT_TINT = '#141a34';
+const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
 
 // smooth 1D value noise from the integer hash, so a segment's curve and hill never depend on the past
 function noise1(x, salt) {
@@ -63,6 +65,8 @@ export class View {
         this.walkers = new Map();    // member id → { ox, oz, ph, go }: where each traveller stands, off their cart
         this.bubble = null;          // { id, who, text, age, life }: someone talking by the fire
         this.sfx = null;             // { fightStart, fightHit, fightOver }: the sound, played as the fight plays
+        this.mtn = null;             // an offscreen strip for the painted mountains, so they can be hazed and tinted
+        preloadArt();
         this.resize();
         const onResize = () => this.resize();
         window.addEventListener('resize', onResize);
@@ -266,7 +270,7 @@ export class View {
                 for (const side of [-1, 1]) {
                     if (ck > 0.05 && side > 0 && z > L.camZ && z < L.frontZ + 4000) continue;   // the fight's verge
                     const v = (hash3(i, side + 5, T.x) * 64) | 0;
-                    items.push({ z, draw: () => { const p = P(side * (ROADW + 650 + (v % 3) * 120), 0, z); drawHouse(ctx, p.X, p.Y, p.s, v, tp, night); } });
+                    items.push({ z, draw: () => { const p = P(side * (ROADW + 650 + (v % 3) * 120), 0, z); drawHouse(ctx, p.X, p.Y, p.s, v, tp, night, BIOME_OF[T.region]); } });
                 }
             }
             const gz = this.town.z;
@@ -434,8 +438,9 @@ export class View {
         };
         arc(d, Math.max(8, R.h * 0.04), '#fff4c8', 'rgba(255,230,160,0.45)');
         arc((d + 0.5) % 1, Math.max(6, R.h * 0.03), '#e8ecff', 'rgba(200,210,255,0.25)');
-        // two ranges of mountains, sliding with the curves
+        // two ranges of mountains, sliding with the curves (a painted panorama once it has loaded)
         const shift = this.bgShift || 0;
+        if (this.drawRanges(ctx, R, horizon, pal, day, shift)) return;
         for (const [layer, colr, amp, par] of [[0, pal.far, 0.22, 0.25], [1, pal.near, 0.13, 0.6]]) {
             ctx.fillStyle = colr;
             ctx.beginPath();
@@ -451,10 +456,58 @@ export class View {
         }
     }
 
+    /** The region's painted mountains across the horizon, mirrored on every other tile, hazed and tinted for the hour. */
+    drawRanges(ctx, R, horizon, pal, day, shift) {
+        const a = pic('bg-' + this.biome);
+        if (!a) return false;
+        const b = this.biomeK < 1 ? pic('bg-' + this.biomeFrom) : null;
+        const H = Math.max(30, (horizon - R.y) * 0.34), W = R.w, dpr = this.dpr;
+        let c = this.mtn;
+        if (!c || c.width !== Math.round(W * dpr) || c.height !== Math.round(H * dpr)) {
+            c = this.mtn = document.createElement('canvas');
+            c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+        }
+        const g = c.getContext('2d');
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+        g.clearRect(0, 0, W, H);
+        const tile = (img, alpha) => {
+            const w = H * img.naturalWidth / img.naturalHeight, off = shift * 0.35 * W;
+            g.globalAlpha = alpha;
+            for (let n = Math.floor(off / w); n * w - off < W; n++) {
+                const x = n * w - off;
+                if (((n % 2) + 2) % 2) { g.save(); g.translate(x + w, 0); g.scale(-1, 1); g.drawImage(img, 0, 0, w, H); g.restore(); } else g.drawImage(img, x, 0, w, H);
+            }
+        };
+        if (b && b !== a) tile(b, 1);
+        tile(a, b && b !== a ? this.biomeK : 1);
+        // distance haze, thickest at the foot of the hills, then the hour's tint
+        g.globalAlpha = 1; g.globalCompositeOperation = 'source-atop';
+        const hz = g.createLinearGradient(0, 0, 0, H);
+        hz.addColorStop(0, hexA(pal.fog, 0.18)); hz.addColorStop(1, hexA(pal.fog, 0.62));
+        g.fillStyle = hz; g.fillRect(0, 0, W, H);
+        if (day < 1) { g.fillStyle = hexA(NIGHT_TINT, (1 - day) * 0.62); g.fillRect(0, 0, W, H); }
+        ctx.drawImage(c, R.x, horizon - H + 2, W, H);
+        return true;
+    }
+
     drawGate(ctx, P, z, T, night) {
         const l = P(-ROADW - 200, 0, z), r = P(ROADW + 200, 0, z);
         const top = P(0, 1500, z);
         const s = l.s;
+        // the painted gate: its posts (about a tenth in from each side of the picture) on the road's edges, and the
+        // town's name lettered on its blank signboard (measured: 27-73% across, 21-48% down)
+        if (pic('x-gate')) {
+            const W = (r.X - l.X) / 0.8, H = 2300 * s, x0 = (l.X + r.X) / 2 - W / 2, y0 = l.Y - H;
+            drawArt(ctx, 'x-gate', (l.X + r.X) / 2, l.Y, H, { mode: night ? 'night' : 'day', stretchW: W });
+            const bw = W * 0.4, bh = H * 0.25, bx = x0 + W * 0.5, by = y0 + H * 0.35;
+            const fs = Math.max(6, Math.min(bh * 0.55, (bw / Math.max(6, T.name.length)) * 1.6));
+            ctx.font = `700 ${fs}px Georgia, 'Times New Roman', serif`;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = night ? '#2a2018' : '#3a2a1a';
+            if (fs > 7) ctx.fillText(T.name, bx, by);
+            return;
+        }
         const wood = shade('#6a4a30', night ? -0.4 : 0);
         ctx.fillStyle = wood;
         ctx.fillRect(l.X - 60 * s, top.Y, 120 * s, l.Y - top.Y);

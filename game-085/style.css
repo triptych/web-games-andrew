@@ -242,7 +242,7 @@ table.market .btn { min-width: 44px; padding: 4px 6px; font-size: 13px; }
     padding: calc(52px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
     background: rgba(8, 6, 4, 0.55); overflow-y: auto;
 }
-#title { background: linear-gradient(180deg, rgba(8, 6, 4, 0.1), rgba(8, 6, 4, 0.55)); align-items: flex-end; }
+#title { background: linear-gradient(180deg, rgba(8, 6, 4, 0.1), rgba(8, 6, 4, 0.55)), url('art/title.webp') center 30% / cover no-repeat, #1f1a14; align-items: flex-end; }
 .sheet {
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: rgba(31, 26, 20, 0.96); border: 1px solid var(--line); border-radius: 14px; padding: 18px;

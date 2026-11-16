@@ -1,8 +1,8 @@
 # WanderQuest
 
 **Genre:** Idle caravan RPG (mobile first)
-**Engine:** Vanilla JS: Canvas 2D (a pseudo-3D road) + DOM panels, no asset files
-**Status:** v1.3.0
+**Engine:** Vanilla JS: Canvas 2D (a pseudo-3D road) + DOM panels; painted art by fal and recorded sound by ElevenLabs, with the original code-drawn sprites and Web Audio synth as fallbacks
+**Status:** v1.4.0
 
 ---
 
@@ -125,12 +125,13 @@ Grandmother Odessa drove the wagon for fifty years. When the Hollow King's fog r
 
 ## Look and sound
 
+- **Painted art** (v1.4.0, `art/`, `js/view/art.js`): every monster, Warden, traveller, cart, ox, house, roadside thing, Waystone, the town gate, the campfire, six mountain panoramas, 19 town paintings for the scrapbook, the realm map, the title and the icon were painted with fal (Nano Banana 2) and cut out by [dev/art/export.py](dev/art/export.py); see [dev/art/README.md](dev/art/README.md). The code below still draws each one until its picture arrives (and always with `?art=0`): the road is playable before a byte of art has loaded, and a missing file costs one sprite. Sky, road, weather, sparkles, birds and the lantern and fire glows stay code.
 - **The road** (`js/view/view.js`): 150 segments of 200 world units projected by a pinhole camera behind, above and slightly right of the last cart. Curves are a sideways offset accumulated segment by segment, hills a height per segment; both come from stateless value noise over the segment index, so the road never needs storing and never changes when you come back. Segments fade into the sky's haze with distance. Six biomes cross-fade (grass stripes, road and verge colours, mountains, props, weather). Day and night follow the game clock (a 12-minute day): sky gradient, sun and moon on an arc, stars, lit windows, the lead wagon's lantern glow, a vignette.
 - **Carts** (`js/view/sprites.js`) are boxes projected corner by corner through the road's own projection: wheels with spokes that turn with the miles, a canopy of hoops in the traveller's colour, the cart's emblem on the back, the lantern on the lead wagon's pole, two oxen. Travellers walk beside their carts, sit round a fire at camp and step out to fight.
 - **Fights** are staged on the verge to the right; the camera eases forward and out to frame them, roadside props and houses clear out of the way, the round's script plays back hit by hit with lunges, flashes and damage numbers, and the camera drifts back after.
 - **The countryside** (`js/view/scenery.js`): three bands of scenery per road segment (verge, middle ground, far), placed from the segment's hash so the same road always looks the same, clumped into groves and clearings, every tree its own size, shape and colour, animals grazing, birds overhead. See the v1.1.0 changelog for the list.
 - **Monsters** (`js/view/creatures.js`): nine body shapes (beast, biped, brute, spirit, crawler, serpent, flyer, blob, golem) plus drake and king, coloured per family. `dev/gallery.html` shows them all.
-- **Sound** (`js/audio.js`): Web Audio, no files. Hits, heals, victory and rout jingles, coins, an arrival bell, level-ups, rare-loot chimes; a plucked travelling tune with a reverb tail whose scale changes by region and slows at night.
+- **Sound** (`js/audio.js`): since v1.4.0 recorded with ElevenLabs ([dev/audio/README.md](dev/audio/README.md)): a looping theme per region and one for the title, cross-faded at region borders and muffled at night; ambience per region, crickets at night on the lowland roads; war drums under fights; 29 effects. The v1.3.0 synth (hits, heals, jingles, coins, an arrival bell, the plucked travelling tune whose scale changes by region) plays for any clip that is missing or won't decode.
 - **UI:** a warm leather-and-parchment dock with seven tabs (Road, Caravan, Pack, Quests, Map, Town, Scrapbook); the map is parchment with region washes, lit Waystones and quest markers. Cinzel for headings, Nunito for text, Caveat for the scrapbook's handwriting, system fallbacks.
 
 ## Module overview
@@ -147,7 +148,9 @@ Grandmother Odessa drove the wagon for fifty years. When the Hollow King's fog r
 | `js/sim/quests.js` | Notice boards, taverns, quests, daily contracts, the morning post |
 | `js/sim/bot.js` | A player who checks in: claims the post, hires, upgrades, heads for Wardens |
 | `js/sim/book.js` | The scrapbook's records: people, monsters, Wardens, gear, goods, materials, places, roads, letters |
-| `js/view/view.js`, `sprites.js`, `creatures.js`, `map.js`, `portraits.js` | The pseudo-3D road, carts and props, monsters, the realm map, the scrapbook's portraits |
+| `js/view/view.js`, `sprites.js`, `creatures.js`, `scenery.js`, `map.js`, `portraits.js` | The pseudo-3D road, carts and props, monsters, the countryside, the realm map, the scrapbook's portraits; each draws its painting when it has one |
+| `js/view/art.js`, `js/art-files.js` | Loads the paintings in the background, makes halved copies (mips) and night, flash and silhouette tints, and draws them standing on a point; `art-files.js` (generated) lists every picture |
+| `js/audio-files.js` | Every recorded clip (generated by `dev/audio/process.py`) |
 | `js/ui/ui.js`, `panels.js`, `fmt.js` | Screens, HUD, status strip, the six panels (rebuilt only when their structure changes), pickers, the chronicle |
 | `js/input.js`, `js/audio.js`, `js/save.js`, `js/rng.js`, `js/config.js` | Keys and gamepad, sound, guarded storage with the save time, seeded RNG, tuning |
 
@@ -172,6 +175,12 @@ From the bot table (`SEEDS=3`, the median of three):
 - Push notifications would suit the genre, but a static page can't send them.
 
 ## Changelog
+
+### v1.4.0 (2026-11-16)
+- **Painted with fal.** 170 pictures replace the code-drawn art: 27 monsters and 6 Wardens, the Captain, eight travellers and Grandmother Odessa, nine carts seen from behind as the road's camera sees them, the ox, four houses for each region, 58 kinds of roadside scenery, six mountain panoramas behind the road, the town gate (with the town's name lettered on its blank sign), the Waystones dark and lit, the campfire, a painting of each of the 19 towns for the scrapbook, the realm map, the title and the app icon. Pictures have mips and tinted copies for the night, the hit flash and the scrapbook's silhouettes; the code sprites draw until each picture loads.
+- **Recorded with ElevenLabs.** A theme for each region and the title (cross-faded at borders, low-passed at night), ambience for each region and crickets at night, war drums under fights, and 29 effects for hits, crits, heals, wins and routs, coins, the arrival bell, Rally's horn, level-ups, loot, quests, Wardens, recruits, the three crafting carts, a broken wheel, sparkles, upgrades and the UI. The synth plays for any clip that is missing.
+- The battle event now names each foe's family (`fam`), so the view can pick its picture.
+- [browsertest.mjs](dev/browsertest.mjs) checks every picture loads, every effect decodes and the region's music and ambience play; [gallery.html](dev/gallery.html) shows the paintings (`?art=0` for the code sprites).
 
 ### v1.3.0 (2026-10-19)
 - **Talk by the fire.** Making camp by hand with everyone healthy used to last one tick: the caravan broke camp straight away. A camp made by hand now lasts at least 8 s (`TRAVEL.campMin`), and whenever the caravan makes camp a traveller says something in a speech bubble over where they sit, also written in the journal. Each class has its own lines for "nobody's hurt" and "we needed this" on top of shared ones (`CAMP_TALK` in `data.js`); the captain only speaks when travelling alone. Who speaks and what they say come from a hash of the clock, not the random stream, so time away still plays out exactly as watching does. The status line says "A short rest by the fire" when nobody needed it.
