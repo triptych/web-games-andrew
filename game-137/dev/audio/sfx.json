@@ -24,5 +24,6 @@
  "clear": [3.0, "A short triumphant 1990s anime victory jingle: brass and electric guitar"],
  "fail": [2.5, "A short sad defeat jingle: descending synth notes with a power-down whine"],
  "spit": [0.5, "A wet alien goo projectile spat out with a squelch"],
- "hatch": [0.6, "A crystalline egg cracking open with a squelchy pop"]
+ "hatch": [0.6, "A crystalline egg cracking open with a squelchy pop"],
+ "beam": [2.0, "A massive charged mecha beam cannon firing: a quick rising charge whine, then a huge roaring sustained energy blast with crackling electricity, 1990s anime style"]
 }

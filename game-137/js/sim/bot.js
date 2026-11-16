@@ -133,7 +133,13 @@ function decide(R, bot) {
     const mag = skill > 0.6 && near >= 4 && closest > 2.2 && !(boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 7);
     // ---- overdrive: in a crowd, or near the boss
     const od = M.od >= 1 && (crowd >= 6 || (boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 9) || (skill < 0.5 && bot.rng() < 0.02));
-    return { x, y, mag, od, pick: null };
+    // the Shard Beam: on the boss, a hive, or a crowd; a careless pilot sometimes wastes it on nothing
+    let beam = false;
+    if (M.beam >= 1 && M.beamCd <= 0) {
+        const hive = R.hives.some((h) => !h.dead && Math.hypot(h.x - M.x, h.y - M.y) < 12);
+        beam = !!(boss && Math.hypot(M.x - boss.x, M.y - boss.y) < 16) || hive || crowd >= 5 || (skill < 0.5 && bot.rng() < 0.03);
+    }
+    return { x, y, mag, od, beam, pick: null };
 }
 
 /** The next place to go, as target cells for the path field plus a stand-off distance. */

@@ -9,7 +9,7 @@ python3 -I game-137/dev/audio/process.py RAW     # RAW holds music-*.mp3, sfx-*.
 | Kind | Model | Files | Cost |
 |---|---|---|---|
 | Music | `eleven_music_v2_5`, instrumental, `duration_seconds` set, prompts in `music.json` | `music-title` (50 s), `music-hangar`, `music-battle1`, `music-battle2`, `music-boss` (60 s each); 80 kbps stereo, 1.5 s fades at the loop seam, −17 LUFS | 750 + 4 × 900 credits |
-| Effects | `eleven_text_to_sound_v2`, `duration_seconds` on every node, prompts in `sfx.json` | 26 × `sfx-*`; 96 kbps mono, leading silence trimmed, at most 3.2 s, −16 LUFS | 2–10 credits each, about 110 |
+| Effects | `eleven_text_to_sound_v2`, `duration_seconds` on every node, prompts in `sfx.json` | 27 × `sfx-*` (v1.1 added `sfx-beam`, 7 credits); 96 kbps mono, leading silence trimmed, at most 3.2 s, −16 LUFS | 2–10 credits each, about 110 |
 | Voices | `eleven_v4`, one take per character, lines separated by `[long pause]`, delivery tags | 17 × `vo-*`; 64 kbps mono, cut at the middles of the pauses (`CUTS` in `process.py`) | 412 + 276 + 484 credits |
 
 The music asks for an early-1990s anime opening (J-rock guitars, slap bass, synth brass), a city-pop hangar tune, two hard-rock mecha battle themes that take turns, and an orchestral-rock kaiju theme with choir and organ.
