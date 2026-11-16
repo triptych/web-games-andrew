@@ -20,6 +20,7 @@
  *   node game-137/dev/browsertest.mjs
  *
  * Env: BASE (default http://127.0.0.1:8137), ONLY=desktop,phones,nostorage, THREE_PKG.
+ * SERVE=route: no web server needed; Playwright answers the game's requests from the repo on disk.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -28,7 +29,10 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8137';
+const ROUTE = process.env.SERVE === 'route';
+const BASE = ROUTE ? 'http://game.local' : process.env.BASE ?? 'http://127.0.0.1:8137';
+const REPO = path.join(HERE, '../..');
+const TYPES = { '.html': 'text/html', '.js': 'application/javascript', '.mjs': 'application/javascript', '.css': 'text/css', '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.mp3': 'audio/mpeg', '.json': 'application/json', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json' };
 const OUT = path.join(HERE, 'shots');
 const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 const want = (name) => !ONLY.length || ONLY.includes(name);
@@ -50,6 +54,14 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
         else try { localStorage.clear(); } catch { /* */ }
     }, nostorage);
     const page = await ctx.newPage();
+    if (ROUTE) {
+        await page.route(`${BASE}/**`, (route) => {
+            const file = path.join(REPO, decodeURIComponent(new URL(route.request().url()).pathname));
+            if (!file.startsWith(REPO) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) return route.fulfill({ status: 404, body: '' });
+            const ext = path.extname(file);
+            route.fulfill({ status: 200, contentType: TYPES[ext] || 'application/octet-stream', body: fs.readFileSync(file) });
+        });
+    }
     if (PKG) {
         await page.route('https://unpkg.com/**', (route) => {
             const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');

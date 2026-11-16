@@ -22,8 +22,11 @@ const PICK_ORDER = ['salvo', 'dmg', 'rate', 'multi', 'blast', 'hp', 'shield', 'r
 function goalField(R, goals) {
     const N = MAP.w * MAP.h, dist = new Int32Array(N).fill(1e9), q = [];
     for (const g of goals) { if (inMap(g.x, g.y)) { const i = idx(g.x, g.y); dist[i] = 0; q.push(i); } }
+    // the map is big: stop a couple of rings past the mech, which is all followField looks at
+    const M = R.mech, me = inMap(cellOf(M.x), cellOf(M.y)) ? idx(cellOf(M.x), cellOf(M.y)) : -1;
     for (let h = 0; h < q.length; h++) {
         const i = q[h], x = i % MAP.w, y = (i / MAP.w) | 0;
+        if (me >= 0 && dist[me] < 1e9 && dist[i] > dist[me] + 2) break;
         for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
             const nx = x + dx, ny = y + dy;
             if (!inMap(nx, ny)) continue;

@@ -381,17 +381,42 @@ if (want('hangar')) {
 if (want('maps')) {
     section('maps');
     const { makeRng } = await import('../js/rng.js');
-    let bad = 0, n = 0;
-    for (const m of MISSIONS) for (let s = 1; s <= 60; s++) {
+    const Mf = await import('../js/sim/mapfix.js');
+    const MAPS = +(process.env.MAPS || 12);
+    let bad = 0, n = 0, rock = { prairie: 0, canyon: 0, city: 0 }, per = { prairie: 0, canyon: 0, city: 0 };
+    const problems = [];
+    for (const m of MISSIONS) for (let s = 1; s <= MAPS; s++) {
         const L = Wd.generate(m, makeRng(Gm.hashSeed(s * 31 + m.id)));
         n++;
-        if (!Wd.provedReachable(L)) bad++;
+        let why = '';
+        if (!Wd.provedReachable(L)) why += ' unreachable objective';
         const nh = m.objectives.filter((o) => o.kind === 'hives').reduce((a, o) => a + o.count, 0);
         const nc = m.objectives.filter((o) => o.kind === 'rescue').reduce((a, o) => a + o.crew.length, 0);
-        if (L.hives.length !== nh || L.cages.length !== nc) bad++;
-        if (Wd.solid(L.W, Wd.idx(Wd.cellOf(L.spawn.x), Wd.cellOf(L.spawn.y)))) bad++;
+        if (L.hives.length !== nh || L.cages.length !== nc) why += ' wrong counts';
+        const start = Wd.idx(Wd.cellOf(L.spawn.x), Wd.cellOf(L.spawn.y));
+        const rep = Mf.mapReport(L.W.h, start);
+        if (!rep.startOk) why += ' landing zone not clear';
+        if (rep.narrow) why += ` ${rep.narrow} narrow cells`;
+        if (rep.components !== 1 || rep.stray) why += ` ${rep.components} regions, ${rep.stray} stray cells`;
+        if (rep.deadEnds) why += ` ${rep.deadEnds} dead ends`;
+        if (why) { bad++; problems.push(`m${m.id} s${s}:${why}`); }
+        rock[m.sector] += L.W.h.filter((h, i) => h > 0 && L.W.mat[i] !== Wd.MAT_ID.edge).length / L.W.h.length;
+        per[m.sector]++;
     }
-    ok(bad === 0, `${n} maps (12 missions × 60 seeds): every cage and hive reachable, the right counts, a clear landing zone`);
+    ok(bad === 0, `${n} maps (12 missions × ${MAPS} seeds): objectives reachable, right counts, clear landing zone, every passage 3 wide, one region, no dead ends${problems.length ? ': ' + problems.slice(0, 4).join('; ') : ''}`);
+    const share = (k) => rock[k] / per[k];
+    ok(share('prairie') > 0.12 && share('canyon') > 0.2 && share('city') > 0.14,
+        `the terrain survives the repairs: rock covers ${(share('prairie') * 100).toFixed(0)}% / ${(share('canyon') * 100).toFixed(0)}% / ${(share('city') * 100).toFixed(0)}% of prairie / canyon / city`);
+    ok(C.MAP.w * C.MAP.h >= 10 * 48 * 48, `the board is ${C.MAP.w}×${C.MAP.h}, at least 10× the area of v1.1's 48×48`);
+    // a hand-made cul-de-sac is found and a through-passage is not
+    const h = new Array(C.MAP.w * C.MAP.h).fill(0);
+    for (let y = 0; y < C.MAP.h; y++) for (let x = 0; x < C.MAP.w; x++) if (!x || !y || x === C.MAP.w - 1 || y === C.MAP.h - 1) h[Wd.idx(x, y)] = 3;
+    const box = (x0, y0, x1, y1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) h[Wd.idx(x, y)] = 2; };
+    box(40, 40, 60, 42); box(40, 48, 60, 50); box(60, 40, 62, 50);       // a U: open to the west only
+    const start = Wd.idx(30, 45);
+    ok(Mf.mapReport(h, start).deadEnds === 1, 'a U-shaped bay is reported as a dead end');
+    for (let y = 43; y <= 47; y++) for (let x = 60; x <= 62; x++) h[Wd.idx(x, y)] = 0;
+    ok(Mf.mapReport(h, start).deadEnds === 0, 'open its back wall and it is a passage, not a dead end');
 }
 
 // ======================================================================

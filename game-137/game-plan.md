@@ -26,7 +26,7 @@ Riffs on Vampire Survivors and Brotato (the auto-fire swarm and level-up cards),
 ## Mechanics (each has a line in `dev/simtest.mjs`)
 
 ### The field
-- 48×48 cells. Each cell has a height 0–3 (layers of 1 unit), a material (stone, crystal, rust, neon; the edge and hives can't be broken) and the hp of its top layer. Generated per sortie from a seed: crystal clumps (prairie), wandering ridges with gaps (canyon), a street grid of blocks (city), with a clear landing zone.
+- 152×152 cells (v1.2; 48×48 before). Each cell has a height 0–3 (layers of 1 unit), a material (stone, crystal, rust, neon; the edge and hives can't be broken) and the hp of its top layer. Generated per sortie from a seed with fractal noise: crystal outcrops and knolls (prairie), ridged walls and mesas (canyon), towers scattered off any grid with collapsed corners and rubble (city), a ragged cliff rim, a clear landing zone. Then repaired (`mapfix.js`): every passage at least 3 cells wide, one connected region, no cul-de-sacs. The view draws each cell as 4×4 columns of quarter-unit voxels on a smooth surface (`view/terrain.js`).
 - **Proved**: every cage and every hive is reachable from the landing zone over open ground (flood fill); a layout that fails is thrown away. `maps` checks 12 missions × 60 seeds.
 - Breaking a layer throws that material's rubble voxels (grey/cyan/rust/violet) and sometimes gold.
 
@@ -116,7 +116,10 @@ Captain Mirei Tachibana commands the Skylark; Kai is seventeen and loud. The ope
 |---|---|
 | `js/main.js` | Boot, modes (title, intro, hangar, mission, debrief, ending), the fixed-step loop, the real-time crew clock, input routing, saves, debug hooks |
 | `js/sim/game.js` | `newGame`, `step`, `act`, `serialize`/`deserialize` |
-| `js/sim/world.js` | The grid, generation and its reachability proof, the flow field, circle-vs-grid collision, line traces |
+| `js/sim/world.js` | The grid, generation and its reachability proof, the flow field, circle-vs-grid collision, line traces, packing the world for saves |
+| `js/sim/noise.js` | Seeded value noise and fBm, shared by the map and the view |
+| `js/sim/mapfix.js` | The map repairs: 3-wide passages, one region, no dead ends; and the report the tests use |
+| `js/view/terrain.js` | Fine-voxel terrain in chunks, ground clutter, the painted ground |
 | `js/sim/voxels.js` | Voxel physics: burst, fly, bounce, settle, stack, fade, chew, scatter, collect |
 | `js/sim/damage.js` | Terrain layers, monsters, hives, the mech, explosions |
 | `js/sim/combat.js` | The spatial hash, weapons, projectiles |

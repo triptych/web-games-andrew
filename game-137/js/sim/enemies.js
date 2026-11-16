@@ -1,7 +1,7 @@
 // The Cubeborn: spawning, walking the flow field, chewing through voxel piles, biting, spitting,
 // blowing up; hives that breed them; and the kaiju boss. Pure.
 
-import { MAP, MECH, ENEMY_CAP, CHEW } from '../config.js';
+import { MAP, MECH, ENEMY_CAP, CHEW, FIELD } from '../config.js';
 import { ENEMIES, BOSSES, BOSS_ATTACK, HIVE } from './data/enemies.js';
 import { blocked, solid, idx, inMap, cellOf, flowDir, collide, trace, FAR, MAT_ID } from './world.js';
 import { hurtMech, hurtCell, killEnemy, explode } from './damage.js';
@@ -23,8 +23,16 @@ export function spawnEnemy(R, kind, x, y) {
 export function spawnBoss(R, kind) {
     const def = BOSSES[kind];
     const M = R.mech;
-    // the far side of the map from the mech
-    const x = M.x < MAP.w / 2 ? MAP.w - 6 : 6, y = M.y < MAP.h / 2 ? MAP.h - 6 : 6;
+    // a walk away from the mech, on open ground (it crushes rock on its way in anyway)
+    let x = M.x, y = M.y + FIELD.boss;
+    for (let k = 0; k < 40; k++) {
+        const a = R.rng() * Math.PI * 2, d = FIELD.boss + k * 0.2;
+        const px = M.x + Math.cos(a) * d, py = M.y + Math.sin(a) * d;
+        const cx = cellOf(px), cy = cellOf(py);
+        if (cx < 4 || cy < 4 || cx >= MAP.w - 4 || cy >= MAP.h - 4 || solid(R.W, idx(cx, cy))) continue;
+        x = cx + 0.5; y = cy + 0.5;
+        break;
+    }
     const hp = def.hp * R.hpScale;
     const e = {
         id: R.nextId++, kind, boss: true, x, y, vx: 0, vy: 0, kx: 0, ky: 0, r: def.r,
@@ -83,6 +91,7 @@ export function spawning(R, dt) {
     for (const h of R.hives) {
         if (h.dead) continue;
         h.flash = Math.max(0, h.flash - dt);
+        if (Math.hypot(h.x - R.mech.x, h.y - R.mech.y) > FIELD.wake) continue;   // asleep until the mech comes near
         h.cd -= dt;
         if (h.cd > 0) continue;
         h.cd += HIVE.spawnEvery / (0.8 + 0.2 * R.d);
@@ -110,6 +119,7 @@ export function stepEnemies(R, dt) {
         if (e.boss) { stepBoss(R, e, dt); continue; }
         const def = ENEMIES[e.kind];
         const dx = M.x - e.x, dy = M.y - e.y, d = Math.hypot(dx, dy) || 0.01;
+        if (d > FIELD.cull) { e.dead = true; continue; }       // left far behind on the big map: it wanders off
         let dir = flowDir(W, e.x, e.y) || { x: dx / d, y: dy / d };
         // close enough with a clear line: go straight at the mech
         if (d < 3 && losClear(R, e.x, e.y, M.x, M.y)) dir = { x: dx / d, y: dy / d };

@@ -1,13 +1,17 @@
 // SHARDFRAME — tuning and constants. Shared by the sim, the view and the tests.
 // World units: one map cell is one unit; the sim is 2D (x, y) plus a height z for voxels.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const SAVE_KEY = 'shardframe.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
 export const MAX_FRAME = 0.05;            // a long frame never runs more than this much game time
 
-export const MAP = { w: 48, h: 48, maxH: 3 };
+export const MAP = { w: 152, h: 152, maxH: 3 };   // 10x the area of v1.1's 48x48
+/** The big map stays fast and fair: the monsters' flow field reaches this far (in cells) from the
+ *  mech, hives only breed while the mech is within `wake`, and ordinary monsters left further
+ *  behind than `cull` quietly go. Objectives sit between `near` and `far` from the landing zone. */
+export const FIELD = { flow: 40, wake: 44, cull: 64, near: 16, far: 34, boss: 24 };
 
 export const MECH = {
     radius: 0.62,

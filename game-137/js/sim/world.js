@@ -3,9 +3,11 @@
 // monsters and monster shots, not the mech). A flow field leads monsters to the mech.
 // Pure: no DOM, no Math.random.
 
-import { MAP } from '../config.js';
+import { MAP, FIELD } from '../config.js';
 import { MATS } from './data/enemies.js';
 import { SECTORS } from './data/missions.js';
+import { makeNoise } from './noise.js';
+import { fixup } from './mapfix.js';
 
 export const MAT_LIST = ['', 'stone', 'crystal', 'rust', 'neon', 'edge', 'hive'];
 export const MAT_ID = Object.fromEntries(MAT_LIST.map((m, i) => [m, i]));
@@ -30,6 +32,23 @@ export function emptyWorld() {
     };
 }
 
+/** A world as compact save data: one digit per cell for h, mat and debris, and the flow field
+ *  with "unreachable" written as -1. The map is 23k cells; plain arrays would be ~400 KB a save. */
+export function packWorld(W) {
+    return {
+        h: W.h.join(''), mat: W.mat.join(''), debris: W.debris.join(''), hp: W.hp,
+        ff: W.ff.map((v) => (v >= FAR ? -1 : v)), ffT: W.ffT, ffDirty: W.ffDirty, packed: 1,
+    };
+}
+export function unpackWorld(P) {
+    if (!P || !P.packed) return P;
+    const digits = (str) => Array.from(str, (c) => +c);
+    return {
+        h: digits(P.h), mat: digits(P.mat), debris: digits(P.debris), hp: P.hp.slice(),
+        ff: P.ff.map((v) => (v < 0 ? FAR : v)), ffT: P.ffT, ffDirty: P.ffDirty,
+    };
+}
+
 function setCell(W, x, y, h, mat) {
     if (!inMap(x, y)) return;
     const i = idx(x, y);
@@ -39,109 +58,180 @@ function setCell(W, x, y, h, mat) {
 
 /**
  * Build the map for a mission. Returns { W, spawn, hives: [{x,y}], cages: [{x,y}] }.
- * Every cage and every hive is proved reachable from the spawn over open ground (flood fill);
- * a layout that fails is thrown away and the next one tried.
+ * The terrain is shaped by seeded noise (no street grid, no stamped circles), then repaired so
+ * every passage is wide enough for the mech, all open ground is one region and there are no
+ * cul-de-sacs to be cornered in (see mapfix.js). Every cage and hive is then proved reachable
+ * from the spawn; a layout that fails is thrown away and the next one tried.
  */
 export function generate(mission, rng) {
     const nHives = mission.objectives.filter((o) => o.kind === 'hives').reduce((a, o) => a + o.count, 0);
     const nCages = mission.objectives.filter((o) => o.kind === 'rescue').reduce((a, o) => a + o.crew.length, 0);
-    for (let attempt = 0; attempt < 40; attempt++) {
-        const L = layout(mission, rng, nHives, nCages, attempt >= 30);
+    for (let attempt = 0; attempt < 16; attempt++) {
+        const L = layout(mission, rng, nHives, nCages, attempt >= 10);
         if (L && provedReachable(L)) return L;
     }
-    throw new Error('no reachable layout');      // never seen: simtest proves 60 seeds per mission
+    throw new Error('no reachable layout');      // never seen: simtest proves every mission on many seeds
+}
+
+/** The value below which a share q of the samples fall. */
+function quantile(vals, q) {
+    const s = Float32Array.from(vals).sort();
+    return s[Math.min(s.length - 1, Math.max(0, Math.floor(q * s.length)))];
 }
 
 function layout(mission, rng, nHives, nCages, sparse) {
     const S = SECTORS[mission.sector];
     const W = emptyWorld();
-    const cx = MAP.w / 2, cy = MAP.h / 2;
-    const spawn = { x: cx + 0.5, y: cy + 0.5 };
-    // the edge: an unbreakable wall one cell thick
-    for (let x = 0; x < MAP.w; x++) { setCell(W, x, 0, 3, 'edge'); setCell(W, x, MAP.h - 1, 3, 'edge'); }
-    for (let y = 0; y < MAP.h; y++) { setCell(W, 0, y, 3, 'edge'); setCell(W, MAP.w - 1, y, 3, 'edge'); }
+    const Nz = makeNoise(rng.int(1, 0x3fffffff));
+    const n = MAP.w * MAP.h;
+    const spawn = { x: Math.floor(MAP.w / 2) + 0.5, y: Math.floor(MAP.h / 2) + 0.5 };
+    const f = new Float32Array(n);
+    const each = (fn) => { for (let y = 0; y < MAP.h; y++) for (let x = 0; x < MAP.w; x++) fn(x, y, idx(x, y)); };
 
-    const density = sparse ? 0.4 : 1;
     if (mission.sector === 'prairie') {
-        // crystal outcrops: round clumps, taller in the middle
-        const n = Math.round(26 * density);
-        for (let k = 0; k < n; k++) {
-            const ox = rng.int(3, MAP.w - 4), oy = rng.int(3, MAP.h - 4), r = rng.range(1, 2.6);
-            const mat = rng() < 0.75 ? S.mat : S.alt;
-            for (let y = Math.floor(oy - r); y <= oy + r; y++) for (let x = Math.floor(ox - r); x <= ox + r; x++) {
-                const d = Math.hypot(x - ox, y - oy);
-                if (d <= r && inMap(x, y) && W.mat[idx(x, y)] !== MAT_ID.edge) setCell(W, x, y, Math.max(1, Math.min(3, Math.round(3 - d * 1.1 + rng() * 0.6))), mat);
-            }
-        }
+        // rolling crystal outcrops and stony knolls: blobs of fractal noise, taller in their hearts
+        const cover = sparse ? 0.12 : 0.19;
+        each((x, y, i) => { f[i] = Nz.fbm(x / 13, y / 13, 4) + 0.3 * (Nz.fbm(x / 4.5 + 50, y / 4.5, 2) - 0.5); });
+        const t1 = quantile(f, 1 - cover), t2 = quantile(f, 1 - cover * 0.55), t3 = quantile(f, 1 - cover * 0.22);
+        each((x, y, i) => {
+            if (f[i] < t1) return;
+            setCell(W, x, y, f[i] >= t3 ? 3 : f[i] >= t2 ? 2 : 1, Nz.fbm(x / 9 + 100, y / 9, 3) > 0.42 ? S.mat : S.alt);
+        });
+        smoothRock(W);
     } else if (mission.sector === 'canyon') {
-        // ridges: wandering walls with gaps
-        const n = Math.round(11 * density);
-        for (let k = 0; k < n; k++) {
-            let x = rng.range(3, MAP.w - 3), y = rng.range(3, MAP.h - 3);
-            let a = rng() * Math.PI * 2;
-            const len = rng.int(8, 20);
-            for (let s = 0; s < len; s++) {
-                a += rng.range(-0.5, 0.5);
-                x += Math.cos(a); y += Math.sin(a);
-                if (rng() < 0.12) continue;                     // a gap
-                const w = rng() < 0.4 ? 1 : 0;
-                for (let dy = -w; dy <= w; dy++) for (let dx = -w; dx <= w; dx++) {
-                    const gx = Math.floor(x) + dx, gy = Math.floor(y) + dy;
-                    if (inMap(gx, gy) && W.mat[idx(gx, gy)] !== MAT_ID.edge) setCell(W, gx, gy, rng.int(2, 3), rng() < 0.7 ? S.mat : S.alt);
-                }
+        // ridged noise: long winding walls and mesas with washes between them
+        const cover = sparse ? 0.2 : 0.3;
+        each((x, y, i) => {
+            const r = 1 - Math.abs(2 * Nz.fbm(x / 24, y / 24, 3) - 1);
+            f[i] = 0.55 * r * r + 0.45 * Nz.fbm(x / 9 + 30, y / 9 - 20, 3);
+        });
+        const t1 = quantile(f, 1 - cover), t2 = quantile(f, 1 - cover * 0.72), t3 = quantile(f, 1 - cover * 0.42);
+        each((x, y, i) => {
+            if (f[i] < t1) return;
+            setCell(W, x, y, f[i] >= t3 ? 3 : f[i] >= t2 ? 2 : 1, Nz.n2(x / 6 + 7, y / 6) > 0.7 ? S.alt : S.mat);
+        });
+        smoothRock(W);
+    } else {
+        // a ruined city: towers scattered off any grid, L-shaped wings, gnawed by collapse, rubble between
+        const want = sparse ? 90 : 175;
+        const pts = [];
+        for (let t = 0; t < 3000 && pts.length < want; t++) {
+            const x = rng.range(5, MAP.w - 5), y = rng.range(5, MAP.h - 5), gap = rng.range(7, 9.5);
+            if (pts.every((p) => Math.hypot(p.x - x, p.y - y) > Math.max(gap, p.gap))) pts.push({ x, y, gap });
+        }
+        const rect = (x0, y0, w, d, ht) => {
+            for (let y = y0; y < y0 + d; y++) for (let x = x0; x < x0 + w; x++) if (inMap(x, y)) setCell(W, x, y, ht, rng() < 0.88 ? S.mat : S.alt);
+        };
+        for (const p of pts) {
+            const w = rng.int(3, 6), d = rng.int(3, 6), ht = rng() < 0.2 ? 1 : rng() < 0.5 ? 2 : 3;
+            const x0 = Math.round(p.x - w / 2), y0 = Math.round(p.y - d / 2);
+            rect(x0, y0, w, d, ht);
+            if (rng() < 0.35) {           // a lower wing off one side
+                const ww = rng.int(2, 3), dd = rng.int(2, 3), side = rng.int(0, 3);
+                const wx = side === 0 ? x0 + w : side === 1 ? x0 - ww : x0 + rng.int(0, Math.max(0, w - ww));
+                const wy = side === 2 ? y0 + d : side === 3 ? y0 - dd : y0 + rng.int(0, Math.max(0, d - dd));
+                rect(wx, wy, ww, dd, Math.max(1, ht - 1));
             }
         }
-    } else {
-        // city blocks on a street grid, some knocked down to rubble mounds
-        for (let by = 3; by < MAP.h - 4; by += 7) for (let bx = 3; bx < MAP.w - 4; bx += 7) {
-            if (rng() > 0.78 * density) continue;
-            const w = rng.int(2, 4), d = rng.int(2, 4), ht = rng() < 0.25 ? 1 : rng.int(2, 3);
-            const ox = bx + rng.int(0, 1), oy = by + rng.int(0, 1);
-            for (let y = oy; y < oy + d; y++) for (let x = ox; x < ox + w; x++) setCell(W, x, y, ht, rng() < 0.85 ? S.mat : S.alt);
-        }
+        // collapse: noise knocks whole corners down to rubble or flat
+        each((x, y, i) => {
+            if (!W.h[i]) return;
+            const e = Nz.fbm(x / 3.5, y / 3.5, 2);
+            if (e < 0.3) setCell(W, x, y, 0, '');
+            else if (e < 0.4) setCell(W, x, y, 1, S.alt);
+        });
+        // rubble mounds in the streets
+        each((x, y, i) => { f[i] = Nz.fbm(x / 6 + 70, y / 6, 3); });
+        const tr = quantile(f, 0.955);
+        each((x, y, i) => { if (!W.h[i] && f[i] > tr) setCell(W, x, y, 1, S.alt); });
     }
 
-    // a clear landing zone
-    clearDisc(W, spawn.x, spawn.y, 4.5);
+    // the edge: unbreakable cliffs, a ragged band two to five cells thick
+    each((x, y) => {
+        const b = Math.min(x, y, MAP.w - 1 - x, MAP.h - 1 - y);
+        const band = 1 + 6 * Math.max(0, Nz.fbm(x / 10 + 300, y / 10 + 300, 3) - 0.22);
+        if (b === 0 || b < band) setCell(W, x, y, 3, 'edge');
+    });
 
-    // hives (3x3) far from the spawn, apart from each other
+    // a clear landing zone
+    const prot = new Uint8Array(n);
+    clearDisc(W, spawn.x, spawn.y, 6.5, prot);
+
+    // hives (3x3) a walk from the spawn, apart from each other
     const hives = [];
     for (let k = 0; k < nHives; k++) {
-        const p = pickSpot(rng, (x, y) => Math.hypot(x - spawn.x, y - spawn.y) > 12
-            && hives.every((h) => Math.hypot(h.x - x, h.y - y) > 9), 4);
+        const p = pickRing(rng, spawn, FIELD.near, FIELD.far, (x, y) => hives.every((h) => Math.hypot(h.x - x, h.y - y) > 11));
         if (!p) return null;
-        clearDisc(W, p.x, p.y, 3.8);
+        clearDisc(W, p.x, p.y, 4.2, prot);
         for (let y = -1; y <= 1; y++) for (let x = -1; x <= 1; x++) {
             const i = idx(Math.floor(p.x) + x, Math.floor(p.y) + y);
-            W.h[i] = 2; W.mat[i] = MAT_ID.hive; W.hp[i] = 0;
+            W.h[i] = 2; W.mat[i] = MAT_ID.hive; W.hp[i] = 0; prot[i] = 0;
         }
         hives.push(p);
     }
     // cages: away from the spawn and the hives
     const cages = [];
     for (let k = 0; k < nCages; k++) {
-        const p = pickSpot(rng, (x, y) => Math.hypot(x - spawn.x, y - spawn.y) > 13
-            && cages.every((c) => Math.hypot(c.x - x, c.y - y) > 10)
-            && hives.every((h) => Math.hypot(h.x - x, h.y - y) > 6), 3);
+        const p = pickRing(rng, spawn, FIELD.near - 1, FIELD.far, (x, y) => cages.every((c) => Math.hypot(c.x - x, c.y - y) > 12)
+            && hives.every((h) => Math.hypot(h.x - x, h.y - y) > 7));
         if (!p) return null;
-        clearDisc(W, p.x, p.y, 2.2);
+        clearDisc(W, p.x, p.y, 2.6, prot);
         cages.push(p);
     }
+
+    const fixed = (i) => W.mat[i] === MAT_ID.edge || W.mat[i] === MAT_ID.hive;
+    const ctx = {
+        W, prot, fixed,
+        open: (i) => { W.h[i] = 0; W.mat[i] = 0; W.hp[i] = 0; },
+        // fill a cell with what's next to it, so filled pockets read as part of the rock
+        fill: (i) => {
+            const x = i % MAP.w, y = (i / MAP.w) | 0;
+            let mat = '', h = 0;
+            for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+                if (!inMap(x + dx, y + dy)) { mat = mat || 'edge'; h = Math.max(h, 3); continue; }
+                const j = idx(x + dx, y + dy);
+                if (!W.h[j]) continue;
+                const m = MAT_LIST[W.mat[j]];
+                if (m === 'hive') continue;
+                if (!mat || (mat === 'edge' && m !== 'edge')) { mat = m; h = W.h[j]; }
+            }
+            setCell(W, x, y, mat === 'edge' ? 3 : Math.max(1, Math.min(3, h || 2)), mat || S.mat);
+        },
+    };
+    if (!fixup(ctx, idx(cellOf(spawn.x), cellOf(spawn.y)))) return null;
     return { W, spawn, hives, cages };
 }
 
-function pickSpot(rng, ok, margin) {
-    for (let t = 0; t < 200; t++) {
-        const x = Math.floor(rng.range(margin, MAP.w - margin)) + 0.5, y = Math.floor(rng.range(margin, MAP.h - margin)) + 0.5;
+/** One pass of a cellular automaton: lone specks of rock go, pinholes in rock close. */
+function smoothRock(W) {
+    const h = W.h.slice(), mat = W.mat.slice();
+    for (let y = 1; y < MAP.h - 1; y++) for (let x = 1; x < MAP.w - 1; x++) {
+        const i = idx(x, y);
+        let rock = 0, hs = 0, m = 0;
+        for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
+            if (!dx && !dy) continue;
+            const j = idx(x + dx, y + dy);
+            if (h[j] > 0) { rock++; hs += h[j]; m = mat[j]; }
+        }
+        if (h[i] > 0 && rock <= 1) setCell(W, x, y, 0, '');
+        else if (!h[i] && rock >= 6) setCell(W, x, y, Math.max(1, Math.round(hs / rock)), MAT_LIST[m]);
+    }
+}
+
+function pickRing(rng, c, r0, r1, ok) {
+    for (let t = 0; t < 300; t++) {
+        const a = rng() * Math.PI * 2, d = rng.range(r0, r1);
+        const x = Math.floor(c.x + Math.cos(a) * d) + 0.5, y = Math.floor(c.y + Math.sin(a) * d) + 0.5;
+        if (Math.min(x, y, MAP.w - x, MAP.h - y) < 10) continue;
         if (ok(x, y)) return { x, y };
     }
     return null;
 }
 
-function clearDisc(W, px, py, r) {
+function clearDisc(W, px, py, r, prot) {
     for (let y = Math.floor(py - r); y <= py + r; y++) for (let x = Math.floor(px - r); x <= px + r; x++) {
         if (!inMap(x, y) || W.mat[idx(x, y)] === MAT_ID.edge) continue;
-        if (Math.hypot(x + 0.5 - px, y + 0.5 - py) <= r) setCell(W, x, y, 0, '');
+        if (Math.hypot(x + 0.5 - px, y + 0.5 - py) <= r) { setCell(W, x, y, 0, ''); if (prot) prot[idx(x, y)] = 1; }
     }
 }
 
@@ -178,7 +268,8 @@ export function provedReachable(L) {
 }
 
 // ------------------------------------------------------------------ flow field
-/** Dijkstra from the mech's cell. Debris costs more than open ground, so monsters go round a
+const FLOW_MAX = FIELD.flow * 10;
+/** Dijkstra from the mech's cell, out to FIELD.flow cells of walking. Debris costs more than open ground, so monsters go round a
  *  pile when there is a road, and chew through it when there isn't. */
 export function buildFlow(W, tx, ty) {
     const N = MAP.w * MAP.h;
@@ -228,6 +319,7 @@ export function buildFlow(W, tx, ty) {
             if (dx && dy && (W.h[idx(x + dx, y)] > 0 || W.h[idx(x, y + dy)] > 0)) continue;   // no corner cutting
             const step = (dx && dy ? 14 : 10) + W.debris[j] * 35;
             const nc = c + step;
+            if (nc > FLOW_MAX) continue;            // far monsters walk straight at the mech
             if (nc < dist[j]) { dist[j] = nc; push(nc, j); }
         }
     }
