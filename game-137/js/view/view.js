@@ -13,8 +13,8 @@ import { SECTORS, missionById } from '../sim/data/missions.js';
 import { MAT_LIST } from '../sim/world.js';
 import { dronePos } from '../sim/combat.js';
 import { toon, INK, PAL, VOXEL_COLORS, boxModel, buildMech, poseMech, enemyModel, bossModel, hiveSpire, cageModel } from './models.js';
+import { Terrain } from './terrain.js';
 
-const MAX_TERRAIN = MAP.w * MAP.h * MAP.maxH;
 const tmp = new THREE.Object3D();
 const tmpC = new THREE.Color();
 const WHITE = new THREE.Color(1, 1, 1);
@@ -116,7 +116,7 @@ export class View {
         s.add(sun);
         s.fog = new THREE.Fog(0x6b4fd8, 40, 90);
 
-        // ground: a checker of two greens (or reds, or blues) one cell each
+        // ground: painted noise in the sector's colours (see terrain.js), no grid
         this.groundTex = new THREE.CanvasTexture(document.createElement('canvas'));
         const ground = this.ground = new THREE.Mesh(new THREE.PlaneGeometry(MAP.w, MAP.h), toon({ map: this.groundTex }));
         ground.rotation.x = -Math.PI / 2;
@@ -127,11 +127,8 @@ export class View {
         s.add(apron);
         this.apron = apron;
 
-        const cube = new THREE.BoxGeometry(1, 1, 1);
-        const cubeInk = new THREE.BoxGeometry(1.08, 1.08, 1.08);
-        this.terrain = instanced(cube, toon(), MAX_TERRAIN, cubeInk);
-        this.terrain.setColorAt(0, WHITE);
-        s.add(this.terrain, this.terrain.userData.ink);
+        // rock: quarter-unit voxels shaped into slopes, in chunks
+        this.terrain = new Terrain(s);
 
         const vs = VOXEL.size;
         this.vox = instanced(new THREE.BoxGeometry(vs, vs, vs), toon(), VOXEL.cap + 50, new THREE.BoxGeometry(vs + 0.07, vs + 0.07, vs + 0.07));
@@ -208,14 +205,14 @@ export class View {
     setupRun(R) {
         this.runRef = R;
         const m = missionById(R.mission), S = SECTORS[m.sector];
-        // ground checker
-        const c = document.createElement('canvas');
-        c.width = MAP.w * 8; c.height = MAP.h * 8;
-        const g = c.getContext('2d');
-        const a = '#' + new THREE.Color(S.ground).getHexString(), b = '#' + new THREE.Color(S.ground2).getHexString();
-        for (let y = 0; y < MAP.h; y++) for (let x = 0; x < MAP.w; x++) { g.fillStyle = (x + y) % 2 ? a : b; g.fillRect(x * 8, y * 8, 8, 8); }
-        this.groundTex.image = c;
-        this.groundTex.magFilter = THREE.NearestFilter;
+        // the rock and the ground, seeded from the map so a reload looks the same
+        let seed = R.mission * 7919;
+        for (let i = 0; i < R.W.h.length; i += 7) seed = (seed * 31 + R.W.h[i] * 5 + R.W.mat[i]) | 0;
+        this.terrain.reset(R.W, m.sector, seed);
+        this.groundTex.image = this.terrain.paintGround(R.W, m.sector);
+        this.groundTex.magFilter = THREE.LinearFilter;
+        this.groundTex.minFilter = THREE.LinearMipmapLinearFilter;
+        this.groundTex.anisotropy = Math.min(8, this.renderer.capabilities.getMaxAnisotropy());
         this.groundTex.colorSpace = THREE.SRGBColorSpace;
         this.groundTex.needsUpdate = true;
         // sky: a vertical painted gradient
@@ -240,30 +237,6 @@ export class View {
         this.fx.forEach((f) => this.fxGroup.remove(f.mesh)); this.fx.length = 0;
         this.sparkList.length = 0;
         this.focus.set(R.mech.x, 0, R.mech.y);
-    }
-
-    rebuildTerrain(W) {
-        let n = 0;
-        for (let i = 0; i < W.h.length; i++) {
-            const h = W.h[i];
-            if (!h) continue;
-            const x = i % MAP.w, y = (i / MAP.w) | 0;
-            const mat = MAT_LIST[W.mat[i]];
-            const base = MAT_COL[mat] ?? PAL.stone;
-            for (let k = 0; k < h; k++) {
-                tmp.position.set(x + 0.5, k + 0.5, y + 0.5);
-                tmp.rotation.set(0, 0, 0);
-                tmp.scale.set(1, 1, 1);
-                tmp.updateMatrix();
-                this.terrain.setMatrixAt(n, tmp.matrix);
-                // alternate shades by layer and a checker, so walls read as voxels
-                tmpC.set(base).multiplyScalar(k === h - 1 ? 1.12 : ((x + y + k) % 2 ? 0.86 : 0.95));
-                this.terrain.setColorAt(n, tmpC);
-                n++;
-            }
-        }
-        setCount(this.terrain, n);
-        this.terrainDirty = false;
     }
 
     // ================================================================== events → effects
@@ -377,7 +350,7 @@ export class View {
         const R = G.run;
         if (!R) { this.renderer.clear(); return; }
         if (R !== this.runRef) this.setupRun(R);
-        if (this.terrainDirty) this.rebuildTerrain(R.W);
+        if (this.terrainDirty || this.terrain.dirty.size) { this.terrain.sync(R.W); this.terrainDirty = false; }
         const M = R.mech;
 
         // ---- the mech

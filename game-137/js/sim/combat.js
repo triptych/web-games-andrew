@@ -11,13 +11,20 @@ import { scatter } from './voxels.js';
 const HB = 2, HW = Math.ceil(MAP.w / HB), HH = Math.ceil(MAP.h / HB);
 export function buildHash(R) {
     // not enumerable, so it never ends up in a save
-    if (!R._hash) Object.defineProperty(R, '_hash', { value: Array.from({ length: HW * HH }, () => []), writable: true, enumerable: false });
-    const H = R._hash;
-    for (const b of H) b.length = 0;
+    if (!R._hash) {
+        Object.defineProperty(R, '_hash', { value: Array.from({ length: HW * HH }, () => []), writable: true, enumerable: false });
+        Object.defineProperty(R, '_hashUsed', { value: [], writable: true, enumerable: false });
+    }
+    const H = R._hash, used = R._hashUsed;
+    // only empty the buckets filled last step: the big map has 5,800 of them
+    for (const k of used) H[k].length = 0;
+    used.length = 0;
     for (const e of R.enemies) {
         if (e.dead) continue;
         const bx = Math.max(0, Math.min(HW - 1, Math.floor(e.x / HB))), by = Math.max(0, Math.min(HH - 1, Math.floor(e.y / HB)));
-        H[by * HW + bx].push(e);
+        const k = by * HW + bx;
+        if (!H[k].length) used.push(k);
+        H[k].push(e);
     }
     return H;
 }
