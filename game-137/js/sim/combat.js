@@ -226,7 +226,7 @@ export function stepShardBeam(R, dt) {
         // every rock cell along the line takes a bite; the map edge stops it
         const end = trace(M.x, M.y, ex, ey, (i) => {
             if (R.W.mat[i] === MAT_ID.edge) return true;
-            if (solid(R.W, i)) hurtCell(R, i, R.W.mat[i] === MAT_ID.hive ? dmg : SHARD_BEAM.terrain);
+            if (solid(R.W, i)) hurtCell(R, i, R.W.mat[i] === MAT_ID.hive ? dmg * SHARD_BEAM.hive : SHARD_BEAM.terrain);
             return false;
         });
         const sx = end.x - M.x, sy = end.y - M.y, L = Math.hypot(sx, sy) || 1;

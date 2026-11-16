@@ -14,6 +14,7 @@ import { Cinematic } from './cinematic.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, step, act } from './sim/game.js';
 import { makeBot, botInput, botHangar } from './sim/bot.js';
+import { spawnEnemy } from './sim/enemies.js';
 import { giftsWaiting } from './sim/hangar.js';
 
 const params = new URLSearchParams(location.search);
@@ -311,6 +312,8 @@ if (DEBUG) {
             flushEvents();
         },
         hangarBot() { botHangar(G, makeBot({ seed: 9 })); flushEvents(); if (G.mode === 'mission') toMission(); },
+        /** A monster at an offset from the mech that stands still (for the focus tests). */
+        spawn(kind = 'brute', dx = 4, dy = -4) { const R = G.run, e = spawnEnemy(R, kind, R.mech.x + dx, R.mech.y + dy); e.speed = 0; e.hp = e.max = 1e5; return e.id; },
         save, hasSave,
         loadAndResume() { const g = loadGame(); if (g) resume(g); return !!g; },
     };

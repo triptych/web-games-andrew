@@ -28,7 +28,7 @@ export const XP = { first: 10, grow: 7 };        // red voxels for level n: firs
 export const OVERDRIVE = { perKill: 0.018, perHive: 0.2, time: 5, fire: 2, dmg: 1.5 };
 
 /** The Shard Beam: charged by collecting voxels, fired by hand, then a cooldown. It cuts through rock. */
-export const SHARD_BEAM = { perVoxel: 0.025, cooldown: 9, time: 0.8, tick: 0.1, dmg: 26, width: 1.1, range: 18, terrain: 14, turn: 2.5 };
+export const SHARD_BEAM = { perVoxel: 0.025, cooldown: 9, time: 0.8, tick: 0.1, dmg: 26, width: 1.1, range: 18, terrain: 14, turn: 2.5, hive: 0.5 };   // hive: hives are armoured against it (balance)
 /** Tap (or click) the field to focus fire on a monster or hive near the tap; auto-aim resumes when it's gone. */
 export const FOCUS = { pick: 2.6, hive: 2.8, range: 1.25 };
 /** Below this share of HP (shield not counted) the klaxon sounds and the screen edge burns red. */

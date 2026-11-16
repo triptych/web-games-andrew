@@ -427,7 +427,7 @@ if (want('determinism')) {
 if (want('bot')) {
     section('bot: the whole campaign');
     const table = {};
-    const finished = { 1: 0, 0.4: 0 }, sorties = { 1: 0, 0.4: 0 };
+    const finished = { 1: 0, 0.4: 0 }, sorties = { 1: 0, 0.4: 0 }, beams = { 1: 0, 0.4: 0 };
     let bad = null;
     for (const skill of [1, 0.4]) for (let seed = 1; seed <= SEEDS; seed++) {
         const G = Gm.newGame(seed * 101), bot = Bt.makeBot({ skill, seed });
@@ -438,6 +438,7 @@ if (want('bot')) {
             while (G.mode === 'mission') {
                 if (++steps > 120 * 400) { Gm.act(G, { t: 'abort' }); bad = bad || `seed ${seed} m${id}: stuck for 400 s`; break; }
                 Gm.step(G, Bt.botInput(G, bot), DT);
+                for (const ev of G.events) if (ev.type === 'shard_beam') beams[skill]++;
                 G.events.length = 0;
                 const R = G.run;
                 if (!R) break;
@@ -473,6 +474,10 @@ if (want('bot')) {
     ok(bossLosses >= 1, 'the bosses beat a sloppy pilot at least once');
     const t = (id) => med(table[`1:${id}`]?.t || []);
     ok(t(1) >= 30 && t(9) >= 120, `sorties last: mission 1 ${t(1)} s, mission 9 ${t(9)} s`);
+    ok(beams[1] >= sorties[1], `the bot fires the Shard Beam (${beams[1]} times in ${sorties[1]} sorties): it is doing something`);
+    // the beam must not trivialise hives: hive sorties stayed at ~95-110 s before it existed
+    ok(t(6) >= 85 && t(11) >= 85, `hive sorties still take time: mission 6 ${t(6)} s, mission 11 ${t(11)} s`);
+    ok(sorties[1] <= SEEDS * 13 && sorties[0.4] >= sorties[1] + SEEDS, `the campaign stays as hard as before the beam: ${sorties[1]} and ${sorties[0.4]} sorties`);
 }
 
 console.log(`\n${fails ? `${fails} FAILED` : 'all passed'} (${checks} checks)`);

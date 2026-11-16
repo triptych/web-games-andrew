@@ -154,6 +154,27 @@ async function desktop() {
     await until(page, () => (__sf.seen.overdrive || 0) >= 1 && __sf.G.run.mech.odT > 0, 'E fires Overdrive');
     await shot(page, 'desktop-overdrive');
 
+    // ---- v1.1: objective arrows, the Shard Beam, click to focus, the danger edge
+    await until(page, () => [...document.querySelectorAll('#arrows .arrow')].filter((a) => !a.hidden).length === 2, 'two arrows point at the two cages');
+    await Q(page, () => { const M = __sf.G.run.mech; M.beam = 1; M.beamCd = 0; });
+    await until(page, () => document.getElementById('hud-beam').classList.contains('ready'), 'a full gauge shows BEAM READY');
+    await page.keyboard.press('KeyQ');
+    await until(page, () => (__sf.seen.shard_beam || 0) >= 1 && __sf.G.run.mech.beamCd > 0, 'Q fires the Shard Beam and starts its cooldown');
+    await shot(page, 'desktop-beam');
+    const fid = await Q(page, () => __sf.spawn('brute', 4, -4));
+    await page.waitForTimeout(300);
+    const fp = await Q(page, (id) => { const e = __sf.G.run.enemies.find((x) => x.id === id); return __sf.view.project(e.x, e.y, 0.6); }, fid);
+    await page.mouse.click(fp.x, fp.y);
+    await until(page, (id) => __sf.G.run.focus?.id === id && !document.getElementById('reticle').hidden, 'clicking a monster focuses fire on it (reticle shown)', 40000, fid);
+    await Q(page, (id) => { const e = __sf.G.run.enemies.find((x) => x.id === id); e.hp = 1; }, fid);
+    await until(page, () => __sf.G.run.focus === null && document.getElementById('reticle').hidden, 'when it dies the focus clears');
+    const hp0 = await Q(page, () => { const M = __sf.G.run.mech; const h = M.hp; M.hp = M.maxHp * 0.15; return h; });
+    await until(page, () => document.getElementById('danger').classList.contains('on'), 'low HP lights the red danger edge');
+    await until(page, () => (__sf.audio.last.alarm || 0) > 0, 'and sounds the klaxon');
+    await shot(page, 'desktop-danger');
+    await Q(page, (h) => { __sf.G.run.mech.hp = h; }, hp0);
+    await until(page, () => !document.getElementById('danger').classList.contains('on'), 'healed, the edge goes out');
+
     // ---- a level-up card by key
     await Q(page, () => { const M = __sf.G.run.mech; M.xp = M.xpNext; });
     await until(page, () => !document.getElementById('levelup').hidden && document.querySelectorAll('#cards [data-pick]').length >= 1, 'a full XP bar opens the level-up cards');
@@ -248,7 +269,7 @@ async function phone(w, h) {
     const L = await layout(page);
     check(L.noHScroll, 'no sideways scroll');
     check(L.canvas, 'the canvas matches the visible viewport');
-    const sizes = await Q(page, () => ['#btn-mag', '#btn-od', '#btn-pause'].map((s) => {
+    const sizes = await Q(page, () => ['#btn-mag', '#btn-od', '#btn-beam', '#btn-pause'].map((s) => {
         const r = document.querySelector(s).getBoundingClientRect();
         return { s, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight };
     }));
@@ -274,6 +295,22 @@ async function phone(w, h) {
     await Q(page, () => { __sf.G.run.mech.od = 1; });
     await tapSel('#btn-od');
     await until(page, () => (__sf.seen.overdrive || 0) >= 1, 'tapping OD fires Overdrive');
+    await Q(page, () => { const M = __sf.G.run.mech; M.beam = 1; M.beamCd = 0; });
+    await tapSel('#btn-beam');
+    await until(page, () => (__sf.seen.shard_beam || 0) >= 1, 'tapping BEAM fires the Shard Beam');
+    // tap a monster up and to the right of the mech, away from the stick
+    const fid = await Q(page, () => __sf.spawn('brute', 4, -5));
+    await page.waitForTimeout(300);
+    const fp = await Q(page, (id) => { const e = __sf.G.run.enemies.find((x) => x.id === id); return __sf.view.project(e.x, e.y, 0.6); }, fid);
+    check(await Q(page, (p) => { const t = document.elementFromPoint(p.x, p.y); return t && t.id === 'view'; }, fp), 'the monster is tappable (nothing covers it)');
+    await touch('touchStart', [{ x: fp.x, y: fp.y, id: 3 }]);
+    await touch('touchEnd', []);
+    await until(page, (id) => __sf.G.run.focus?.id === id, 'a tap on the monster focuses fire on it', 40000, fid);
+    check(await Q(page, () => {
+        const ids = ['#btn-mag', '#btn-od', '#btn-beam'].map((s) => document.querySelector(s).getBoundingClientRect());
+        for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) { const a = ids[i], b = ids[j]; if (!(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top)) return false; }
+        return ids.every((r) => r.top >= 0 && r.bottom <= innerHeight && r.right <= innerWidth);
+    }), 'the 🧲, OD and BEAM buttons are on screen and don\'t overlap');
     await shot(page, `phone-${w}x${h}`);
 
     await tapSel('#btn-pause');
