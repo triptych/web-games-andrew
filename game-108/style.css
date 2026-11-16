@@ -316,3 +316,8 @@ body.calm .rcard { animation-duration: 0.01s; }
     #calling { top: calc(74px + var(--safe-t)); left: calc(110px + var(--safe-l)); transform: none; }
     #toasts { bottom: calc(16px + var(--safe-b)); }
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

@@ -290,3 +290,8 @@ body.touch .use-prompt kbd { display: none; }
     #title { justify-content: flex-end; align-items: center; padding-right: 5vw; }
     #title .title-sheet { margin-bottom: 0; width: min(400px, 34vw); }
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

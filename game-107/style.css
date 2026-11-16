@@ -238,3 +238,7 @@ td:first-child { color: var(--warm); white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) {
     .sheet, .pop, #banner b, #hurt.on, .toast { animation-duration: 0.01s !important; }
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

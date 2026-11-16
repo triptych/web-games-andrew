@@ -399,3 +399,8 @@ button.res:focus-visible .pill { outline: 3px solid var(--gold); outline-offset:
 .forge.calm .item, .forge.calm .hammer, .forge.calm .sparks, .forge.calm.done .item, .forge.calm.done .plus, .forge.calm.done .flash { animation: none; }
 .forge.calm .hammer, .forge.calm .sparks { display: none; }
 @media (prefers-reduced-motion: reduce) { .forge .item, .forge .hammer, .forge .sparks i, .forge.done .item, .forge.done .plus, .forge.done .flash { animation: none; } .forge .hammer, .forge .sparks { display: none; } .forge .glow { animation: none; opacity: 0.6; } }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

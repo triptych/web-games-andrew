@@ -177,3 +177,8 @@ body.tutoring #panel-layer { padding-bottom: calc(112px + var(--safe-b)); }
 .tut-hl { outline: 4px solid #ffd84a !important; outline-offset: 3px; animation: tutpulse 0.9s infinite alternate; z-index: 9; }
 @keyframes tutpulse { to { outline-color: #ff9a2a; outline-offset: 6px; } }
 @media (max-width: 520px) { #tutor { align-items: flex-start; flex-wrap: wrap; } #tutor .tut-text { flex-basis: 70%; font-size: 14px; } }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

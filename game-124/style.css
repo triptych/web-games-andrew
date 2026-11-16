@@ -312,3 +312,8 @@ td:first-child { color: var(--accent); white-space: nowrap; padding-right: 12px;
 body.touch #toasts { bottom: auto; top: calc(100px + var(--safe-t)); width: min(420px, 70vw); }
 body.touch #bark { bottom: auto; top: calc(130px + var(--safe-t)); }
 body.touch #wards { bottom: calc(76px + var(--safe-b)); }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+
