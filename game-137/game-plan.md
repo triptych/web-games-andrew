@@ -147,6 +147,17 @@ Final table (4 seeds each; `node game-137/dev/simtest.mjs`):
 | Rust Centipede (m8) | 4 wins / 5 tries | 4 / 6 |
 | Hive Breaker (m2) | 4 / 4 | 4 / 7 |
 
+**v1.1, with the Shard Beam** (8 seeds per skill, against the same 8 seeds on v1.0):
+
+| | v1.0 | v1.1 |
+|---|---|---|
+| Perfect bot, sorties for the campaign | 100 | 104 |
+| Sloppy bot | 112 | 109 |
+| Hive sortie 6 / 11, perfect bot | 92 s / 111 s | 99 s / 107 s |
+| Rust Centipede, perfect bot | 8 wins / 10 tries | 8 / 13 |
+
+At full damage the beam melted hives (sortie 6 fell to 76 s); at half it still fell to 83 s; at a quarter, hive sorties are back where they were. Overall difficulty is unchanged within the noise of 8 seeds. The beam narrows the gap between careful and careless play a little: it helps the sloppy bot most in sorties 2–4, which it used to fail more often. The bands now assert that each skill's campaign stays within 10% of v1.0, that the bot fires the beam at least once a sortie on average, and that hive sorties 6 and 11 still take at least 85 s.
+
 Asserted bands: the perfect bot finishes on every seed in ≤ 18 sorties per campaign; the sloppy one needs more sorties; the first three sorties are won first time; the bosses beat the sloppy bot at least once; sortie 1 lasts ≥ 30 s and sortie 9 ≥ 120 s.
 
 ## Open questions / next steps

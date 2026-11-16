@@ -477,7 +477,10 @@ if (want('bot')) {
     ok(beams[1] >= sorties[1], `the bot fires the Shard Beam (${beams[1]} times in ${sorties[1]} sorties): it is doing something`);
     // the beam must not trivialise hives: hive sorties stayed at ~95-110 s before it existed
     ok(t(6) >= 85 && t(11) >= 85, `hive sorties still take time: mission 6 ${t(6)} s, mission 11 ${t(11)} s`);
-    ok(sorties[1] <= SEEDS * 13 && sorties[0.4] >= sorties[1] + SEEDS, `the campaign stays as hard as before the beam: ${sorties[1]} and ${sorties[0.4]} sorties`);
+    // v1.0 (before the Shard Beam), 8 seeds: 100 sorties for the perfect bot, 112 for the sloppy one (12.5 and 14 a seed)
+    const per = (k) => sorties[k] / SEEDS;
+    ok(per(1) >= 12.5 * 0.9 && per(1) <= 12.5 * 1.1 && per(0.4) >= 14 * 0.9 && per(0.4) <= 14 * 1.1,
+        `the campaign is as hard as before the beam (within 10% of v1.0): ${per(1).toFixed(1)} and ${per(0.4).toFixed(1)} sorties a seed vs 12.5 and 14`);
 }
 
 console.log(`\n${fails ? `${fails} FAILED` : 'all passed'} (${checks} checks)`);
