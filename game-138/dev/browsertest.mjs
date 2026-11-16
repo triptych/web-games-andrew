@@ -197,7 +197,7 @@ async function desktop() {
     const before = await Q(page, () => JSON.stringify(__lh.G.d.levels.map((L) => [L.grid, L.features.map((f) => f.id + f.kind)])));
     const p2 = await page.context().newPage();
     await routes(p2);
-    await p2.goto(url.replace('#', '?debug=1#'));
+    await p2.goto(url.replace("#", "?debug=1#"), { waitUntil: "domcontentloaded", timeout: 90000 });
     await p2.waitForFunction(() => window.__lh, null, { timeout: 90000 });
     check(await p2.evaluate((b) => JSON.stringify(__lh.G.d.levels.map((L) => [L.grid, L.features.map((f) => f.id + f.kind)])) === b, before), 'the shared link opens the very same dungeon, edits and all');
     check(await p2.evaluate(() => document.getElementById('welcome-text').textContent.includes('shared')), 'and greets you with "Someone shared a dungeon"');

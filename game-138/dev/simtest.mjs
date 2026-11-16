@@ -216,6 +216,13 @@ if (want('gen')) {
     const pinned = D.generate(P({ seed: 'pins', levels: 2, pins: [{ l: 0, x: cell.x, y: cell.y, b: 'chamber' }] })).levels[0];
     ok(pinned.loosened || Tl.TILES[pinned.tiles[cell.y * pinned.w + cell.x]].fam === 'floor', 'a painted chamber square becomes a chamber (or the level says it loosened it)');
     ok(!pinned.loosened, 'a single painted square fits without loosening');
+    let wellsKept = true;
+    // these three squares sit in pockets the old pruning filled in with rock (found by running the v0 generator)
+    for (const [x, y] of [[12, 2], [11, 3], [12, 3]]) {
+        const Lp = D.generate(P({ seed: 'pins-1', levels: 2, pins: [{ l: 0, x, y, b: 'well' }] })).levels[0];
+        if (!Lp.loosened && Lp.grid[y * 3 + 1][x * 3 + 1] !== 'o') wellsKept = false;
+    }
+    ok(wellsKept, 'a painted well is never pruned away as an unreachable pocket (it grows, or the level says it loosened)');
     const rockPin = D.generate(P({ seed: 'pins', levels: 2, pins: [{ l: 1, x: 3, y: 3, b: 'rock' }] })).levels[1];
     ok(rockPin.loosened || Tl.TILES[rockPin.tiles[3 * rockPin.w + 3]].fam === 'rock' || rockPin.up.cx === 3, 'a painted rock square stays rock');
     // a pin on level 1 doesn't change level 0

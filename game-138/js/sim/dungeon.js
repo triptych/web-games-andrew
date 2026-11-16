@@ -105,6 +105,8 @@ function collapseLevel({ w, h, weights, up, down, pins, rng, spacing }) {
             if (!tiles) continue;
             const seen = reachCells(tiles, w, h, upC);
             if (down && !seen[downC]) continue;
+            // a painted square must end up in the dungeon, not in a pocket the pruning below would fill in
+            if (userPins.some((p) => p.b !== 'rock' && !seen[p.y * w + p.x])) continue;
             let kept = 0;
             for (let c = 0; c < w * h; c++) {
                 if (!seen[c]) tiles[c] = ROCK;
