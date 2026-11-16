@@ -284,7 +284,7 @@ td:first-child { font-family: var(--head); font-weight: 600; white-space: nowrap
 
 /* ------------------------------------------------------------------ phones: the workbench becomes a bottom sheet */
 @media (max-width: 760px) {
-    #top { left: calc(92px + var(--safe-l)); right: calc(8px + var(--safe-r)); gap: 6px; }
+    #top { left: calc(100px + var(--safe-l)); right: calc(8px + var(--safe-r)); gap: 6px; }
     .brand { padding: 3px 10px 3px 4px; }
     .lamp { width: 34px; height: 34px; font-size: 20px; }
     .brand-name { font-size: 15px; }
@@ -307,7 +307,7 @@ td:first-child { font-family: var(--head); font-weight: 600; white-space: nowrap
     #info { left: calc(8px + var(--safe-l)); right: auto; bottom: auto; top: calc(64px + var(--safe-t)); max-width: calc(100vw - 90px); padding: 6px 12px; }
     #info-title { font-size: 15px; }
     #info-sub { font-size: 11px; }
-    #walk-top { left: calc(92px + var(--safe-l)); }
+    #walk-top { left: calc(100px + var(--safe-l)); }
     #walk-name { font-size: 14px; }
     #walk-stats { flex-direction: column; gap: 4px; align-items: flex-end; }
     #walk-stats span { padding: 4px 10px; font-size: 13px; }
