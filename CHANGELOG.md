@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **SHARDFRAME** (game-137) v1.1.0, from the owner's requests:
+  - **Shard Beam**: every voxel you collect charges it. When it's full, Q / F / LB / RB or the BEAM button fires a huge piercing beam for 0.8 s. It swings towards your target and cuts through rock, then cools down for 9 s ([combat.js](game-137/js/sim/combat.js)). It has its own ElevenLabs sound.
+  - **Tap or click to focus fire**: tap or click a monster or hive and every weapon, every rocket of a salvo and the beam go for it (shown by a red reticle). When it's destroyed, auto-aim takes over again.
+  - **Objective arrows**: they bob over cages, hives and the boss on screen, and are pinned to the screen edge with a distance when the objective is off screen ([ui.js](game-137/js/ui.js)).
+  - **Danger warning**: below 25% HP a klaxon sounds every 2.4 s, the screen edge burns red and the mech's ink outline pulses red ([view.js](game-137/js/view/view.js)).
+  - **Balance kept**: hives take a quarter of the beam's damage. At full damage hive sorties were 25% shorter, and at half they were still about 20% shorter. New test bands lock it: the bot must use the beam, hive sorties must still last at least 85 s, and the campaign must take as many sorties as before.
+  - **Tests**: 12 new rule checks in [simtest.mjs](game-137/dev/simtest.mjs), and [browsertest.mjs](game-137/dev/browsertest.mjs) now drives the beam, focus, arrows and the danger edge with real keys, clicks and touches.
+
 ### Fixed
 - **Garden of Games** v1.20.1: the old computer in the Hut's loft showed the island from underneath (reported by the owner). The survey's pitch was rotated the wrong way, so far ground sank down the screen and hills leaned away; it now looks down from above, with near ground at the foot of the screen and hills rising toward you, on the full-screen survey and the little screen on the desk alike ([hut-computer.js](garden/js/hut-computer.js)).
 

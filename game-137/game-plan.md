@@ -2,7 +2,7 @@
 
 **Genre:** Bullet heaven / survivors-like with missions, a mech garage and a light idle crew
 **Engine:** three.js r165, sim/view layout. Art by fal (`nano-banana-2`), music, effects and voices by ElevenLabs; every model is code, and a Web Audio synth stands in for any sound that fails to load
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -48,6 +48,15 @@ Riffs on Vampire Survivors and Brotato (the auto-fire swarm and level-up cards),
 
 Each part has three levels (`LEVEL_MUL` 1, 1.35, 1.75 on its main stat). Prices 100–460 credits (`js/sim/data/parts.js`).
 
+### Shard Beam (v1.1)
+Every voxel collected adds 2.5% charge (40 voxels for a full gauge). When it is full and off cooldown, Q / F / LB / RB / BEAM fires a beam 18 cells long and 1.1 wide for 0.8 s. It deals 26 damage per 0.1 s tick (×damage mods, ×1.5 in Overdrive) to everything in its line and turns towards the target at 2.5 rad/s. It bites 14 hp from every rock layer it crosses, so it cuts roads, and only the map edge stops it. Hives take a quarter of its damage (at half, sortie 6 still dropped from ~104 s to 83 s), which keeps hive sorties as long as they were. After firing it cools down for 9 s; the gauge still charges during the cooldown, but the beam can't fire.
+
+### Focus fire (v1.1)
+A tap or left click on the field sends the ground point under it to the sim (`inp.tap`). The nearest monster within 2.6 cells becomes the focus, or failing that a hive within 2.8; a tap on empty ground clears it. Every weapon (every rocket of a salvo too, and the beam) prefers the focus while it is within 1.25× its range. When the focus dies it lets go (`focus_lost`) and auto-aim resumes. On phones the left-hand stick zone is for moving, so you focus by tapping above or to the right of your thumb.
+
+### Warnings and arrows (v1.1)
+Below 25% HP (shield not counted): a klaxon every 2.4 s, a pulsing red screen edge and red mech ink. Arrows point to the objectives still open (cages, hives, the boss). They bob over a target that is on screen and sit on the screen edge with a distance when it is off screen.
+
 ### Level-ups (in a sortie)
 Red voxels fill XP (10, then +7 per level). A full bar pauses the battle and offers three cards from 13 (damage, fire rate, speed, magnet, HP, shield, regen, an extra bullet, an extra rocket, blast radius, laser width, an extra saw, Overdrive charge). Weapon cards only appear for weapons the mech carries.
 
@@ -89,6 +98,8 @@ Captain Mirei Tachibana commands the Skylark; Kai is seventeen and loud. The ope
 | Move | Arrows / WASD | Stick / d-pad | Drag on the left half |
 | Magnet (hold) | Space / Shift | A / triggers | 🧲 (hold) |
 | Overdrive | E / X | X / Y | OD |
+| Shard Beam | Q / F | LB / RB | BEAM |
+| Focus fire | Left click on the field | | Tap the field |
 | Level-up card | 1 · 2 · 3 | d-pad + A | tap |
 | Pause | P / Esc | Start | ❚❚ |
 | Intro | Enter / Space next shot, Esc skip | | tap next shot, Skip |
@@ -145,6 +156,9 @@ Asserted bands: the perfect bot finishes on every seed in ≤ 18 sorties per cam
 - The Rust Centipede is the difficulty spike; a person may find it unfair.
 
 ## Changelog
+
+### v1.1.0 (2026-11-16)
+- The Shard Beam (charged by voxels, with a cooldown, cuts through rock), tap or click to focus fire with auto-aim when the target dies, objective arrows, and a low-HP klaxon with a red screen edge and red mech outline. Hives take a quarter of the beam's damage so hive sorties keep their length; the balance bands now also assert that.
 
 ### v1.0.0 (2026-11-15)
 - First release: twelve sorties in three sectors with rescue, hive, survive and boss objectives; physics voxels that are power-ups or temporary walls; destructible voxel terrain; 12 mech parts in 5 slots with three levels; 13 level-up cards; Overdrive with an anime cut-in; three kaiju; twelve rescuable crew with real-time gifts; a narrated opening cinematic (skippable); fal art, ElevenLabs music, effects and voices; sim and browser harnesses.
