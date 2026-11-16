@@ -11,7 +11,7 @@ Plain Node scripts, no build step, no test framework. Run from the repo root.
 | `python3 -I game-137/dev/art/export.py RAW` | Raw fal PNGs → `art/*.webp`. |
 | `python3 -I game-137/dev/audio/process.py RAW` | Raw ElevenLabs MP3s → `audio/*.mp3` (music, effects, voice lines cut at their pauses). See [audio/README.md](audio/README.md). |
 
-The browser scripts need `playwright` and a static server on port 8137:
+The browser scripts need `playwright` and a static server on port 8137 (or run `browsertest.mjs` with `SERVE=route`, and Playwright serves the repo from disk itself):
 
 ```bash
 python3 -m http.server 8137          # repo root

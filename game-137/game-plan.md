@@ -2,7 +2,7 @@
 
 **Genre:** Bullet heaven / survivors-like with missions, a mech garage and a light idle crew
 **Engine:** three.js r165, sim/view layout. Art by fal (`nano-banana-2`), music, effects and voices by ElevenLabs; every model is code, and a Web Audio synth stands in for any sound that fails to load
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -26,7 +26,7 @@ Riffs on Vampire Survivors and Brotato (the auto-fire swarm and level-up cards),
 ## Mechanics (each has a line in `dev/simtest.mjs`)
 
 ### The field
-- 48×48 cells. Each cell has a height 0–3 (layers of 1 unit), a material (stone, crystal, rust, neon; the edge and hives can't be broken) and the hp of its top layer. Generated per sortie from a seed: crystal clumps (prairie), wandering ridges with gaps (canyon), a street grid of blocks (city), with a clear landing zone.
+- 152×152 cells (v1.2; 48×48 before). Each cell has a height 0–3 (layers of 1 unit), a material (stone, crystal, rust, neon; the edge and hives can't be broken) and the hp of its top layer. Generated per sortie from a seed with fractal noise: crystal outcrops and knolls (prairie), ridged walls and mesas (canyon), towers scattered off any grid with collapsed corners and rubble (city), a ragged cliff rim, a clear landing zone. Then repaired (`mapfix.js`): every passage at least 3 cells wide, one connected region, no cul-de-sacs. The view draws each cell as 4×4 columns of quarter-unit voxels on a smooth surface (`view/terrain.js`).
 - **Proved**: every cage and every hive is reachable from the landing zone over open ground (flood fill); a layout that fails is thrown away. `maps` checks 12 missions × 60 seeds.
 - Breaking a layer throws that material's rubble voxels (grey/cyan/rust/violet) and sometimes gold.
 
@@ -47,6 +47,15 @@ Riffs on Vampire Survivors and Brotato (the auto-fire swarm and level-up cards),
 | Legs | Strider (starter), Sprinter, Stomper | speed; Stomper adds a shockwave that also crushes rubble |
 
 Each part has three levels (`LEVEL_MUL` 1, 1.35, 1.75 on its main stat). Prices 100–460 credits (`js/sim/data/parts.js`).
+
+### Shard Beam (v1.1)
+Every voxel collected adds 2.5% charge (40 voxels for a full gauge). When it is full and off cooldown, Q / F / LB / RB / BEAM fires a beam 18 cells long and 1.1 wide for 0.8 s. It deals 26 damage per 0.1 s tick (×damage mods, ×1.5 in Overdrive) to everything in its line and turns towards the target at 2.5 rad/s. It bites 14 hp from every rock layer it crosses, so it cuts roads, and only the map edge stops it. Hives take a quarter of its damage (at half, sortie 6 still dropped from ~104 s to 83 s), which keeps hive sorties as long as they were. After firing it cools down for 9 s; the gauge still charges during the cooldown, but the beam can't fire.
+
+### Focus fire (v1.1)
+A tap or left click on the field sends the ground point under it to the sim (`inp.tap`). The nearest monster within 2.6 cells becomes the focus, or failing that a hive within 2.8; a tap on empty ground clears it. Every weapon (every rocket of a salvo too, and the beam) prefers the focus while it is within 1.25× its range. When the focus dies it lets go (`focus_lost`) and auto-aim resumes. On phones the left-hand stick zone is for moving, so you focus by tapping above or to the right of your thumb.
+
+### Warnings and arrows (v1.1)
+Below 25% HP (shield not counted): a klaxon every 2.4 s, a pulsing red screen edge and red mech ink. Arrows point to the objectives still open (cages, hives, the boss). They bob over a target that is on screen and sit on the screen edge with a distance when it is off screen.
 
 ### Level-ups (in a sortie)
 Red voxels fill XP (10, then +7 per level). A full bar pauses the battle and offers three cards from 13 (damage, fire rate, speed, magnet, HP, shield, regen, an extra bullet, an extra rocket, blast radius, laser width, an extra saw, Overdrive charge). Weapon cards only appear for weapons the mech carries.
@@ -89,6 +98,8 @@ Captain Mirei Tachibana commands the Skylark; Kai is seventeen and loud. The ope
 | Move | Arrows / WASD | Stick / d-pad | Drag on the left half |
 | Magnet (hold) | Space / Shift | A / triggers | 🧲 (hold) |
 | Overdrive | E / X | X / Y | OD |
+| Shard Beam | Q / F | LB / RB | BEAM |
+| Focus fire | Left click on the field | | Tap the field |
 | Level-up card | 1 · 2 · 3 | d-pad + A | tap |
 | Pause | P / Esc | Start | ❚❚ |
 | Intro | Enter / Space next shot, Esc skip | | tap next shot, Skip |
@@ -105,7 +116,10 @@ Captain Mirei Tachibana commands the Skylark; Kai is seventeen and loud. The ope
 |---|---|
 | `js/main.js` | Boot, modes (title, intro, hangar, mission, debrief, ending), the fixed-step loop, the real-time crew clock, input routing, saves, debug hooks |
 | `js/sim/game.js` | `newGame`, `step`, `act`, `serialize`/`deserialize` |
-| `js/sim/world.js` | The grid, generation and its reachability proof, the flow field, circle-vs-grid collision, line traces |
+| `js/sim/world.js` | The grid, generation and its reachability proof, the flow field, circle-vs-grid collision, line traces, packing the world for saves |
+| `js/sim/noise.js` | Seeded value noise and fBm, shared by the map and the view |
+| `js/sim/mapfix.js` | The map repairs: 3-wide passages, one region, no dead ends; and the report the tests use |
+| `js/view/terrain.js` | Fine-voxel terrain in chunks, ground clutter, the painted ground |
 | `js/sim/voxels.js` | Voxel physics: burst, fly, bounce, settle, stack, fade, chew, scatter, collect |
 | `js/sim/damage.js` | Terrain layers, monsters, hives, the mech, explosions |
 | `js/sim/combat.js` | The spatial hash, weapons, projectiles |
@@ -136,6 +150,17 @@ Final table (4 seeds each; `node game-137/dev/simtest.mjs`):
 | Rust Centipede (m8) | 4 wins / 5 tries | 4 / 6 |
 | Hive Breaker (m2) | 4 / 4 | 4 / 7 |
 
+**v1.1, with the Shard Beam** (8 seeds per skill, against the same 8 seeds on v1.0):
+
+| | v1.0 | v1.1 |
+|---|---|---|
+| Perfect bot, sorties for the campaign | 100 | 104 |
+| Sloppy bot | 112 | 109 |
+| Hive sortie 6 / 11, perfect bot | 92 s / 111 s | 99 s / 107 s |
+| Rust Centipede, perfect bot | 8 wins / 10 tries | 8 / 13 |
+
+At full damage the beam melted hives (sortie 6 fell to 76 s); at half it still fell to 83 s; at a quarter, hive sorties are back where they were. Overall difficulty is unchanged within the noise of 8 seeds. The beam narrows the gap between careful and careless play a little: it helps the sloppy bot most in sorties 2–4, which it used to fail more often. The bands now assert that each skill's campaign stays within 10% of v1.0, that the bot fires the beam at least once a sortie on average, and that hive sorties 6 and 11 still take at least 85 s.
+
 Asserted bands: the perfect bot finishes on every seed in ≤ 18 sorties per campaign; the sloppy one needs more sorties; the first three sorties are won first time; the bosses beat the sloppy bot at least once; sortie 1 lasts ≥ 30 s and sortie 9 ≥ 120 s.
 
 ## Open questions / next steps
@@ -145,6 +170,9 @@ Asserted bands: the perfect bot finishes on every seed in ≤ 18 sorties per cam
 - The Rust Centipede is the difficulty spike; a person may find it unfair.
 
 ## Changelog
+
+### v1.1.0 (2026-11-16)
+- The Shard Beam (charged by voxels, with a cooldown, cuts through rock), tap or click to focus fire with auto-aim when the target dies, objective arrows, and a low-HP klaxon with a red screen edge and red mech outline. Hives take a quarter of the beam's damage so hive sorties keep their length; the balance bands now also assert that.
 
 ### v1.0.0 (2026-11-15)
 - First release: twelve sorties in three sectors with rescue, hive, survive and boss objectives; physics voxels that are power-ups or temporary walls; destructible voxel terrain; 12 mech parts in 5 slots with three levels; 13 level-up cards; Overdrive with an anime cut-in; three kaiju; twelve rescuable crew with real-time gifts; a narrated opening cinematic (skippable); fal art, ElevenLabs music, effects and voices; sim and browser harnesses.

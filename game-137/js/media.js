@@ -19,7 +19,7 @@ export const MUSIC = {
 };
 
 export const SFX = ['vulcan', 'rocket', 'laser', 'mortar', 'boom', 'bigboom', 'shatter', 'crumble', 'pickup', 'levelup', 'overdrive',
-    'hurt', 'shield', 'stomp', 'step', 'rescue', 'roar', 'alarm', 'click', 'open', 'buy', 'gift', 'clear', 'fail', 'spit', 'hatch'];
+    'hurt', 'shield', 'stomp', 'step', 'rescue', 'roar', 'alarm', 'click', 'open', 'buy', 'gift', 'clear', 'fail', 'spit', 'hatch', 'beam'];
 
 export const VOICES = ['kai-launch', 'kai-overdrive', 'kai-levelup', 'kai-boss', 'kai-lowhp',
     'mirei-launch', 'mirei-rescue', 'mirei-evac', 'mirei-boss', 'mirei-clear', 'mirei-down',

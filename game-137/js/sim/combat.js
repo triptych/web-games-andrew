@@ -2,7 +2,7 @@
 // survivors game): each picks the nearest monster, or a hive when no monster is in range.
 // Pure.
 
-import { MAP, MECH, OVERDRIVE } from '../config.js';
+import { MAP, MECH, OVERDRIVE, SHARD_BEAM, FOCUS } from '../config.js';
 import { solid, blocked, idx, inMap, cellOf, trace, MAT_ID } from './world.js';
 import { hurtCell, hurtEnemy, hurtMech, explode, hurtHive } from './damage.js';
 import { scatter } from './voxels.js';
@@ -11,13 +11,20 @@ import { scatter } from './voxels.js';
 const HB = 2, HW = Math.ceil(MAP.w / HB), HH = Math.ceil(MAP.h / HB);
 export function buildHash(R) {
     // not enumerable, so it never ends up in a save
-    if (!R._hash) Object.defineProperty(R, '_hash', { value: Array.from({ length: HW * HH }, () => []), writable: true, enumerable: false });
-    const H = R._hash;
-    for (const b of H) b.length = 0;
+    if (!R._hash) {
+        Object.defineProperty(R, '_hash', { value: Array.from({ length: HW * HH }, () => []), writable: true, enumerable: false });
+        Object.defineProperty(R, '_hashUsed', { value: [], writable: true, enumerable: false });
+    }
+    const H = R._hash, used = R._hashUsed;
+    // only empty the buckets filled last step: the big map has 5,800 of them
+    for (const k of used) H[k].length = 0;
+    used.length = 0;
     for (const e of R.enemies) {
         if (e.dead) continue;
         const bx = Math.max(0, Math.min(HW - 1, Math.floor(e.x / HB))), by = Math.max(0, Math.min(HH - 1, Math.floor(e.y / HB)));
-        H[by * HW + bx].push(e);
+        const k = by * HW + bx;
+        if (!H[k].length) used.push(k);
+        H[k].push(e);
     }
     return H;
 }
@@ -30,7 +37,35 @@ export function near(R, x, y, r, fn) {
 }
 
 /** The nearest target within range: a monster, else a live hive. Monsters behind rock still count (rockets curve, lasers cut). */
+/** The monster or hive the player tapped, while it lives. When it dies, auto-aim takes over again. */
+export function focusTarget(R) {
+    const f = R.focus;
+    if (!f) return null;
+    const t = typeof f.id === 'number' ? R.enemies.find((e) => e.id === f.id && !e.dead) : R.hives.find((h) => h.id === f.id && !h.dead);
+    if (t) return t;
+    R.focus = null;
+    R.events.push({ type: 'focus_lost' });
+    return null;
+}
+
+/** Pick a focus from a tap at (x, y): the nearest monster within reach of it, else a hive, else none. */
+export function setFocus(R, x, y) {
+    let best = null, bd = FOCUS.pick * FOCUS.pick;
+    for (const e of R.enemies) {
+        if (e.dead) continue;
+        const d = (e.x - x) ** 2 + (e.y - y) ** 2 - e.r * e.r;
+        if (d < bd) { bd = d; best = e; }
+    }
+    if (!best) for (const h of R.hives) if (!h.dead && Math.hypot(h.x - x, h.y - y) < FOCUS.hive) best = h;
+    R.focus = best ? { id: best.id } : null;
+    R.events.push({ type: 'focus', id: best ? best.id : null, x: best ? best.x : x, y: best ? best.y : y });
+    return best;
+}
+
 export function target(R, x, y, range, skip) {
+    // a focused target wins if it's within reach (a little further than usual), for every rocket of a salvo too
+    const f = focusTarget(R);
+    if (f && (f.x - x) ** 2 + (f.y - y) ** 2 < (range * FOCUS.range) ** 2) return f;
     let best = null, bd = range * range;
     near(R, x, y, range, (e) => {
         if (skip && skip.has(e.id)) return;
@@ -159,6 +194,55 @@ function orbit(R, w, dt, dmgMul) {
         const x = M.x + Math.cos(a) * w.radius, y = M.y + Math.sin(a) * w.radius;
         near(R, x, y, 0.8, (e) => { if (Math.hypot(e.x - x, e.y - y) < 0.55 + e.r) hurtEnemy(R, e, w.dmg * dmgMul); });
         for (const h of R.hives) if (!h.dead && Math.abs(h.x - x) < 2 && Math.abs(h.y - y) < 2) hurtHive(R, h, w.dmg * dmgMul * 0.5);
+    }
+}
+
+// ------------------------------------------------------------------ the Shard Beam
+/** Fire it if it's charged and off cooldown. Returns true if it fired. */
+export function fireShardBeam(R) {
+    const M = R.mech;
+    if (M.beam < 1 || M.beamCd > 0 || M.beamT > 0) return false;
+    const t = target(R, M.x, M.y, SHARD_BEAM.range);
+    M.beamA = t ? Math.atan2(t.y - M.y, t.x - M.x) : M.face;
+    M.beam = 0;
+    M.beamT = SHARD_BEAM.time;
+    M.beamCd = SHARD_BEAM.cooldown + SHARD_BEAM.time;
+    M.beamTick = 0;
+    R.events.push({ type: 'shard_beam', x: M.x, y: M.y, a: M.beamA });
+    return true;
+}
+
+/** While it fires: it swings towards the target and hits everything along its line, rock included, every tick. */
+export function stepShardBeam(R, dt) {
+    const M = R.mech;
+    M.beamCd = Math.max(0, M.beamCd - dt);
+    if (M.beamT <= 0) return;
+    M.beamT -= dt;
+    const t = target(R, M.x, M.y, SHARD_BEAM.range);
+    if (t) {
+        let d = Math.atan2(t.y - M.y, t.x - M.x) - M.beamA;
+        while (d > Math.PI) d -= Math.PI * 2;
+        while (d < -Math.PI) d += Math.PI * 2;
+        M.beamA += Math.max(-SHARD_BEAM.turn * dt, Math.min(SHARD_BEAM.turn * dt, d));
+    }
+    M.beamTick -= dt;
+    while (M.beamTick <= 0) {
+        M.beamTick += SHARD_BEAM.tick;
+        const dmg = SHARD_BEAM.dmg * M.dmgMul * (M.odT > 0 ? OVERDRIVE.dmg : 1);
+        const ex = M.x + Math.cos(M.beamA) * SHARD_BEAM.range, ey = M.y + Math.sin(M.beamA) * SHARD_BEAM.range;
+        // every rock cell along the line takes a bite; the map edge stops it
+        const end = trace(M.x, M.y, ex, ey, (i) => {
+            if (R.W.mat[i] === MAT_ID.edge) return true;
+            if (solid(R.W, i)) hurtCell(R, i, R.W.mat[i] === MAT_ID.hive ? dmg * SHARD_BEAM.hive : SHARD_BEAM.terrain);
+            return false;
+        });
+        const sx = end.x - M.x, sy = end.y - M.y, L = Math.hypot(sx, sy) || 1;
+        near(R, (M.x + end.x) / 2, (M.y + end.y) / 2, L / 2 + 1.5, (e) => {
+            const u = Math.max(0, Math.min(1, ((e.x - M.x) * sx + (e.y - M.y) * sy) / (L * L)));
+            if (Math.hypot(M.x + sx * u - e.x, M.y + sy * u - e.y) < SHARD_BEAM.width + e.r) hurtEnemy(R, e, dmg);
+        });
+        M.beamLen = L;
+        if (M.beamT <= 0) break;
     }
 }
 

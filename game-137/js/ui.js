@@ -1,7 +1,7 @@
 // The DOM layer: screens, the HUD, the hangar (sorties, mech, crew), briefing, level-up cards,
 // debrief, comms, banners and the Overdrive cut-in. Reads G; changes it only through act().
 
-import { VERSION, GIFT_CAP } from './config.js';
+import { VERSION, GIFT_CAP, SHARD_BEAM, DANGER } from './config.js';
 import { PARTS, SLOTS, SLOT_NAME, SLOT_KIND, partIds } from './sim/data/parts.js';
 import { MISSIONS, SECTORS, missionById } from './sim/data/missions.js';
 import { CREW, GIFTS, BOOSTS, CAST, crewById } from './sim/data/crew.js';
@@ -131,7 +131,7 @@ export class UI {
         $('touch').hidden = !(on && playing);
         document.body.classList.toggle('touch', on);
     }
-    hud(G) {
+    hud(G, view = null) {
         const R = G.run;
         if (!R) return;
         const M = R.mech;
@@ -151,6 +151,66 @@ export class UI {
         const boss = R.enemies.find((e) => e.boss);
         $('hud-boss').hidden = !boss;
         if (boss) { $('hud-boss-name').textContent = BOSSES[boss.kind].name; $('hud-boss-hp').style.width = `${(boss.hp / boss.max) * 100}%`; }
+        // the Shard Beam gauge: charge from voxels, then the cooldown
+        const ready = M.beam >= 1 && M.beamCd <= 0 && M.beamT <= 0;
+        $('hud-beam-fill').style.width = `${(M.beamT > 0 ? M.beamT / SHARD_BEAM.time : M.beam) * 100}%`;
+        $('hud-beam-text').textContent = M.beamT > 0 ? 'FIRE!!' : M.beamCd > 0 ? `COOLING ${Math.ceil(M.beamCd)}s` : ready ? 'BEAM READY' : 'SHARD BEAM';
+        $('hud-beam').classList.toggle('cool', M.beamCd > 0 && M.beamT <= 0);
+        $('hud-beam').classList.toggle('ready', ready);
+        $('btn-beam').classList.toggle('ready', ready);
+        $('btn-beam').style.opacity = ready ? 1 : 0.45;
+        // about to go down: the screen edge burns red (the klaxon is in audio.js)
+        $('danger').classList.toggle('on', M.hp > 0 && M.hp < M.maxHp * DANGER && !R.over);
+        if (view) { this.arrows(R, view); this.reticle(R, view); }
+    }
+
+    /** Arrows to the objectives: bobbing over the ones on screen, pinned to the edge (with a distance) for the rest. */
+    arrows(R, view) {
+        const want = [];
+        if (R.evac == null && !R.over) {
+            for (const o of R.objectives) {
+                if (o.done) continue;
+                if (o.kind === 'rescue') for (const c of R.cages) { if (!c.freed) want.push({ x: c.x, y: c.y, h: 2.6, kind: 'cage', label: 'RESCUE' }); }
+                if (o.kind === 'hives') for (const h of R.hives) { if (!h.dead) want.push({ x: h.x, y: h.y, h: 4.6, kind: 'hive', label: 'HIVE' }); }
+                if (o.kind === 'boss') for (const e of R.enemies) { if (e.boss) want.push({ x: e.x, y: e.y, h: 4.5, kind: 'boss', label: 'BOSS' }); }
+            }
+        }
+        const box = $('arrows');
+        while (box.children.length < want.length) { const a = document.createElement('div'); a.className = 'arrow'; a.innerHTML = '<i></i><b></b>'; box.appendChild(a); }
+        const W = innerWidth, H = innerHeight, top = 120, side = 34, bottom = this.touchOn ? 40 : 34;
+        const M = R.mech;
+        [...box.children].forEach((a, k) => {
+            const t = want[k];
+            a.hidden = !t;
+            if (!t) return;
+            const p = view.project(t.x, t.y, t.h);
+            const on = p.inFront && p.x > side && p.x < W - side && p.y > top && p.y < H - bottom;
+            a.className = `arrow ${t.kind}${on ? ' over' : ''}`;
+            let x = p.x, y = p.y, rot = 0;
+            if (!on) {
+                // from the screen centre towards the target, clamped to the edge
+                let dx = p.x - W / 2, dy = p.y - H / 2;
+                if (!p.inFront) { dx = -dx; dy = -dy; }
+                const kx = dx ? ((dx > 0 ? W - side : side) - W / 2) / dx : Infinity;
+                const ky = dy ? ((dy > 0 ? H - bottom : top) - H / 2) / dy : Infinity;
+                const k2 = Math.min(Math.abs(kx), Math.abs(ky));
+                x = W / 2 + dx * k2; y = H / 2 + dy * k2;
+                rot = Math.atan2(dy, dx) * 180 / Math.PI - 90;
+            }
+            a.style.transform = `translate(${x}px, ${y}px)`;
+            a.firstChild.style.transform = `rotate(${rot}deg)`;
+            a.lastChild.textContent = on ? t.label : `${t.label} ${Math.round(Math.hypot(t.x - M.x, t.y - M.y))}m`;
+        });
+    }
+
+    /** The red reticle on whatever the player tapped to focus fire on. */
+    reticle(R, view) {
+        const el = $('reticle');
+        const f = R.focus && (typeof R.focus.id === 'number' ? R.enemies.find((e) => e.id === R.focus.id) : R.hives.find((h) => h.id === R.focus.id && !h.dead));
+        el.hidden = !f;
+        if (!f) return;
+        const p = view.project(f.x, f.y, f.boss ? 2.5 : f.cells ? 2 : 0.7);
+        el.style.transform = `translate(${p.x}px, ${p.y}px) scale(${f.boss || f.cells ? 1.6 : 1})`;
     }
 
     // ------------------------------------------------------------------ comms, banners, cut-ins
@@ -206,6 +266,7 @@ export class UI {
                 case 'clear': this.banner('MISSION COMPLETE'); this.comm('mirei', 'Mission complete. Come home, Kai.'); break;
                 case 'fail': this.banner('UNIT-07 DOWN', true); this.comm('mirei', 'Unit-07 is down! Pulling you out!'); break;
                 case 'overdrive': this.cutin(); break;
+                case 'shard_beam': this.banner('SHARD BEAM!!'); break;
                 case 'gift_ready': if (G.mode !== 'mission') this.toast(`🎁 The crew left ${e.n} gift${e.n > 1 ? 's' : ''}`); break;
                 case 'gift': (gifts ||= {})[e.crew] = { n: (gifts[e.crew]?.n || 0) + 1, gift: e.gift, amount: (gifts[e.crew]?.amount || 0) + e.amount }; break;
                 case 'nope': this.toast(e.why === 'gold' ? 'Not enough credits.' : 'Already at the top level.'); break;
@@ -218,7 +279,9 @@ export class UI {
     }
     /** Clear the battle's overlays (cut-in, banner, speed lines, flash). */
     clearOverlays() {
-        for (const id of ['cutin', 'banner']) $(id).hidden = true;
+        for (const id of ['cutin', 'banner', 'reticle']) $(id).hidden = true;
+        $('danger').classList.remove('on');
+        for (const a of $('arrows').children) a.hidden = true;
         this.speedlines(false);
         $('flash').style.opacity = 0;
     }
