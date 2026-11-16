@@ -7,7 +7,7 @@
 // hangar painting) and 'mission'.
 
 import * as THREE from 'three';
-import { MAP, VOXEL, MECH, COLORS } from '../config.js';
+import { MAP, VOXEL, MECH, COLORS, SHARD_BEAM, DANGER } from '../config.js';
 import { ENEMIES, BOSSES, MATS } from '../sim/data/enemies.js';
 import { SECTORS, missionById } from '../sim/data/missions.js';
 import { MAT_LIST } from '../sim/world.js';
@@ -178,6 +178,19 @@ export class View {
         this.aura = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff3060, transparent: true, opacity: 0.22, depthWrite: false }));
         s.add(this.aura);
 
+        // the Shard Beam: a wide glow around a white-hot core, laid along +x and turned to its angle
+        this.sbeam = new THREE.Group();
+        const glow = new THREE.Mesh(new THREE.BoxGeometry(1, 0.9, 1), new THREE.MeshBasicMaterial({ color: 0x2ff0d0, transparent: true, opacity: 0.55, depthWrite: false }));
+        const core = new THREE.Mesh(new THREE.BoxGeometry(1, 0.35, 1), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+        glow.position.x = core.position.x = 0.5;
+        this.sbeam.add(glow, core);
+        this.sbeam.userData = { glow, core };
+        this.sbeam.visible = false;
+        s.add(this.sbeam);
+        this.mechInk = INK.clone();
+        this.ground0 = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+        this.ray = new THREE.Raycaster();
+
         this.hiveGroup = new THREE.Group(); s.add(this.hiveGroup);
         this.cageGroup = new THREE.Group(); s.add(this.cageGroup);
 
@@ -265,6 +278,8 @@ export class View {
                 case 'beam': this.beam(e); break;
                 case 'hurt': this.shake = Math.max(this.shake, 0.35); this.hurtT = 0.2; break;
                 case 'stomp': this.ring(e.x, e.y, e.r, 0xffe0a0); break;
+                case 'shard_beam': this.ring(e.x, e.y, 2.5, 0x2ff0d0); this.flash = Math.max(this.flash, 0.5); this.shake = 0.6; break;
+                case 'focus': if (e.id != null) this.ring(e.x, e.y, 1.6, 0xff3060); break;
                 case 'levelup': if (G.run) this.ring(G.run.mech.x, G.run.mech.y, 3, 0xffe060); break;
                 case 'rescue': this.column(e.x, e.y); break;
                 case 'overdrive': if (G.run) this.ring(G.run.mech.x, G.run.mech.y, 5, 0xff3060); this.flash = 0.6; break;
@@ -371,6 +386,8 @@ export class View {
             if (this.mech) this.scene.remove(this.mech);
             this.mech = buildMech(G.hangar.loadout);
             this.mech.scale.setScalar(1.3);
+            // its own ink, so it can burn red when the mech is about to go down
+            this.mech.traverse((o) => { if (o.material === INK) o.material = this.mechInk; });
             this.scene.add(this.mech);
             this.mechKey = key;
         }
@@ -381,6 +398,18 @@ export class View {
         poseMech(this.mech, { t: time, walk: moving > 0.2 ? this.walk : 0, face: M.face, aim: M.aim ?? M.face, od: M.odT > 0, hurt: this.hurtT > 0, crouch: R.over === 'win' ? 0.6 : 0 });
         this.mech.visible = !(M.inv > 0 && M.hp > 0 && Math.floor(time * 20) % 2 && R.t > 2) && !(R.over === 'lose' && R.overT < 1.6);
         this.mechShadow.position.set(M.x, 0.03, M.y);
+        const danger = M.hp > 0 && M.hp < M.maxHp * DANGER && !R.over;
+        this.mechInk.color.setHex(danger && Math.floor(time * 6) % 2 ? 0xff1f3d : danger ? 0xb0102a : 0x14101c);
+        // the Shard Beam, while it fires
+        this.sbeam.visible = M.beamT > 0;
+        if (this.sbeam.visible) {
+            const L = M.beamLen || SHARD_BEAM.range, w = SHARD_BEAM.width * 2 * (0.85 + Math.sin(time * 60) * 0.15);
+            this.sbeam.position.set(M.x + Math.cos(M.beamA) * 0.9, 1.6, M.y + Math.sin(M.beamA) * 0.9);
+            this.sbeam.rotation.set(0, -M.beamA, 0);
+            this.sbeam.userData.glow.scale.set(L, 1, w);
+            this.sbeam.userData.core.scale.set(L, 1, w * 0.35);
+            this.shake = Math.max(this.shake, 0.25);
+        }
         this.magRing.visible = !!M.magnetOn;
         if (M.magnetOn) { this.magRing.position.set(M.x, 0.1, M.y); this.magRing.scale.setScalar(M.magnet * (0.96 + Math.sin(time * 10) * 0.04)); }
         this.aura.visible = M.odT > 0;
@@ -538,6 +567,15 @@ export class View {
         cam.lookAt(0, 1.3, 0);
         cam.updateProjectionMatrix();
         this.renderer.render(this.hangarScene, cam);
+    }
+
+    /** The sim point (cells) under a screen point (CSS px), on the ground, or null. */
+    screenToGround(cx, cy) {
+        const r = this.canvas.getBoundingClientRect();
+        const ndc = new THREE.Vector2(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+        this.ray.setFromCamera(ndc, this.camera);
+        const p = new THREE.Vector3();
+        return this.ray.ray.intersectPlane(this.ground0, p) ? { x: p.x, y: p.z } : null;
     }
 
     /** Screen position (CSS px) of a sim point, for the tests. */

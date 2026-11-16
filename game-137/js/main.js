@@ -21,6 +21,7 @@ const DEBUG = params.get('debug') === '1';
 const FAST = DEBUG ? Math.max(1, Math.min(40, +(params.get('fast') || 1))) : 1;
 
 const settings = loadSettings();
+document.body.classList.toggle('calm', !!settings.calm);
 const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music, settings.voice);
 const input = new Input();
@@ -28,7 +29,7 @@ const view = new View(document.getElementById('view'), { low: params.get('q') ==
 let G = null;
 const ui = new UI({
     audio, settings,
-    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); updateTouch(); },
+    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); updateTouch(); document.body.classList.toggle('calm', !!s.calm); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
     act: (cmd) => { const r = G ? act(G, cmd) : false; flushEvents(); save(); return r; },
 });
@@ -36,7 +37,7 @@ const cin = new Cinematic({ audio, onDone: () => { toHangar(); ui.comm('mirei', 
 
 let mode = 'title';          // title | intro | hangar | mission | debrief | ending
 let acc = 0, time = 0, last = performance.now(), saveT = 0, hangarT = 0;
-let bot = null, pendingPick = null, wasRunning = false;
+let bot = null, pendingPick = null, pendingTap = null, wasRunning = false;
 const seen = {};
 
 // ------------------------------------------------------------------ helpers
@@ -59,6 +60,13 @@ updateTouch();
 input.bindStick(document.getElementById('stick-zone'), document.getElementById('stick'), document.querySelector('#stick .knob'));
 input.bindHold(document.getElementById('btn-mag'));
 input.bindButton(document.getElementById('btn-od'), () => input.pressOD());
+input.bindButton(document.getElementById('btn-beam'), () => input.pressBeam());
+// tap or click the field to focus fire: the sim gets the ground point under the finger
+document.getElementById('view').addEventListener('pointerdown', (e) => {
+    if (mode !== 'mission' || !G?.run || ui.modal() || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const p = view.screenToGround(e.clientX, e.clientY);
+    if (p) pendingTap = p;
+});
 
 // ------------------------------------------------------------------ modes
 function setBodyHangar(on) { document.body.classList.toggle('in-hangar', on); }
@@ -74,6 +82,7 @@ function startNewGame(seed = (Date.now() % 1e9) | 0, { intro = true } = {}) {
 
 function toHangar() {
     ui.closeAll();
+    ui.clearOverlays();
     ui.showHud(false);
     mode = 'hangar';
     view.setMode('hangar');
@@ -189,6 +198,7 @@ function pickCard(i) {
 
 function toTitle() {
     ui.closeAll();
+    ui.clearOverlays();
     ui.showHud(false);
     mode = 'title';
     view.setMode('off');
@@ -260,6 +270,7 @@ function frame(now) {
         while (acc >= STEP && n < 12 * FAST && G.mode === 'mission') {
             const inp = bot ? botInput(G, bot) : input.state();
             if (pendingPick != null) { inp.pick = pendingPick; pendingPick = null; }
+            if (pendingTap) { inp.tap = pendingTap; pendingTap = null; }
             step(G, inp, STEP);
             input.consumeEdges();
             acc -= STEP;
@@ -272,7 +283,7 @@ function frame(now) {
     flushEvents();
     if (G) view.frame(G, dt, time); else view.frame({ run: null, hangar: null }, dt, time);
     if (mode === 'mission' && G?.run) {
-        ui.hud(G);
+        ui.hud(G, view);
         ui.speedlines(G.run.mech.odT > 0);
         ui.flash(view.flash);
     } else ui.flash(0);

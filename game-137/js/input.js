@@ -10,6 +10,7 @@
 
 const MAG_KEYS = ['Space', 'ShiftLeft', 'ShiftRight', 'KeyJ'];
 const OD_KEYS = ['KeyE', 'KeyX', 'KeyK'];
+const BEAM_KEYS = ['KeyQ', 'KeyF', 'KeyL'];
 const NO_SCROLL = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
 const PAD_KEYS = { 0: 'Enter', 1: 'Escape', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
 
@@ -17,7 +18,7 @@ export class Input {
     constructor() {
         this.keys = new Set();
         this.queue = [];
-        this.edges = { mag: false, od: false };
+        this.edges = { mag: false, od: false, beam: false };
         this.stick = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
         this.pad = { x: 0, y: 0, prev: [], mag: false };
         this.touchMag = false;
@@ -35,6 +36,7 @@ export class Input {
             this.queue.push({ key: e.code });
             if (MAG_KEYS.includes(e.code)) this.edges.mag = true;
             if (OD_KEYS.includes(e.code)) this.edges.od = true;
+            if (BEAM_KEYS.includes(e.code)) this.edges.beam = true;
             this.keys.add(e.code);
         });
         window.addEventListener('keyup', (e) => this.keys.delete(e.code));
@@ -101,6 +103,7 @@ export class Input {
     }
 
     pressOD() { this.edges.od = true; }
+    pressBeam() { this.edges.beam = true; }
 
     _pollPad() {
         const pads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -120,6 +123,9 @@ export class Input {
         const od = b(2) || b(3);
         if (od && !this.pad.prev.od) this.edges.od = true;
         this.pad.prev.od = od;
+        const bm = b(4) || b(5);
+        if (bm && !this.pad.prev.bm) this.edges.beam = true;
+        this.pad.prev.bm = bm;
     }
 
     /** The held state for this frame. Edges stay set until consumeEdges(). */
@@ -134,12 +140,12 @@ export class Input {
             if (Math.hypot(sx, sy) > 0.2) { x = sx; y = sy; }
         }
         const held = MAG_KEYS.some((c) => k.has(c)) || this.pad.mag || this.touchMag;
-        return { x, y, mag: held || this.edges.mag, od: this.edges.od, pick: null };
+        return { x, y, mag: held || this.edges.mag, od: this.edges.od, beam: this.edges.beam, tap: null, pick: null };
     }
 
-    consumeEdges() { this.edges.mag = false; this.edges.od = false; }
+    consumeEdges() { this.edges.mag = false; this.edges.od = false; this.edges.beam = false; }
     next() { return this.queue.shift() || null; }
-    flush() { this.queue.length = 0; this.edges.mag = false; this.edges.od = false; }
+    flush() { this.queue.length = 0; this.edges.mag = false; this.edges.od = false; this.edges.beam = false; }
     clear() {
         this.keys.clear();
         this.flush();
