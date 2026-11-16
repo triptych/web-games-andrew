@@ -5,6 +5,7 @@
 import { FAMILIES, REGIONS, CLASSES, TOWN } from '../sim/data.js';
 import { drawCreature } from './creatures.js';
 import { drawWalker, drawHouse, drawProp, mix } from './sprites.js';
+import { draw as drawArt, pic } from './art.js';
 
 const SKY = ['#bfe0ff', '#f6dfb0', '#cfe4d8', '#eef4ff', '#f0b89a', '#c8b8f0'];
 const GROUND = ['#7fbf5a', '#e2b56a', '#4f8a6a', '#e8f0f8', '#5a3a30', '#3a3466'];
@@ -29,22 +30,27 @@ export function drawPortrait(canvas, spec) {
     const anim = { t: 0.4, flash: 0, dead: 0 };
     if (spec.kind === 'monster') {
         const F = FAMILIES[spec.key];
-        const f = spec.unknown ? { ...F, col: SHADOW } : F;
+        const f = spec.unknown ? { ...F, fam: spec.key, col: SHADOW, unknown: true } : { ...F, fam: spec.key };
         const tall = { flyer: 0.09, drake: 0.08, brute: 0.085, golem: 0.08, serpent: 0.09, crawler: 0.13, blob: 0.14 }[F.shape] || 0.11;
         drawCreature(ctx, f, 50, 92, tall, anim, false);
     } else if (spec.kind === 'warden') {
         const W = REGIONS[spec.key].warden;
-        const f = { shape: W.shape, col: spec.unknown ? SHADOW : W.col, deco: W.deco, warden: !spec.unknown };
+        const f = { shape: W.shape, col: spec.unknown ? SHADOW : W.col, deco: W.deco, warden: !spec.unknown, wardenArt: true, fam: W.id, unknown: spec.unknown };
         drawCreature(ctx, f, 50, 94, W.shape === 'beast' ? 0.12 : 0.085, anim, false);
     } else if (spec.kind === 'person') {
         const C = CLASSES[spec.key];
-        drawWalker(ctx, 50, 92, 0.14, spec.key, spec.unknown ? '#2a2630' : C.color, spec.unknown ? '#2a2630' : C.cloth, 0, false, 0);
+        drawWalker(ctx, 50, 92, 0.14, spec.key, spec.unknown ? '#2a2630' : C.color, spec.unknown ? '#2a2630' : C.cloth, 0, false, 0, spec.unknown ? 'shadow' : null);
+    } else if (spec.kind === 'odessa' && drawArt(ctx, 't-odessa', 50, 94, 86)) {
+        // Grandmother, painted
     } else if (spec.kind === 'odessa') {
         drawWalker(ctx, 50, 92, 0.14, 'captain', '#e8e8f0', '#6a4a7a', 0, false, 0);
         ctx.fillStyle = '#ffd36a';
         ctx.beginPath(); ctx.ellipse(76, 58, 5, 7, 0, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#5a4030'; ctx.lineWidth = 1.5;
         ctx.beginPath(); ctx.moveTo(66, 66); ctx.lineTo(76, 51); ctx.stroke();
+    } else if (spec.kind === 'town' && pic('town-' + spec.key)) {
+        ctx.drawImage(pic('town-' + spec.key), 0, 0, 100, 100);
+        if (spec.unknown) { ctx.fillStyle = 'rgba(40,36,30,0.82)'; ctx.fillRect(0, 0, 100, 100); }
     } else if (spec.kind === 'town') {
         const T = TOWN[spec.key];
         const pal = { walls: ['#e8dcc0', '#d8c8a8', '#c8b898'], roofs: ['#a84a3a', '#5a6a8a', '#7a4a3a'] };

@@ -11,6 +11,7 @@
 import { hash3 } from '../rng.js';
 import { shade, mix, shadow } from './sprites.js';
 import { drawProp } from './sprites.js';
+import { draw as drawArt, has as hasArt } from './art.js';
 
 const TAU = Math.PI * 2;
 const ROADW = 1100;
@@ -250,8 +251,46 @@ function animal(ctx, x, y, s, v, night, kind, t) {
 }
 
 /** Draw one thing at screen (x, y) for its base, s pixels per world unit. */
+// The paintings for each kind: [picture names (one is picked by v), height in world units (or -width for the long
+// bands), whether it may be mirrored]. Heights are the code sprites' own (measured), so nothing changes size.
+const ART = {
+    oak: [['p-oak', 'p-oak2'], 924], birch: [['p-birch'], 924], poplar: [['p-poplar'], 1170], blossom: [['p-blossom'], 924],
+    autumn: [['p-autumn'], 924], swamptree: [['p-swamptree'], 940], startree: [['p-startree'], 924], ashtree: [['p-ashtree'], 760],
+    pine: [['p-pine', 'p-pine2'], 1392], snowpine: [['p-snowpine'], 1394], deadpine: [['p-deadpine'], 1000], deadtree: [['p-deadtree'], 760],
+    willow: [['p-willow'], 880], palm: [['p-palm'], 860], saguaro: [['p-saguaro'], 730], windmill: [['p-windmill'], 1366, false],
+    bush: [['p-bush'], 300], rock: [['p-rock', 'p-rock2'], 240], boulders: [['p-boulders'], 280], log: [['p-log'], 150], stump: [['p-stump'], 170],
+    haystack: [['p-haystack'], 400], sheep: [['p-sheep'], 280], deer: [['p-deer'], 440], fence: [['p-fence'], 220],
+    tuft: [['p-tuft'], 200], flowers: [['p-flowers'], 170], pebbles: [['p-pebbles'], 70], smallrock: [['p-smallrock'], 90], toadstool: [['p-toadstool'], 140],
+    barrel: [['p-barrel'], 230], pear: [['p-pear'], 366], deadbush: [['p-deadbush'], 220], bones: [['p-bones'], 120], drytuft: [['p-drytuft'], 160],
+    giantshroom: [['p-giantshroom'], 600], mossrock: [['p-mossrock'], 270], reeds: [['p-reeds'], 420], lily: [['p-lily'], 90],
+    icespire: [['p-icespire'], 828], snowtuft: [['p-snowtuft'], 150], iceshards: [['p-iceshards'], 190],
+    lavarock: [['p-lavarock', 'p-lavarock2'], 270], obsidian: [['p-obsidian'], 640], vent: [['p-vent'], 280], ember: [['p-ember'], 80], ashtuft: [['p-ashtuft'], 160],
+    crystal: [['p-crystal', 'p-crystal2'], 420], obelisk: [['p-obelisk'], 800], floatrock: [['p-floatrock'], 520], glowshroom: [['p-glowshroom'], 420],
+    glowtuft: [['p-glowtuft'], 190], shard: [['p-shard'], 186],
+    treeline: [['p-treeline'], -2626], pineline: [['p-pineline'], -2400], mesa: [['p-mesa'], -3458], dune: [['p-dune'], -1282],
+};
+
+/** A kind's painting at (x, y), or false if it has none (or it hasn't loaded) and the code sprite should draw. */
+function paint(ctx, kind, x, y, s, v, night, t) {
+    const A = ART[kind];
+    if (!A) return false;
+    const names = A[0], name = names[(v >> 3) % names.length];
+    if (!hasArt(name)) return false;
+    const k = 0.85 + r(v, 7, 3) * 0.3;
+    let h = A[1] * k * s;
+    if (h < 0) {           // a long band: its width is given
+        h = -h;
+        return drawArt(ctx, name, x, y + 4 * s, h, { mode: night ? 'night' : 'day', flip: !!(v & 1), byWidth: true });
+    }
+    // grazing animals nod; reeds and trees sway a touch in the wind
+    let bob = 0;
+    if (kind === 'sheep' || kind === 'deer') bob = Math.max(0, Math.sin(t * 2 + v)) * 10 * s;
+    return drawArt(ctx, name, x, y + 6 * s - bob, h, { mode: night ? 'night' : 'day', flip: A[2] !== false && !!(v & 1) });
+}
+
 export function drawScenery(ctx, kind, x, y, s, v, night, t) {
     const dim = night ? -0.45 : 0;
+    if (paint(ctx, kind, x, y, s, v, night, t)) return;
     switch (kind) {
         case 'oak': case 'birch': case 'poplar': case 'blossom': case 'autumn': return broadleaf(ctx, x, y, s, v, night, kind);
         case 'swamptree': return broadleaf(ctx, x, y, s, v, night, 'swamp');

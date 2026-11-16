@@ -2,6 +2,10 @@
 // colours (body, dark, eyes) make each one. s is pixels per world unit; a wolf is ~500 units tall.
 
 import { shade } from './sprites.js';
+import { draw as drawArt } from './art.js';
+
+// A painted monster stands this many times its code-drawn height (the paintings have more air round flyers and spirits).
+const ART_H = { flyer: 1.05, spirit: 1.0, crawler: 1.15, serpent: 1.0, blob: 1.15, beast: 1.05 };
 
 const TAU = Math.PI * 2;
 function el(ctx, x, y, rx, ry, fill, rot = 0) {
@@ -45,6 +49,13 @@ export function drawCreature(ctx, f, x, y, s, anim, night) {
         ctx.fillStyle = g; ctx.fillRect(x - 700 * s, y - 1000 * s, 1400 * s, 1400 * s);
     }
     const bob = Math.sin(t * 5) * 14 * s;
+    // the painting, if it has arrived: a gentle breathing bob, the hit flash as a white overlay
+    if (f.fam) {
+        const name = (f.warden || f.wardenArt ? 'w-' : 'm-') + f.fam;
+        const hover = f.shape === 'flyer' || f.shape === 'spirit' ? 40 * s + bob : bob * 0.5;
+        const mode = f.unknown ? 'shadow' : night ? 'night' : 'day';
+        if (drawArt(ctx, name, x, y - hover, creatureHeight(f) * s * (ART_H[f.shape] || 1), { mode, flash: anim.flash })) { ctx.restore(); return; }
+    }
     switch (f.shape) {
         case 'beast': {
             // a four-legged thing coming at you: haunches, chest, head low
