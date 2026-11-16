@@ -293,6 +293,7 @@ export class UI {
     setTouch(on, walking) {
         this.touchOn = on;
         $('touch').hidden = !(on && walking);
+        document.body.classList.toggle('touchdeck', on && walking);    // the minimap moves out from under the stick
     }
 
     // ------------------------------------------------------------------ sheets

@@ -323,6 +323,8 @@ td:first-child { font-family: var(--head); font-weight: 600; white-space: nowrap
     .brand-name { font-size: 14px; }
     .brand { padding-right: 10px; }
 }
+body.touchdeck #minimap { top: calc(64px + var(--safe-t)); bottom: auto; width: 120px; height: 94px; }
+body.touchdeck #walk-hint { bottom: auto; top: calc(64px + var(--safe-t)); }
 @media (prefers-reduced-motion: reduce) {
     .lamp, .welcome-lamp { animation: none; }
     .pane, .sheet { animation: none; }
