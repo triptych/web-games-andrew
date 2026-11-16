@@ -1701,6 +1701,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 122, 26, 0.65);
 }
 
+.game-preview.lanternhollow,
+.carousel-slide-bg.lanternhollow {
+    background: radial-gradient(circle at 50% 38%, #ffe2a0 0%, #f2a541 14%, rgba(201, 122, 30, 0.55) 26%, transparent 46%), repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.12) 0 2px, transparent 2px 26px), linear-gradient(180deg, #2b1d2e 0%, #4a2f2c 55%, #6b4632 75%, #8fb996 76%, #5c7a4a 100%);
+}
+
+.game-card.lanternhollow .play-button {
+    background: linear-gradient(135deg, #f2a541, #e98a7a, #8fb996);
+    color: #2b1d2e;
+    box-shadow: 0 0 14px rgba(242, 165, 65, 0.65);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

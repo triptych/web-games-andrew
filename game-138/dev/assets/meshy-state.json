@@ -1,0 +1,121 @@
+{
+ "mon-slime": {
+  "t2i": "01a1e547-186a-70c0-a654-c2067aa81ac7",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e547-bf3a-757e-8023-9622e9f87936",
+  "glb": "raw-mon-slime.glb"
+ },
+ "light-brazier": {
+  "t2i": "01a1e547-1868-73b3-87f7-388d74135ed8",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e547-8375-7592-81d2-9bb30195f0b1",
+  "glb": "raw-light-brazier.glb"
+ },
+ "mon-mushfolk": {
+  "t2i": "01a1e548-b6cc-7549-9b89-1b4a29e64573",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e548-fb28-7223-b09f-a4f5c0c06556",
+  "glb": "raw-mon-mushfolk.glb"
+ },
+ "mon-golem": {
+  "t2i": "01a1e548-b70b-7676-923e-f3e2c5932f45",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e549-b016-77d8-bbf1-0df859d200a7",
+  "glb": "raw-mon-golem.glb"
+ },
+ "mon-goblin": {
+  "t2i": "01a1e548-b6e6-764f-8ae4-fc0e34e78fab",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e549-239e-70ba-96c6-dc1c28f1db6e",
+  "glb": "raw-mon-goblin.glb"
+ },
+ "mon-dragon": {
+  "t2i": "01a1e548-b655-7611-9593-cc29849fdf68",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e549-2170-778c-b128-4f06cae772c8",
+  "glb": "raw-mon-dragon.glb"
+ },
+ "hoard-gold": {
+  "t2i": "01a1e548-b675-77a4-aeb6-21b94293ede2",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e549-ad4e-70b7-ae8f-6f0c61edf6fa",
+  "glb": "raw-hoard-gold.glb"
+ },
+ "hoard-chest": {
+  "t2i": "01a1e548-b738-7670-80db-112f2a15ae4d",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e549-6037-7702-b18d-3234939c572c",
+  "glb": "raw-hoard-chest.glb"
+ },
+ "light-candles": {
+  "t2i": "01a1e549-a8f6-71d2-8f30-778ea24502bd",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54a-18fd-74bf-b4a3-203f9d3d2d57",
+  "glb": "raw-light-candles.glb"
+ },
+ "cozy-campfire": {
+  "t2i": "01a1e549-d258-71ad-bda2-17b8a387d8c6",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54a-4095-7586-a19a-4b52308da56f",
+  "glb": "raw-cozy-campfire.glb"
+ },
+ "cozy-bookshelf": {
+  "t2i": "01a1e549-d2ce-75c2-8bf9-cf379675e6e1",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54a-3d11-7021-96e8-2721ffd32909",
+  "glb": "raw-cozy-bookshelf.glb"
+ },
+ "cozy-barrels": {
+  "t2i": "01a1e54a-5d5e-774d-8dd7-56cded66bbc1",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54a-c7b9-71d7-abea-6deb16924086",
+  "glb": "raw-cozy-barrels.glb"
+ },
+ "cozy-cauldron": {
+  "t2i": "01a1e54a-5d91-77ff-af2c-989ef92ede04",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54a-a0d6-77a6-a238-f6e0f5fba85e",
+  "glb": "raw-cozy-cauldron.glb"
+ },
+ "cozy-table": {
+  "t2i": "01a1e54a-5f55-76e9-9bae-499670bd3015",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54a-c9df-73ce-9b78-91ae9a1858f0",
+  "glb": "raw-cozy-table.glb"
+ },
+ "flora-mushrooms": {
+  "t2i": "01a1e54b-16f2-76e2-9307-2458e45979b4",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54b-8249-7257-8038-4cfe7cd03ae5",
+  "glb": "raw-flora-mushrooms.glb"
+ },
+ "flora-crystals": {
+  "t2i": "01a1e54b-3a18-71db-a332-f8650588c6ab",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54b-a372-73c9-b3ad-531c36dca822",
+  "glb": "raw-flora-crystals.glb"
+ },
+ "deco-statue": {
+  "t2i": "01a1e54b-3d68-7227-870e-4eeef0a80589",
+  "t2iDone": true,
+  "credits": 24,
+  "i3d": "01a1e54b-a73f-75bf-bf8e-50a366bfc536",
+  "glb": "raw-deco-statue.glb"
+ }
+}

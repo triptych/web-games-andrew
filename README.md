@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-137 games, `game-001` through `game-137`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+138 games, `game-001` through `game-138`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -177,6 +177,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 135 | [Hard Hat Harbor](game-135/) | A 90s toy-truck CD-ROM in 3D: eight construction vehicles, ten voiced jobs from the mayor and townsfolk (potholes, a rockslide, a bridge, a demolition, a park, houses), stars and a Golden Hard Hat; Meshy models, fal art, ElevenLabs music, effects and voices | three.js |
 | 136 | [Pinch & Place](game-136/) | A claymation diorama builder: pinch furniture, toys, rugs, lamps and pictures out of clay, place them in isometric rooms for eight clients, get rated, and photograph the result with lights, filters, a miniature blur and share links; fal art, ElevenLabs music and effects | three.js |
 | 137 | [SHARDFRAME](game-137/) | A 1990s-anime voxel bullet heaven: a walking mech whose kills burst into physics voxels you magnet up for power or leave as temporary walls, destructible voxel terrain, twelve rescue, hive, survival and kaiju sorties, a mech garage, and rescued crew who leave gifts in real time; a narrated opening cinematic, fal art, ElevenLabs music, effects and voices | three.js |
+| 138 | [Lanternhollow](game-138/) | A cozy fantasy dungeon builder: wave function collapse grows tunnels, chambers, waterfalls and wells across up to five stacked levels, proved reachable; seven themes, Meshy-made friendly monsters, hoards and furnishings, paint and place tools, parallax occlusion mapping and interior-mapped peek windows, share links that rebuild the exact dungeon, and a first-person walk by lantern light | three.js |
 
 ### Highlights
 

@@ -1,0 +1,39 @@
+{
+  "name": "Lanternhollow",
+  "short_name": "Lanternhollow",
+  "description": "Lanternhollow — a cozy fantasy dungeon builder. Wave function collapse grows tunnels, chambers, waterfalls and wells across several levels; fill them with Meshy-made friendly monsters, hoards and furnishings, theme each level, share it as a link and walk it in first person.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2b1d2e",
+  "theme_color": "#2b1d2e",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
