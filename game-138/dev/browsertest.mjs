@@ -231,7 +231,7 @@ async function desktop() {
     const done = await Q(page, () => __lh.ff(1500));
     check(done, 'the tour walks to the bottom of the dungeon');
     await until(page, () => (__lh.seen.befriend || 0) > 0 && (__lh.seen.loot || 0) > 0 && (__lh.seen.stairs || 0) > 0, 'friends are met, hoards found and stairs taken');
-    check(await Q(page, () => /💛 (\d+)\/\1/.test(document.getElementById('walk-friends').textContent)), 'the HUD counts every friend met');
+    await until(page, () => /💛 (\d+)\/\1$/.test(document.getElementById('walk-friends').textContent) && __lh.G.friends > 0, 'the HUD counts every friend met');
     await page.keyboard.press('Escape');
     await until(page, () => __lh.mode === 'build' && !document.body.classList.contains('walking'), 'Escape returns to the workbench');
     reportErrors('desktop');

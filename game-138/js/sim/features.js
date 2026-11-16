@@ -117,9 +117,11 @@ export function placeFeatures(L, params, rng, deepest) {
         }
         return true;
     };
+    const nearStairs = (x, y) => [L.up, L.down].some((s) => s && Math.abs(s.mx - x) <= 1 && Math.abs(s.my - y) <= 1);
     const put = (kind, x, y, extra = {}) => {
         const idx = y * L.mw + x;
-        if (!free(x, y)) return null;
+        // every placement (the dragon's hoard included) keeps the stairs' landing clear
+        if (!free(x, y) || nearStairs(x, y)) return null;
         if (!stillOpen(L, blocked, idx, blockers)) return null;
         blockers.push(idx);
         taken[idx] = 1;
