@@ -7,6 +7,7 @@
 import { generate } from './dungeon.js';
 import { normalize } from './share.js';
 import { stepWalker, placeAt } from './walker.js';
+import { ELEMENTS } from './data/elements.js';
 
 export function newGame(params) {
     const G = {
@@ -38,9 +39,9 @@ export function totals(G) {
     for (const L of G.d.levels) {
         for (const f of L.features) {
             if (!f.block) continue;
-            const k = f.kind;
-            if (['slime', 'mushfolk', 'golem', 'goblin', 'dragon'].includes(k)) friends++;
-            else if (k === 'gold' || k === 'chest') { hoards++; gold += k === 'gold' ? 120 : 60; }
+            const e = ELEMENTS[f.kind];
+            if (e?.cat === 'monsters') friends++;
+            else if (e?.cat === 'hoards') { hoards++; gold += e.value; }
         }
     }
     return { friends, hoards, gold };

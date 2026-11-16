@@ -130,10 +130,13 @@ export const allThemeMaterials = () => [...themeCache.values()].flatMap((s) => O
 // ------------------------------------------------------------------ water
 export const clock = { value: 0 };
 
+/** Fog uniforms (cloned, as three expects) plus our own, which stay shared: the clock must be one object everywhere. */
+export const withFog = (own) => ({ ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...own });
+
 export function waterMaterial(color) {
     return new THREE.ShaderMaterial({
         transparent: true, depthWrite: false, fog: true,
-        uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uTime: clock, uColor: { value: new THREE.Color(color) } }]),
+        uniforms: withFog({ uTime: clock, uColor: { value: new THREE.Color(color) } }),
         vertexShader: /* glsl */`
             #include <fog_pars_vertex>
             varying vec3 vW; varying vec3 vView;
@@ -171,7 +174,7 @@ export function waterMaterial(color) {
 export function waterfallMaterial(color) {
     return new THREE.ShaderMaterial({
         transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: true,
-        uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uTime: clock, uColor: { value: new THREE.Color(color) } }]),
+        uniforms: withFog({ uTime: clock, uColor: { value: new THREE.Color(color) } }),
         vertexShader: /* glsl */`
             #include <fog_pars_vertex>
             varying vec2 vUv;

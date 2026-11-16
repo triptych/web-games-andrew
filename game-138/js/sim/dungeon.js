@@ -93,7 +93,8 @@ function collapseLevel({ w, h, weights, up, down, pins, rng, spacing }) {
     const tryWith = (userPins, tries, wts = weights) => {
         const map = new Map();
         for (const sp of spacing) {
-            if ([up, down].some((s) => s && Math.abs(s.x - sp.x) <= 1 && Math.abs(s.y - sp.y) <= 1)) continue;
+            // spacers keep clear of the stairs and of painted squares: a painted chamber needs open neighbours
+            if ([up, down, ...userPins].some((s) => s && Math.abs(s.x - sp.x) <= 1 && Math.abs(s.y - sp.y) <= 1)) continue;
             map.set(sp.y * w + sp.x, SPACER);
         }
         for (const p of userPins) map.set(p.y * w + p.x, tilesOf(BRUSHES[p.b].fams));

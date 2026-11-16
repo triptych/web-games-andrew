@@ -15,6 +15,7 @@ const smooth = (t) => t * t * (3 - 2 * t);
 const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const mix = (a, b, t) => a + (b - a) * t;
 const mixc = (a, b, t) => [mix(a[0], b[0], t), mix(a[1], b[1], t), mix(a[2], b[2], t)];
+const tint = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 
 /** Value noise on a lattice of P cells across the texture, so it tiles. */
 function vnoise(u, v, P, s) {
@@ -41,168 +42,128 @@ function voronoi(u, v, P, s, jit = 0.8) {
     }
     return { d1, d2, id, cx, cy };
 }
-
-/** A grid of bricks/blocks: rows × cols per texture, odd rows offset by half. Returns { id, edge } (edge distance in block units). */
+/** A bond of bricks/blocks: rows × cols per texture, odd rows shifted by `offset`. edge: distance to the nearest joint. */
 function bond(u, v, rows, cols, offset = 0.5) {
     const ry = v * rows, row = Math.floor(ry);
     const rx = u * cols + (row % 2) * offset, col = Math.floor(rx);
     const fx = rx - col, fy = ry - row;
-    const ex = Math.min(fx, 1 - fx) / rows * cols, ey = Math.min(fy, 1 - fy);
-    return { id: mod(col, cols) * 97 + row, edge: Math.min(ex * (rows / cols), ey), fx, fy, row, col: mod(col, cols) };
+    const ex = Math.min(fx, 1 - fx) * (rows / cols), ey = Math.min(fy, 1 - fy);
+    return { id: mod(col, cols) * 97 + row, edge: Math.min(ex, ey), fx, fy };
 }
-
-const tint = (c, k) => [c[0] * k, c[1] * k, c[2] * k];
 
 // ------------------------------------------------------------------ painters
 const P = {
-    blocks(u, v, o = {}) {
+    blocks(u, v, o) {
         const b = bond(u, v, 4, 2);
-        const n = fbm(u, v, 8, 3);
-        const j = hash(b.id, 1, 5);
-        const base = o.base || [160, 150, 136];
+        const n = fbm(u, v, 8, 3), j = hash(b.id, 1, 5);
         const mort = smooth(clamp01((b.edge - 0.035) / 0.06));
         const h = 0.25 + mort * (0.6 + n * 0.25) - (1 - smooth(clamp01(b.edge / 0.16))) * 0.08;
-        let c = tint(base, 0.78 + j * 0.32 + (n - 0.5) * 0.35);
-        c = mixc(o.mortar || [92, 84, 76], c, mort);
+        const c = mixc(o.mortar || [92, 84, 76], tint(o.base || [160, 150, 136], 0.78 + j * 0.32 + (n - 0.5) * 0.35), mort);
         return [...c, h];
     },
-    flags(u, v, o = {}) {
+    flags(u, v, o) {
         const w = voronoi(u, v, 4, 11, 0.85);
-        const e = w.d2 - w.d1;
-        const n = fbm(u, v, 8, 13);
-        const j = hash(w.id, 3, 9);
-        const g = smooth(clamp01((e - 0.04) / 0.1));
-        const h = 0.2 + g * (0.65 + (n - 0.5) * 0.3);
-        let c = tint(o.base || [150, 140, 128], 0.75 + j * 0.4 + (n - 0.5) * 0.3);
-        c = mixc(o.grout || [70, 64, 58], c, g);
-        return [...c, h];
+        const n = fbm(u, v, 8, 13), j = hash(w.id, 3, 9);
+        const g = smooth(clamp01((w.d2 - w.d1 - 0.04) / 0.1));
+        const c = mixc(o.grout || [70, 64, 58], tint(o.base || [150, 140, 128], 0.75 + j * 0.4 + (n - 0.5) * 0.3), g);
+        return [...c, 0.2 + g * (0.65 + (n - 0.5) * 0.3)];
     },
-    planks(u, v, o = {}) {
-        // vertical wall planks with a few nails
+    planks(u, v, o) {
         const cols = 4, x = u * cols, col = Math.floor(x), fx = x - col;
         const j = hash(col, 2, 4);
-        const grain = fbm(u * 0.25 + j, v, 2, 21 + col, 4);
+        const grain = fbm(u, v, 2, 21 + col, 4);
         const streak = Math.sin((v * 22 + grain * 9 + j * 6) * Math.PI) * 0.5 + 0.5;
         const gap = smooth(clamp01(Math.min(fx, 1 - fx) / 0.05));
         const nail = [0.1, 0.9].some((ny) => Math.hypot((fx - 0.5) * 0.5, v - ny) < 0.018) ? 1 : 0;
-        const base = o.base || [150, 98, 58];
-        let c = tint(base, 0.78 + j * 0.3 + (streak - 0.5) * 0.18 + (grain - 0.5) * 0.2);
-        c = mixc([48, 30, 18], c, gap);
+        let c = mixc([48, 30, 18], tint(o.base || [150, 98, 58], 0.78 + j * 0.3 + (streak - 0.5) * 0.18 + (grain - 0.5) * 0.2), gap);
         if (nail) c = [70, 66, 62];
-        const h = 0.15 + gap * (0.75 + streak * 0.1) - nail * 0.15;
-        return [...c, h];
+        return [...c, 0.15 + gap * (0.75 + streak * 0.1) - nail * 0.15];
     },
-    boards(u, v, o = {}) {
-        // floorboards: rows of planks, staggered ends
-        const rows = 5, y = v * rows, row = Math.floor(y), fy = y - row;
-        const off = hash(row, 5, 6);
-        const x = u * 2 + off, seg = Math.floor(x), fx = x - seg;
-        const j = hash(row * 13 + mod(seg, 2), 7, 8);
-        const grain = fbm(u, v * 0.2 + j, 2, 31 + row, 4);
+    boards(u, v, o) {
+        const rows = 4, y = v * rows, row = Math.floor(y), fy = y - row;
+        const x = u + hash(row, 5, 6), seg = Math.floor(x), fx = x - seg;
+        const j = hash(row * 13 + mod(seg, 1), 7, 8);
+        const grain = fbm(u, v, 2, 31 + row, 4);
         const streak = Math.sin((u * 26 + grain * 8 + j * 5) * Math.PI) * 0.5 + 0.5;
-        const edge = Math.min(Math.min(fy, 1 - fy) * 2.5, Math.min(fx, 1 - fx) * 6);
-        const gap = smooth(clamp01(edge / 0.09));
-        let c = tint(o.base || [168, 112, 66], 0.75 + j * 0.32 + (streak - 0.5) * 0.16 + (grain - 0.5) * 0.25);
-        c = mixc([52, 32, 20], c, gap);
+        const gap = smooth(clamp01(Math.min(Math.min(fy, 1 - fy) * 2.5, Math.min(fx, 1 - fx) * 10) / 0.09));
+        const c = mixc([52, 32, 20], tint(o.base || [168, 112, 66], 0.75 + j * 0.32 + (streak - 0.5) * 0.16 + (grain - 0.5) * 0.25), gap);
         return [...c, 0.15 + gap * (0.78 + streak * 0.07)];
     },
-    bricks(u, v, o = {}) {
+    bricks(u, v, o) {
         const b = bond(u, v, 8, 4);
-        const n = fbm(u, v, 16, 41);
-        const j = hash(b.id, 4, 2);
+        const n = fbm(u, v, 16, 41), j = hash(b.id, 4, 2);
         const mort = smooth(clamp01((b.edge - 0.05) / 0.07));
         let c = tint(o.base || [168, 78, 52], 0.72 + j * 0.4 + (n - 0.5) * 0.35);
         if (hash(b.id, 9, 9) > 0.86) c = tint(c, 0.7);
-        c = mixc(o.mortar || [196, 182, 160], c, mort);
-        return [...c, 0.3 + mort * (0.6 + n * 0.1)];
+        return [...mixc(o.mortar || [196, 182, 160], c, mort), 0.3 + mort * (0.6 + n * 0.1)];
     },
-    terracotta(u, v, o = {}) {
+    terracotta(u, v, o) {
         const b = bond(u, v, 4, 4, 0);
-        const n = fbm(u, v, 8, 51);
-        const j = hash(b.id, 6, 1);
+        const n = fbm(u, v, 8, 51), j = hash(b.id, 6, 1);
         const g = smooth(clamp01((b.edge - 0.03) / 0.05));
-        let c = tint(o.base || [196, 112, 70], 0.8 + j * 0.25 + (n - 0.5) * 0.3);
         const ring = Math.abs(Math.hypot(b.fx - 0.5, b.fy - 0.5) - 0.3) < 0.02 ? 0.88 : 1;
-        c = mixc([214, 196, 168], tint(c, ring), g);
+        const c = mixc([214, 196, 168], tint(o.base || [196, 112, 70], (0.8 + j * 0.25 + (n - 0.5) * 0.3) * ring), g);
         return [...c, 0.3 + g * 0.65];
     },
-    rock(u, v, o = {}) {
+    rock(u, v, o) {
         const n = fbm(u, v, 4, 61, 5);
         const r = 1 - Math.abs(fbm(u, v, 3, 67, 4) * 2 - 1);
         const w = voronoi(u, v, 3, 71, 1);
         const crack = smooth(clamp01((w.d2 - w.d1) / 0.08));
         const h = clamp01(0.25 + n * 0.55 + r * 0.25) * (0.55 + crack * 0.45);
-        const c = tint(o.base || [122, 112, 102], 0.6 + h * 0.6 + (hash(w.id, 1, 1) - 0.5) * 0.15);
-        return [...c, h];
+        return [...tint(o.base || [122, 112, 102], 0.6 + h * 0.6 + (hash(w.id, 1, 1) - 0.5) * 0.15), h];
     },
-    pebbles(u, v, o = {}) {
+    pebbles(u, v, o) {
         const w = voronoi(u, v, 9, 81, 0.9);
         const bump = clamp01(1 - w.d1 / 0.55);
-        const n = fbm(u, v, 16, 83, 3);
-        const j = hash(w.id, 8, 3);
-        const h = 0.15 + Math.sqrt(bump) * 0.8 + (n - 0.5) * 0.1;
-        let c = tint(o.base || [138, 128, 116], 0.6 + j * 0.55);
-        c = mixc(o.grit || [80, 70, 60], c, smooth(clamp01(bump * 2.5)));
-        return [...c, clamp01(h)];
+        const n = fbm(u, v, 16, 83, 3), j = hash(w.id, 8, 3);
+        const c = mixc(o.grit || [80, 70, 60], tint(o.base || [138, 128, 116], 0.6 + j * 0.55), smooth(clamp01(bump * 2.5)));
+        return [...c, clamp01(0.15 + Math.sqrt(bump) * 0.8 + (n - 0.5) * 0.1)];
     },
-    crystal(u, v, o = {}) {
+    crystal(u, v, o) {
         const w = voronoi(u, v, 5, 91, 0.9);
         const j = hash(w.id, 5, 5), k = hash(w.id, 6, 6);
-        // each facet a tilted plane
         const facet = 0.55 + (w.cx * (j - 0.5) + w.cy * (k - 0.5)) * 0.9;
         const edge = smooth(clamp01((w.d2 - w.d1) / 0.06));
-        const base = o.base || [92, 62, 140];
-        let c = tint(base, 0.6 + facet * 0.6 + j * 0.2);
-        c = mixc(o.vein || [214, 170, 255], c, edge);
+        const c = mixc(o.vein || [214, 170, 255], tint(o.base || [92, 62, 140], 0.6 + facet * 0.6 + j * 0.2), edge);
         return [...c, clamp01(0.2 + edge * facet * 0.8)];
     },
-    glass(u, v, o = {}) {
+    glass(u, v, o) {
         const b = bond(u, v, 3, 3, 0.33);
         const w = voronoi(u, v, 6, 95, 1);
         const vein = 1 - smooth(clamp01((w.d2 - w.d1) / 0.035));
         const g = smooth(clamp01((b.edge - 0.03) / 0.05));
-        const j = hash(b.id, 2, 7);
-        let c = tint(o.base || [70, 50, 110], 0.8 + j * 0.35);
-        c = mixc(c, [200, 160, 255], vein * 0.55);
-        c = mixc([30, 20, 50], c, g);
+        const c = mixc([30, 20, 50], mixc(tint(o.base || [70, 50, 110], 0.8 + hash(b.id, 2, 7) * 0.35), [200, 160, 255], vein * 0.55), g);
         return [...c, 0.3 + g * 0.65];
     },
-    ice(u, v, o = {}) {
+    ice(u, v, o) {
         const b = bond(u, v, 3, 2);
         const w = voronoi(u, v, 5, 97, 1);
         const crack = 1 - smooth(clamp01((w.d2 - w.d1) / 0.03));
         const n = fbm(u, v, 8, 99);
         const g = smooth(clamp01((b.edge - 0.03) / 0.07));
-        let c = tint(o.base || [178, 214, 236], 0.85 + n * 0.25);
-        c = mixc(c, [240, 252, 255], crack * 0.6);
-        c = mixc([96, 130, 160], c, g);
+        const c = mixc([96, 130, 160], mixc(tint(o.base || [178, 214, 236], 0.85 + n * 0.25), [240, 252, 255], crack * 0.6), g);
         return [...c, 0.3 + g * (0.6 - crack * 0.1)];
     },
     snow(u, v) {
         const n = fbm(u, v, 6, 101, 5);
-        const w = voronoi(u, v, 12, 103, 1);
         const sparkle = hash(Math.floor(u * 512), Math.floor(v * 512), 7) > 0.995 ? 30 : 0;
-        const h = 0.35 + n * 0.5 - (1 - clamp01(w.d1)) * 0.05;
-        return [222 + n * 25 + sparkle, 232 + n * 20 + sparkle, 245 + sparkle, h];
+        return [196 + n * 22 + sparkle, 206 + n * 20 + sparkle, 222 + n * 10 + sparkle, 0.35 + n * 0.5];
     },
-    turf(u, v, o = {}) {
+    turf(u, v, o) {
         const n = fbm(u, v, 6, 111, 5);
         const blade = hash(Math.floor(u * 256), Math.floor(v * 256), 3);
-        const flower = voronoi(u, v, 10, 113, 1);
-        const base = o.base || [96, 140, 70];
-        let c = tint(base, 0.7 + n * 0.5 + (blade - 0.5) * 0.25);
-        if (o.flowers && flower.d1 < 0.06 && hash(flower.id, 1, 2) > 0.7) c = hash(flower.id, 2, 3) > 0.5 ? [250, 230, 140] : [240, 190, 210];
+        const fl = voronoi(u, v, 10, 113, 1);
+        let c = tint(o.base || [96, 140, 70], 0.7 + n * 0.5 + (blade - 0.5) * 0.25);
+        if (o.flowers && fl.d1 < 0.06 && hash(fl.id, 1, 2) > 0.7) c = hash(fl.id, 2, 3) > 0.5 ? [250, 230, 140] : [240, 190, 210];
         return [...c, 0.3 + n * 0.5 + blade * 0.15];
     },
     strata(u, v) {
-        // the cut earth on the sides of the diorama block
-        const band = v * 7 + fbm(u, v, 4, 121) * 1.6;
-        const k = Math.floor(band);
+        const band = v * 7 + fbm(u, v, 4, 121) * 1.6, k = Math.floor(band);
         const cols = [[110, 80, 56], [132, 96, 64], [96, 72, 54], [150, 116, 80], [88, 66, 50], [124, 92, 66], [104, 82, 62]];
         const w = voronoi(u, v, 14, 123, 1);
         const stone = w.d1 < 0.3 && hash(w.id, 4, 4) > 0.75;
-        let c = tint(cols[mod(k, cols.length)], 0.85 + fbm(u, v, 16, 125) * 0.3);
-        if (stone) c = tint([150, 144, 136], 0.8 + hash(w.id, 5, 5) * 0.3);
+        const c = stone ? tint([150, 144, 136], 0.8 + hash(w.id, 5, 5) * 0.3) : tint(cols[mod(k, cols.length)], 0.85 + fbm(u, v, 16, 125) * 0.3);
         return [...c, stone ? 0.8 : 0.4 + (band - k) * 0.2];
     },
 };
@@ -224,7 +185,6 @@ export const RECIPES = {
     glass:      ['glass', {}],
     ice:        ['ice', {}],
     snow:       ['snow', {}],
-    // caps, ceilings, sides
     turf:       ['turf', { base: [104, 150, 74], flowers: true }],
     moss:       ['turf', { base: [84, 124, 66], flowers: true }],
     slate:      ['rock', { base: [96, 92, 96] }],
@@ -237,10 +197,8 @@ export const RECIPES = {
 
 const cache = new Map();
 
-/** { map, normalMap, heightMap } for a recipe name, made once. size: texels per side. */
-export function materialMaps(name, size = 512) {
-    const key = name + ':' + size;
-    if (cache.has(key)) return cache.get(key);
+/** Paint a recipe into plain arrays (no three.js): { albedo: Uint8Array RGBA, height: Float32Array }. */
+export function paint(name, size) {
     const [painter, opts] = RECIPES[name] || RECIPES.rock;
     const fn = P[painter];
     const n = size * size;
@@ -253,17 +211,24 @@ export function materialMaps(name, size = 512) {
             if (opts.moss) {
                 // moss gathers in the low places and in big soft patches
                 const m = fbm(u, v, 4, 131, 4);
-                const amt = clamp01((m - 0.5) * 4 + (0.5 - h) * 2.2);
-                const mc = [78 + m * 40, 120 + m * 50, 58];
-                r = mix(r, mc[0], amt * 0.85); g = mix(g, mc[1], amt * 0.85); b = mix(b, mc[2], amt * 0.85);
-                h = Math.max(h, amt * 0.55);
+                const amt = clamp01((m - 0.5) * 4 + (0.5 - h) * 2.2) * 0.85;
+                r = mix(r, 78 + m * 40, amt); g = mix(g, 120 + m * 50, amt); b = mix(b, 58, amt);
+                h = Math.max(h, amt * 0.6);
             }
             const i = y * size + x;
             albedo[i * 4] = r; albedo[i * 4 + 1] = g; albedo[i * 4 + 2] = b; albedo[i * 4 + 3] = 255;
             height[i] = clamp01(h);
         }
     }
-    // normals from the height (central differences, wrapping), strength tuned for 2 m of texture
+    return { albedo, height };
+}
+
+/** { map, normalMap, heightMap } for a recipe, made once. size: texels per side (a power of two). */
+export function materialMaps(name, size = 512) {
+    const key = name + ':' + size;
+    if (cache.has(key)) return cache.get(key);
+    const { albedo, height } = paint(name, size);
+    const n = size * size;
     const normal = new Uint8Array(n * 4), hgt = new Uint8Array(n * 4);
     const k = size / 64;
     for (let y = 0; y < size; y++) {
@@ -274,8 +239,8 @@ export function materialMaps(name, size = 512) {
             // row y holds v = (y + 0.5) / size (a DataTexture is not flipped), so the slope along v is hd - hu
             let nx = (hl - hr) * k, ny = (hu - hd) * k, nz = 1;
             const l = Math.hypot(nx, ny, nz);
-            nx /= l; ny /= l; nz /= l;
-            normal[i * 4] = (nx * 0.5 + 0.5) * 255; normal[i * 4 + 1] = (ny * 0.5 + 0.5) * 255; normal[i * 4 + 2] = (nz * 0.5 + 0.5) * 255; normal[i * 4 + 3] = 255;
+            normal[i * 4] = (nx / l * 0.5 + 0.5) * 255; normal[i * 4 + 1] = (ny / l * 0.5 + 0.5) * 255;
+            normal[i * 4 + 2] = (nz / l * 0.5 + 0.5) * 255; normal[i * 4 + 3] = 255;
             const hv = height[i] * 255;
             hgt[i * 4] = hv; hgt[i * 4 + 1] = hv; hgt[i * 4 + 2] = hv; hgt[i * 4 + 3] = 255;
         }

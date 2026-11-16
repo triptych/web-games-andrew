@@ -11,13 +11,13 @@
 
 export const ELEMENTS = {
     // ------------------------------------------------------------------ monsters (all of them friendly)
-    slime:    { cat: 'monsters', name: 'Snoozy Slime', icon: '🟢', model: 'mon-slime', size: 0.9, h: 0.7, where: 'room', glow: [0x7dffb0, 2.5],
+    slime:    { cat: 'monsters', name: 'Snoozy Slime', icon: '🟢', model: 'mon-slime', size: 1.1, h: 0.9, where: 'room', glow: [0x7dffb0, 2.5],
         art: 'a round wobbly jelly slime monster, translucent mint green with a lighter belly, a sleepy contented smile and closed eyes, a tiny leaf stuck on top' },
-    mushfolk: { cat: 'monsters', name: 'Mushfolk', icon: '🍄', model: 'mon-mushfolk', size: 0.7, h: 1.0, where: 'any',
+    mushfolk: { cat: 'monsters', name: 'Mushfolk', icon: '🍄', model: 'mon-mushfolk', size: 0.9, h: 1.2, where: 'any',
         art: 'a small friendly mushroom person with a big red cap with white spots, a pale stubby body, little arms holding a tiny lit lantern, rosy cheeks, standing' },
     golem:    { cat: 'monsters', name: 'Moss Golem', icon: '🗿', model: 'mon-golem', size: 1.5, h: 1.6, where: 'room',
         art: 'a gentle stone golem made of rounded grey boulders sitting cross-legged, thick green moss on its shoulders and head with tiny white flowers, a calm kind face with glowing amber eyes' },
-    goblin:   { cat: 'monsters', name: 'Goblin Cook', icon: '🥄', model: 'mon-goblin', size: 0.8, h: 1.1, where: 'room',
+    goblin:   { cat: 'monsters', name: 'Goblin Cook', icon: '🥄', model: 'mon-goblin', size: 1.0, h: 1.35, where: 'room',
         art: 'a cheerful little green goblin cook with big ears, wearing a patched cream apron and a floppy chef hat, holding a wooden ladle, standing, smiling' },
     dragon:   { cat: 'monsters', name: 'Drowsy Dragon', icon: '🐉', model: 'mon-dragon', size: 2.6, h: 1.4, where: 'room', boss: true, glow: [0xffa040, 4],
         art: 'a plump sleepy baby dragon curled up asleep like a cat, warm amber-orange scales with a cream belly, small folded wings, tail wrapped around itself, eyes closed, a tiny smoke puff from its nose' },
