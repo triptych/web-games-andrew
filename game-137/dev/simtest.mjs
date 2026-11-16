@@ -289,6 +289,48 @@ if (want('rules')) {
     Gm.act(G, { t: 'launch', mission: 1 });
     ok(Gm.act(G, { t: 'abort' }) && G.mode === 'debrief' && !G.debrief.win, 'giving up ends the sortie');
 
+    section('rules: Shard Beam and tap-to-focus');
+    G = blank(); R = G.run;
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT === 0 && !G.events.some((e) => e.type === 'shard_beam'), 'an uncharged Shard Beam does not fire');
+    const need = Math.ceil(1 / C.SHARD_BEAM.perVoxel);
+    Vx.burst(R, 24.5, 24.5, 0.2, need - 1, Vx.C.gold, 0.01);   // gold: red would level up and pause the field
+    run(G, NONE, 1);
+    ok(R.mech.beam < 1 && R.mech.beam > 0.9, `collecting voxels charges it (${need - 1} of ${need})`);
+    Vx.burst(R, 24.5, 24.5, 0.2, 1, Vx.C.blue, 0.01);
+    run(G, NONE, 0.5);
+    ok(R.mech.beam === 1, 'one more voxel of any colour fills it');
+    R.mech.weapons = [];
+    const victims = [En.spawnEnemy(R, 'brute', 30.5, 24.5), En.spawnEnemy(R, 'brute', 36.5, 24.5)];
+    for (const v of victims) v.speed = 0;
+    const wall = setCell(R, 33, 24, 2);
+    G.events.length = 0;
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT > 0 && R.mech.beam === 0 && G.events.some((e) => e.type === 'shard_beam'), 'charged, it fires and the gauge empties');
+    run(G, NONE, C.SHARD_BEAM.time + 0.1);
+    ok(victims.every((v) => v.hp < v.max * 0.5), 'it pierces: both monsters in its line are badly hurt');
+    ok(R.W.h[wall] < 2, 'it cuts through the rock between them');
+    R.mech.beam = 1;
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT <= 0 && R.mech.beamCd > 0, 'during the cooldown a full gauge cannot fire again');
+    run(G, NONE, C.SHARD_BEAM.cooldown);
+    run(G, { ...NONE, beam: true }, DT);
+    ok(R.mech.beamT > 0, `after ${C.SHARD_BEAM.cooldown} s it fires again`);
+
+    G = blank(); R = G.run;
+    const near = En.spawnEnemy(R, 'brute', 26.5, 24.5), far = En.spawnEnemy(R, 'brute', 24.5, 30.5);
+    near.speed = far.speed = 0; near.hp = near.max = far.hp = far.max = 1e6;
+    run(G, { ...NONE, tap: { x: 24.8, y: 30.2 } }, DT);
+    ok(R.focus && R.focus.id === far.id && G.events.some((e) => e.type === 'focus'), 'a tap near a monster focuses it');
+    const farHp = far.hp, nearHp = near.hp;
+    run(G, NONE, 1.5);
+    ok(far.hp < farHp && near.hp === nearHp, 'the guns fire at the focused one, not the nearer one');
+    Dm.hurtEnemy(R, far, 1e9);
+    run(G, NONE, 1);
+    ok(R.focus === null && G.events.some((e) => e.type === 'focus_lost') && near.hp < nearHp, 'when it dies the focus lets go and auto-aim takes the nearest again');
+    run(G, { ...NONE, tap: { x: 10.5, y: 10.5 } }, DT);
+    ok(R.focus === null, 'a tap on empty ground clears the focus');
+
     section('rules: bosses');
     G = Gm.newGame(7); G.unlocked = 12; Gm.act(G, { t: 'launch', mission: 4 });
     R = G.run; R.mech.inv = 1e9;

@@ -56,11 +56,9 @@ export function setFocus(R, x, y) {
 }
 
 export function target(R, x, y, range, skip) {
-    // a focused target wins if it's within reach (a little further than usual)
-    if (!skip || !skip.size) {
-        const f = focusTarget(R);
-        if (f && (f.x - x) ** 2 + (f.y - y) ** 2 < (range * FOCUS.range) ** 2) return f;
-    }
+    // a focused target wins if it's within reach (a little further than usual), for every rocket of a salvo too
+    const f = focusTarget(R);
+    if (f && (f.x - x) ** 2 + (f.y - y) ** 2 < (range * FOCUS.range) ** 2) return f;
     let best = null, bd = range * range;
     near(R, x, y, range, (e) => {
         if (skip && skip.has(e.id)) return;
