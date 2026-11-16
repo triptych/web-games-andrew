@@ -1,0 +1,156 @@
+{
+ "brannoc": {
+  "voice": "N2lVS1w4EtoT3dr4eOWO",
+  "name": "Callum - Husky Trickster",
+  "lines": [
+   "brannoc-arrive",
+   "brannoc-accept"
+  ],
+  "text": "[amused] Nightfall. Running a kitchen? Oh, this I have to taste. Relax — I only brought the good poisons. [long pause] [amused] A cook. Me. Fine — but I'm doing the bitters my way. Nobody dies. Probably."
+ },
+ "quell": {
+  "voice": "dmWfLQZJq7wNPv9WmtiM",
+  "name": "Emma - Wry, Gritty Hero",
+  "lines": [
+   "quell-arrive",
+   "quell-accept"
+  ],
+  "text": "[dry, quiet] I took a vow of silence. I am breaking it to say: your door creaks. Fix it. [long pause] [dry, quiet] I will mind the night desk. Nobody will hear me. That is rather the point."
+ },
+ "flint": {
+  "voice": "wiy1Gg8ir59Wz8fJAOFD",
+  "name": "Chad",
+  "lines": [
+   "flint-arrive",
+   "flint-accept"
+  ],
+  "text": "[weary, deadpan] Your bounty's worth eleven silver now. Eleven. I'm here out of pity, mostly. [long pause] [weary, deadpan] I'll keep the books. Somebody in this place should know what things are worth."
+ },
+ "marrow": {
+  "voice": "b8JMPeNuVrqqWExQc8e9",
+  "name": "Ayla - Bubbly, Cute & Expressive",
+  "lines": [
+   "marrow-arrive",
+   "marrow-accept"
+  ],
+  "text": "[excited] We're here to finish the job! — We were never hired for a job. — Then we're here for pie! [long pause] [excited] We'll wait tables! — Both of the tables. — We'll need more tables."
+ },
+ "corvina": {
+  "voice": "aAsWcN5jdLdiYG7Hq0YL",
+  "name": "Harriet - Mature British Actress",
+  "lines": [
+   "corvina-arrive",
+   "corvina-accept"
+  ],
+  "text": "[haughty] You were hired to end me once. You didn't. Tonight I end your little inn — in print. Two stars. Possibly one. [long pause] [haughty] Five stars. I'll be back every week, and I'll tell everyone. That's a threat, darling."
+ },
+ "moss": {
+  "voice": "3VkFsBHdRPqWKsitgYhJ",
+  "name": "Azgar the Cursed",
+  "lines": [
+   "moss-arrive",
+   "moss-accept"
+  ],
+  "text": "[softly, shy] Boss says break your legs. I'd rather not. Can we just... do the card thing gently? [long pause] [softly, shy] I can sing on Thursdays? And lift kegs. Mostly sing."
+ },
+ "rook": {
+  "voice": "SOYHLrjzK2X1ezoPC6cr",
+  "name": "Harry - Fierce Warrior",
+  "lines": [
+   "rook-arrive",
+   "rook-accept"
+  ],
+  "text": "[frustrated] Twelve years in your shadow, Nightfall. Twelve! You don't even remember my name, do you? It's Rook. Rook! [long pause] [frustrated] Assistant manager. Number two. You know what? It suits me."
+ },
+ "oriel": {
+  "voice": "jTAlT4VvvXlYNDrxqpNQ",
+  "name": "Andrea - British female character voice",
+  "lines": [
+   "oriel-arrive",
+   "oriel-accept"
+  ],
+  "text": "[mysterious] I foresaw this evening. I foresaw your face. I did not foresee the wallpaper. Bold. [long pause] [mysterious] I'll read fortunes by the fire. Mostly good ones. Business is business."
+ },
+ "varr": {
+  "voice": "EMYWJ6jws25NB7xJgDxG",
+  "name": "Dusty Garner",
+  "lines": [
+   "varr-arrive",
+   "varr-accept"
+  ],
+  "text": "[firm] Eight years of rooftops, Nightfall. I'm off duty. That doesn't mean I'm not watching. [long pause] [firm] I'll keep the peace on busy nights. Old habits — the good kind."
+ },
+ "choir": {
+  "voice": "6qtlupOXBYtv2nYY2VgL",
+  "name": "Grav - Deep, Dark & Sinister",
+  "lines": [
+   "choir-arrive",
+   "choir-accept"
+  ],
+  "text": "[whispering] You left us mid-verse, Nightfall. Three voices, one song. Tonight we finish it — with or without you. [long pause] [whispering] Very well. We'll sing on Fridays. All of us. In harmony. You'll regret it."
+ },
+ "vesper": {
+  "voice": "3bMMFnv44fDwVPsFtKwZ",
+  "name": "Elowen - Elf",
+  "lines": [
+   "vesper-arrive",
+   "vesper-accept"
+  ],
+  "text": "[earnest] You taught me everything, then you left without a word. I'm not here to kill you. I'm here to ask why. [long pause] [earnest] I bake now. Did you know that? Of course you didn't. Teach me the stew, at least."
+ },
+ "mott": {
+  "voice": "S9V0fuqWOqX0i8Kb8ctu",
+  "name": "Alden - Tired Old Man",
+  "lines": [
+   "mott-arrive",
+   "mott-accept"
+  ],
+  "text": "[fussy] You burned down my laboratory. It was already on fire, granted. I've come to settle the ambiguity. [long pause] [fussy] I'll brew tonics. Medicinal ones! I'm reformed. Mostly. Largely."
+ },
+ "tally": {
+  "voice": "3iiStphdvgUy5uqHXWlG",
+  "name": "ross",
+  "lines": [
+   "tally-arrive",
+   "tally-accept"
+  ],
+  "text": "[prim] Fourteen years of unfiled returns, Nightfall. Swords are crude. I have paperwork. [long pause] [prim] I'll do your accounts. Somebody must. You keep receipts in a knife drawer."
+ },
+ "garr": {
+  "voice": "lpJ712UnnFDmLdkFINx5",
+  "name": "Angus - Calm & Measured",
+  "lines": [
+   "garr-arrive",
+   "garr-accept"
+  ],
+  "text": "[booming] I retired first, Nightfall! I opened a tavern first! Across the street! This town ain't big enough for two reformed killers with a pub. [long pause] [booming] Merge the two? Biggest inn in the five cities. Ha! I'm in."
+ },
+ "thorn": {
+  "voice": "kkPJzQOWz2Oz9cUaEaQd",
+  "name": "Beatrice - Mature Female Storyteller",
+  "lines": [
+   "thorn-arrive",
+   "thorn-cleared"
+  ],
+  "text": "[coldly calm] You were the finest thing I ever made, child. A blade does not get to choose to be a spoon. Come home. [long pause] [coldly calm] ...Then I suppose I'll have the stew."
+ },
+ "narrator": {
+  "voice": "LvmvHEBEmMJBJw9UuhwO",
+  "name": "Eldrin - Wise Epic Fantasy Narration Storyteller",
+  "lines": [
+   "narrator-intro",
+   "narrator-tutorial",
+   "narrator-blade",
+   "narrator-partner",
+   "narrator-refuse",
+   "narrator-act2",
+   "narrator-act3",
+   "narrator-thorn",
+   "narrator-over",
+   "narrator-slate",
+   "narrator-nightfall",
+   "narrator-open"
+  ],
+  "text": "[dry, wry] Once upon a time, the deadliest assassin in the five cities hung up the knives, bought a crumbling inn, and painted a fresh sign. This is not that kind of story. Well. It's a little bit that kind of story. [long pause] [dry, wry] Pair cards that add up to thirteen. Meet them halfway. You used to meet people very differently. [long pause] [dry, wry] Ah. Old habits. Very efficient. Very... you. [long pause] [dry, wry] And just like that, the staff got bigger and the body count stayed exactly the same. [long pause] [dry, wry] They saw the knife work. Trust, like stew, takes time. [long pause] [dry, wry] Word gets around. The Busy Season begins, and so do the visitors who want a word. Or a fight. Usually both. [long pause] [dry, wry] The Grand Reopening. Everyone you ever wronged has accepted the invitation. [long pause] [dry, wry] And here she is. Every story about leaving home ends with someone from home showing up. [long pause] [dry, wry] And so the innkeeper picked up the blade again. The end. Or, as the sequel would put it, the beginning. [long pause] [dry, wry] The sign stayed clean. It turns out the past doesn't get a vote. [long pause] [dry, wry] The inn survived. Its reputation did not. Some stains don't come out with ale. [long pause] [dry, wry] The doors stayed open. Not everyone stayed for a drink. But enough did."
+ }
+}

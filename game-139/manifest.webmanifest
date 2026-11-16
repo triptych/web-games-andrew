@@ -1,0 +1,39 @@
+{
+  "name": "CLEAN SLATE",
+  "short_name": "CLEAN SLATE",
+  "description": "CLEAN SLATE — a Pyramid-solitaire roguelike deckbuilder about a retired assassin who opens an inn. Every rival you ever crossed comes to test you; pair your future against their past, recruit and polish your staff, and decide whether to reach for the old blades or offer them a room.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#120b07",
+  "theme_color": "#120b07",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
