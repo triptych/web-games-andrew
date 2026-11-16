@@ -35,7 +35,7 @@ export function miniCard(id, up = false, { tag = 'div', extra = '', cls = '' } =
 }
 
 export class UI {
-    constructor({ audio, settings, onSettings, onDeleteSave, onCmd }) {
+    constructor({ audio, settings, onSettings, onDeleteSave, onCmd, onReplay }) {
         this.audio = audio;
         this.settings = settings;
         this.onCmd = onCmd;
@@ -55,13 +55,14 @@ export class UI {
         }
         for (const b of document.querySelectorAll('[data-close]')) b.addEventListener('click', () => { audio.ui('click'); this.closeTop(); });
 
-        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), nar = $('set-narrator');
-        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; nar.value = settings.narrator;
+        const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), nar = $('set-narrator'), tut = $('set-tutorial');
+        sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; nar.value = settings.narrator; tut.value = settings.tutorial;
         const changed = () => {
-            Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, narrator: nar.value });
+            Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, narrator: nar.value, tutorial: tut.value });
             onSettings(settings);
         };
-        for (const el of [sfx, music, voice, nar]) el.addEventListener('change', changed);
+        for (const el of [sfx, music, voice, nar, tut]) el.addEventListener('change', changed);
+        $('set-replay').addEventListener('click', () => { tut.value = 'on'; changed(); onReplay?.(); this.toast('The tutorial will start on your next night.'); });
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved run deleted.'); });
 
         $('story-ok').addEventListener('click', () => { audio.ui('click'); this.nextStory(); });
@@ -167,6 +168,13 @@ export class UI {
     }
     hidePhase() { if (this.phaseShown) $(this.phaseShown).hidden = true; this.phaseShown = null; }
 
+    /** The one-time explanation line on a phase screen. */
+    tipLine(id, phase) {
+        const t = this.coach?.phaseTip(phase) || '';
+        $(id).textContent = t;
+        $(id).hidden = !t;
+    }
+
     runStrip(G) {
         return `<span>♥ Resolve <b>${G.resolve}/${G.maxResolve}</b></span><span>◆ Tips <b>${G.tips}</b></span>`
             + `<span>⚔ Notoriety <b>${G.notoriety}</b></span><span>Deck <b>${G.deck.length}</b></span>`
@@ -190,6 +198,7 @@ export class UI {
                 + `<span class="txt">“${esc(R.letter)}”</span><span class="tags">${tags.join(' · ')}</span></span></button>`;
         }).join('');
         $('run-strip').innerHTML = this.runStrip(G);
+        this.tipLine('letters-tip', 'letters');
     }
 
     build_won(G) {
@@ -211,6 +220,7 @@ export class UI {
             $('won-card').innerHTML = '';
             partner.hidden = true;
         }
+        this.tipLine('won-tip', R.partner && W.canPartner ? 'won' : null);
         $('won-farewell').innerHTML = `See them out <small>+${RUN.farewell.tips} tips, heal ${RUN.farewell.heal}</small>`;
     }
 
@@ -218,6 +228,7 @@ export class UI {
         const D = G.day;
         $('day-head').textContent = `${ACTS[G.act].name}: morning at the inn`;
         $('day-stats').innerHTML = this.runStrip(G);
+        this.tipLine('day-tip', 'day');
         $('market').innerHTML = D.offers.map((id, i) => {
             if (!id) return '<div class="mini sold"><span class="nm">Sold</span></div>';
             const p = priceOf(G, id);

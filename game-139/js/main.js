@@ -7,6 +7,7 @@ import { MAX_FRAME } from './config.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
+import { Coach } from './coach.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
 import { newGame, act, canPair, cardInfo, exposed, layoutOf, legalMoves } from './sim/game.js';
 import { makeBot, botCommand } from './sim/bot.js';
@@ -28,7 +29,10 @@ const ui = new UI({
     onSettings: (s) => { saveSettings(s); applyAudio(s); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
     onCmd: (cmd) => command(cmd),
+    onReplay: () => coach.replay(),
 });
+const coach = new Coach({ settings, save: saveSettings, audio });
+ui.coach = coach;
 
 let G = null;                // the run (null on the title screen)
 let mode = 'title';          // title | run
@@ -68,6 +72,7 @@ $('pause-menu').addEventListener('click', (e) => {
     else ui.openScreen(a);
 });
 $('btn-pause').addEventListener('click', () => pause());
+$('btn-help').addEventListener('click', () => { audio.ui('click'); if (mode === 'run' && !ui.anyOverlay()) ui.openScreen('howto'); });
 $('btn-end').addEventListener('click', () => command({ t: 'end' }));
 $('btn-pour').addEventListener('click', () => { pour = !pour; sel = null; audio.ui('click'); });
 $('btn-deck').addEventListener('click', () => ui.openDeck(G));
@@ -118,6 +123,7 @@ function flushEvents() {
     const ev = G.events.splice(0);
     for (const e of ev) seen[e.type] = (seen[e.type] || 0) + 1;
     view.onEvents(G, ev);
+    coach.onEvents(G, ev);
     audio.onEvents(G, ev);
     ui.onEvents(G, ev);
 }
@@ -189,6 +195,7 @@ function hint() {
         return `${ci.d.name}${ci.up ? ' +' : ''}: ${cardText(ci.d, ci.up)}. ${extra}`;
     }
     if (sel?.slot != null) return `${F.slots[sel.slot].rank}: tap a card that makes 13 with it.`;
+    if (!$('coach').hidden) return '';          // the coach is already explaining
     if (!legalMoves(G).some((m) => m.t === 'pair' || m.t === 'solo' || m.t === 'cut')) return 'No pairs left this round. Pour one out, or end the round.';
     return 'Pair to 13: a card in your hand (12–14 counts) with an open rival card, or two rival cards. Kings go alone.';
 }
@@ -247,6 +254,7 @@ function handleKey() {
     if (k === 'KeyE') { command({ t: 'end' }); return; }
     if (k === 'KeyQ') { pour = !pour; sel = null; return; }
     if (k === 'KeyD') { ui.openDeck(G); return; }
+    if (k === 'KeyH') { ui.openScreen('howto'); return; }
     if (!all.length) return;
     if (!cursor || !all.includes(cursor)) cursor = L.hand[0] || all[0];
     const inHand = cursor[0] === 'h';
@@ -288,6 +296,8 @@ function frame(now) {
     view.sel = night() ? sel : null;
     view.targets = targets();
     view.cursor = night() ? cursor : null;
+    coach.update(G, night());
+    view.guide = coach.guide;
     view.frame(G || { phase: 'title', fight: null }, dt, layout);
     const inNight = mode === 'run' && G?.phase === 'night';
     ui.showHud(inNight);

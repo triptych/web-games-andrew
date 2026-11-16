@@ -115,6 +115,12 @@ const ensurePair = (page) => Q(page, () => {
     return !!slot && open !== null;
 });
 const settles = (page) => Q(page, () => __cs.seen.settle || 0);
+const coachLabel = (page) => Q(page, () => (document.getElementById('coach').hidden ? '' : document.getElementById('coach-label').textContent));
+/** The cards the tutorial points at, in tap order (your card first), as screen points. */
+const guided = (page) => Q(page, () => {
+    const keys = [...__cs.view.guide].sort((a) => (a[0] === 'h' ? -1 : 1));
+    return keys.map((k) => (k[0] === 'h' ? { hand: k.slice(1) } : { slot: +k.slice(1) })).map((sel) => ({ sel, p: __cs.screenOf(sel) }));
+});
 // wait until the cards the test is about to tap have stopped moving
 const settled = (page) => page.waitForFunction(() => !__cs.view.busy, null, { timeout: 20000, polling: 100 }).catch(() => {});
 
@@ -145,6 +151,25 @@ async function desktop() {
     await until(page, () => document.getElementById('story').hidden && !document.getElementById('hud').hidden, 'the cards are dealt: the HUD is up');
     await settled(page);
     await page.waitForTimeout(400);
+
+    // the tutorial: a first-night walkthrough that points at a real pair
+    check((await coachLabel(page)) === 'Tutorial 1/5', 'the first night starts the tutorial');
+    const nb = await Q(page, () => { const r = document.getElementById('coach-next').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(nb.x, nb.y);
+    await until(page, () => document.getElementById('coach-label').textContent === 'Tutorial 2/5' && __cs.view.guide.size >= 1, 'Next: it points at a pair, and those cards glow');
+    await shot(page, 'desktop-tutorial');
+    const g = await guided(page);
+    if (g.length) {
+        const sg = await settles(page);
+        for (const c of g) { const p = await Q(page, (sel) => __cs.screenOf(sel), c.sel); await page.mouse.click(p.x, p.y); await page.waitForTimeout(150); }
+        await until(page, (n) => (__cs.seen.settle || 0) > n, 'clicking the cards it points at makes the pair', 10000, sg);
+        await until(page, () => document.getElementById('coach-label').textContent === 'Tutorial 3/5', 'and the tutorial moves on by itself');
+    }
+    const sk = await Q(page, () => { const r = document.getElementById('coach-skip').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(sk.x, sk.y);
+    await until(page, () => !document.getElementById('coach-label').textContent.startsWith('Tutorial') || document.getElementById('coach').hidden, 'Skip tutorial ends it');
+    check(await Q(page, () => JSON.parse(localStorage.getItem('clean-slate.v1.settings')).tutorialDone === true), 'and remembers that it was done');
+    await Q(page, () => { document.getElementById('coach-next').hidden || document.getElementById('coach-next').click(); });
 
     // a real mouse pair on the 3D table
     await ensurePair(page);
@@ -177,6 +202,7 @@ async function desktop() {
         await shot(page, 'desktop-won');
         await click(page, (await Q(page, () => !document.getElementById('won-partner').hidden)) ? '#won-partner' : '#won-farewell');
         await until(page, () => !document.getElementById('day').hidden, 'then the day at the inn');
+        check(await visible(page, 'day-tip'), 'the first day explains itself in one line');
         await Q(page, () => { __cs.G.tips = 60; __cs.ui.sync(__cs.G, true); });
         const n0 = await Q(page, () => __cs.G.deck.length);
         await click(page, '#market [data-i="0"]');
@@ -249,6 +275,18 @@ async function phone(w, h) {
         return pts.every((p) => p && p.x > 0 && p.x < innerWidth && p.y > 0 && p.y < innerHeight);
     });
     check(onScreen, 'every playable card is on screen');
+    check((await coachLabel(page)).startsWith('Tutorial'), 'the tutorial starts on a phone too');
+    const coachOk = await Q(page, () => {
+        const c = document.getElementById('coach').getBoundingClientRect();
+        const n = document.getElementById('coach-skip').getBoundingClientRect();
+        const handTop = Math.min(...__cs.G.fight.hand.map((u) => __cs.screenOf({ hand: u }).y));
+        return c.left >= 0 && c.right <= innerWidth && c.top >= 0 && n.height >= 44 && (c.bottom < handTop - 30 || c.right < innerWidth * 0.36);
+    });
+    check(coachOk, 'the coach panel is on screen, clear of the hand, with finger-sized buttons');
+    await shot(page, `phone-tutorial-${w}x${h}`);
+    await tapSel('#coach-skip');
+    await until(page, () => !document.getElementById('coach-label').textContent.startsWith('Tutorial') || document.getElementById('coach').hidden, 'a tap skips the tutorial');
+    await Q(page, () => { document.getElementById('coach-next').hidden || document.getElementById('coach-next').click(); });
 
     await ensurePair(page);
     const p = await findPair(page);

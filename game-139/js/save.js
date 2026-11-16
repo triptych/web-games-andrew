@@ -5,7 +5,7 @@ import { SAVE_KEY } from './config.js';
 import { serialize, deserialize } from './sim/game.js';
 
 const SETTINGS_KEY = SAVE_KEY + '.settings';
-const DEFAULTS = { sfx: 0.8, music: 0.5, voice: 0.9, narrator: 'on' };
+const DEFAULTS = { sfx: 0.8, music: 0.5, voice: 0.9, narrator: 'on', tutorial: 'on', tutorialDone: false, tips: [] };
 
 function read(key) {
     try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : null; } catch { return null; }

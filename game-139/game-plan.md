@@ -88,6 +88,17 @@ between fights) and the "retired killer opens a small business" story.
 - **Interludes**: nine, each with two choices (a sword in a stone in your cellar; a bard; a cat; the Narrator reminding you
   that this is where the mysterious merchant appears).
 
+## Teaching the game
+
+New players couldn't tell what to do on the table, so v1.1.0 teaches by doing ([js/coach.js](js/coach.js)):
+- **The first night** runs five coach steps in a small panel at the top of the table: the open cards → a real pair (the cards
+  glow gold and bob; [js/sim/hints.js](js/sim/hints.js) picks your own non-Blade card, an exact 13 first) → the rival's intent
+  and Composure → pour one out and End round → winning and Blades. Steps that ask for an action advance when it happens, by
+  any route; nothing blocks play and taps pass through the panel. Skippable; replayable from Settings.
+- **One-time tips** the first time a Blade, Old Habit, a Grudge, your own King, a tainted, bounty or locked card appears, and one
+  explanation line on the first letters, partnership offer and day. Remembered in the settings (`tips`, `tutorialDone`).
+- **How to Play** in five short steps with a worked example; the ? button or H opens it from the table.
+
 ## Controls
 
 | Action | Mouse / touch | Keyboard |
@@ -97,6 +108,7 @@ between fights) and the "retired killer opens a small business" story.
 | End the round | End round | E |
 | Pour one out | Pour one out, then a hand card | Q |
 | Deck | Deck | D |
+| How to play | ? | H |
 | Cancel / pause | ❚❚ | Esc / P |
 
 ## Look and sound
@@ -154,6 +166,11 @@ The bot plays the real `act()` commands. 24 seeds a row (`SEEDS=24 ONLY=bot node
 - The economy floods late (tips pile up); a late-run sink (more rooms, pricier market) would help.
 
 ## Changelog
+
+### v1.1.0 (2026-11-16)
+- A first-night tutorial with a glowing suggested pair, one-time tips for new things, phase-screen explanations, a rewritten
+  How to Play with a worked example, a ? button and H key, tutorial settings. Tests: the hints section in simtest, the tutorial
+  followed and skipped in browsertest.
 
 ### v1.0.0 (2026-11-16)
 - First release: Pyramid-solitaire nights against 15 rivals over three acts, pairs to 13 within one with Clean pairs, kings and

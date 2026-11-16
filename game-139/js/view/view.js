@@ -78,6 +78,7 @@ export class View {
         this.shake = 0;
         this.sel = null;                // { slot } | { hand }
         this.targets = new Set();       // keys of cards that would pair with the selection
+        this.guide = new Set();         // keys of cards the tutorial points at (they bob and glow gold)
         this.cursor = null;             // keyboard focus key
         this.fightKey = null;
         this.layoutCache = null;
@@ -280,14 +281,15 @@ export class View {
             if (m.userData.face.map !== tex) { m.userData.face.map = tex; m.userData.face.needsUpdate = true; }
             const open = !this.coveredBy(F, s);
             const selected = this.sel?.slot === s.id;
-            const lift = selected ? 0.32 : this.cursor === 's' + s.id ? 0.14 : this.targets.has('s' + s.id) ? 0.1 : 0;
+            const bob = this.guide.has('s' + s.id) ? 0.16 + Math.sin(this.time * 3.2) * 0.07 : 0;
+            const lift = selected ? 0.32 : this.cursor === 's' + s.id ? 0.14 : bob || (this.targets.has('s' + s.id) ? 0.1 : 0);
             const tx = s.x * COL_DX, tz = this.rowZ(s.r, L.rows) + (s.p ? 0 : 0);
             m.position.x += (tx - m.position.x) * k;
             m.position.z += (tz - m.position.z) * k;
             m.position.y += (0.02 + s.r * 0.025 + lift - m.position.y) * k;
             m.rotation.z += ((st.up ? 0 : Math.PI) - m.rotation.z) * k;
             m.rotation.x += ((selected ? -0.12 : 0) - m.rotation.x) * k;
-            const glow = selected ? 0x7a5200 : this.targets.has('s' + s.id) ? 0x2a6a18 : st.lock ? 0x10243a : 0x000000;
+            const glow = selected ? 0x7a5200 : this.targets.has('s' + s.id) ? 0x2a6a18 : bob ? 0x6a4a00 : st.lock ? 0x10243a : 0x000000;
             m.userData.face.emissive.setHex(glow);
             m.userData.face.color.setHex(open || !st.up ? 0xffffff : 0x9a8f80);
             m.userData.open = open && !st.lock;
@@ -309,14 +311,15 @@ export class View {
             }
             const selected = this.sel?.hand === uid;
             const x = (i - (n - 1) / 2) * sp;
-            const lift = selected ? 0.5 : this.cursor === 'h' + uid ? 0.22 : 0;
+            const bob = this.guide.has('h' + uid) && !selected ? 0.26 + Math.sin(this.time * 3.2) * 0.08 : 0;
+            const lift = selected ? 0.5 : this.cursor === 'h' + uid ? 0.22 : bob;
             m.position.x += (x - m.position.x) * k;
             m.position.y += (0.12 + i * 0.012 + lift - m.position.y) * k;
             m.position.z += (HAND_Z - (selected ? 0.35 : 0) - m.position.z) * k;
             m.rotation.z += (0 - m.rotation.z) * k;
             m.rotation.x += (0.5 - m.rotation.x) * k;
             m.scale.setScalar(HAND_SCALE);
-            m.userData.face.emissive.setHex(selected ? 0x5a3c00 : this.targets.has('h' + uid) ? 0x2a6a18 : 0x000000);
+            m.userData.face.emissive.setHex(selected ? 0x5a3c00 : this.targets.has('h' + uid) ? 0x2a6a18 : bob ? 0x6a4a00 : 0x000000);
             m.userData.open = true;
         });
         for (const [uid, m] of this.handMeshes) {
