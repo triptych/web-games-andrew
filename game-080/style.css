@@ -333,3 +333,8 @@ td:first-child { color: #9a4a1a; white-space: nowrap; font-weight: 800; }
     margin-top: 8px; min-width: 140px; min-height: 48px; border-radius: 12px; border: 2px solid #8a3a1a;
     background: #ffb060; color: #3a1a0a; font: 800 17px system-ui, sans-serif;
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

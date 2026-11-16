@@ -331,7 +331,7 @@ body.in-run #back-link { display: none; }
 
 /* panels (reward, shop, rest, event) */
 .panel {
-    width: min(820px, 96vw); max-height: 88vh; overflow-y: auto; padding: clamp(14px, 3vw, 28px); border-radius: 14px;
+    width: min(820px, 96vw); max-height: 88vh; display: flex; flex-direction: column; min-height: 0; overflow: hidden; padding: clamp(14px, 3vw, 28px); border-radius: 14px;
     background: var(--panel); border: 1px solid var(--edge); box-shadow: 0 10px 50px rgba(0,0,0,0.8);
     display: flex; flex-direction: column; gap: 12px; align-items: center;
 }
@@ -339,7 +339,10 @@ body.in-run #back-link { display: none; }
 .panel h2 { color: var(--gold-hi); font-size: clamp(22px, 3.4vw, 34px); text-align: center; text-shadow: 0 2px 0 #3a1a04; }
 #panel-sub, #modal-sub { color: var(--muted); text-align: center; font-size: 15px; }
 #panel-body, #modal-body { width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+#panel-body, #modal-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 #panel-foot, #modal-foot { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+#panel-foot, #modal-foot { flex: 0 0 auto; }
+#panel-body .tabs, #modal-body .tabs { position: sticky; top: 0; z-index: 2; padding-block: 6px; background: var(--panel); }
 .row { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; width: 100%; }
 .cardbox { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; position: relative; }
 .cardimg { width: clamp(96px, 16vw, 150px); aspect-ratio: 512 / 720; border-radius: 8%; box-shadow: 0 6px 16px rgba(0,0,0,0.6); transition: transform 0.15s; display: block; }

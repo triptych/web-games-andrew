@@ -223,3 +223,7 @@ td:first-child { white-space: nowrap; font-weight: bold; }
 .toast { background: var(--ph); color: #000; text-shadow: none; padding: 4px 12px; font-weight: bold; text-transform: uppercase; animation: toast 2.4s forwards; }
 @keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

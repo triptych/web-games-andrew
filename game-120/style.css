@@ -127,3 +127,7 @@ table { border-collapse: collapse; width: 100%; } td { padding: 5px 4px; border-
     #radio { bottom: calc(8px + var(--safe-b)); width: min(420px, 46vw); }
     .tag { display: none; } .logo { font-size: clamp(30px, 8vw, 46px); }
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

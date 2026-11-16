@@ -183,3 +183,7 @@ html, body {
 
 /* narrow phones: toasts sit under the two-row HUD (after the base rule, so this wins) */
 @media (max-width: 480px) { #toasts { top: calc(124px + var(--safe-t)); } }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

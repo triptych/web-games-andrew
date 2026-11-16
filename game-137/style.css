@@ -285,3 +285,8 @@ body.calm #danger.on { animation: none; opacity: 0.8; }
 #reticle { position: fixed; left: 0; top: 0; z-index: 12; width: 70px; height: 70px; margin: -35px 0 0 -35px; pointer-events: none; border: 4px dashed #ff3060; border-radius: 50%; box-shadow: 0 0 0 2px var(--ink); animation: spin 2.4s linear infinite; }
 #reticle::after { content: ''; position: absolute; inset: 22px; border-radius: 50%; background: #ff3060; box-shadow: 0 0 0 2px var(--ink); }
 @keyframes spin { to { rotate: 360deg; } }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

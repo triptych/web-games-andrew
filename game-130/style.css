@@ -254,3 +254,8 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 .toast { background: var(--panel); border: 2px solid var(--accent); border-radius: 10px; padding: 5px 10px; font-size: 14px; animation: toast 2.6s forwards; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-8px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+

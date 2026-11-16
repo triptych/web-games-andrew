@@ -141,3 +141,7 @@ body::before {
     transform: perspective(260px) rotateX(58deg); transform-origin: 50% 100%;
     -webkit-mask-image: linear-gradient(transparent, #000 70%); mask-image: linear-gradient(transparent, #000 70%);
 }
+
+/* Keep sheet navigation and completion controls reachable while content scrolls. */
+.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+
