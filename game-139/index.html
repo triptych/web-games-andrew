@@ -56,6 +56,7 @@
             <div class="stat" id="hud-composure" title="Composure: soaks the next blow"><span class="ico">⛨</span><b>0</b></div>
             <div class="stat" id="hud-tips" title="Tips"><span class="ico">◆</span><b>0</b></div>
             <div class="stat" id="hud-notoriety" title="Notoriety: every 4 makes each blow 1 harder"><span class="ico">⚔</span><b>0</b></div>
+            <button id="btn-help" class="ibtn" aria-label="How to play (H)" title="How to play (H)">?</button>
             <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
         </div>
         <div id="hud-rival">
@@ -69,6 +70,16 @@
                 <button id="btn-pour" class="btn small" title="Pour one out (Q)">Pour one out</button>
                 <button id="btn-end" class="btn primary small" title="End the round (E)">End round</button>
             </div>
+        </div>
+    </div>
+    <!-- the tutorial coach and one-time tips: never blocks the table -->
+    <div id="coach" hidden role="status" aria-live="polite">
+        <div id="coach-label"></div>
+        <p id="coach-text"></p>
+        <div class="coach-foot">
+            <span id="coach-wait">Your move</span>
+            <button id="coach-skip" class="btn small">Skip tutorial</button>
+            <button id="coach-next" class="btn primary small">Next</button>
         </div>
     </div>
     <div id="hurt-flash"></div>
@@ -89,17 +100,33 @@
     </div>
 
     <div id="howto" class="screen" hidden>
-        <div class="sheet">
+        <div class="sheet guide">
             <h2>How to Play</h2>
-            <p>You used to be <b>Nightfall</b>, the deadliest blade in the five cities. Now you run an inn. Every rival you ever crossed is coming by, one a night.</p>
-            <p><b>The night.</b> The rival deals their past as a pyramid. A card is open once both cards below it are gone. <b>Pair to 13</b> to settle cards: two open rival cards that make exactly 13, or one of your cards with an open rival card. Your cards meet them <b>halfway</b>: 12, 13 or 14 all count, and an exact 13 is a <b>Clean</b> pair (+1 Composure). Kings settle alone. Clear the pyramid to win the night.</p>
-            <p><b>Each round</b> you draw a hand; the rival shows what they'll do when you end it (a blow, a Grudge in your deck, locked cards…). <b>Composure</b> soaks a blow. Once a round you may <b>pour one out</b>: discard a card and draw another (a Grudge is gone for good).</p>
-            <p><b>Blades</b> are your old life: fast and strong. Every one you use raises <b>Notoriety</b> (every 4 makes all blows harder), and a rival who sees too many won't trust you enough to stay.</p>
-            <p><b>After a win</b>, offer them a room (their card joins your deck) or see them out. <b>By day</b>, recruit staff, build rooms, and do one chore: rest, polish a card, or let one go.</p>
+            <p class="lead">You were <b>Nightfall</b>, the deadliest blade in the five cities. Now you run an inn, and every rival you ever crossed is stopping by, one a night.</p>
+
+            <h3>1 · Clear their past</h3>
+            <p>A rival deals a pyramid of cards. Only the <b>open</b> cards can be played: the front row, lit up. A card opens when both cards in front of it are gone. Clear every card to win the night.</p>
+
+            <h3>2 · Pair to 13</h3>
+            <div class="eg">
+                <span class="eq"><span class="eg-card mine">9<small>yours</small></span><span class="eg-op">+</span><span class="eg-card theirs">4<small>theirs</small></span><span class="eg-op">= 13 ✓</span></span>
+                <span class="eq"><span class="eg-card mine">10<small>yours</small></span><span class="eg-op">+</span><span class="eg-card theirs">4<small>theirs</small></span><span class="eg-op">= 14 ✓</span></span>
+            </div>
+            <p>Tap a card in your hand, then an open card of theirs. Your cards meet them halfway: <b>12, 13 or 14</b> all count, and an exact 13 is a <b>Clean pair</b> (+1 Composure). Two of <i>their</i> open cards can pair too, but only to exactly 13. <b>Kings</b> go alone. A = 1, J = 11, Q = 12, K = 13.</p>
+
+            <h3>3 · A round</h3>
+            <p>Each round you draw five cards. The banner at the top says what the rival will do when you press <b>End round</b>: strike you, slip a Grudge into your deck, lock cards… <b>⛨ Composure</b> (food and drink cards give it) soaks blows; <b>♥ Resolve</b> is your health for the whole run. Stuck? <b>Pour one out</b> swaps one card a round.</p>
+
+            <h3>4 · Your past</h3>
+            <p>The red <b>⚔ Blade</b> cards are your old life: quick, strong, and costly. Each one raises <b>Notoriety</b> (every 4 makes all blows 1 harder), and a rival who sees too much knife work won't stay. Each letter says how many Blades that rival will forgive.</p>
+
+            <h3>5 · Between nights</h3>
+            <p>Win, then <b>offer a room</b> (their card joins your deck) or see them out for tips. By day, spend tips on staff and rooms, and do one chore: rest, polish a card, or let one go. Three acts, a boss at the end of each.</p>
+
             <table>
                 <tr><td>Tap / click</td><td>Choose a card, then its partner</td></tr>
                 <tr><td>Arrows · Enter</td><td>Move between cards · choose</td></tr>
-                <tr><td>E · Q · D</td><td>End round · Pour one out · Deck</td></tr>
+                <tr><td>E · Q · D · H</td><td>End round · Pour one out · Deck · this guide</td></tr>
                 <tr><td>Esc / P</td><td>Cancel · Pause</td></tr>
             </table>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
@@ -115,6 +142,10 @@
             <label class="row">Narrator
                 <select id="set-narrator"><option value="on">Talks</option><option value="off">Hushed</option></select>
             </label>
+            <label class="row">Tutorial and tips
+                <select id="set-tutorial"><option value="on">On</option><option value="off">Off</option></select>
+            </label>
+            <button id="set-replay" class="btn">Replay the tutorial</button>
             <button id="set-delete" class="btn danger">Delete saved run</button>
             <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
         </div>
@@ -146,6 +177,7 @@
     <div id="letters" class="screen" hidden>
         <div class="sheet wide">
             <h2 id="letters-head">Tonight's letters</h2>
+            <p class="tip" id="letters-tip" hidden></p>
             <div id="letters-list" class="letters"></div>
             <div id="run-strip" class="run-strip"></div>
             <div class="sheet-foot"><button id="letters-deck" class="btn">Your deck</button></div>
@@ -157,6 +189,7 @@
             <img id="won-portrait" alt="">
             <div class="story-body">
                 <div id="won-who"></div>
+                <p class="tip" id="won-tip" hidden></p>
                 <p id="won-text"></p>
                 <p id="won-offer" class="note"></p>
                 <div id="won-card" class="mini-cards"></div>
@@ -171,6 +204,7 @@
     <div id="day" class="screen day-screen" hidden>
         <div class="sheet wide">
             <h2 id="day-head">Morning at the inn</h2>
+            <p class="tip" id="day-tip" hidden></p>
             <div id="day-stats" class="run-strip"></div>
             <h3>The market</h3>
             <div id="market" class="mini-cards market"></div>

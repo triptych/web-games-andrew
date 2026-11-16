@@ -12,7 +12,9 @@
  *    a Grudge, the rival's turn, Composure, reshuffles, winning a night, trust and partnerships, the day (market,
  *    rooms, chores), interludes, the letters, acts, bosses, the ending, losing.
  * 4. determinism: same seed and commands → same game; a save round trip mid-run plays on identically.
- * 5. bot: whole runs on SEEDS seeds at three blade policies and two skills, with invariants checked after every
+ * 5. hints: the pair the tutorial points at is always a legal command, prefers your own non-Blade card, and is
+ *    there whenever any pair is.
+ * 6. bot: whole runs on SEEDS seeds at three blade policies and two skills, with invariants checked after every
  *    command, the balance table printed, and its bands asserted.
  */
 import fs from 'node:fs';
@@ -32,6 +34,7 @@ const { CARDS, STARTER, MARKET, fxOf, cardText } = await import('../js/sim/data/
 const { RIVALS, ACTS } = await import('../js/sim/data/rivals.js');
 const { ROOMS, INTERLUDES, NARRATOR, ENDINGS } = await import('../js/sim/data/inn.js');
 const { buildLayout } = await import('../js/sim/layout.js');
+const { suggestPair } = await import('../js/sim/hints.js');
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => {
@@ -349,6 +352,41 @@ if (want('determinism')) {
     let threw = false;
     try { Gm.deserialize({ v: 999 }); } catch { threw = true; }
     ok(threw, 'an unknown save version is rejected, not half-loaded');
+}
+
+
+// ======================================================================
+if (want('hints')) {
+    section('hints');
+    let n = 0, illegal = 0, missed = 0, blades = 0, own = 0, ownPossible = 0;
+    for (let seed = 1; seed <= 30; seed++) {
+        const G = Gm.newGame(seed * 31);
+        const bot = Bt.makeBot({ seed });
+        Bt.playRun(G, bot, {
+            act: Gm.act, maxActs: 1500,
+            onAct: (g) => {
+                if (g.phase !== 'night') return;
+                const s = suggestPair(g);
+                const moves = Gm.legalMoves(g);
+                const anyPair = moves.some((m) => m.t === 'pair' || (m.t === 'solo' && m.slot != null));
+                if (anyPair && !s) missed++;
+                if (!s) return;
+                n++;
+                if (!moves.some((m) => JSON.stringify(m) === JSON.stringify(s.cmd))) illegal++;
+                const ownNonBlade = moves.some((m) => m.t === 'pair' && (m.a.hand || m.b.hand) && CARDS[g.fight.cards[m.a.hand || m.b.hand].id].suit !== 'blade');
+                if (ownNonBlade) { ownPossible++; if (s.kind === 'hand') own++; if (s.hand && CARDS[g.fight.cards[s.hand].id].suit === 'blade') blades++; }
+            },
+        });
+    }
+    ok(n > 500, `suggestions checked in many real positions (${n})`);
+    ok(illegal === 0, 'every suggested pair is a legal command');
+    ok(missed === 0, 'a pair is suggested whenever one exists');
+    ok(own === ownPossible && blades === 0, 'it points at your own non-Blade card whenever there is one');
+    // and following it settles cards
+    const G = Gm.newGame(77); G.letters = ['brannoc']; Gm.act(G, { t: 'host', id: 'brannoc' });
+    const s = suggestPair(G);
+    const before = G.fight.slots.filter((x) => x.gone).length;
+    if (s) { Gm.act(G, s.cmd); ok(G.fight.slots.filter((x) => x.gone).length > before, 'following the suggestion settles cards'); }
 }
 
 // ======================================================================

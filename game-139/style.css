@@ -210,3 +210,39 @@ button.mini:hover, button.mini:focus-visible { outline: 3px solid var(--accent);
     #hint { font-size: 14px; }
     .chores { grid-template-columns: 1fr; }
 }
+
+/* ---------------------------------------------------------------- the tutorial coach and tips */
+#coach {
+    position: fixed; z-index: 30; left: 50%; transform: translateX(-50%);
+    top: calc(118px + var(--safe-t)); width: min(460px, calc(100vw - 20px));
+    background: rgba(36, 24, 12, 0.94); border: 2px solid var(--accent); border-radius: 12px;
+    padding: 8px 12px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+    pointer-events: none;            /* a card under the coach can still be tapped; only its buttons take taps */
+}
+#coach button { pointer-events: auto; }
+#coach-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+#coach-text { margin: 4px 0 6px; font-size: 16px; line-height: 1.32; }
+.coach-foot { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+#coach-wait { margin-right: auto; color: var(--dim); font-style: italic; font-size: 14px; }
+#coach-wait::before { content: '👉 '; font-style: normal; }
+.tip { background: rgba(232, 180, 74, 0.12); border-left: 3px solid var(--accent); border-radius: 6px; padding: 6px 10px; font-size: 15px; }
+.tip::before { content: 'Tip · '; color: var(--accent); font-weight: 700; }
+.guide h3 { color: var(--accent); text-transform: none; letter-spacing: 0; font-size: 18px; margin: 14px 0 2px; }
+.guide .lead { font-style: italic; color: var(--dim); }
+.eg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 22px; margin: 6px 0; }
+.eq { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.eg-card {
+    display: inline-grid; place-items: center; width: 44px; height: 60px; border-radius: 6px; font-weight: 700; font-size: 22px;
+    background: var(--parch); color: #2a1d12; border: 3px solid var(--hearth); line-height: 1;
+}
+.eg-card small { font-size: 10px; font-weight: 400; color: #6a4a2a; }
+.eg-card.theirs { border-color: #7a1f2a; }
+.eg-op { font-size: 18px; color: var(--dim); }
+@media (max-width: 420px) {
+    #coach { top: calc(150px + var(--safe-t)); padding: 6px 10px; }
+    #coach-text { font-size: 14.5px; }
+}
+@media (max-height: 460px) {
+    #coach { top: calc(52px + var(--safe-t)); left: calc(8px + var(--safe-l)); transform: none; width: min(300px, 31vw); }
+    #coach-text { font-size: 14px; }
+}
