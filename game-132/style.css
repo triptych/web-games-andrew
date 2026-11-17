@@ -146,7 +146,7 @@ td { padding: 5px 4px; border-bottom: 1px solid var(--line); font-size: 14px; }
 td:first-child { color: var(--gold); white-space: nowrap; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; }
 .panel-head h2 { margin: 0; }
-#panel .sheet { padding-top: 10px; }
+#panel .sheet { padding-top: 10px; --sheet-pt: 10px; }
 
 .story { width: min(760px, 100%); padding: 0; overflow: hidden; }
 .story img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; background: #120c10; }
@@ -254,4 +254,7 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 .sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #110d15; border-top: 1px solid rgba(214, 170, 102, 0.28); }
 .sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #110d15; }
 .sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #110d15; }
-
+.sheet > .panel-head { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin: calc(-1 * var(--sheet-pt)) calc(-1 * var(--sheet-px)) 8px; padding: var(--sheet-pt) var(--sheet-px) 8px; background: #110d15; }
+/* the story card had overflow: hidden, so a long card on a landscape phone cut Continue off: it scrolls now, Continue pinned */
+.story { overflow-y: auto; }
+.story > .sheet-foot { bottom: 0; margin: 0; padding: 10px 18px 14px; background: #110d15; }

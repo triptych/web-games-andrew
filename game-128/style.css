@@ -243,7 +243,7 @@ button.res:focus-visible .pill { outline: 3px solid var(--gold); outline-offset:
 .village .btn:not(.primary) { background: rgba(14, 9, 24, 0.9); }
 
 /* panels */
-.panel-sheet { padding-top: 10px; }
+.panel-sheet { padding-top: 10px; --sheet-pt: 10px; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; position: sticky; top: -10px; background: #181226; padding: 4px 0 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line); z-index: 2; }
 .panel-head h2 { margin: 0; }
 .npc { display: flex; gap: 10px; align-items: center; background: var(--panel2); border-radius: 10px; padding: 8px; margin-bottom: 10px; }
@@ -406,4 +406,3 @@ button.res:focus-visible .pill { outline: 3px solid var(--gold); outline-offset:
 .sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #171125; border-top: 1px solid rgba(255, 220, 160, 0.22); }
 .sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #171125; }
 .sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #171125; }
-
