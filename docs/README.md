@@ -15,6 +15,7 @@ This directory is the **canonical reference for AI-assisted development** in thi
 - [software3d/software3d-api.md](software3d/software3d-api.md) — writing a 3D rasterizer from scratch on Canvas2D: pipeline, winding/culling/seam gotchas, LOD, procedural placement validation, fog-of-war map overlays
 
 ## Plans
+- [common-core.md](common-core.md) — an audit of the modules every game re-implements (rng, saves, input, audio, viewport, grid search) and of fixes that never spread back to older copies, what went into the shared [lib/core/](../lib/core/README.md) library, and what was left out and why
 - [refresh-plan.md](refresh-plan.md) — the conventions the later games share, an audit of games 001–036 against them, what was fixed, and a ranked backlog
 
 ## Generic

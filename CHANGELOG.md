@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **lib/core**, a common library for the games ([lib/core/README.md](lib/core/README.md)), from an audit of what the 139 games re-implement ([docs/common-core.md](docs/common-core.md)). Plain dependency-free ES modules a game can import or copy: seeded `rng.js` (drop-in for 69 of the 77 game copies, value for value), `math.js`, `noise.js`, `grid.js` (BFS distance fields, reachability, A*), `loop.js` (fixed step, `?debug=1&fast=N`, event drain), `store.js` (storage that never throws), `input.js` (keys, pad, touch stick and every input fix the copies disagree on), `audio.js` (an extendable Web Audio core with a look-ahead sequencer and the iOS silent-switch fix only game-100 had), `viewport.js` and `dom.js`. No game was changed. Tested by [dev/core/simtest.mjs](dev/core/simtest.mjs) and [dev/core/browsertest.mjs](dev/core/browsertest.mjs).
+- **Itch exporter**: a `/lib` module's own relative imports are now copied into the build with it, so a game using `lib/core/noise.js` also gets `lib/core/rng.js`. Builds of games that don't use `lib/core` are byte-identical to before.
+
 ### Changed
 - **Alchemist's Lattice** (game-027) v2.0.0: reset to the standards of the recent games (requested by the owner) ([game-plan.md](game-027/game-plan.md)).
   - **No framework**: Phaser 4 is gone. A pure seeded sim ([js/sim/](game-027/js/sim/)) driven by `act(G, cmd)`: the campaign ([game.js](game-027/js/sim/game.js)), one level ([level.js](game-027/js/sim/level.js)), levels built from map nodes ([levelgen.js](game-027/js/sim/levelgen.js)), the chapter map ([map.js](game-027/js/sim/map.js)) and a bot ([bot.js](game-027/js/sim/bot.js)); a three.js r165 view; DOM screens; procedural Web Audio; the game saves after every command and resumes mid-level.

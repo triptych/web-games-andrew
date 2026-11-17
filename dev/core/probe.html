@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lib/core probe</title>
+<!-- Loads every lib/core module the way a game does, for dev/core/browsertest.mjs. -->
+<script src="../../lib/page-audio.js"></script>
+<style>html, body { margin: 0; overflow: hidden; background: #111; color: #eee; font: 14px system-ui; } #view { position: fixed; left: 0; top: 0; }
+#b { position: fixed; left: 40%; top: 40%; z-index: 5; min-width: 60px; min-height: 44px; } #toasts { position: fixed; bottom: 8px; left: 8px; z-index: 5; }</style>
+</head>
+<body>
+<canvas id="view"></canvas>
+<button id="b">Start audio</button>
+<div id="toasts"></div>
+<script type="module">
+import { makeRng } from '../../lib/core/rng.js';
+import { fbm } from '../../lib/core/noise.js';
+import { astar } from '../../lib/core/grid.js';
+import { Input } from '../../lib/core/input.js';
+import { AudioCore, Sequencer } from '../../lib/core/audio.js';
+import { makeSettings, makeSaveSlot, storageAvailable } from '../../lib/core/store.js';
+import { onViewportResize, fitCanvas } from '../../lib/core/viewport.js';
+import { toast, esc, fmtTime, shade } from '../../lib/core/dom.js';
+import { makeStepper, runFrames, debugFlags } from '../../lib/core/loop.js';
+
+const out = { sim: { r: makeRng(1)(), n: fbm(1, 0.5, 0.5), p: astar(3, 1, () => true, 0, 0, 2, 0).length } };
+const input = new Input();
+const audio = new AudioCore();
+const settings = makeSettings('core-probe.settings', { sfx: 0.5 });
+const slot = makeSaveSlot('core-probe.save', { serialize: (g) => g, deserialize: (d) => { if (d.v !== 1) throw new Error('version'); return d; } });
+out.saved = slot.save({ v: 1, x: 3 }); out.loaded = slot.load(); out.settings = settings.load(); out.storage = storageAvailable();
+slot.clear();
+let sized = null, ctx2d = null;
+onViewportResize((s) => { sized = s; ctx2d = fitCanvas(document.getElementById('view'), s); });
+const stepper = makeStepper({ fast: debugFlags().FAST });
+let steps = 0, frames = 0;
+runFrames((dt, time) => {
+    frames++;
+    stepper.advance(dt, () => { steps++; input.consumeEdges(); });
+    ctx2d.fillStyle = shade('#336699', Math.sin(time) * 0.3); ctx2d.fillRect(0, 0, sized.w, sized.h);
+});
+document.getElementById('b').addEventListener('click', () => {
+    audio.init();
+    audio.tone({ freq: 440 }); audio.noiseHit({ hp: 3000 });
+    new Sequencer(audio, { bpm: 240, onStep: (n, t) => audio.thump({ at: t, vol: 0.1 }) }).start();
+    out.audio = audio.ctx ? audio.ctx.state : 'none';
+});
+toast('toasts', 'Hello <b>there</b>');
+window.__core = () => ({ ...out, sized, steps, frames, state: input.state(), queue: input.queue.length, esc: esc('<a>'), t: fmtTime(75), toast: document.querySelector('.toast')?.textContent });
+</script>
+</body>
+</html>
