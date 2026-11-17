@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Garden of Games** v1.21.0: a dragonfly companion (requested by the owner) ([companion.js](garden/js/companion.js), [dragonfly.js](garden/js/dragonfly.js), [dragonfly-ui.js](garden/js/dragonfly-ui.js), [dragonfly-talk.js](garden/js/dragonfly-talk.js)).
+  - **Meeting it**: a jewel-bright dragonfly waits on the lamp at the end of the dock. When you arrive it flies over, introduces itself and asks what you will call it (four name ideas, or type your own). "Not now" sends it back to the lamp; walk back to the end of the dock, or click it, when you want it.
+  - **It goes everywhere you go**: it hovers by your shoulder and darts to a new spot every few seconds, and follows you into every room and secret place (the Hut and its loft, the Violet Line, the Observatory, the arcade, the Springwood, Gearfall, the well, the rocket and its worlds, the Works, the Foundry, Cinderpeak), on the rowboat, the carousel and the galleon. It is built in code: banded abdomen, big eyes, and four veined glass wings with a thin-film shimmer, beating out of phase.
+  - **New things**: when a landmark you haven't found comes near, it flies ahead to it and tells you about it; it does the same for each genre path (and names its newest game), and for each hidden place the first time you go in. A statue whose game was updated in the last ten days gets a word too.
+  - **A corner of the screen**: its portrait, in its own colours and accessory, with its name and mood. It talks in a bubble there. Click it (or the dragonfly itself, or press **K**) for its panel: **Talk** (hints about places you haven't found, then secrets; news; a game to try; where you are), **Travel**, **Care**, **Look** and **Memories**.
+  - **News**: from [js/updates.json](js/updates.json): what arrived and what was updated since your last visit, the newest game, the latest updates, with Show me (walk there) and Play.
+  - **Travel**: it flies you back in a blink to anywhere you have been together: places round the island, the genre paths, the hidden places (straight into the Hut, down to the Violet Line, into the Foundry or to Cinderpeak) and the statues of the games you have stood at.
+  - **Care and play**: five snacks (it gets full, and hungry again over the hours), four games (loop the loop, a barrel roll, a lap round you, and Catch me!, where you click it as it darts about), a rename, and how chatty it is.
+  - **Looks**: six body colours, five kinds of wing, and something to wear (bow tie, top hat, scarf; spectacles after three games visited, a flower crown after eight places found, a lantern from your third visit).
+  - **Memory**: it counts your visits (a new one after 20 minutes away) and greets you by number, says how long you were gone, keeps time together, places found and when, the games you visit most, snacks shared and your best at Catch me!. All kept in this browser (`garden.companion`).
+  - `?dragonfly=0` leaves it out. [dragonflytest.mjs](garden/dev/dragonflytest.mjs) checks the words in Node and the whole of it in Chromium: the meeting, Not now, naming, finding, a landmark, a statue, the panel, travel to the dock, a statue, the Hut and the Violet Line, snacks, a trick, looks, a rename, Catch me! by clicking, a returning visitor, `?dragonfly=0` and a phone.
+
+### Fixed
+- **Garden of Games** v1.21.0: the two lamps at the end of the dock stood on the sea bed, under the water, because the dock's lamps took the height of the ground under them. They stand on the deck now.
+
 ### Changed
 - **Alchemist's Lattice** (game-027) v2.0.0: reset to the standards of the recent games (requested by the owner) ([game-plan.md](game-027/game-plan.md)).
   - **No framework**: Phaser 4 is gone. A pure seeded sim ([js/sim/](game-027/js/sim/)) driven by `act(G, cmd)`: the campaign ([game.js](game-027/js/sim/game.js)), one level ([level.js](game-027/js/sim/level.js)), levels built from map nodes ([levelgen.js](game-027/js/sim/levelgen.js)), the chapter map ([map.js](game-027/js/sim/map.js)) and a bot ([bot.js](game-027/js/sim/bot.js)); a three.js r165 view; DOM screens; procedural Web Audio; the game saves after every command and resumes mid-level.
