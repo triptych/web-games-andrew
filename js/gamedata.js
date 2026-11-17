@@ -400,16 +400,18 @@ const games = [
     {
         id: 'game-027',
         title: "Alchemist's Lattice",
-        description: 'A drag-and-drop block-placement puzzle with an alchemy twist, built in Phaser 4. Drag clusters of 1-4 connected blocks onto a 9x9 lattice and fill a full row or column to clear it. Pieces are dealt in sets of 3 from a finite supply and never rotate, so plan ahead - fill the board with no legal move left and the lattice jams. Chain clears for combos and streaks. (Phase 1: the core puzzle.)',
+        description: "A block-placement puzzle inside a cozy alchemy adventure, in three.js with art painted by fal. You are an apprentice with a cracked cauldron; your workbench is a 9×9 lattice. Drag tiles from a hand of three and fill rows and columns to clear them, from a finite supply that never comes back: run dry or jam the lattice and the level is lost. Explore levels hide elements under stone slabs that each clear peels away; refinement levels brew a potion from the lines you clear (rich in one element, never in another, with a streak or a double, through the crucible's golden rings for quality); battle levels put foes on the lattice that grow, harden and strike until you cut them down line by line. Between levels walk a branching chapter map, learn new tile types at the cauldron with the elements you harvest, buy dissolvents and catalysts from Pellerin's stall and spend XP on a skill tree (turn a tile, see the next hand, sense the veins). Three chapters and three bosses (the Ember Warden, the Dew Serpent, the Ashen Homunculus), a visual-novel story with Madame Voss, your rival Casimir and the Lattice Spirit in painted portraits, a guild mark at the end and an open road after it. Drag, tap, keyboard or gamepad; a bot plays whole campaigns in the tests.",
         icon: '⚗️',
         folder: 'game-027',
-        version: '1.10.0',
+        version: '2.0.0',
         cssClass: 'alchemists-lattice',
         genre: 'puzzle',
         tags: [
-            { emoji: '🧩', label: 'Puzzle' },
-            { emoji: '🖱️', label: 'Drag & Drop' },
-            { emoji: '💡', label: 'Strategy' }
+            { emoji: '🧩', label: 'Block puzzle' },
+            { emoji: '⚗️', label: 'Alchemy' },
+            { emoji: '🗺️', label: 'Run map' },
+            { emoji: '🎨', label: 'fal art' },
+            { emoji: '🧊', label: 'three.js' }
         ]
     },
     {
