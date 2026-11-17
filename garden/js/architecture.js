@@ -374,7 +374,8 @@ function buildDock(world, mats, batch) {
     }
     world.boxFloors.push({ x0: -1.7, x1: 1.7, z0: dock.start - 0.2, z1: dock.end, y });
     world.colliders.push({ x: -1.5, z: dock.end - 1.2, r: 0.25 }, { x: 1.5, z: dock.end - 1.2, r: 0.25 }, { x: 1.5, z: dock.end - 7, r: 0.25 });
-    for (const l of dock.lamps) world.lampSpots.push({ ...l });
+    // the lamps stand on the deck (their own ground under them is the sea bed at the far end)
+    for (const l of dock.lamps) world.lampSpots.push({ ...l, y });
 
     // the wreck: two leaning masts and a dark hull under the swell
     const wx = -10.5, wz = dock.end - 3;

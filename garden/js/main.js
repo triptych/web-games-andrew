@@ -59,6 +59,7 @@ import { buildWell, atWell } from './well.js';
 import { Grotto } from './grotto.js';
 import { buildRocketSite, atHatch, SHIP_NAME, ROCKET_ACCENT } from './rocket-site.js';
 import { Rocket } from './rocket.js';
+import { Companion } from './companion.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
@@ -365,6 +366,18 @@ async function boot() {
     fox.onHome = (dist) => {
         if (dist < 40) ui.hint('The fox dashed through the shimmering door in the Great Tree · it must live on the other side', 7000);
     };
+    // the dragonfly companion: it waits on the lamp at the end of the dock (?dragonfly=0 leaves it out)
+    const companion = params.get('dragonfly') === '0' ? null : new Companion({
+        scene, world, games, ui, audio, canvas, camera,
+        hooks: {
+            travel: (dest) => companionTravel(dest),
+            walkTo: (dest) => companionWalk(dest),
+            walkToGame: (game) => walkToGame(game),
+            openGame: (game) => openGame(game),
+            showCard: (game) => ui.showCard(game, { fromHologram: true }),
+            isStarred: (game) => ui.isStarred(game),
+        },
+    });
     const boat = new Boat(world, scene, camera, controls);
     const fishing = new Fishing({ world, scene, camera, controls, ui, audio, bursts, canvas });
     ui.progress(0.52, 'Rigging the galleon…');
@@ -1012,6 +1025,91 @@ async function boot() {
         ui.hint(`Walking to ${game.title}…`, 3500);
     }
 
+    // ------------------------------------------------------------ the dragonfly's travel
+
+    /** Where a companion destination stands in the garden ({ x, z, yaw }), or null for a hidden place. */
+    function standAt(dest) {
+        if (dest.spoke) {
+            const p = samplePath(dest.spoke.pts, GATE_S + 2.5);
+            return { x: p.x, z: p.z, yaw: Math.atan2(-p.tx, -p.tz) };
+        }
+        const pl = dest.place;
+        if (!pl || pl.room) return null;
+        if (pl.id === 'dock') return layout.spawn;
+        if (pl.id === 'hub') return { x: 0, z: PLAZA_R - 2.5, yaw: 0 };
+        const lm = world.landmarks.find((l) => l.name === pl.landmark);
+        if (!lm) return null;
+        if (lm.stand) return lm.stand;
+        const s = standNear(lm.x, lm.z);
+        return { x: s.x, z: s.z, yaw: Math.atan2(-(lm.x - s.x), -(lm.z - s.z)) };
+    }
+
+    /** The dragonfly flies you somewhere you have been: a spot in the garden, a game's statue or a hidden place. */
+    function companionTravel(dest) {
+        if (!entered || intro || transit || trip || riding() || mineDrives() || arcade?.busy) return false;
+        if (dest.game) {
+            linkToGame(dest.game);
+            return true;
+        }
+        const s = standAt(dest);
+        if (s) {
+            ui.closeAll();
+            linkTo(s.x, s.z, s.yaw);
+            return true;
+        }
+        const room = dest.place?.room;
+        if (!room) return false;
+        ui.closeAll();
+        fishing.stop();
+        fishPending = false;
+        controls.route = null;
+        const go = () => {
+            if (room === 'cove') travelToCove();
+            else if (room === 'subway') {
+                // the Violet Line starts from the Hut's desk
+                ensureHut();
+                setBelow(true, 'hut');
+                const h = hut.spawn;
+                controls.teleport(h.x, h.z, h.yaw);
+                startSubway();
+            } else if (room === 'foundry') {
+                ensureWorks();
+                rideLift(true);
+            } else throughDoor(true, room);
+        };
+        // already standing in the garden: straight through
+        if (place === 'garden' && !below && !diving && !carousel.busy) {
+            go();
+            return true;
+        }
+        transit = true;
+        audio.link();
+        ui.flash(true);
+        setTimeout(() => {
+            carousel.abort(controls);
+            carouselPending = -1;
+            if (diving) endDive();
+            if (place !== 'garden') abortCinder();
+            else if (below) surface();
+            transit = false;
+            go();
+        }, 650);
+        return true;
+    }
+
+    /** "Lead the way": walk to a place in the garden along the paths. */
+    function companionWalk(dest) {
+        if (below || diving || place !== 'garden' || carousel.busy || riding() || transit) return false;
+        const s = standAt(dest);
+        if (!s) return false;
+        fishing.stop();
+        ui.closeAll();
+        const route = controls.plan(s.x, s.z);
+        controls.walkTo(route, s.yaw);
+        controls.route.run = route.length > 14;
+        return true;
+    }
+
     // ------------------------------------------------------------ the sphere
 
     const baseFov = () => (innerWidth < innerHeight ? 72 : 62);
@@ -1475,12 +1573,7 @@ async function boot() {
                     ui.hint('The hatch has jammed shut today.', 4000);
                 }
             } else if (down && kind === 'hut') {
-                hut ??= new Hut({
-                    renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click(), titles: games.map((g) => g.title),
-                    // for the loft: the clock (the bed and the twinkle lights), the walking (the stair, sitting down),
-                    // the sound (the flute) and the island itself (the old computer's survey)
-                    sky, controls, audio, island, landmarks: world.landmarks, islandR: layout.islandR, home: { x: world.hut.cx, z: world.hut.cz },
-                });
+                ensureHut();
                 setBelow(true, 'hut');
                 const s = hut.spawn;
                 controls.teleport(s.x, s.z, s.yaw);
@@ -1491,7 +1584,7 @@ async function boot() {
                     setTimeout(() => ui.hint('Click the glowing sphere on the desk · a stair by the door climbs to the loft · walk back into the door to leave', 9000), 1200);
                 }
             } else if (down) {
-                works ??= new Works({ renderer, games, sky, island, layout, statues, ui, mats: world.mats });
+                ensureWorks();
                 setBelow(true);
                 const s = works.spawn;
                 controls.teleport(s.x, s.z, s.yaw);
@@ -1527,6 +1620,19 @@ async function boot() {
                 transit = false;
             }, 150);
         }, 650);
+    }
+
+    function ensureHut() {
+        hut ??= new Hut({
+            renderer, ui, mats: world.mats, camera, quality, tv: tvChannels(), onChannel: () => audio.click(), titles: games.map((g) => g.title),
+            // for the loft: the clock (the bed and the twinkle lights), the walking (the stair, sitting down),
+            // the sound (the flute) and the island itself (the old computer's survey)
+            sky, controls, audio, island, landmarks: world.landmarks, islandR: layout.islandR, home: { x: world.hut.cx, z: world.hut.cz },
+        });
+    }
+
+    function ensureWorks() {
+        works ??= new Works({ renderer, games, sky, island, layout, statues, ui, mats: world.mats });
     }
 
     /** The lift at the far end of the Works: down to the Robot Foundry, or back up. */
@@ -2589,6 +2695,19 @@ async function boot() {
         // horizon, which keeps distant shorelines (the sea against the volcano and the far coast)
         // from flickering. Rooms, rides (the boat, the carousel, the cart) and the rod in your hands keep
         // 0.1 m so nothing close clips.
+        // the dragonfly flies in whichever scene is being drawn
+        if (companion) {
+            const away = !!trip || !!scoping || !!diving;
+            companion.update(dt, t, {
+                scene: renderPass.scene, active: entered && !intro, hidden: away,
+                hudHidden: away || fishing.active || ship.busy || !!arcade?.busy || mineDrives(),
+                blocked: ui.blocking || !!ui.cardGame,
+                place, room: below ? roomKind : null, zone: zoneKey, pos: controls.pos,
+                night, time: sky.time, weather: weather.name,
+                canTravel: !transit && !trip && !riding() && !mineDrives() && !arcade?.busy,
+            });
+        }
+
         const near = below || diving || trip || scoping || riding() || fishing.active || carousel.busy || mineDrives() ? 0.1 : 0.2;
         if (camera.near !== near) {
             camera.near = near;
@@ -2620,7 +2739,7 @@ async function boot() {
     requestAnimationFrame(frame);
 
     if (DEBUG) {
-        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, get forest() { return forest; }, get city() { return city; }, get grotto() { return grotto; }, get rocket() { return rocket; }, paperNote, map, world, controls, throughDoor, get works() { return works; }, get foundry() { return foundry; }, rideLift, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, ship, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, get entered() { return entered && !intro; } };
+        window.__garden = { get arcade() { return arcade; }, get undersea() { return undersea; }, get diving() { return diving; }, startDive, leaveDive, fountainSub, get tower() { return tower; }, get scope() { return scope; }, get scoping() { return scoping; }, startScope, leaveScope, get roomKind() { return roomKind; }, volcano, get mine() { return mine; }, get place() { return place; }, travelToCove, travelToGarden, boardCart, prepareMine, startTrip, leaveTrip, get trip() { return trip; }, get hut() { return hut; }, get subway() { return subway; }, startSubway, leaveSubway, get galaxy() { return galaxy; }, get forest() { return forest; }, get city() { return city; }, get grotto() { return grotto; }, get rocket() { return rocket; }, paperNote, map, world, controls, throughDoor, get works() { return works; }, get foundry() { return foundry; }, rideLift, get below() { return below; }, hologram, sky, ui, pick, statues, layout, island, camera, renderer, audio, boat, ship, fishing, fireworks, linkToGame, walkToGame, scene, fox, carousel, companion, companionTravel, get entered() { return entered && !intro; } };
     }
 }
 
