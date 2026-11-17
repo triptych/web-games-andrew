@@ -124,6 +124,8 @@ async function desktop() {
     check(await Q(page, async () => { const S = await import('./js/sim/share.js'); return JSON.stringify(S.decode(location.hash)) === JSON.stringify(__lh.G.params); }), 'the URL hash is the dungeon');
     await until(page, async () => (await import('./js/view/models.js')).modelState.ready, 'every Meshy model loads', 60000);
     check(await Q(page, async () => { const m = (await import('./js/view/models.js')).modelState; return m.failed === 0 && m.loaded === 17; }), '17 models, none failed');
+    check(await Q(page, async () => { const t = (await import('./js/progress.js')).progressState.textures; return t && t.total > 5 && t.done === t.total; }), 'the loading screen waited for every texture to be painted');
+    check(await Q(page, () => document.getElementById('loading').classList.contains('done') && document.getElementById('load-fill').style.width === '100%'), 'and its bar reached the end before it lifted');
 
     // the dice, with a real mouse click
     const seed0 = await Q(page, () => __lh.G.params.seed);
@@ -144,8 +146,13 @@ async function desktop() {
     await Q(page, () => { const i = [...document.querySelectorAll('#mix input')][2]; i.value = 9; i.dispatchEvent(new Event('change', { bubbles: true })); });
     await until(page, () => __lh.G.params.mix.water === 9 && location.hash.includes('m=559'), 'the water slider rebuilds with more water');
     await click(page, '.tab[data-tab="themes"]');
+    // watch the busy chip: it must appear while the level regrows and new stone is painted, then go away
+    await Q(page, () => { window.__busySeen = []; new MutationObserver(() => { const b = document.getElementById('busy'); if (!b.hidden) window.__busySeen.push(document.getElementById('busy-text').textContent); }).observe(document.getElementById('busy'), { attributes: true, subtree: true, childList: true, characterData: true }); });
     await Q(page, () => document.querySelectorAll('.theme-row')[0].querySelectorAll('.chip')[5].click());
     await until(page, () => __lh.G.params.themes[0] === 'grotto' && __lh.G.d.levels[0].theme === 'grotto', 'a theme chip turns level 1 to crystal');
+    await until(page, () => window.__busySeen.some((t) => t.includes('Growing')), 'the busy chip says the dungeon is growing');
+    await until(page, () => window.__busySeen.some((t) => t.includes('Painting new stone')), 'and that new stone is being painted');
+    await until(page, async () => document.getElementById('busy').hidden && (await import('./js/progress.js')).pending('textures') === 0, 'then goes away when the crystal is painted', 60000);
 
     // paint a square with a real click on the canvas
     await click(page, '.tab[data-tab="tools"]');
@@ -198,7 +205,7 @@ async function desktop() {
     const p2 = await page.context().newPage();
     await routes(p2);
     await p2.goto(url.replace("#", "?debug=1#"), { waitUntil: "domcontentloaded", timeout: 90000 });
-    await p2.waitForFunction(() => window.__lh, null, { timeout: 90000 });
+    await p2.waitForFunction(() => window.__lh && document.getElementById('loading').classList.contains('done'), null, { timeout: 120000 });
     check(await p2.evaluate((b) => JSON.stringify(__lh.G.d.levels.map((L) => [L.grid, L.features.map((f) => f.id + f.kind)])) === b, before), 'the shared link opens the very same dungeon, edits and all');
     check(await p2.evaluate(() => document.getElementById('welcome-text').textContent.includes('shared')), 'and greets you with "Someone shared a dungeon"');
     await p2.close();

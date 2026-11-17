@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ELEMENTS, ELEMENT_IDS } from '../sim/data/elements.js';
+import { addWork, doneWork } from '../progress.js';
 
 export const useModels = new URLSearchParams(location.search).get('models') !== '0';
 export const modelState = { wanted: 0, loaded: 0, failed: 0, ready: !useModels };
@@ -95,7 +96,8 @@ function loadGlb(kind) {
 export function loadModels(onReady) {
     for (const k of ELEMENT_IDS) protos[k] = standIn(k);
     if (!useModels) return;
-    Promise.all(ELEMENT_IDS.map((k) => loadGlb(k).then((p) => { if (p) protos[k] = p; }))).then(() => {
+    addWork('models', ELEMENT_IDS.length);
+    Promise.all(ELEMENT_IDS.map((k) => loadGlb(k).then((p) => { if (p) protos[k] = p; doneWork('models'); }))).then(() => {
         modelState.ready = true;
         onReady?.();
     });

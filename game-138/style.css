@@ -282,6 +282,34 @@ td:first-child { font-family: var(--head); font-weight: 600; white-space: nowrap
 @keyframes toast { 0% { opacity: 0; transform: translateY(-8px); } 8%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; }
 
+/* ------------------------------------------------------------------ loading and busy */
+#loading {
+    position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px;
+    background: radial-gradient(circle at 50% 42%, #5a3a30 0%, #3a2630 45%, #22161f 100%);
+    transition: opacity 0.6s ease;
+}
+#loading.done { opacity: 0; pointer-events: none; }
+.load-card { width: min(340px, 100%); text-align: center; color: #fff6e5; }
+.load-lamp { font-size: 64px; animation: sway 3s ease-in-out infinite; transform-origin: 50% 0; filter: drop-shadow(0 0 22px rgba(255, 190, 90, 0.9)); }
+.load-title { font-family: var(--head); font-weight: 700; font-size: 30px; margin: 6px 0 16px; color: #ffd27a; }
+.load-bar { height: 14px; border-radius: 999px; background: rgba(255, 246, 229, 0.15); overflow: hidden; border: 2px solid rgba(255, 246, 229, 0.25); }
+#load-fill {
+    height: 100%; width: 8%; border-radius: 999px; transition: width 0.35s ease;
+    background: linear-gradient(90deg, #f2a541, #ffd27a, #f2a541); background-size: 200% 100%; animation: shimmer 1.4s linear infinite;
+}
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: 0 0; } }
+#load-step { margin-top: 12px; font-weight: 800; font-size: 16px; }
+#load-detail { margin-top: 4px; font-size: 13px; font-weight: 700; color: rgba(255, 246, 229, 0.65); min-height: 1.3em; }
+#busy {
+    position: fixed; z-index: 61; left: 50%; transform: translateX(-50%); bottom: calc(18px + var(--safe-b));
+    display: flex; align-items: center; gap: 10px; pointer-events: none;
+    background: var(--paper); border: 2px solid var(--paper-3); border-radius: 999px; padding: 8px 18px;
+    font-weight: 800; box-shadow: var(--shadow);
+}
+.busy-dot { width: 14px; height: 14px; border-radius: 50%; border: 3px solid var(--paper-3); border-top-color: var(--honey-dark); animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+body.walking #busy { bottom: auto; top: calc(64px + var(--safe-t)); }
+
 /* ------------------------------------------------------------------ phones: the workbench becomes a bottom sheet */
 @media (max-width: 760px) {
     #top { left: calc(100px + var(--safe-l)); right: calc(8px + var(--safe-r)); gap: 6px; }
@@ -326,6 +354,6 @@ td:first-child { font-family: var(--head); font-weight: 600; white-space: nowrap
 body.touchdeck #minimap { top: calc(64px + var(--safe-t)); bottom: auto; width: 120px; height: 94px; }
 body.touchdeck #walk-hint { bottom: auto; top: calc(64px + var(--safe-t)); }
 @media (prefers-reduced-motion: reduce) {
-    .lamp, .welcome-lamp { animation: none; }
+    .lamp, .welcome-lamp, .load-lamp, #load-fill, .busy-dot { animation: none; }
     .pane, .sheet { animation: none; }
 }
