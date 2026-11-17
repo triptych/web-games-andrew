@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **PINBREAK '86** (game-045) v1.0.1: Space and Enter couldn't press a focused button on the title, game-over or pause screens: the keyboard handler cancelled them for the plunger, and on the title any Space or Enter started the game whatever button was focused. In menus a focused button now takes Space and Enter as a button should; in play they are still the plunger (game-078's fix, now in `lib/core/input.js`).
+
 ### Added
 - **lib/core**, a common library for the games ([lib/core/README.md](lib/core/README.md)), from an audit of what the 139 games re-implement ([docs/common-core.md](docs/common-core.md)). Plain dependency-free ES modules a game can import or copy: seeded `rng.js` (drop-in for 69 of the 77 game copies, value for value), `math.js`, `noise.js`, `grid.js` (BFS distance fields, reachability, A*), `loop.js` (fixed step, `?debug=1&fast=N`, event drain), `store.js` (storage that never throws), `input.js` (keys, pad, touch stick and every input fix the copies disagree on), `audio.js` (an extendable Web Audio core with a look-ahead sequencer and the iOS silent-switch fix only game-100 had), `viewport.js` and `dom.js`. No game was changed. Tested by [dev/core/simtest.mjs](dev/core/simtest.mjs) and [dev/core/browsertest.mjs](dev/core/browsertest.mjs).
 - **Itch exporter**: a `/lib` module's own relative imports are now copied into the build with it, so a game using `lib/core/noise.js` also gets `lib/core/rng.js`. Builds of games that don't use `lib/core` are byte-identical to before.

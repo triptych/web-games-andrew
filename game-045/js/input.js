@@ -28,6 +28,10 @@ export function initInput({ isBallHeld, onKey }) {
     ballHeld = isBallHeld;
 
     window.addEventListener('keydown', (e) => {
+        // In a menu, Space and Enter belong to the focused button: preventDefault() would cancel
+        // its click, and the title's "any key starts" would fire as well (game-078's fix).
+        // In play they stay the plunger, even if a HUD button kept focus after a mouse click.
+        if (!enabled && (e.code === 'Space' || e.code === 'Enter') && e.target?.tagName === 'BUTTON') return;
         if (ALL.has(e.code)) e.preventDefault();
         if (e.repeat) return;
         onKey?.(e);

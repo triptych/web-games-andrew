@@ -675,7 +675,7 @@ const games = [
         description: 'A flashy synthwave pinball table with a brick-breaking playfield in its upper half. Plunge, flip, nudge and pop bumpers like pinball, but smash every brick to clear the wave: explosive bricks set off chain reactions, and power-ups (multiball, fireball, flipper lasers, a drain shield, wide flippers, double score) fall down the table to be caught with your flippers. Three.js with bloom, chrome balls, neon trails, shards, shockwaves, hit-stop, slow-mo and a beat-synced synthwave soundtrack.',
         icon: '\uD83D\uDD79\uFE0F',
         folder: 'game-045',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'pinbreak',
         genre: 'arcade',
         tags: [
