@@ -246,3 +246,7 @@ button.mini:hover, button.mini:focus-visible { outline: 3px solid var(--accent);
     #coach { top: calc(52px + var(--safe-t)); left: calc(8px + var(--safe-l)); transform: none; width: min(300px, 31vw); }
     #coach-text { font-size: 14px; }
 }
+/* a portrait phone shows about a quarter of the title painting's width: frame the innkeeper and the blank sign */
+@media (orientation: portrait) and (max-aspect-ratio: 3/4) {
+    .title-screen, .day-screen { background-position: 76% 30%; }
+}

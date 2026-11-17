@@ -44,10 +44,17 @@ SHEETS.forEach((ids, n) => {
         + 'softly blurred dark tavern background, no people unless described. '
         + ids.map((id, k) => `${where[k]}: ${CARDS[id].art}.`).join(' '), '1:1', '2K');
 });
-add('scenes', 'title', 'Dusk outside a crooked, charming three-storey timber tavern on a cobbled street, warm light '
-    + 'spilling from every window, a blank freshly painted hanging sign with no writing. In the foreground, seen from behind, '
-    + 'a lone innkeeper in a long dark coat and an apron stands looking up at the sign, an old dagger tucked away, '
-    + 'unused, in a back pocket. Lanterns, fireflies, a purple and orange sky. Keep the top third calm sky for a title.', '16:9', '2K');
+// v1.1.1: the first title came back as a storybook page (a strip of sky with a torn-paper picture laid over it), which
+// no edge trim can remove; this one-seamless-painting wording and system prompt fixed it (seed 7742 is the take in art/).
+export const SEAMLESS = STYLE.replace('rich hand-painted storybook illustration in the manner of an antique tarot deck:', 'rich hand-painted illustration with')
+    .replace(/The painting always fills[^.]*\./, 'Every image is one seamless painting that fills the whole canvas edge to edge: never a page, never a torn or deckled paper edge, never a white or cream border, never an inset picture, frame or panel inside the image.');
+add('scenes', 'title', 'One single continuous full-bleed painting with no borders of any kind. Dusk outside a crooked, charming three-storey '
+    + 'timber tavern on a cobbled street, warm light spilling from every window, a blank freshly painted hanging sign with no writing. '
+    + 'In the foreground, seen from behind, a lone innkeeper in a long dark coat and an apron stands looking up at the sign, an old '
+    + 'dagger tucked away, unused, in a back pocket. Lanterns, fireflies, a purple and orange sky. The rooftops rise directly into the '
+    + 'sky with nothing in between: the sky, the buildings and the street are all one uninterrupted scene, not a picture placed on top '
+    + 'of another picture. Keep the upper third calm open sky for a title.', '16:9', '2K');
+jobs.at(-1).system = SEAMLESS; jobs.at(-1).seed = 7742;
 add('scenes', 'table', 'Seen exactly from directly above: the surface of a large, old, well-loved tavern table made of '
     + 'wide dark oak planks, worn smooth, with faint mug rings, a few knife scratches and wax drips, evenly lit by warm '
     + 'candlelight. Nothing on the table. Fills the whole frame edge to edge, flat, no perspective, no objects.', '16:9', '2K');
@@ -69,6 +76,6 @@ const PILOT = ['title', 'table', 'cardback', 'rival-brannoc', 'card-stew', 'card
 const out = !which ? jobs : which === 'pilot' ? jobs.filter((j) => PILOT.includes(j.name))
     : which === 'rest' ? jobs.filter((j) => !PILOT.includes(j.name)) : jobs.filter((j) => j.group === which);
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
-    console.log(JSON.stringify(out.map(({ group, ...j }) => ({ ...j, system_prompt: STYLE })), null, 1));
+    console.log(JSON.stringify(out.map(({ group, system, ...j }) => ({ ...j, system_prompt: system || STYLE })), null, 1));
 }
 export { jobs };

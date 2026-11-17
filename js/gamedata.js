@@ -2149,7 +2149,7 @@ const games = [
         description: "A Pyramid-solitaire roguelike deckbuilder about a retired assassin who just wants to run an inn, in three.js with art painted by fal and music, sound and voices by ElevenLabs. You were Nightfall, the deadliest blade in the five cities; now every rival you ever crossed comes by, one a night, and deals their past onto your table as a pyramid of cards. Clear it with your future: pair cards to 13 (two of theirs exactly, or one of yours within one, an exact 13 being a Clean pair worth Composure), Kings go alone, and each round the rival shows what they will do when you end it: strike, slip Grudges into your deck, lock or reshuffle cards, take your tips or deal cards back. Your old Blades still work, and fast, but every one raises Notoriety (which makes every blow harder), and a rival who saw too much knife work won't trust you enough to stay. Win their trust and offer them a room, and their signature card joins your staff: the Poisoner brews bitters, the Silent Knife takes the night desk, the Critic leaves five stars. By day recruit from the market, build the Snug, the Cellar or the Quiet Garden, and rest, polish a card or let one go (letting go of a blade lowers Notoriety). Fifteen rivals over three acts, nine self-aware interludes with a Narrator who knows it is a game, and three endings decided by who you became. Fifteen fal portraits and 28 card paintings on a painted oak table; four music themes, sixteen effects and 42 voiced lines. Mouse, touch or keyboard; a bot plays whole runs in the tests to balance it.",
         icon: '🍺',
         folder: 'game-139',
-        version: '1.1.0',
+        version: '1.1.1',
         cssClass: 'clean-slate',
         genre: 'strategy',
         tags: [

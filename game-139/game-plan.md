@@ -167,6 +167,10 @@ The bot plays the real `act()` commands. 24 seeds a row (`SEEDS=24 ONLY=bot node
 
 ## Changelog
 
+### v1.1.1 (2026-11-17)
+- The title painting was a torn-paper picture laid over a strip of sky, so the sky seemed to cut across the houses; it is now one
+  seamless painting (regenerated with fal), framed on the innkeeper and the blank sign on a portrait phone.
+
 ### v1.1.0 (2026-11-16)
 - A first-night tutorial with a glowing suggested pair, one-time tips for new things, phase-screen explanations, a rewritten
   How to Play with a worked example, a ? button and H key, tutorial settings. Tests: the hints section in simtest, the tutorial

@@ -1,7 +1,7 @@
 # CLEAN SLATE — the pictures (fal)
 
 `../../art/` (51 WebP files, 1.9 MB) was made on 2026-11-16 with [fal](https://fal.ai), `fal-ai/nano-banana-2` (PNG), and
-exported by `export.py`. 30 paid images, all kept (about $2.50): 6 in a pilot, then 24.
+exported by `export.py`. 32 paid images (about $2.70): 6 in a pilot, then 24, then two takes of a new title in v1.1.1 (one kept).
 
 ```bash
 node game-139/dev/art/prompts.mjs                  # every job: { name, system_prompt, prompt, aspect_ratio, resolution }
@@ -35,8 +35,14 @@ user-interface elements anywhere in the image."
 
 - **A storybook paper margin.** "Storybook illustration" brought cream, torn-paper borders on the pilot's title and Brannoc's
   portrait. The edge-to-edge sentence was added to the system prompt (only Quell's portrait still had one), and `export.py`
-  `trim()` peels near-uniform rows and columns that are much lighter or darker than the picture, up to 9% a side. The title keeps
-  a little torn edge at its corners; the title screen covers with it.
+  `trim()` peels near-uniform rows and columns that are much lighter or darker than the picture, up to 9% a side. (The first title had a worse
+  problem: see the next point.)
+- **The title was a page, not a painting (fixed in v1.1.1).** The first title came back as a strip of sky with a torn-paper
+  picture of the street laid over it, so the sky seemed to cut across the houses. The tear was inside the picture, where no
+  edge trim can reach. It was regenerated (two takes, one kept: seed 7742) with a prompt that asks for one continuous scene in
+  which the rooftops rise straight into the sky, and a system prompt (`SEAMLESS` in `prompts.mjs`) that drops "storybook" and
+  forbids pages, torn edges and inset pictures. The other take painted "CLEAN SLATE" on the building and was not used. A portrait
+  phone frames the innkeeper and the blank sign (`background-position: 76% 30%`).
 - **Sheet gutters.** Two of the seven 2x2 card sheets came back with cream gutters and margins instead of thin dark ones; each
   cell is cut with a 2.5% inset and then trimmed.
 - **Text that got through.** Penrose Tally's portrait has a small "CLEAN SLATE" sign in the background, and the Grudge card's
