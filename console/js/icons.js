@@ -11,6 +11,7 @@ export const ICONS = {
     genres: svg('<path d="M2 3h5l1.5 2H14v8H2z"/><path d="M2 7h12"/>'),
     fav: svg('<path d="M8 1.8l1.9 4 4.3.5-3.2 3 .9 4.3L8 11.4l-3.9 2.2.9-4.3-3.2-3 4.3-.5z"/>'),
     recent: svg('<circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 2"/>'),
+    updated: svg('<circle cx="8" cy="8" r="6.3"/><path d="M8 11.5V4.8M5.3 7.5L8 4.8l2.7 2.7"/>'),
     cover: svg('<path d="M1.5 4l3 1v6l-3 1z"/><rect x="5.5" y="3" width="5" height="10"/><path d="M14.5 4l-3 1v6l3 1z"/>'),
     search: svg('<circle cx="6.5" cy="6.5" r="4.3"/><path d="M10 10l4.5 4.5"/>'),
     shuffle: svg('<path d="M1.5 4.5h3l6 7h4M1.5 11.5h3l1.8-2.1M9 6.6l1.5-2.1h4"/><path d="M12.5 2.5l2 2-2 2M12.5 9.5l2 2-2 2"/>'),

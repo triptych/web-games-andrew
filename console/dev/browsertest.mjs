@@ -38,6 +38,10 @@ fs.mkdirSync(OUT, { recursive: true });
 
 const games = (await import(path.join(HERE, '../../js/gamedata.js'))).default;
 const TOTAL = games.length;
+// when each game last changed (dev/make-updates.mjs), newest first
+const UPDATES = Object.entries(JSON.parse(fs.readFileSync(path.join(HERE, '../../js/updates.json'), 'utf8')).games)
+    .filter(([id]) => games.some((g) => g.id === id))
+    .sort((a, b) => Date.parse(b[1].updated) - Date.parse(a[1].updated));
 
 let errors = [];
 const browsers = [];
@@ -100,6 +104,12 @@ const top = (page) =>
         };
     });
 const settle = (page, ms = 340) => page.waitForTimeout(ms);
+/** Highlight a row of the top list by its label (the main menu's order changes now and then). */
+async function pick(page, label) {
+    const i = await page.evaluate((l) => window.pocketGarden.top.items.findIndex((it) => it.label === l), label);
+    check(i >= 0, `the menu has ${label}`);
+    await page.evaluate((n) => window.pocketGarden.top.setIndex(n), i);
+}
 const stored = (page, key) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) || 'null'), key);
 
 /** Drag the mouse round the click wheel by `deg` degrees (clockwise > 0). */
@@ -278,11 +288,7 @@ async function desktop() {
     check(t.depth === 1, 'Esc goes back to the main menu');
 
     // favorites list
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('ArrowDown');
-    t = await top(page);
-    check(t.sel === 'Favorites', 'Favorites is on the main menu');
+    await pick(page, 'Favorites');
     await page.keyboard.press('Enter');
     await settle(page);
     t = await top(page);
@@ -335,10 +341,36 @@ async function desktop() {
     t = await top(page);
     check(t.depth === 1, 'leaving search returns to the menu');
 
+    // recently updated: newest version first, each with what changed and when
+    await pick(page, 'Recently Updated');
+    await settle(page);
+    const cap = await page.locator('.view.is-top .preview').textContent();
+    const latest = games.find((g) => g.id === UPDATES[0][0]);
+    check(cap.includes(latest.title), `its slideshow caption names the latest update (${latest.title})`);
+    await page.keyboard.press('Enter');
+    await settle(page);
+    t = await top(page);
+    check(t.title === 'Recently Updated' && t.game === UPDATES[0][0], `Recently Updated lists the latest change first (${t.game})`);
+    const rowsU = await page.locator('.view.is-top .row').count();
+    check(rowsU === Math.min(30, UPDATES.length), `it lists the ${rowsU} most recent`);
+    const shown = await page.evaluate(() => window.pocketGarden.top.items.map((it) => it.game.id));
+    check(shown.join() === UPDATES.slice(0, rowsU).map(([id]) => id).join(), 'in the order js/updates.json dates them');
+    const what = await page.locator('.view.is-top .row.sel .r-sub').textContent();
+    const u0 = UPDATES[0][1];
+    check(what === `${u0.added === u0.updated ? 'New' : 'Updated'} v${latest.version}`, `each row says what changed ("${what}")`);
+    check((await page.locator('.view.is-top .row.sel .r-meta').textContent()).trim() !== '', 'and when');
+    await page.screenshot({ path: path.join(OUT, 'desktop-updated.png') });
+    await page.keyboard.press('Enter');
+    await settle(page, 500);
+    t = await top(page);
+    check(t.type === 'detail' && t.game === UPDATES[0][0], 'a row opens its cartridge');
+    await page.keyboard.press('Escape');
+    await settle(page);
+    await page.keyboard.press('Escape');
+    await settle(page);
+
     // genres add up
-    await page.keyboard.press('Home');
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('ArrowDown');
+    await pick(page, 'Genres');
     await page.keyboard.press('Enter');
     await settle(page);
     const counts = await page.locator('.view.is-top .row .r-meta').allTextContents();
@@ -355,7 +387,7 @@ async function desktop() {
     await settle(page);
 
     // cover flow
-    await page.evaluate(() => window.pocketGarden.top.setIndex(5));
+    await pick(page, 'Cover Flow');
     await page.keyboard.press('Enter');
     await settle(page, 500);
     t = await top(page);
@@ -386,7 +418,7 @@ async function desktop() {
     await settle(page);
 
     // settings: shell colour cycles and persists
-    await page.evaluate(() => window.pocketGarden.top.setIndex(8));
+    await pick(page, 'Settings');
     await page.keyboard.press('Enter');
     await settle(page);
     t = await top(page);
@@ -438,6 +470,9 @@ async function desktop() {
     await settle(page);
     t = await top(page);
     check(t.depth === 1, 'the browser Back button goes back a screen');
+    await boot(page, '#updated');
+    t = await top(page);
+    check(t.title === 'Recently Updated' && t.game === UPDATES[0][0], 'a #updated link opens Recently Updated');
     await ctx.close();
 
     // stars made in the Garden show up here
@@ -533,6 +568,11 @@ async function storage() {
     check((await page.locator('#st-fav').textContent()) === '★1', 'stars still work, in memory');
     await page.keyboard.press('f');
     check((await page.locator('#st-fav').textContent()) === '★0', 'and unstar');
+    // a broken js/updates.json: Recently Updated says so instead of failing
+    await ctx.route(/\/js\/updates\.json/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: 'not json' }));
+    await boot(page, '#updated');
+    t = await top(page);
+    check(t.title === 'Recently Updated' && (await page.locator('.view.is-top .empty').textContent()).includes('No update dates'), 'with no update dates, Recently Updated explains instead of breaking');
     await ctx.close();
 }
 
@@ -544,8 +584,7 @@ async function calm() {
     await page.goto(URL);
     await page.waitForFunction(() => window.pocketGarden);
     check(!(await page.locator('#boot').count()), 'no boot animation');
-    await page.evaluate(() => window.pocketGarden.top.setIndex(7));
-    check((await top(page)).sel === 'Shuffle', 'Shuffle is on the main menu');
+    await pick(page, 'Shuffle');
     await page.keyboard.press('Enter');
     await settle(page);
     const t = await top(page);
@@ -588,7 +627,7 @@ async function pwa() {
         check(sizes === 'any' ? size !== 'error' : size === sizes, `${src} loads at ${size}`);
     }
     check((m.screenshots || []).some((s) => s.form_factor === 'wide') && m.screenshots.some((s) => s.form_factor === 'narrow'), 'wide and narrow screenshots for the install dialog');
-    check((m.shortcuts || []).map((s) => s.url).join() === './#search,./#favorites,./#shuffle', 'home-screen shortcuts: Search, Favorites, Shuffle');
+    check((m.shortcuts || []).map((s) => s.url).join() === './#search,./#favorites,./#updated,./#shuffle', 'home-screen shortcuts: Search, Favorites, Recently Updated, Shuffle');
     check((await page.locator('link[rel="apple-touch-icon"]').count()) === 1 && (await page.locator('meta[name="apple-mobile-web-app-capable"]').count()) === 1, 'iOS Add to Home Screen tags');
 
     // the service worker, scoped to the console, and the files it keeps
@@ -596,7 +635,7 @@ async function pwa() {
     check(scope === URL, `a service worker controls ${scope}`);
     await page.waitForFunction(() => window.pocketGarden.offlineReady > 0, null, { timeout: 15000 });
     const kept = await page.evaluate(async () => {
-        const want = ['js/main.js', 'js/views.js', 'css/console.css', '../js/gamedata.js', '../garden/js/genres.js'];
+        const want = ['js/main.js', 'js/views.js', 'css/console.css', '../js/gamedata.js', '../js/updates.json', '../garden/js/genres.js'];
         const out = [];
         for (const w of want) out.push(!!(await caches.match(new URL(w, location.href).href)));
         return out;
@@ -618,14 +657,14 @@ async function pwa() {
     await settle(page, 500);
     check((await top(page)).title === 'All Games', 'and browses offline');
     await ctx.setOffline(false);
-    // offline, box art it has never shown can't load (the game's emoji stands
-    // in); any other failure while offline is still an error
+    // offline, box art and game icons it has never shown can't load (the
+    // row or label goes without); any other failure while offline is still an error
     const offline = errors.splice(before);
     const failed = offline.filter((e) => e.startsWith('requestfailed'));
-    const art = failed.filter((e) => /\/garden\/img\/games\/game-\d+\.jpg /.test(e));
+    const art = failed.filter((e) => /\/garden\/img\/games\/game-\d+\.jpg |\/game-\d+\/icons\/icon-\d+\.png /.test(e));
     const other = offline.filter((e) => !(e.startsWith('requestfailed') && art.includes(e)) && !/^console: Failed to load resource: net::ERR_(FAILED|INTERNET_DISCONNECTED)/.test(e));
     errors.push(...other);
-    check(!other.length, `offline, only box art it hasn't shown yet fails to load (${art.length} pictures, emoji instead)`);
+    check(!other.length, `offline, only box art and icons it hasn't shown yet fail to load (${art.length} pictures)`);
     await boot(page);
 
     // the browser offers to install: a menu item appears and prompts
@@ -657,7 +696,7 @@ async function pwa() {
     check((await top(page)).title === 'Install' && (await page.locator('.view.is-top').textContent()).includes('Add to Home Screen'), 'and, with no prompt to show, explains how per browser');
 
     // home-screen shortcuts
-    for (const [hash, want] of [['#search', 'search'], ['#favorites', 'Favorites']]) {
+    for (const [hash, want] of [['#search', 'search'], ['#favorites', 'Favorites'], ['#updated', 'Recently Updated']]) {
         await boot(page, hash);
         const t = await top(page);
         check(t.type === want || t.title === want, `the ${hash} shortcut opens ${want}`);
