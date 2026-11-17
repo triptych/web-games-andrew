@@ -1,5 +1,29 @@
 # TODO
 
+## After merging PR #369: dialog buttons and tabs no longer scroll away
+
+PR #369 pinned the Done / OK / Close button and the tab bar of every dialog in 71 games (see `CHANGELOG.md` and
+[learnings.md § Dialogs: the Buttons and Tabs Never Scroll](docs/generic/learnings.md#6-dialogs-the-buttons-and-tabs-never-scroll-required-all-games)).
+It passed `dev/smoketest.mjs` for all 71 games, desktop and phone, and a headless Chromium dialog sweep. What is left:
+
+- [ ] **Check on real phones.** Sticky strips with negative offsets inside a scrolling card were only checked in headless Chromium. Open a long dialog on iOS Safari and Android Chrome, in portrait and landscape: game-027's cauldron, game-139's deck, game-080's shop, game-134's Settings at 844 × 390, and game-072's Upgrades. Check that the button row sits flush with the card's bottom edge, that nothing shows through it, and that the card doesn't scroll sideways.
+- [ ] **Re-export the itch.io builds that include a fixed game.** `game-072/frosty-fling.zip` was built before the fix. Rebuild it with `/export-itch` (and any other itch upload of a game listed in the changelog entry).
+- [ ] **Reconcile game-072's build.** `game-072/src/build.sh` would drop 29 lines from `game-072/index.html`, which was edited by hand after its last build. Port those lines back into `src/` so the build reproduces the page, then rebuild.
+- [ ] **Per-game changelogs.** Step 6 of `/scaffold-game` asks for each version in the game's `game-plan.md` changelog. The 71 patch versions are only in the root `CHANGELOG.md`. Add a one-line entry to each game's plan, or decide that one root entry is enough for a sweep like this.
+- [ ] **`status.md`.** Its notes still describe these games at their old versions. Mention the dialog fix where a row lists the version.
+- [ ] **The `← Games` link covers the top of some dialogs.** In game-055, game-056 and game-064 the fixed link sits over a card's heading when the card fills the screen. A pinned header (game-056's Keep) can now sit under it permanently. Give those screens the template's `calc(52px + var(--safe-t))` top padding, or hide the link while a dialog is open.
+- [ ] **Screens deliberately left unpinned.** Review them and pin any that turn out long in practice:
+  - game-057's game-over card and game-064's game-over modal (buttons follow a short stats block).
+  - game-088's win/lose result sheet (`overflow: visible` for its ribbon).
+  - game-053's title menu, which needs a scroll on an 844 × 390 landscape phone.
+  - The full-screen endings and credits of game-033, game-055, game-113 and game-137.
+- [ ] **Add the dialog sweep to the repo as a test.** It ran from a scratch script outside the repo. It opens each dialog at 1280 × 640 and 390 × 700, adds 2400 px of filler before the foot, and checks the buttons with `elementFromPoint`, both at the top and after `scrollTop = 1e6`, and the tabs after scrolling. Commit it as `dev/dialogtest.mjs`, or fold the check into `dev/smoketest.mjs`, so a new game can't ship the bug again. Things it must handle:
+  - Finish open animations before measuring.
+  - Skip roots that are menus.
+  - Ignore loading overlays.
+  - Put the filler inside a nested foot's wrapper (game-139's story card, game-085's naming form).
+- [ ] **Dialogs built entirely in JavaScript.** The sweep only sees dialogs already in the page. Those found by reading the code were fixed (game-063, 065, 069, 072, 087). Any other game that creates a dialog element when it opens should be opened once in play and checked by hand.
+
 ## Accessibility
 
 The shared baseline is `lib/a11y.js` (PR #131). What is left is per-game work.
