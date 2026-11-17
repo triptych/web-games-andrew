@@ -24,6 +24,7 @@
   "shortcuts": [
     { "name": "Search", "short_name": "Search", "description": "Search games by title or description", "url": "./#search", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Favorites", "short_name": "Favorites", "description": "Your starred games, shared with the Garden", "url": "./#favorites", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Recently Updated", "short_name": "Updated", "description": "Games with a new version, newest first", "url": "./#updated", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
     { "name": "Shuffle", "short_name": "Shuffle", "description": "Let the console pick a game", "url": "./#shuffle", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
   ]
 }
