@@ -1,7 +1,7 @@
 {
   "name": "Alchemist's Lattice",
   "short_name": "Alchemist's L…",
-  "description": "A drag-and-drop block-placement puzzle with an alchemy twist, built in Phaser 4. Drag clusters of 1-4 connected blocks onto a 9x9 lattice and fill a full row or column to clear it. Pieces are dealt…",
+  "description": "A block-placement puzzle inside a cozy alchemy adventure, in three.js with art painted by fal. You are an apprentice with a cracked cauldron; your workbench is a 9×9 lattice. Drag tiles from a hand…",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
