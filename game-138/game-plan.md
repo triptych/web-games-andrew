@@ -2,7 +2,7 @@
 
 **Genre:** Cozy builder / toy (a procedural dungeon diorama you shape, share and walk)
 **Engine:** three.js r165, sim/view layout. 17 models by [Meshy](https://www.meshy.ai) (each with a code-built stand-in); every texture, shader, room behind a window and sound is code
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -127,6 +127,9 @@ See [dev/README.md](dev/README.md). `simtest.mjs` (≈ 270 checks): purity; the 
 - Ideas: a waterfall that pours through a well to the level below; furniture that can be turned; exporting a level as a printable map.
 
 ## Changelog
+
+### v1.0.1 (2026-11-17)
+- A loading screen from the first paint, with a progress bar over the texture painting, the model loading and the shader compile; textures are painted by a pool of Web Workers (`js/view/paint-worker.js`) behind 16 px placeholders swapped in place, with a main-thread fallback (`?workers=0`); a busy chip while the workbench rebuilds or paints new stone; the welcome starts hidden. Boot under SwiftShader 9.0 s → 3.6 s.
 
 ### v1.0.0 (2026-11-16)
 - First release: a WFC dungeon builder with 5 levels, 7 themes, 17 Meshy elements, torches and peek windows, paint/place/tidy tools with undo, share links, first-person walking with friends and hoards, a tour, parallax occlusion mapping and interior mapping, a Web Audio lullaby; sim and browser harnesses.

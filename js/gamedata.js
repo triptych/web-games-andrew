@@ -2132,7 +2132,7 @@ const games = [
         description: "A cozy fantasy dungeon builder in three.js. Roll a seed and watch wave function collapse grow each level out of little 3×3 tiles (tunnels, chamber walls, doorways, pools, streams, waterfalls and wells) placed only where their edges agree, then proved: every corner reachable from the stairs, or it grows again. Stack up to five levels and move between them with the depth slider; mix in more tunnels, chambers, water or wells; theme each level as a woodland burrow, stone keep, brick cellar, cavern, mossy ruin, crystal grotto or frost hollow; fill them with friendly Meshy-made residents (sleepy slimes, mushfolk, a moss golem, a goblin cook, a drowsy dragon on her hoard), hoards, braziers, campfire camps, bookshelves, tea tables and glowcaps. Paint squares and the rest regrows around them; place or tidy anything by hand. Every wall and floor has parallax occlusion mapping, and barred peek windows and wells show whole rooms by interior mapping. Share it with a link that rebuilds exactly your dungeon, and walk it in first person by lantern light, meeting every friend and finding every hoard. Keyboard, mouse, gamepad or touch.",
         icon: '🏮',
         folder: 'game-138',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'lanternhollow',
         genre: 'cozy',
         tags: [
