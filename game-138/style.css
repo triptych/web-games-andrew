@@ -253,7 +253,7 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--paper); border-radius: 24px; padding: 22px; box-shadow: var(--shadow); border: 3px solid var(--paper-3);
     animation: sheetIn 0.28s cubic-bezier(.2, 1.4, .4, 1);
-    scrollbar-width: thin; scrollbar-color: var(--paper-3) transparent;
+    scrollbar-width: thin; scrollbar-color: var(--paper-3) transparent; --sheet-pt: 22px; --sheet-px: 22px; --sheet-pb: 22px;
 }
 @keyframes sheetIn { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
 .sheet h1, .sheet h2 { margin: 0 0 12px; font-family: var(--head); font-weight: 700; }
@@ -357,3 +357,10 @@ body.touchdeck #walk-hint { bottom: auto; top: calc(64px + var(--safe-t)); }
     .lamp, .welcome-lamp, .load-lamp, #load-fill, .busy-dot { animation: none; }
     .pane, .sheet { animation: none; }
 }
+
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #fff6e5; border-top: 2px solid rgb(239, 217, 176); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #fff6e5; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #fff6e5; }

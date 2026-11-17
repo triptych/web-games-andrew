@@ -199,3 +199,10 @@ li.sel .qty { color: #3a2408; }
   pointer-events: none; z-index: 25; animation: floatUp 0.8s ease-out forwards;
 }
 @keyframes floatUp { to { transform: translateY(-40px); opacity: 0; } }
+
+/* A long inventory or quest log scrolls, but its "Esc: back" line stays pinned to the bottom edge. */
+#inventory > .hint, #quests > .hint {
+  position: sticky; bottom: -12px; z-index: 2;
+  margin: 10px -16px -12px; padding: 8px 16px 12px;
+  background: var(--panel); border-top: 1px solid rgba(240, 200, 96, 0.15); opacity: 1;
+}

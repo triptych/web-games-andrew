@@ -137,8 +137,10 @@
 
     <div id="keep" class="screen hidden">
         <div class="panel wide">
-            <div class="panel-head"><h2>The Keep</h2><div class="gold-chip"><span class="coin"></span><span id="keep-gold">0</span></div><button class="x" data-close="keep" aria-label="Close">✕</button></div>
-            <div class="tabs"><button class="tab on" data-tab="castle">Castle</button><button class="tab" data-tab="relics">Relics</button><button class="tab" data-tab="stats">Chronicle</button></div>
+            <div class="panel-top">
+                <div class="panel-head"><h2>The Keep</h2><div class="gold-chip"><span class="coin"></span><span id="keep-gold">0</span></div><button class="x" data-close="keep" aria-label="Close">✕</button></div>
+                <div class="tabs"><button class="tab on" data-tab="castle">Castle</button><button class="tab" data-tab="relics">Relics</button><button class="tab" data-tab="stats">Chronicle</button></div>
+            </div>
             <div id="keep-castle" class="tab-body">
                 <div class="sub">Towers <span class="dim">— each tier adds a fighting platform on that lane's wall</span></div>
                 <div id="towers"></div>
@@ -160,14 +162,14 @@
                 <div id="relic-held"></div>
                 <button id="replace-cancel" class="btn ghost">Back</button>
             </div>
-            <button id="relic-skip" class="btn ghost">Take gold instead</button>
+            <div class="panel-foot"><button id="relic-skip" class="btn ghost">Take gold instead</button></div>
         </div>
     </div>
 
     <div id="modal" class="screen hidden">
         <div class="panel" id="modal-panel">
             <div id="modal-body"></div>
-            <button id="modal-ok" class="btn primary">Onward</button>
+            <div class="panel-foot"><button id="modal-ok" class="btn primary">Onward</button></div>
         </div>
     </div>
 
@@ -175,9 +177,11 @@
         <div class="panel">
             <h2 class="red">The Gates Have Fallen</h2>
             <div id="lost-sum"></div>
-            <button id="retry-btn" class="btn primary big">Rally and Retry</button>
-            <button id="lost-rekindle" class="btn hidden">Rekindle</button>
-            <button id="lost-title" class="btn ghost">Title</button>
+            <div class="panel-foot">
+                <button id="retry-btn" class="btn primary big">Rally and Retry</button>
+                <button id="lost-rekindle" class="btn hidden">Rekindle</button>
+                <button id="lost-title" class="btn ghost">Title</button>
+            </div>
         </div>
     </div>
 
@@ -240,7 +244,7 @@
         <div class="panel">
             <h2 class="gold-h">The Black Sun Sets</h2>
             <div id="victory-body"></div>
-            <button id="victory-ok" class="btn primary big">Into the Long Night</button>
+            <div class="panel-foot"><button id="victory-ok" class="btn primary big">Into the Long Night</button></div>
         </div>
     </div>
 

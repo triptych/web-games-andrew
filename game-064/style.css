@@ -153,7 +153,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .card {
     background: linear-gradient(180deg, var(--paper), var(--paper-2));
     border: 3px solid var(--edge); border-radius: 22px; box-shadow: var(--shadow);
-    padding: 22px 26px; max-width: 100%; position: relative; margin: auto;
+    padding: 22px 26px; max-width: 100%; position: relative; margin: auto; --card-py: 22px; --card-px: 26px;
 }
 .card h2 { font-family: 'Pirata One', Georgia, serif; font-weight: 400; font-size: 38px; margin: 0 0 10px; text-align: center; color: var(--ink); }
 .card h3 { font-family: 'Pirata One', Georgia, serif; font-weight: 400; font-size: 24px; margin: 16px 0 6px; }
@@ -242,7 +242,7 @@ button.link { border: none; background: none; color: var(--navy); text-decoratio
     #banner-text { font-size: 13.5px; }
     #toast { bottom: calc(76px + var(--safe-b)); }
     .title-card h1 { font-size: 50px; }
-    .card { padding: 18px 16px; }
+    .card { padding: 18px 16px; --card-py: 18px; --card-px: 16px; }
     .card h2 { font-size: 32px; }
     .chip { font-size: 13.5px; padding: 6px 10px; }
 }
@@ -254,4 +254,17 @@ button.link { border: none; background: none; color: var(--navy); text-decoratio
     #topbar { top: calc(8px + var(--safe-t)); left: 50%; transform: translateX(-50%); }
     #banner { top: auto; bottom: 8px; }
     #thinking { top: auto; bottom: 8px; }
+}
+
+/* A long card scrolls inside the screen, but Set Sail and the ✕ never scroll away: the button row is pinned
+   to the card's bottom edge and the close button to its top corner. */
+.setup-card { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+.setup-card > .row-buttons {
+    position: sticky; bottom: calc(-1 * var(--card-py)); z-index: 3;
+    margin: 10px calc(-1 * var(--card-px)) calc(-1 * var(--card-py)); padding: 10px var(--card-px) var(--card-py);
+    background: var(--paper-2); border-top: 2px solid rgba(183, 137, 79, 0.45);
+}
+.help-card > .close {
+    position: sticky; top: calc(10px - var(--card-py)); z-index: 3; display: block; margin: calc(10px - var(--card-py)) calc(12px - var(--card-px)) -44px auto;
+    border-radius: 50%; background: var(--paper);
 }

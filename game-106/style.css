@@ -119,7 +119,7 @@ b { color: var(--text); }
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 2px solid var(--line); border-radius: 6px; padding: 18px;
     box-shadow: 0 0 24px rgba(255, 43, 214, 0.25), inset 0 0 30px rgba(45, 226, 255, 0.06);
-    scrollbar-width: thin; scrollbar-color: var(--pink) transparent;
+    scrollbar-width: thin; scrollbar-color: var(--pink) transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 8px; }
 .sheet::-webkit-scrollbar-track { background: transparent; margin: 6px; }
@@ -184,6 +184,10 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 /* Play Again comes first in focus order (Enter retries) but sits on the right */
 .over-foot { flex-direction: row-reverse; justify-content: flex-start; }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #0d0421; border-top: 1px solid rgba(255, 43, 214, 0.45); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #0d0421; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #0d0421; }
 

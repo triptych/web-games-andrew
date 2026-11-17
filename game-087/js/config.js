@@ -1,6 +1,6 @@
 // Quillsworn — tuning and constants. Shared by the sim, the UI and the tests. Pure.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'quillsworn.v1';          // the apprentice: progress, settings, the list of novels
 export const PROJECT_KEY = 'quillsworn.v1.p.';    // + project id: one key per novel, so a save rewrites one book
 export const SAVE_VERSION = 1;

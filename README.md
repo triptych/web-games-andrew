@@ -406,6 +406,7 @@ web-games-andrew/
 ├── lib/
 │   ├── kaplay/              # Shared Kaplay engine (kaplay.mjs / kaplay.js)
 │   ├── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
+│   ├── core/                # Common library: seeded rng, noise, grid search, input, audio, saves, viewport (lib/core/README.md)
 │   ├── a11y.js              # Baseline accessibility for every game: focus ring, live region, labels, reduced motion
 │   └── page-audio.js        # Silences a game's audio while its tab is hidden (games 001–036)
 ├── dev/                    # Repo-wide smoke test (dev/smoketest.mjs)

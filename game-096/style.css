@@ -174,7 +174,7 @@ button, select, input { font-family: inherit; }
 .sheet {
     width: min(460px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y; overscroll-behavior: contain;
     background: var(--paper); border: 3px solid var(--edge); border-radius: 22px; padding: 18px 18px 14px; box-shadow: var(--shadow);
-    animation: sheet 0.28s cubic-bezier(0.2, 1.3, 0.4, 1);
+    animation: sheet 0.28s cubic-bezier(0.2, 1.3, 0.4, 1); --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 14px;
 }
 .sheet.wide { width: min(780px, 100%); }
 @keyframes sheet { 0% { opacity: 0; transform: translateY(18px) scale(0.94); } 100% { opacity: 1; transform: none; } }
@@ -302,7 +302,7 @@ table.keys { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
 /* short landscape phones: tighten everything */
 @media (max-height: 480px) {
     .screen { padding-top: calc(46px + var(--safe-t)); }
-    .sheet { padding: 12px 14px 10px; }
+    .sheet { padding: 12px 14px 10px; --sheet-pt: 12px; --sheet-px: 14px; --sheet-pb: 10px; }
     .sheet h2 { font-size: 22px; margin-bottom: 6px; }
     .tag { margin: 6px 0 8px; }
     .btn.big { padding: 9px 22px; font-size: 18px; }
@@ -334,6 +334,10 @@ table.keys { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
     .logo, .sheet, .banner, .hint { animation: none; }
 }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #fff6e2; border-top: 2px solid rgb(230, 204, 152); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #fff6e2; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #fff6e2; }
 

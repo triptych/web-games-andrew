@@ -56,6 +56,8 @@ b { font-weight: 600; }
 .sheet h3 { font: 700 15px var(--serif); color: var(--brass); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; }
 .sheet p { line-height: 1.4; }
 .sheet-foot { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 6px; }
+/* A long sheet scrolls, but its buttons never do: the foot is pinned to the bottom edge. */
+.sheet-foot { position: sticky; bottom: -18px; z-index: 2; margin: 6px -22px -18px; padding: 10px 22px 18px; background: #1c1109; border-top: 1px solid rgba(211, 164, 86, 0.25); border-radius: 0 0 14px 14px; }
 .menu { display: flex; flex-direction: column; gap: 10px; }
 .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .row input[type=range] { width: 50%; accent-color: var(--brass); }

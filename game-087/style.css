@@ -650,3 +650,10 @@ body.focus-mode .toolbar:hover { opacity: 1; }
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     .thalion .lid { animation: none; }
 }
+
+/* A long modal scrolls with its backdrop, but its closing row of buttons stays pinned to the bottom of the screen. */
+.modal-card > .row-end:last-child {
+    position: sticky; bottom: calc(-16px - var(--safe-b)); z-index: 3;
+    margin: 14px -20px -20px; padding: 12px 20px calc(20px + var(--safe-b));
+    background: #1a2124; border-top: 1px solid var(--line); border-radius: 0 0 16px 16px;
+}

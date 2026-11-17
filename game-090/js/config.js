@@ -1,6 +1,6 @@
 // Verdant Protocol — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'verdant-protocol.v1';
 
 export const STEP = 1 / 120;              // fixed step for exploration (s); battles and the hub are turn-based

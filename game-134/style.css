@@ -130,7 +130,7 @@ body.no-crt #crt { display: none; }
     background: var(--panel); border: 4px solid var(--ink); border-radius: 18px; padding: 18px;
     box-shadow: 0 8px 0 var(--ink);
     animation: pop-in 0.3s cubic-bezier(.2, 1.6, .5, 1);
-    scrollbar-width: thin; scrollbar-color: var(--grape) transparent;
+    scrollbar-width: thin; scrollbar-color: var(--grape) transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 10px; }
 .sheet::-webkit-scrollbar-track { background: transparent; margin: 16px; }
@@ -218,6 +218,18 @@ td.num { text-align: right; font-weight: 700; }
 }
 .a11y-reduced-motion .burst { animation: none; }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #fff8e7; border-top: 2px solid rgb(27, 16, 48); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #fff8e7; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #fff8e7; }
+#brief .sheet > .sheet-foot { background: #fff3c4; border-top: 2px solid rgb(27, 16, 48); }
+#brief .sheet * > .sheet-foot { background: #fff3c4; }
+#report .sheet > .sheet-foot { background: #dee7f4; border-top: 2px solid rgb(27, 16, 48); }
+#report .sheet * > .sheet-foot { background: #dee7f4; }
+#over .sheet > .sheet-foot { background: #c8f7ff; border-top: 2px solid rgb(27, 16, 48); }
+#over .sheet * > .sheet-foot { background: #c8f7ff; }
+#won .sheet > .sheet-foot { background: #fff3c4; border-top: 2px solid rgb(27, 16, 48); }
+#won .sheet * > .sheet-foot { background: #fff3c4; }
 
