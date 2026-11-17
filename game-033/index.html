@@ -372,7 +372,6 @@
         .inv-name { font-weight: bold; }
         .inv-desc { opacity: 0.75; }
         .inventory-empty { opacity: 0.6; font-style: italic; padding: 12px 0; }
-        #inventory-close { margin-top: 16px; }
 
         /* ============================================================
            Stats panel
@@ -408,7 +407,6 @@
         .stats-row-value { color: var(--gold); font-weight: bold; text-align: center; }
         .stats-row-desc { opacity: 0.75; font-size: 12px; }
         .stats-row-btn { font-size: 15px; font-weight: bold; padding: 4px 12px; }
-        #stats-close { margin-top: 16px; }
 
         /* ============================================================
            Brewing panel
@@ -443,7 +441,6 @@
         .brew-name { font-weight: bold; }
         .brew-req { opacity: 0.75; }
         .brewing-empty { opacity: 0.6; font-style: italic; padding: 12px 0; }
-        #brewing-close { margin-top: 16px; }
 
 
         /* ============================================================
@@ -490,7 +487,6 @@
         .journal-row-done .journal-name { text-decoration: line-through; }
         .journal-row-lore .journal-desc { font-style: italic; }
         .journal-empty { opacity: 0.6; font-style: italic; padding: 6px 0; font-size: 13px; }
-        #journal-close { margin-top: 18px; }
         /* A quest starting or finishing pulses the HUD button rather than
            interrupting the scene with a toast. */
         @keyframes journal-nudge-anim {
@@ -537,7 +533,6 @@
         .trade-desc { opacity: 0.72; }
         .trade-price { color: var(--gold); text-align: right; font-weight: bold; }
         .trade-empty { opacity: 0.6; font-style: italic; padding: 12px 0; }
-        #trade-close { margin-top: 16px; }
 
         /* ============================================================
            Settings panel
@@ -580,7 +575,6 @@
             box-sizing: border-box;
         }
         .settings-row-value { color: var(--gold); font-weight: bold; text-align: right; }
-        #settings-close { margin-top: 16px; }
 
         /* ============================================================
            Battle screen
@@ -656,6 +650,23 @@
         #btn-restart { margin-top: 32px; font-size: 15px; padding: 10px 22px; }
 
         /* ============================================================
+           Long panels scroll, but their Close button stays pinned to the
+           bottom edge and the cart's Buy/Sell tabs to the top edge.
+        ============================================================ */
+        #inventory-box, #stats-box, #brewing-box, #journal-box, #trade-box, #settings-box { --box-pad: 20px; }
+        .box-foot {
+            position: sticky; bottom: calc(-1 * var(--box-pad)); z-index: 2;
+            margin: 16px calc(-1 * var(--box-pad)) calc(-1 * var(--box-pad));
+            padding: 12px var(--box-pad) var(--box-pad);
+            background: var(--panel); border-top: 1px solid var(--border);
+        }
+        #trade-tabs {
+            position: sticky; top: calc(-1 * var(--box-pad)); z-index: 2;
+            margin-inline: calc(-1 * var(--box-pad)); padding: 8px var(--box-pad);
+            background: var(--panel);
+        }
+
+        /* ============================================================
            Level-up toast
         ============================================================ */
         .level-up-toast {
@@ -677,7 +688,7 @@
            Mobile pass (Phase 5): narrow-viewport modal layout
         ============================================================ */
         @media (max-width: 480px) {
-            #inventory-box, #brewing-box, #stats-box, #settings-box { padding: 14px; }
+            #inventory-box, #brewing-box, #stats-box, #settings-box { padding: 14px; --box-pad: 14px; }
 
             /* Fixed pixel columns (item name / stat label) don't leave
                enough room for the description column at ~320-360px wide;
@@ -765,7 +776,7 @@
         <div id="inventory-box">
             <h2>Your Bag</h2>
             <div id="inventory-list"></div>
-            <button id="inventory-close">Close</button>
+            <div class="box-foot"><button id="inventory-close">Close</button></div>
         </div>
     </div>
 
@@ -775,7 +786,7 @@
             <h2>Spend Stat Points</h2>
             <p id="stats-points-remaining"></p>
             <div id="stats-rows"></div>
-            <button id="stats-close">Close</button>
+            <div class="box-foot"><button id="stats-close">Close</button></div>
         </div>
     </div>
 
@@ -784,7 +795,7 @@
         <div id="brewing-box">
             <h2>Brewing</h2>
             <div id="brewing-list"></div>
-            <button id="brewing-close">Close</button>
+            <div class="box-foot"><button id="brewing-close">Close</button></div>
         </div>
     </div>
 
@@ -794,7 +805,7 @@
         <div id="journal-box">
             <h2 id="journal-title">Wisteria’s Journal</h2>
             <div id="journal-list"></div>
-            <button id="journal-close">Close</button>
+            <div class="box-foot"><button id="journal-close">Close</button></div>
         </div>
     </div>
 
@@ -807,7 +818,7 @@
                 <button id="trade-tab-sell" class="trade-tab">Sell</button>
             </div>
             <div id="trade-list"></div>
-            <button id="trade-close">Close</button>
+            <div class="box-foot"><button id="trade-close">Close</button></div>
         </div>
     </div>
 
@@ -825,7 +836,7 @@
                 <input type="range" id="settings-volume-slider" />
                 <span id="settings-volume-label" class="settings-row-value">25%</span>
             </div>
-            <button id="settings-close">Close</button>
+            <div class="box-foot"><button id="settings-close">Close</button></div>
         </div>
     </div>
 
