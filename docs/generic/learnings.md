@@ -966,13 +966,13 @@ Every game must include a small "← Games" link back to the repo's root launche
 - Engine-agnostic: this is plain HTML/CSS in `index.html`, so it works identically for Kaplay, Phaser, and Three.js games without touching engine scene code.
 - If a game already has its own styled back link, keep one link, not two, and check it is **on screen**, not just that its path resolves. game-031's link sat under a 900 px cabinet, below the fold on a laptop, so it is now pinned to the corner like everyone else's. `dev/smoketest.mjs` checks every game's link is visible and not covered.
 
-### 6. Dialogs: the Buttons and Tabs Never Scroll ⚠️ REQUIRED (All Games)
+### 6. Dialogs: the Buttons and Tabs Never Scroll (REQUIRED, All Games)
 
 **Symptom:** a dialog (the cauldron's Learn list, a shop, a codex, a journal, How to Play, even Settings on a
 landscape phone) is taller than the screen. Its **Done / OK / Close / Continue** button is below the fold, so the
 player has to scroll to find the way out. Or the dialog has **tabs or a ✕ at the top**, and they scroll away
 as soon as the player reads down the page. This was reported by the owner on game-027's cauldron. A sweep then found it in
-about 80 games: the whole card had `max-height: 100%; overflow-y: auto`, with its title, tabs, list and buttons all
+71 games: the whole card had `max-height: 100%; overflow-y: auto`, with its title, tabs, list and buttons all
 inside the one scroller.
 
 **Rule:** only the middle of a dialog scrolls. Its tab bar (and a ✕ or header) stays at the top edge, and its

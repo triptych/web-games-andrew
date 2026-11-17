@@ -1,6 +1,6 @@
 // Pinch & Place — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'pinch-and-place.v1';
 export const ALBUM_KEY = 'pinch-and-place.album.v1';
 

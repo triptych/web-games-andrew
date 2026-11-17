@@ -401,12 +401,26 @@ html, body {
 }
 .sheet {
     width: min(460px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    /* set these wherever a sheet's padding is set (media queries too): the pinned foot and tabs bleed by them */
+    padding: 18px; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet h1, .sheet h2 { margin: 0 0 12px; }
 .logo { font-size: clamp(32px, 9vw, 56px); text-align: center; color: var(--accent); letter-spacing: 0.04em; }
 .menu { display: flex; flex-direction: column; gap: 10px; }
 .sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+/* A long sheet scrolls, but its foot (Done, Close) and tab bar never do: they are pinned to its bottom and top
+   edges over an OPAQUE strip (--panel is translucent; use the solid colour the sheet shows). Keep the foot and
+   the tabs direct children of .sheet. See docs/generic/learnings.md § "Dialogs: the Buttons and Tabs Never Scroll". */
+.sheet > .sheet-foot {
+    position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5;
+    margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb));
+    padding: 10px var(--sheet-px) var(--sheet-pb); background: #10141f; border-top: 1px solid var(--line);
+}
+.sheet > .tabs {
+    position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5;
+    margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #10141f;
+}
 .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; }
 .version { text-align: center; color: var(--dim); font-size: 12px; margin-top: 12px; }
 table { border-collapse: collapse; width: 100%; }
@@ -4784,6 +4798,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Space presses a focused menu button: a keydown handler that calls `preventDefault()` on Space to stop scrolling also cancels the button's click, so Resume and Play Again did nothing from the keyboard (game-078). Test it with a real key press, not `element.click()`.
 - [ ] A menu opened by a finger-down button doesn't close when the finger lifts (game-071).
 - [ ] The touch deck is on before the first stage, not after the first touch on it (game-074).
+- [ ] No dialog makes the player scroll to find its way out: Done / OK / Close / Continue stays pinned to the bottom edge and tabs (or a header with ✕) to the top edge, over an opaque strip, at 390 × 664 and 844 × 390 with a long list in it. Test it with 2000 px of filler before the foot and once more after `scrollTop = 1e6`. The cauldron in game-027 hid Done below the fold, and 71 games had the whole card scroll as one piece. See learnings.md § "Dialogs: the Buttons and Tabs Never Scroll".
 - [ ] No sheet scrolls a button under the fixed `← Games` link (game-073); centre panels stay on screen on a 390 px phone (game-062); HUD gauges sit next to what they describe in both orientations (game-066).
 - [ ] Right-click menus open on `contextmenu` and cancel it; opening on `pointerdown` lets the browser's own menu appear on top (game-076).
 - [ ] An off-screen drawer (`translateX(105%)`) doesn't make its scroller scrollable: `overflow: clip` and `contain: paint` on its container, or `scrollIntoView()` pans the room sideways on a phone (game-087).

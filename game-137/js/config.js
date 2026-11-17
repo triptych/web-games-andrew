@@ -1,7 +1,7 @@
 // SHARDFRAME — tuning and constants. Shared by the sim, the view and the tests.
 // World units: one map cell is one unit; the sim is 2D (x, y) plus a height z for voxels.
 
-export const VERSION = '1.2.0';
+export const VERSION = '1.2.1';
 export const SAVE_KEY = 'shardframe.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

@@ -12,7 +12,7 @@ import { UI, fmt } from './ui.js';
 import { loadProfile, saveProfile, resetProfile } from './save.js';
 import { makeBot } from './bot.js';
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const params = new URLSearchParams(location.search);
 const DEBUG = params.has('debug');
 const FIXED_SEED = params.has('seed') ? (+params.get('seed') >>> 0) : null;

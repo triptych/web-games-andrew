@@ -1,6 +1,6 @@
 // The Kids Table — tuning and constants. Shared by the sim, the view, the UI and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'the-kids-table.v1';
 
 export const STEP = 0.25;                 // the sim's own pace (s): generators recharge, guests arrive; merges are commands
