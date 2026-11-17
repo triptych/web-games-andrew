@@ -319,3 +319,8 @@ body.touch.portrait #banners { top: 34%; }
 }
 body.touch.portrait #wpn-info { display: none; }
 body.touch.portrait #weapon-panel { max-width: calc(100vw - 140px); }
+
+/* A long card scrolls, but its Close/Done button stays pinned to the bottom edge and the codex tabs to the top. */
+.card-foot { position: sticky; bottom: -22px; z-index: 3; display: flex; flex-direction: column; margin: 4px -26px -22px; padding: 10px 26px 22px; background: #050b0f; border-top: 1px solid var(--panel-b); }
+.card.terminal .card-foot { background: #020a05; border-top-color: rgba(106, 255, 138, 0.4); }
+.card > .tabs { position: sticky; top: -22px; z-index: 3; margin-inline: -26px; padding: 8px 26px; background: #0a141a; }
