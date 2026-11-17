@@ -118,7 +118,7 @@ html, body {
     width: min(460px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px;
     box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
-    scrollbar-width: thin; scrollbar-color: rgba(255, 230, 200, 0.3) transparent;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 230, 200, 0.3) transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 8px; }
 .sheet::-webkit-scrollbar-track { background: transparent; margin: 14px; }
@@ -184,6 +184,10 @@ html, body {
 /* narrow phones: toasts sit under the two-row HUD (after the base rule, so this wins) */
 @media (max-width: 480px) { #toasts { top: calc(124px + var(--safe-t)); } }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #211924; border-top: 1px solid rgba(255, 230, 200, 0.16); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #211924; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #211924; }
 

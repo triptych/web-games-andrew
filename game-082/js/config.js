@@ -1,7 +1,7 @@
 // BUBBLE NEBULA — tuning and constants. Shared by the sim, the view and the tests.
 // Units are tiles; the sim's y grows downwards (row 0 is the ceiling, row 25 the floor).
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'bubble-nebula.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

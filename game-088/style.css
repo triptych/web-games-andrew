@@ -230,7 +230,7 @@ button { font-family: inherit; }
 .sheet {
     width: min(460px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     border-radius: 22px; padding: 20px; box-shadow: 0 14px 40px rgba(20, 10, 0, 0.4);
-    animation: sheetin 0.32s cubic-bezier(.2, 1.4, .4, 1);
+    animation: sheetin 0.32s cubic-bezier(.2, 1.4, .4, 1); --sheet-pt: 20px; --sheet-px: 20px; --sheet-pb: 20px;
 }
 @keyframes sheetin { from { transform: scale(0.85) translateY(20px); opacity: 0; } }
 /* a sheet's scrollbar stays inside the panel: a classic one drew a square white track over the rounded corners
@@ -399,7 +399,7 @@ td:first-child { color: var(--teal-dark); font-weight: 700; white-space: nowrap;
 }
 @media (max-height: 520px) {
     .screen { padding-top: calc(44px + var(--safe-t)); }
-    .sheet { padding: 14px; }
+    .sheet { padding: 14px; --sheet-pt: 14px; --sheet-px: 14px; --sheet-pb: 14px; }
     .sheet h2 { font-size: 21px; margin-bottom: 6px; }
     .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .title-wrap .menu { grid-template-columns: 1fr 1fr; }
@@ -413,7 +413,10 @@ td:first-child { color: var(--teal-dark); font-weight: 700; white-space: nowrap;
     .cbtn { height: 58px; }
 }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
-
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #fff7e8; border-top: 2px solid rgb(226, 201, 160); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #fff7e8; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #f9edd7; }
+.sheet > .sheet-head { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin: calc(-1 * var(--sheet-pt)) calc(-1 * var(--sheet-px)) 10px; padding: var(--sheet-pt) var(--sheet-px) 8px; background: #f9edd7; }

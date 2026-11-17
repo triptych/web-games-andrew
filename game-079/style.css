@@ -224,7 +224,7 @@ body.touch #feed { top: 30%; }
 .sheet {
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px;
-    box-shadow: 0 0 40px rgba(255, 63, 164, 0.18), inset 0 0 30px rgba(46, 242, 255, 0.05);
+    box-shadow: 0 0 40px rgba(255, 63, 164, 0.18), inset 0 0 30px rgba(46, 242, 255, 0.05); --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet h1, .sheet h2 { margin: 0 0 12px; font-family: var(--hud); font-weight: normal; letter-spacing: 0.04em; }
 .sheet h2 { color: var(--pink); text-shadow: 0 0 10px rgba(255, 63, 164, 0.6); }
@@ -283,6 +283,10 @@ td:first-child { color: var(--cyan); white-space: nowrap; }
     #objective { font-size: 11px; }
 }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #11071c; border-top: 1px solid rgba(255, 80, 200, 0.35); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #11071c; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #11071c; }
 

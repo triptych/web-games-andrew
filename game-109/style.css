@@ -100,7 +100,7 @@ b { color: var(--gold); font-weight: normal; }
     width: min(440px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 2px solid var(--line); border-radius: 4px; padding: 18px;
     box-shadow: 0 0 24px rgba(41, 229, 255, 0.25);
-    scrollbar-width: thin; scrollbar-color: #29e5ff44 transparent;
+    scrollbar-width: thin; scrollbar-color: #29e5ff44 transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet h2 { margin: 0 0 12px; color: var(--cyan); font-size: 15px; text-transform: uppercase; letter-spacing: 0.06em; }
 .sheet h3 { margin: 14px 0 6px; color: var(--gold); font-size: 11px; text-transform: uppercase; }
@@ -205,11 +205,15 @@ td:first-child { color: var(--gold); white-space: nowrap; width: 1%; padding-rig
 }
 @media (max-height: 520px) {
     .screen { padding-top: calc(44px + var(--safe-t)); }
-    .sheet { padding: 12px; }
+    .sheet { padding: 12px; --sheet-pt: 12px; --sheet-px: 12px; --sheet-pb: 12px; }
     .menu { gap: 6px; }
     .tagline { margin: 4px 0 8px; }
 }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #07061a; border-top: 1px solid rgba(41, 229, 255, 0.55); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #07061a; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #07061a; }
 

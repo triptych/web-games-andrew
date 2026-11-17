@@ -77,7 +77,7 @@ img.px, .px { image-rendering: pixelated; image-rendering: crisp-edges; }
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    scrollbar-width: thin; scrollbar-color: rgba(255, 207, 90, 0.5) transparent;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 207, 90, 0.5) transparent; --sheet-pt: 16px; --sheet-px: 16px; --sheet-pb: 16px;
 }
 .sheet::-webkit-scrollbar { width: 8px; }
 .sheet::-webkit-scrollbar-track { background: transparent; margin: 14px 0; }
@@ -243,7 +243,7 @@ button.res:focus-visible .pill { outline: 3px solid var(--gold); outline-offset:
 .village .btn:not(.primary) { background: rgba(14, 9, 24, 0.9); }
 
 /* panels */
-.panel-sheet { padding-top: 10px; }
+.panel-sheet { padding-top: 10px; --sheet-pt: 10px; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; position: sticky; top: -10px; background: #181226; padding: 4px 0 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line); z-index: 2; }
 .panel-head h2 { margin: 0; }
 .npc { display: flex; gap: 10px; align-items: center; background: var(--panel2); border-radius: 10px; padding: 8px; margin-bottom: 10px; }
@@ -400,7 +400,9 @@ button.res:focus-visible .pill { outline: 3px solid var(--gold); outline-offset:
 .forge.calm .hammer, .forge.calm .sparks { display: none; }
 @media (prefers-reduced-motion: reduce) { .forge .item, .forge .hammer, .forge .sparks i, .forge.done .item, .forge.done .plus, .forge.done .flash { animation: none; } .forge .hammer, .forge .sparks { display: none; } .forge .glow { animation: none; opacity: 0.6; } }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
-
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #171125; border-top: 1px solid rgba(255, 220, 160, 0.22); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #171125; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #171125; }

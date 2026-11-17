@@ -78,7 +78,7 @@ body.retro #vignette { background: radial-gradient(ellipse at 50% 45%, transpare
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--edge); border-radius: 10px; padding: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), inset 0 0 0 3px rgba(0, 0, 0, 0.35);
-    scrollbar-width: thin; scrollbar-color: var(--edge-dim) transparent;
+    scrollbar-width: thin; scrollbar-color: var(--edge-dim) transparent; --sheet-pt: 16px; --sheet-px: 16px; --sheet-pb: 16px;
 }
 .sheet.wide { width: min(760px, 100%); }
 .sheet::-webkit-scrollbar { width: 8px; }
@@ -345,7 +345,10 @@ body.inbattle #pad, body.inbattle #hud-prompt, body.inbattle #hud-buttons { disp
     #battle-log { left: 25%; top: auto; bottom: calc(var(--party-h) + 8px + var(--safe-b)); min-width: 0; max-width: 46%; font-size: 13px; }
 }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #0d0b12; border-top: 1px solid rgba(214, 178, 106, 0.55); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #0d0b12; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #0d0b12; }
 

@@ -243,7 +243,7 @@ button { font: inherit; }
     background: var(--panel); border: 2px solid #2a1238; border-radius: 18px; padding: 18px;
     box-shadow: 0 0 0 3px rgba(255, 160, 210, 0.25), 0 20px 40px rgba(0, 0, 0, 0.5);
     animation: pop 0.22s ease-out;
-    scrollbar-width: thin; scrollbar-color: rgba(255, 180, 220, 0.4) transparent;
+    scrollbar-width: thin; scrollbar-color: rgba(255, 180, 220, 0.4) transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 8px; }
 .sheet::-webkit-scrollbar-thumb { background: rgba(255, 180, 220, 0.35); border-radius: 4px; }
@@ -446,7 +446,10 @@ body.short .salon-wish { padding: 6px 8px; }
 body.short .salon-wish, body.short .salon-tabs, body.short .salon-tools, body.short .salon-pal { grid-column: 1; }
 body.short .salon-wish::after { display: none; }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #1d132c; border-top: 1px solid rgb(42, 18, 56); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #1d132c; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #1d132c; }
 

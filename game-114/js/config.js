@@ -1,7 +1,7 @@
 // LAST COLONIST — tuning and constants. Shared by the sim, the view and the tests.
 // World units are tiles: 1 unit = 1 tile = 16 sprite pixels. y grows upwards.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'last-colonist.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

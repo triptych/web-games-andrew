@@ -233,7 +233,7 @@ body.playing #back-link { display: none; }
 
 .screen { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: calc(12px + var(--safe-t)) 12px calc(12px + var(--safe-b));
     background: radial-gradient(ellipse at center, rgba(10,6,3,0.55), rgba(10,6,3,0.85)); overflow-y: auto; touch-action: pan-y; }
-.panel { position: relative; width: min(460px, 100%); max-height: 100%; overflow-y: auto; padding: 22px 20px 20px; border-radius: 18px; background: var(--panel);
+.panel { position: relative; width: min(460px, 100%); max-height: 100%; overflow-y: auto; padding: 22px 20px 20px; --pad-t: 22px; --pad-x: 20px; --pad-b: 20px; border-radius: 18px; background: var(--panel);
     border: 2px solid var(--edge); box-shadow: 0 0 0 4px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; gap: 10px; touch-action: pan-y; }
 .panel.wide { width: min(860px, 100%); }
 .panel h2 { font: 700 26px var(--disp); letter-spacing: 1.5px; color: var(--gold); text-align: center; text-shadow: 0 2px 0 #000; }
@@ -351,7 +351,7 @@ body.playing #back-link { display: none; }
     #prep-panel { padding: 8px 10px 10px; gap: 4px; }
     #prep-wave { font-size: 17px; }
     .foe-chip { width: 38px; height: 38px; }
-    .panel { padding: 18px 14px 14px; }
+    .panel { padding: 18px 14px 14px; --pad-t: 18px; --pad-x: 14px; --pad-b: 14px; }
     .panel h2 { font-size: 21px; }
     .relic { width: 46%; min-width: 140px; }
 }
@@ -392,3 +392,18 @@ body.playing #back-link { display: none; }
     #toast { bottom: calc(80px + var(--safe-b)); }
     .banner { font-size: 28px; }
 }
+
+/* A long panel scrolls, but its header (title and ✕), its tabs and its closing buttons don't:
+   they are pinned to the panel's top and bottom edges over an opaque strip. */
+.panel > .panel-head, .panel > .panel-top {
+    position: sticky; top: calc(-1 * var(--pad-t)); z-index: 3;
+    margin: calc(-1 * var(--pad-t)) calc(-1 * var(--pad-x)) 0; padding: var(--pad-t) var(--pad-x) 8px; background: #170f09;
+}
+.panel > .panel-head { padding-right: calc(var(--pad-x) + 40px); }
+.panel-top { display: flex; flex-direction: column; gap: 10px; }
+.panel-foot {
+    position: sticky; bottom: calc(-1 * var(--pad-b)); z-index: 3; display: flex; flex-direction: column; gap: 10px;
+    margin: 0 calc(-1 * var(--pad-x)) calc(-1 * var(--pad-b)); padding: 10px var(--pad-x) var(--pad-b);
+    background: #170f09; border-top: 1px solid rgba(154, 116, 66, 0.4);
+}
+.panel-foot:not(:has(> :not(.hidden))) { display: none; }

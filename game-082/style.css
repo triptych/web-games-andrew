@@ -146,7 +146,7 @@ button { font-family: inherit; }
 .sheet {
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px;
-    box-shadow: 0 0 40px rgba(127, 232, 255, 0.12), 0 10px 40px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 0 40px rgba(127, 232, 255, 0.12), 0 10px 40px rgba(0, 0, 0, 0.6); --sheet-pt: 18px; --sheet-px: 20px; --sheet-pb: 18px;
 }
 .title-sheet { background: rgba(10, 12, 32, 0.78); backdrop-filter: blur(3px); }
 .sheet h1, .sheet h2 { margin: 0 0 12px; }
@@ -196,6 +196,10 @@ td:first-child { color: var(--gold); white-space: nowrap; padding-right: 12px; }
     #hud-letters span { width: 16px; height: 16px; font-size: 9px; }
 }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #0b0d20; border-top: 1px solid rgba(127, 232, 255, 0.28); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #0b0d20; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #0b0d20; }
 
