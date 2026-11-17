@@ -408,3 +408,10 @@ body.touch #h-rex { bottom: calc(120px + var(--safe-b)); }
     #dlg-portrait { width: 96px; height: 96px; }
     .dlg-body { min-height: 0; padding: 10px 14px; }
 }
+
+/* A long modal or results panel scrolls, but its buttons (Back, Pull off, Continue) stay pinned to the bottom edge. */
+:is(#modal-panel, #results-panel) .actions {
+    position: sticky; bottom: -22px; z-index: 3;
+    margin: 18px -22px -22px; padding: 12px 22px 22px;
+    background: #1b1410; border-top: 1px solid var(--edge);
+}

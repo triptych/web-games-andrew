@@ -26,7 +26,7 @@ body.in-hole #back-link { display: none; }
     background: linear-gradient(180deg, var(--parch) 0%, var(--parch2) 100%);
     border: 3px solid var(--ink); border-radius: 18px;
     box-shadow: 0 0 0 3px var(--gold), 0 0 0 6px var(--ink), 0 10px 30px rgba(20, 0, 30, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.8);
-    padding: 18px 20px;
+    padding: 18px 20px; --pad-y: 18px; --pad-x: 20px;
 }
 .panel.slim { padding: 6px 12px; border-radius: 12px; border-width: 2px; box-shadow: 0 0 0 2px var(--gold), 0 0 0 4px var(--ink), 0 4px 12px rgba(20, 0, 30, 0.35); }
 h2 { font-family: var(--title); font-size: 22px; color: var(--plum2); letter-spacing: 0.5px; }
@@ -238,7 +238,7 @@ body.touch .aim-pad { display: block; }
 /* ---------------------------------------------------------------- phones */
 /* portrait phones: 390 px wide budget → minimap off, lie line above the meter, swing button bottom-right */
 @media (max-width: 700px) {
-    .panel { padding: 14px; }
+    .panel { padding: 14px; --pad-y: 14px; --pad-x: 14px; }
     h2 { font-size: 19px; }
     #minimap { width: 96px; height: 134px; top: calc(118px + var(--safe-t)); }
     .hud-tl { font-size: 12px; max-width: 52vw; padding: 4px 8px; }
@@ -285,4 +285,11 @@ body.touch .aim-pad { display: block; }
     .toast-wrap { top: calc(64px + var(--safe-t)); width: min(520px, calc(100vw - 460px)); left: calc(50% - 40px); }
     .toast { font-size: 13px; }
     .btn.swing { font-size: 16px; }
+}
+
+/* A long result, pause, settings or confirm panel scrolls, but its buttons stay pinned to the bottom edge. */
+:is(.result-panel, .pause-panel, .settings-panel, .confirm-panel) > .row-buttons {
+    position: sticky; bottom: calc(-1 * var(--pad-y)); z-index: 3;
+    margin: 0 calc(-1 * var(--pad-x)) calc(-1 * var(--pad-y)); padding: 10px var(--pad-x) var(--pad-y);
+    background: var(--parch2); border-top: 2px solid rgba(42, 26, 42, 0.25);
 }

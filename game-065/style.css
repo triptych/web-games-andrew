@@ -407,3 +407,10 @@ textarea { width: 100%; margin-top: 8px; background: rgba(0, 0, 0, 0.35); color:
     #toasts { top: auto; bottom: 10px; }
     #lore-banner { right: var(--panel-w); top: 30%; }
 }
+
+/* A long modal scrolls, but its buttons stay pinned to the bottom edge. */
+.modal-card > #modal-buttons {
+    position: sticky; bottom: -20px; z-index: 3;
+    margin: 12px -20px -20px; padding: 12px 20px 20px;
+    background: #08161a; border-top: 1px solid rgba(255, 210, 122, 0.25);
+}
