@@ -24,6 +24,20 @@ It passed `dev/smoketest.mjs` for all 71 games, desktop and phone, and a headles
   - Put the filler inside a nested foot's wrapper (game-139's story card, game-085's naming form).
 - [ ] **Dialogs built entirely in JavaScript.** The sweep only sees dialogs already in the page. Those found by reading the code were fixed (game-063, 065, 069, 072, 087). Any other game that creates a dialog element when it opens should be opened once in play and checked by hand.
 
+## Common core (`lib/core`)
+
+The shared library and its audit are in [lib/core/README.md](lib/core/README.md) and [docs/common-core.md](docs/common-core.md) (PR #368). No game uses it yet. Every game must stay standalone for itch.io: import from `/lib` (the exporter copies it into the zip) or copy the file into the game, and never add an npm or CDN dependency.
+
+- [ ] **Switch the scaffold to `lib/core`.** In `.claude/commands/scaffold-game.md` §2S, replace the templates for `js/rng.js`, `js/save.js`, `js/input.js` and the audio plumbing with imports from `lib/core`. Use `makeRng(seed, { hashSeed: true })` in new games. Rerun the scaffold's own `simtest`, `browsertest` and `dev/smoketest.mjs` on an untouched scaffold, and export it with `dev/itch/export.mjs` to confirm the zip runs on its own.
+- [ ] **Check the Space-on-button input fix (game-078).** These `input.js` copies call `preventDefault` on Space without exempting a focused `<button>`, so Space may not press a focused menu button: 031, 035, 041, 042, 045, 046, 054, 055, 059, 060, 061, 062, 063, 066, 069, 070, 071, 073, 074, 075, 100. Test each one. Where the bug shows, switch to `lib/core/input.js` or patch the copy, and bump the patch version.
+- [ ] **Bring the iOS audio fixes to the other games.** Only game-100 loops a silent `<audio>` (so iOS plays Web Audio with the ringer on silent) and resumes an `interrupted` context after a phone call. Check a few games on an iPhone with the ringer switch on silent. If they are mute, extend `AudioCore` or copy `unlockMedia()` and the `statechange` handler.
+- [ ] **Migrate existing games one at a time, only when a game is opened for other work.** Use `node dev/core/simtest.mjs` to see which copies are drop-in (same random numbers, so seeds and saves survive). Not drop-in: `makeRng` in 045–050, 056 and 057; `hash3` in 129; `vnoise`/`fbm` in 063, 069 and 073. Run the game's own tests, and bump its patch version (`js/config.js`, `js/gamedata.js`, `CHANGELOG.md`, `status.md`).
+- [ ] **Shared dev-harness helpers.** Most games' `dev/*.mjs` define the same `check`, `until`, `shot`, `backLinkOk`, `reportErrors`, `nostorage` and `tapSel`, plus the SwiftShader launch and the unpkg/Google Fonts routing. Move them into `dev/lib/harness.mjs`. It is dev-only, so the itch rule doesn't apply.
+- [ ] **`lib/three/` view helpers.** Canvas-texture builders (73 games), the bloom chain (48) and toon/ink passes (6). Pass `THREE` in as an argument, as `lib/round-bloom.js` takes its pass, so `lib/core` stays free of three.js and each game keeps its own import map.
+- [ ] **CRT pass and bitmap font.** game-075 and game-092 share a byte-identical `view/font.js` and two 169-line `crt.js` files (game-084 has its own CRT pass). Extract them the next time a game wants that look.
+- [ ] **Menu screen stack.** About 60 games have their own `openScreen`/`closeScreen` with focus moves and Escape handling. This needs a shared markup contract first (`.screen`, `data-act` buttons, `#toasts`), then a `lib/core/screens.js`.
+- [ ] **Keep `lib/core` honest.** When a game finds a bug in a module, fix it in `lib/core`, add a test to `dev/core/simtest.mjs` or `browsertest.mjs`, and list the games whose own copies still have the bug here.
+
 ## Accessibility
 
 The shared baseline is `lib/a11y.js` (PR #131). What is left is per-game work.
