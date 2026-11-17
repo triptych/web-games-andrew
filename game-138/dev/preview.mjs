@@ -27,7 +27,7 @@ if (PKG) {
 }
 await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 await page.goto(`${BASE}/game-138/index.html?debug=1${HASH}`, { waitUntil: 'domcontentloaded' });
-await page.waitForFunction(() => window.__lh, null, { timeout: 90000 });
+await page.waitForFunction(() => window.__lh && document.getElementById('loading').classList.contains('done'), null, { timeout: 120000 });
 await page.waitForFunction(async () => (await import('./js/view/models.js')).modelState.ready, null, { timeout: 90000, polling: 500 });
 await page.evaluate(async (R) => {
     __lh.ui.closeScreen('title');

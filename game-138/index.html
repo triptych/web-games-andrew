@@ -47,6 +47,18 @@
 
     <canvas id="view" aria-label="Lanternhollow dungeon view"></canvas>
 
+    <!-- Shown from the first paint, before any script: the dungeon takes a few seconds to grow and paint -->
+    <div id="loading" role="status" aria-live="polite">
+        <div class="load-card">
+            <div class="load-lamp" aria-hidden="true">🏮</div>
+            <div class="load-title">Lanternhollow</div>
+            <div class="load-bar" aria-hidden="true"><div id="load-fill"></div></div>
+            <div id="load-step">Fetching the lanterns…</div>
+            <div id="load-detail"></div>
+        </div>
+    </div>
+    <div id="busy" hidden><span class="busy-dot" aria-hidden="true"></span><span id="busy-text">Growing…</span></div>
+
     <!-- ============================================================ the builder -->
     <header id="top" class="build-only">
         <div class="brand">
@@ -151,7 +163,7 @@
     </div>
 
     <!-- ============================================================ sheets -->
-    <div id="title" class="screen">
+    <div id="title" class="screen" hidden>
         <div class="sheet welcome">
             <div class="welcome-lamp" aria-hidden="true">🏮</div>
             <h1 class="logo">Lanternhollow</h1>

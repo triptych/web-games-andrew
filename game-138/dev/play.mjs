@@ -36,7 +36,7 @@ await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 2
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text()); });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 await page.goto(`${BASE}/game-138/index.html?debug=1${process.env.Q || ''}${process.env.H || ''}`);
-await page.waitForFunction(() => window.__lh, null, { timeout: 90000 });
+await page.waitForFunction(() => window.__lh && document.getElementById('loading').classList.contains('done'), null, { timeout: 120000 });
 if (code) {
     const out = await page.evaluate(`(async () => { ${code} })()`);
     if (out !== undefined) console.log(JSON.stringify(out, null, 1));

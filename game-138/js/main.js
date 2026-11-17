@@ -19,6 +19,7 @@ import { stampProblem } from './sim/features.js';
 import { TILES } from './sim/tiles.js';
 import { ELEMENTS } from './sim/data/elements.js';
 import { makeRng } from './rng.js';
+import { onProgress, pending, progressState } from './progress.js';
 
 const params0 = new URLSearchParams(location.search);
 const DEBUG = params0.get('debug') === '1';
@@ -38,6 +39,17 @@ canvas.tabIndex = 0;
 const input = new Input(canvas);
 const view = new View(canvas);
 
+// ------------------------------------------------------------------ the loading screen (it is in the HTML already)
+const nextPaint = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function setLoad(step, frac, detail = '') {
+    if (step) $('load-step').textContent = step;
+    if (frac !== undefined) $('load-fill').style.width = `${Math.round(Math.max(0.05, Math.min(1, frac)) * 100)}%`;
+    $('load-detail').textContent = detail;
+}
+setLoad('Growing the dungeon…', 0.1, 'wave function collapse, one level at a time');
+await nextPaint();
+
 // ------------------------------------------------------------------ the dungeon
 const shared = decode(location.hash);
 let G = newGame(shared || loadParams() || { seed: freshSeed() });
@@ -50,7 +62,7 @@ let acc = 0, time = 0, last = performance.now(), wasRunning = false, hintT = 0;
 
 const ui = new UI({
     audio, settings,
-    onParams: (fn, label) => applyParams(fn, label),
+    onParams: (fn, label) => queueApply(fn, label),
     onLevel: (k) => setLevel(k),
     onTool: () => { view.setCursor(null); hoverAt(lastHover); },
     onSettings: (s) => {
@@ -76,6 +88,23 @@ view.setDungeon(G.d, G.params, 0);
 view.setParallax(settings.pom);
 ui.sync(G.params, G.d, cur);
 writeHash();
+
+/** The small chip that says the dungeon is regrowing or new stone is being painted. */
+let growing = false;
+function updateBusy() {
+    const tex = pending('textures');
+    const show = growing || (tex > 0 && $('loading').classList.contains('done'));
+    $('busy').hidden = !show;
+    if (show) $('busy-text').textContent = growing ? 'Growing the dungeon…' : `Painting new stone… ${tex} to go`;
+}
+/** Apply a workbench change after the busy chip has had a frame to appear (the rebuild itself is synchronous). */
+function queueApply(fn, label) {
+    growing = true;
+    updateBusy();
+    requestAnimationFrame(() => setTimeout(() => {
+        try { applyParams(fn, label); } finally { growing = false; updateBusy(); }
+    }, 0));
+}
 
 function writeHash() {
     const h = '#' + encode(G.params);
@@ -187,7 +216,7 @@ function tapAt(x, y) {
         if (fam === 'stairsUp' || fam === 'stairsDown') { audio.ui('nope'); ui.toast('The stairs stay where they are.'); return; }
         const had = G.params.pins.find((p) => p.l === cur && p.x === c.cx && p.y === c.cy);
         audio.ui('paint');
-        applyParams((p) => {
+        queueApply((p) => {
             p.pins = p.pins.filter((q) => !(q.l === cur && q.x === c.cx && q.y === c.cy));
             if (!had || had.b !== ui.brush) p.pins.push({ l: cur, x: c.cx, y: c.cy, b: ui.brush });
         }, '');
@@ -195,7 +224,7 @@ function tapAt(x, y) {
         const why = stampProblem(L, c.mx, c.my, ui.stamp);
         if (why) { audio.ui('nope'); ui.toast(`Can’t place that here: ${why}.`); return; }
         audio.ui('stamp');
-        applyParams((p) => {
+        queueApply((p) => {
             p.erased = p.erased.filter((e) => !(e.l === cur && e.x === c.mx && e.y === c.my));
             p.stamps.push({ l: cur, x: c.mx, y: c.my, k: ui.stamp });
         }, '');
@@ -203,7 +232,7 @@ function tapAt(x, y) {
         const fs = featuresAt(L, c.mx, c.my);
         if (!fs.length) { audio.ui('nope'); return; }
         audio.ui('erase');
-        applyParams((p) => {
+        queueApply((p) => {
             for (const f of fs) {
                 const before = p.stamps.length;
                 p.stamps = p.stamps.filter((e) => !(e.l === cur && e.x === f.mx && e.y === f.my));
@@ -421,9 +450,35 @@ if (shared) {
     menu.querySelector('[data-act="build"]').classList.remove('primary');
     menu.querySelector('[data-act="build"]').textContent = 'Open the workbench';
 }
-ui.openScreen('title');
-
-requestAnimationFrame((t) => { last = t; frame(t); });
+/** Wait for the textures and the models (with a progress bar), compile the shaders, then lift the curtain. */
+async function finishBoot() {
+    setLoad('Painting the stone…', 0.2);
+    const t0 = performance.now();
+    const show = () => {
+        const tx = progressState.textures || { total: 0, done: 0 }, md = progressState.models || { total: 0, done: 0 };
+        const frac = 0.2 + 0.5 * (tx.total ? tx.done / tx.total : 1) + 0.2 * (md.total ? md.done / md.total : 1);
+        const step = pending('textures') ? 'Painting the stone…' : 'Waking the residents…';
+        setLoad(step, frac, `${tx.done} of ${tx.total} stones painted · ${md.done} of ${md.total} residents awake`);
+    };
+    const off = onProgress(show);
+    show();
+    // models are nice to have on the first frame but never worth more than a short wait
+    while ((pending('textures') && performance.now() - t0 < 60000) || (pending('models') && performance.now() - t0 < 15000)) await sleep(100);
+    off();
+    setLoad('Lighting the lanterns…', 0.95, 'warming up the shaders');
+    await nextPaint();
+    try { await Promise.race([view.renderer.compileAsync(view.scene, view.camera), sleep(8000)]); } catch { /* compiled on the first frame instead */ }
+    requestAnimationFrame((t) => { last = t; frame(t); });
+    await nextPaint();
+    await nextPaint();
+    setLoad(null, 1);
+    $('loading').classList.add('done');
+    if (DEBUG) window.__lhBootMs = Math.round(performance.now());
+    setTimeout(() => { $('loading').hidden = true; }, 700);
+    onProgress(updateBusy);
+    ui.openScreen('title');
+}
+finishBoot();
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)
 if (DEBUG) {
