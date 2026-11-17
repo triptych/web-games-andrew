@@ -14,7 +14,7 @@ import { ListView, DetailView, CoverFlowView, SearchView, TextView, gameArt, gam
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.2.0';
+export const CONSOLE_VERSION = '1.3.0';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -25,6 +25,8 @@ const standalone = () => matchMedia('(display-mode: standalone)').matches || mat
 const ALL = games.filter((g) => g && g.id && g.folder);
 const NEWEST = [...ALL].sort((a, b) => gameNo(b) - gameNo(a));
 const ALPHA = [...ALL].sort((a, b) => sortKey(a).localeCompare(sortKey(b)) || gameNo(a) - gameNo(b));
+/** How many games Recently Updated lists. */
+const UPDATED_COUNT = 30;
 const byId = new Map(ALL.map((g) => [g.id, g]));
 const GENRE_GROUPS = GENRES.map((genre) => ({ genre, games: NEWEST.filter((g) => genreOf(g).id === genre.id) })).filter((x) => x.games.length);
 const genreText = (g) => {
@@ -55,6 +57,8 @@ class App {
         this.lcd = $('lcd');
         this.base = location.pathname + location.search;
         this.lastPointer = 'mouse';
+        /** When each game was added and last changed: null while loading, {} if it can't be read. */
+        this.updates = null;
 
         $('model').textContent = `PG-${ALL.length}`;
         $('boot-count').textContent = ALL.length;
@@ -64,6 +68,7 @@ class App {
         this.bindScreen();
         this.bindChrome();
         this.initBattery();
+        this.loadUpdates();
 
         const deep = decodeURIComponent(location.hash.slice(1));
         history.replaceState({ d: 1 }, '', this.base);
@@ -107,7 +112,7 @@ class App {
     /**
      * Open what a link asks for: a game's cartridge (#game-135), or one of
      * the app's home-screen shortcuts (#search, #favorites, #shuffle, #new,
-     * #genres, #cover). Returns whether it opened anything.
+     * #updated, #genres, #cover). Returns whether it opened anything.
      */
     route(hash, { animate = true } = {}) {
         const g = byId.get(hash);
@@ -120,6 +125,7 @@ class App {
             favorites: () => this.push(this.favoritesView(), { animate }),
             recent: () => this.push(this.recentView(), { animate }),
             new: () => this.push(this.gamesList('New Arrivals', NEWEST), { animate }),
+            updated: () => this.push(this.updatedView(), { animate }),
             genres: () => this.push(this.genresView(), { animate }),
             cover: () => this.push(new CoverFlowView(this, { list: ALPHA, index: 0 }), { animate }),
             shuffle: () => this.shuffle(),
@@ -174,6 +180,7 @@ class App {
             'icons/icon-192.png',
             'icons/apple-touch-icon.png',
             '../js/gamedata.js',
+            '../js/updates.json',
             '../garden/js/genres.js',
             '../lib/pwa.js',
             document.querySelector('link[href*="fonts.googleapis"]')?.href,
@@ -736,8 +743,33 @@ class App {
         return this.store.recent.map((r) => byId.get(r.id)).filter(Boolean);
     }
 
+    /**
+     * js/updates.json says when each game was added and when its version last
+     * changed (dev/make-updates.mjs reads it from git; the Pages deploy
+     * rebuilds it on every push). Without it the menu just says so.
+     */
+    loadUpdates() {
+        fetch('../js/updates.json', { cache: 'no-cache' })
+            .then((r) => (r.ok ? r.json() : Promise.reject(new Error(r.status))))
+            .then((d) => (d && typeof d.games === 'object' ? d.games : {}))
+            .catch(() => ({}))
+            .then((games) => {
+                this.updates = games ?? {};
+                for (const v of this.stack) if (v.updatesDriven) v.refresh();
+            });
+    }
+
+    /** The most recently updated (or added) games, newest first. */
+    updatedGames(n = UPDATED_COUNT) {
+        return Object.entries(this.updates ?? {})
+            .map(([id, u]) => ({ g: byId.get(id), t: Date.parse(u?.updated), isNew: !!u && u.added === u.updated }))
+            .filter((x) => x.g && Number.isFinite(x.t))
+            .sort((a, b) => b.t - a.t || gameNo(b.g) - gameNo(a.g))
+            .slice(0, n);
+    }
+
     homeView() {
-        return new ListView(this, {
+        const home = new ListView(this, {
             title: 'Pocket Garden',
             preview: 'hero',
             favDriven: true,
@@ -751,6 +783,7 @@ class App {
             getItems: () => {
                 const favs = this.favGames();
                 const recent = this.recentGames();
+                const updated = this.updatedGames();
                 return [
                     {
                         label: 'All Games',
@@ -764,6 +797,16 @@ class App {
                         icon: ICONS.new,
                         hero: { pool: () => NEWEST.slice(0, 8), caption: 'Newest games first' },
                         action: () => this.push(this.gamesList('New Arrivals', NEWEST)),
+                    },
+                    {
+                        label: 'Recently Updated',
+                        icon: ICONS.updated,
+                        hero: {
+                            pool: () => updated.slice(0, 8).map((x) => x.g),
+                            glyph: ICONS.updated,
+                            caption: updated.length ? `Latest: ${updated[0].g.title}${updated[0].g.version ? ` v${updated[0].g.version}` : ''}` : 'Fresh versions, newest first',
+                        },
+                        action: () => this.push(this.updatedView()),
                     },
                     {
                         label: 'Genres',
@@ -802,6 +845,8 @@ class App {
                 ].filter(Boolean);
             },
         });
+        home.updatesDriven = true;
+        return home;
     }
 
     gamesList(title, list, { az = false } = {}) {
@@ -841,6 +886,25 @@ class App {
             getItems: () => this.store.recent.filter((r) => byId.has(r.id)).map((r) => ({ game: byId.get(r.id), meta: timeAgo(r.t) })),
             empty: `<div class="empty-art">${ICONS.recent}</div><p><b>Nothing played yet.</b></p><p>Games you start from the console show up here, newest first.</p>`,
         });
+    }
+
+    updatedView() {
+        const view = new ListView(this, {
+            title: 'Recently Updated',
+            preview: 'game',
+            getItems: () => {
+                view.empty = this.updates
+                    ? `<div class="empty-art">${ICONS.updated}</div><p><b>No update dates here.</b></p><p>The list of when each game changed (js/updates.json) didn't load. New Arrivals still has the newest games.</p>`
+                    : '<p>Loading…</p>';
+                return this.updatedGames().map(({ g, t, isNew }) => {
+                    const what = isNew ? 'New' : 'Updated';
+                    const v = g.version ? ` v${g.version}` : '';
+                    return { game: g, subHTML: esc(`${what}${v}`), meta: timeAgo(t), say: `${g.title}, ${what.toLowerCase()}${v ? `, version ${g.version}` : ''}, ${timeAgo(t)}` };
+                });
+            },
+        });
+        view.updatesDriven = true;
+        return view;
     }
 
     settingsView() {

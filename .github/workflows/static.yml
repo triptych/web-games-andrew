@@ -32,6 +32,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # the whole history (but only today's files) so make-updates.mjs can
+          # see when each game's version changed
+          fetch-depth: 0
+          filter: blob:none
+      - name: Date the game updates
+        # js/updates.json feeds Pocket Garden's Recently Updated menu. If this
+        # fails, the copy committed in the repo ships instead.
+        run: node dev/make-updates.mjs || echo "::warning::make-updates failed; deploying the committed js/updates.json"
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Prepare Pages artifact
