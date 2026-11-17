@@ -1,0 +1,18 @@
+{
+ "flip": [0.6, "A single playing card flipped over on a wooden table, one crisp papery snap"],
+ "deal": [0.6, "A single playing card slid quickly across a wooden tavern table, a soft swish"],
+ "settle": [0.9, "Two playing cards laid together on a wooden table with a soft warm wooden tap and a tiny bright bell chime"],
+ "cut": [0.8, "A small dagger drawn from a sheath and one sharp swift slash through paper"],
+ "hit": [0.7, "A heavy fist thumping down on a wooden table, mugs rattling"],
+ "block": [0.6, "A thick wooden tankard set down firmly on a table, one solid thud"],
+ "heal": [1.0, "Ale poured from a jug into a pewter mug, a short gentle glug and fizz"],
+ "coins": [0.7, "A few coins dropped into a glass tip jar, bright clinks"],
+ "shuffle": [1.2, "A deck of playing cards riffle shuffled once and bridged"],
+ "lock": [0.6, "A small iron padlock snapping shut, a heavy click"],
+ "grudge": [1.2, "An ominous low muted bell with a faint breathy whisper, like a bad memory returning"],
+ "cleared": [2.5, "A short cheerful medieval tavern victory flourish: a lute strum, a tin whistle trill and a small crowd cheering and banging mugs"],
+ "defeat": [2.5, "A short sad descending fiddle phrase ending with a dagger thudding into wood"],
+ "door": [1.5, "A heavy tavern door creaking open and a small brass bell above it jingling"],
+ "pour": [1.0, "A mug of ale poured out onto wooden floorboards, a short splash"],
+ "build": [1.2, "A carpenter hammering three quick nails and one satisfied knock on wood"]
+}
