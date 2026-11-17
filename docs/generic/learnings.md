@@ -966,6 +966,67 @@ Every game must include a small "← Games" link back to the repo's root launche
 - Engine-agnostic: this is plain HTML/CSS in `index.html`, so it works identically for Kaplay, Phaser, and Three.js games without touching engine scene code.
 - If a game already has its own styled back link, keep one link, not two, and check it is **on screen**, not just that its path resolves. game-031's link sat under a 900 px cabinet, below the fold on a laptop, so it is now pinned to the corner like everyone else's. `dev/smoketest.mjs` checks every game's link is visible and not covered.
 
+### 6. Dialogs: the Buttons and Tabs Never Scroll ⚠️ REQUIRED (All Games)
+
+**Symptom:** a dialog (the cauldron's Learn list, a shop, a codex, a journal, How to Play, even Settings on a
+landscape phone) is taller than the screen. Its **Done / OK / Close / Continue** button is below the fold, so the
+player has to scroll to find the way out. Or the dialog has **tabs or a ✕ at the top**, and they scroll away
+as soon as the player reads down the page. This was reported by the owner on game-027's cauldron. A sweep then found it in
+about 80 games: the whole card had `max-height: 100%; overflow-y: auto`, with its title, tabs, list and buttons all
+inside the one scroller.
+
+**Rule:** only the middle of a dialog scrolls. Its tab bar (and a ✕ or header) stays at the top edge, and its
+action row stays at the bottom edge, at every viewport down to a 390 × 664 phone and an 844 × 390 landscape phone.
+This holds even when the content is short today, because shops, logs and codices grow.
+
+**Two ways that work** (pick one per game, and use it for every dialog):
+
+1. **Header / body / foot** (best for new games): the card is a flex column that never scrolls. Only the body does.
+   game-047, game-076 and game-101 do this.
+   ```css
+   .card { display: flex; flex-direction: column; max-height: 100%; overflow: hidden; }
+   .card-head, .card-tabs, .card-foot { flex: none; }
+   .card-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+   ```
+2. **Sticky strips** (the retrofit, no markup change if the foot is already a direct child): the card still scrolls,
+   but the foot and tab bar are `position: sticky` and bleed to the card's edges over an **opaque** strip.
+   This is what the shared `.screen > .sheet` template uses (games 078–139):
+   ```css
+   .sheet { padding: 18px; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px; }   /* set the vars wherever padding is set, media queries too */
+   .sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5;
+       margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb));
+       padding: 10px var(--sheet-px) var(--sheet-pb); background: #1d130c; border-top: 1px solid var(--line); }
+   .sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5;
+       margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #1d130c; }
+   ```
+
+**Gotchas (each one cost a pass):**
+- **`bottom: 0` is not the edge.** A sticky child stops at the scroller's *padding* edge, so with `bottom: 0` the
+  text scrolls through the padding strip under the button. Use a negative offset equal to the padding, negative
+  margins to bleed to the sides, and the same padding inside the strip. Do the same with `top` for tabs.
+- **The strip must be opaque.** `var(--panel)` is usually `rgba(…, 0.9)`, and a `transparent → panel` gradient
+  shows the list scrolling under the button. Use the solid colour the card actually shows, measured in the browser:
+  `--panel` over the screen's scrim. A dark fallback such as `var(--panel, #141018)` painted a dark bar across the
+  light paper sheets of games 080, 089, 096, 098, 112, 118, 119 and 135, which have no `--panel`.
+- **Hard-coded offsets break in media queries.** Sixteen games shrink the sheet's padding on phones, so a `-18px`
+  bleed overhangs a 12px padding. It also makes the sheet scroll sideways, because `overflow-y: auto` makes
+  `overflow-x` auto too. Drive the offsets from variables set next to every `padding` declaration.
+- **Sticky only works inside its parent.** A foot wrapped in a short `<div>` (a text column, a form, a list
+  wrapper) only sticks within that wrapper. Make the foot a **direct child** of the scroller, or give the nested
+  case its own rule without the side bleed (`.sheet * > .sheet-foot`).
+- **A loose button can't be pinned nicely.** A `<button data-close>` as the last child of the card can be made
+  sticky, but the list shows on both sides of it. Wrap it in a foot element (`<div class="card-foot">`) and keep
+  its id, so the JS still finds it.
+- **A ✕ in an absolutely positioned header scrolls away with the content.** Make the header (and the tabs under it)
+  one sticky block (game-056's `.panel-top`), or make the ✕ itself sticky (game-064's help card).
+- **Don't pin a menu.** A title or pause screen that *is* a column of buttons doesn't need a foot. Neither does a
+  full-screen ending you read to the bottom.
+
+**Check it:** open every dialog at 390 × 664 and 1280 × 640, add 2000 px of filler before the foot, and assert
+that the foot's buttons are inside the card's visible rect at the top, that they are still there after
+`scrollTop = 1e6`, and that the tabs are still visible after that scroll. Use `document.elementFromPoint` to make
+sure nothing covers them.
+
 ---
 
 ## Code Organization

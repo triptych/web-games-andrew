@@ -93,7 +93,7 @@ html, body {
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
-    scrollbar-width: thin; scrollbar-color: rgba(224, 176, 80, 0.5) transparent;
+    scrollbar-width: thin; scrollbar-color: rgba(224, 176, 80, 0.5) transparent; --sheet-pt: 18px; --sheet-px: 20px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 10px; }
 .sheet::-webkit-scrollbar-track { background: transparent; margin: 14px 0; }
@@ -131,13 +131,17 @@ blockquote { margin: 0 0 10px; padding: 4px 0 4px 12px; border-left: 3px solid v
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
 
 @media (max-height: 460px) {
-    .sheet { padding: 12px 16px; }
+    .sheet { padding: 12px 16px; --sheet-pt: 12px; --sheet-px: 16px; --sheet-pb: 12px; }
     blockquote { font-size: 20px; }
 }
 
 /* the result sits low, so the client's journey stays visible on the map above it */
 #result { align-items: flex-end; background: rgba(12, 8, 5, 0.12); }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #221911; border-top: 1px solid rgba(232, 200, 140, 0.28); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #221911; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #221911; }
 

@@ -205,7 +205,7 @@ body.tall #quiz-answers, body.narrow.below #quiz-answers { grid-template-columns
 .sheet {
     width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 3px solid #8fa6ff; border-radius: 16px; padding: 18px;
-    scrollbar-width: thin; scrollbar-color: #8fa6ff transparent;
+    scrollbar-width: thin; scrollbar-color: #8fa6ff transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 8px; }
 .sheet::-webkit-scrollbar-thumb { background: #8fa6ff; border-radius: 8px; }
@@ -255,7 +255,14 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(-8px); } 10%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .tabs { position: sticky; top: 0; z-index: 5; background-color: var(--panel, rgba(20, 16, 24, 0.98)); }
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #11132d; border-top: 2px solid rgb(143, 166, 255); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #11132d; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #11132d; }
+#night .sheet > .sheet-foot { background: #0b0d1e; border-top: 2px solid rgb(143, 166, 255); }
+#night .sheet * > .sheet-foot { background: #0b0d1e; }
+#end .sheet > .sheet-foot { background: #fff8e2; border-top: 2px solid rgb(255, 210, 63); }
+#end .sheet * > .sheet-foot { background: #fff8e2; }
 

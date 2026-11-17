@@ -88,7 +88,7 @@ p { margin: 0 0 10px; }
     position: relative; width: min(460px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
     background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 18px;
     box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.55), 0 0 0 5px rgba(201, 164, 92, 0.22), 0 14px 50px rgba(0, 0, 0, 0.7);
-    scrollbar-width: thin; scrollbar-color: #6e5628 transparent;
+    scrollbar-width: thin; scrollbar-color: #6e5628 transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 8px; }
 .sheet::-webkit-scrollbar-thumb { background: #6e5628; border-radius: 4px; }
@@ -326,7 +326,7 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 /* short wide screens: menus get compact, two columns where it helps */
 @media (orientation: landscape) and (max-height: 560px) {
     .screen { padding-top: calc(48px + var(--safe-t)); padding-bottom: 6px; }
-    .sheet { padding: 10px 14px; }
+    .sheet { padding: 10px 14px; --sheet-pt: 10px; --sheet-px: 14px; --sheet-pb: 10px; }
     h2 { font-size: 18px; margin-bottom: 6px; }
     .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .crest, .tagline, .altar { display: none; }
@@ -355,7 +355,7 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 }
 @media (max-width: 520px) {
     #bh-chapter { display: none; }
-    .sheet { padding: 14px; }
+    .sheet { padding: 14px; --sheet-pt: 14px; --sheet-px: 14px; --sheet-pb: 14px; }
     h2 { font-size: 19px; }
     .pull { width: 92px; height: 138px; }
 }
@@ -367,6 +367,10 @@ body.calm .crest, body.calm .pull .back, body.calm .pull .front { animation-dura
 body.calm #flash { display: none; }
 @media (prefers-reduced-motion: reduce) { .crest { animation: none; } }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #0e0b13; border-top: 1px solid rgba(201, 164, 92, 0.38); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #0e0b13; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #0e0b13; }
 

@@ -82,7 +82,7 @@ html, body { margin: 0; padding: 0; height: 100%; background: var(--bg); color: 
 /* ---------------------------------------------------------------- screens */
 .screen { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; padding: calc(52px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l)); background: rgba(4, 6, 10, 0.5); overflow-y: auto; }
 #title { background: linear-gradient(90deg, rgba(4, 6, 10, 0.78), rgba(4, 6, 10, 0.1) 70%); justify-content: flex-start; }
-.sheet { width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) transparent; }
+.sheet { width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, 0.3) transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px; }
 .sheet.wide { width: min(560px, 100%); }
 #hangar { justify-content: flex-end; background: linear-gradient(270deg, rgba(4, 6, 10, 0.6), transparent 70%); } #hangar .sheet { background: rgba(10, 14, 22, 0.88); } .sheet.hero { width: min(780px, 100%); overflow: visible; max-height: none; background: transparent; border: 0; padding: 0 0 0 max(8px, 3vw); }   /* the wide display face overflowed the 480 px sheet and clipped the last D */
 .sheet h1, .sheet h2 { margin: 0 0 8px; font-family: var(--disp); letter-spacing: 0.06em; }
@@ -118,7 +118,7 @@ table { border-collapse: collapse; width: 100%; } td { padding: 5px 4px; border-
     #radar { width: 78px; height: 78px; }
     .stats { font-size: 16px; gap: 6px; }
     .logo { font-size: clamp(34px, 12vw, 60px); }
-    #title { justify-content: center; } .sheet.hero { padding: 0 8px; }
+    #title { justify-content: center; } .sheet.hero { padding: 0 8px; --sheet-pt: 0; --sheet-px: 8px; --sheet-pb: 0; }
     #radio { bottom: calc(150px + var(--safe-b)); }
 }
 @media (max-height: 460px) {
@@ -128,6 +128,10 @@ table { border-collapse: collapse; width: 100%; } td { padding: 5px 4px; border-
     .tag { display: none; } .logo { font-size: clamp(30px, 8vw, 46px); }
 }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #0b0f19; border-top: 1px solid rgba(255, 255, 255, 0.16); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #0b0f19; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #0b0f19; }
 

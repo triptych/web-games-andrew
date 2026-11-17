@@ -274,3 +274,7 @@ body.parked #touch * { pointer-events: none; }
     .t-logo { font-size: 72px; }
     .t-start, .t-loading { margin-top: 14px; }
 }
+
+/* A long menu page (the night log) scrolls, but the tabs stay pinned to the top edge and Resume to the bottom. */
+.m-tabs { position: sticky; top: -16px; z-index: 3; margin: 8px -20px 12px; padding: 8px 20px; background: #110820; }
+.m-btns { position: sticky; bottom: -16px; z-index: 3; margin: 16px -20px -16px; padding: 10px 20px 16px; background: #080310; border-top: 1px solid var(--line); }

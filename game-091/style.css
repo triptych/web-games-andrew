@@ -168,7 +168,7 @@ img.gl { width: 1.35em; height: 1.35em; vertical-align: -0.35em; }
     box-shadow: 0 0 0 1px rgba(255, 79, 216, 0.15), 0 0 30px rgba(138, 77, 255, 0.25);
     background-image: linear-gradient(rgba(255, 255, 255, 0.025) 50%, transparent 50%);
     background-size: 100% 4px;
-    scrollbar-width: thin; scrollbar-color: rgba(160, 140, 255, 0.5) transparent;
+    scrollbar-width: thin; scrollbar-color: rgba(160, 140, 255, 0.5) transparent; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
 }
 .sheet::-webkit-scrollbar { width: 8px; }
 .sheet::-webkit-scrollbar-track { background: transparent; margin: 6px; }
@@ -246,6 +246,10 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 @keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
 
-/* Keep sheet navigation and completion controls reachable while content scrolls. */
-.sheet .sheet-foot { position: sticky; bottom: 0; z-index: 5; padding-bottom: max(8px, env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, var(--panel, rgba(20, 16, 24, 0.98)) 22%); }
+/* A long sheet scrolls, but its foot (Done, Close, Continue) and its tab bar don't: they are pinned to the
+   sheet's bottom and top edges over an opaque strip of the sheet's own colour, so nothing shows through.
+   A foot inside a wrapper is pinned too, without the bleed. --sheet-p* are set wherever a .sheet's padding is. */
+.sheet > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb)); padding: 10px var(--sheet-px) var(--sheet-pb); background: #110926; border-top: 1px solid rgba(160, 140, 255, 0.28); }
+.sheet * > .sheet-foot { position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5; padding-bottom: var(--sheet-pb); background: #110926; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #170f2b; }
 
