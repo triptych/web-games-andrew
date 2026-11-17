@@ -107,17 +107,36 @@ function vendorRepoFiles(gameDir, outDir, repoDir) {
             }
             const libFile = rel(libDir, target);
             const dest = path.join(outDir, 'lib', libFile);
-            if (!copied.has(libFile)) {
-                fs.mkdirSync(path.dirname(dest), { recursive: true });
-                fs.copyFileSync(target, dest);
-                copied.add(libFile);
-            }
+            copyLibFile(libDir, libFile, outDir, copied);
             const ref = rel(path.dirname(file), dest);
             return quote + (ref.startsWith('.') ? ref : `./${ref}`);
         });
         if (out !== src) fs.writeFileSync(file, out);
     }
     return { copied, warnings };
+}
+
+// Copy one /lib file into the build, then every file it imports by a relative path
+// (lib/core/noise.js imports ./rng.js), so a module's own dependencies come along. Those
+// paths stay valid because the build's lib/ mirrors the repo's /lib layout. A lib file
+// that reaches outside /lib stops the build.
+function copyLibFile(libDir, libFile, outDir, copied) {
+    if (copied.has(libFile)) return;
+    copied.add(libFile);
+    const src = path.join(libDir, libFile);
+    const dest = path.join(outDir, 'lib', libFile);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(src, dest);
+    if (!/\.m?js$/.test(libFile) || fs.statSync(src).size > 512 * 1024) return;   // skip bundled engines
+    // comments out first: a usage example in a header comment is not an import
+    const code = fs.readFileSync(src, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"\\])\/\/[^\n]*/g, '$1');
+    const re = /(?:\bimport\s*(?:[\w$*{}\s,]+\s*from\s*)?|\bexport\s*[\w$*{}\s,]*\s*from\s*|\bimport\s*\(\s*)["'](\.{1,2}\/[^"']+)["']/g;
+    for (const m of code.matchAll(re)) {
+        const target = path.resolve(path.dirname(src), m[1]);
+        if (!inside(libDir, target)) throw new Error(`lib/${libFile} imports ${m[1]}, outside /lib; the build can't carry it`);
+        if (!fs.existsSync(target)) throw new Error(`lib/${libFile} imports ${m[1]}, which does not exist`);
+        copyLibFile(libDir, rel(libDir, target), outDir, copied);
+    }
 }
 
 async function vendorThree(html, outDir, pkg) {

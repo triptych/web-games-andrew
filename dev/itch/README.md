@@ -17,7 +17,7 @@ The exporter writes to the game's ignored build folder:
 What it does:
 
 - copies the game folder, leaving out `dev/` and `game-plan.md`
-- copies every file the game uses from the repo's `/lib` into `lib/` in the build and rewrites the paths: `<script src="../lib/page-audio.js">` in the page and ES module imports such as `'../../lib/kaplay/kaplay.mjs'` or Phaser's `phaser.esm.js`
+- copies every file the game uses from the repo's `/lib` into `lib/` in the build and rewrites the paths: `<script src="../lib/page-audio.js">` in the page and ES module imports such as `'../../lib/kaplay/kaplay.mjs'`, `'../../lib/core/rng.js'` or Phaser's `phaser.esm.js`. A copied module's own relative imports come with it (`lib/core/noise.js` brings `lib/core/rng.js`); a `/lib` module that imports something outside `/lib` stops the build
 - vendors three.js r165 import maps that point at unpkg, including only the add-ons the game imports
 - hides the repo launcher link (`← Games` pointing at `../index.html`) with `display: none !important` instead of removing it, because some games' scripts look it up; a launcher link in running text is unwrapped to plain text
 - creates a plain deflated zip with `index.html` at the top
