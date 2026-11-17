@@ -22,7 +22,10 @@ await page.evaluate(async () => {
     __ss.act({ t: 'go', room: 'dock' });
     __ss.G.kit.x = 300; __ss.G.kit.face = 1;
     await document.fonts.ready;
-    for (const id of ['hud', 'talk', 'quiz', 'toasts', 'back-link']) document.getElementById(id).style.visibility = 'hidden';
+    for (const id of ['bar', 'jobs', 'bag-pop', 'label', 'talk', 'quiz', 'toasts', 'back-link']) {
+        const el = document.getElementById(id);
+        if (el) el.style.visibility = 'hidden';
+    }
 });
 await page.waitForTimeout(1200);
 const box = await page.evaluate(() => { const r = document.getElementById('view').getBoundingClientRect(); return { x: r.left, y: r.top, width: r.width, height: r.height }; });

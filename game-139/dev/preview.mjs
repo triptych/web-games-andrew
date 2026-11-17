@@ -25,6 +25,10 @@ if (PKG) {
 }
 await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+// the first-night tutorial (v1.1.0) would cover the table: start as a player who has turned it off
+await page.addInitScript(() => {
+    try { localStorage.setItem('clean-slate.v1.settings', JSON.stringify({ tutorial: 'off', tutorialDone: true, tips: [] })); } catch { /* ignore */ }
+});
 await page.goto(`${BASE}/game-139/index.html?debug=1`);
 await page.waitForFunction(() => window.__cs && __cs.mode === 'title', null, { timeout: 90000 });
 await page.evaluate((s) => {
