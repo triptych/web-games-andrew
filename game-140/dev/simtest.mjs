@@ -105,6 +105,12 @@ if (want('data')) {
         ok(fs.existsSync(path.join(ROOT, A.ART.title)), 'the title painting is on disk');
     }
     for (const k of VOICED) ok(fs.existsSync(path.join(ROOT, `audio/vo/${k}.mp3`)), `voice clip ${k} is on disk`);
+    // every line the voice script records has a clip (a line edited after recording loses its voice: re-record it)
+    const { allLines } = await import('./audio/voices.mjs');
+    const want = allLines();
+    const missing = want.filter((L) => !VOICED.has(L.key));
+    ok(!missing.length, `all ${want.length} recorded lines have a clip${missing.length ? ': missing ' + missing.slice(0, 3).map((L) => `${L.who} "${L.text.slice(0, 30)}"`).join(', ') : ''}`);
+    ok(want.length === VOICED.size, `no stale clips (${VOICED.size} clips for ${want.length} lines)`);
     // every scene and ward the chapters name exists; every chapter is reachable in order
     for (const c of CHAPTERS) for (const s of c.segs) {
         if (typeof s === 'string') ok(SCENES[s], `${c.id}: scene ${s} exists`);

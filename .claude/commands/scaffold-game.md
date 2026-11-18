@@ -1539,7 +1539,9 @@ async function desktop() {
     await page.waitForTimeout(500);
     check(await Q(page, (t) => DEBUG_NS.G.t === t, t0), 'the sim stops while paused');
     await click(page, '#pause-menu [data-act="resume"]');
-    await until(page, () => document.getElementById('pause').hidden && DEBUG_NS.G.t > 0, 'Resume closes the pause screen');
+    // wait for the sim to run again, not just for the screen to close: Resume flushes presses on its next frame,
+    // and a key pressed before that frame is dropped (game-140 found this on the untouched scaffold)
+    await until(page, (t) => document.getElementById('pause').hidden && DEBUG_NS.G.t > t, 'Resume closes the pause screen and the sim runs again', 30000, t0);
 
     await page.keyboard.press('Space');
     await until(page, () => DEBUG_NS.seen.dash >= 1, 'Space dashes (the press reaches a sim step)');

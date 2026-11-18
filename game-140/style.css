@@ -111,7 +111,7 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.05
 .sheet {
     position: relative; width: min(560px, 100%); max-height: 100%; overflow-y: auto; overscroll-behavior: contain;
     background: linear-gradient(180deg, var(--ink-2), var(--ink)); border: 1px solid var(--line);
-    border-radius: 6px; padding: 18px 18px 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 0 0 4px rgba(195, 198, 208, 0.04);
+    border-radius: 6px; padding: 18px 18px 14px; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 14px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 0 0 4px rgba(195, 198, 208, 0.04);
     user-select: text; -webkit-user-select: text;
 }
 .sheet.wide { width: min(940px, 100%); }
@@ -123,7 +123,16 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.05
 .sheet table { width: 100%; border-collapse: collapse; font-size: 17px; }
 .sheet td { padding: 4px 6px; border-bottom: 1px solid var(--line-soft); }
 .sheet td:first-child { color: var(--accent); white-space: nowrap; }
-.sheet-foot { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 14px; position: sticky; bottom: -14px; padding: 10px 0 2px; background: linear-gradient(180deg, transparent, rgba(10, 10, 13, 0.95) 40%); }
+/* only the middle of a sheet scrolls: the foot and the tabs are sticky strips over an opaque background, bled to the
+   sheet's edges by its padding variables (docs/generic/learnings.md § Dialogs: the Buttons and Tabs Never Scroll) */
+.sheet-foot { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.sheet > .sheet-foot {
+    position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5;
+    margin: 14px calc(-1 * var(--sheet-px)) calc(-1 * var(--sheet-pb));
+    padding: 10px var(--sheet-px) var(--sheet-pb); background: #0e0e12; border-top: 1px solid var(--line-soft);
+}
+.sheet.glass > .sheet-foot { background: #0b0b0e; }
+.sheet > .tabs { position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #0e0e12; }
 .dim { color: var(--dim); }
 .kicker { font-family: var(--display); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); margin: 0 0 4px !important; }
 .menu { display: flex; flex-direction: column; gap: 10px; }
@@ -208,7 +217,7 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.05
 /* ---------------------------------------------------------------- camp and map panels */
 #camp-ui, #map-ui { position: absolute; z-index: 25; left: 0; right: 0; bottom: 0; padding: 0 calc(10px + var(--safe-r)) calc(10px + var(--safe-b)) calc(10px + var(--safe-l)); display: flex; justify-content: center; }
 #camp-ui .sheet { width: min(620px, 100%); max-height: calc(var(--app-h) - 70px); }
-#map-ui .sheet { width: min(460px, 100%); padding-bottom: 6px; }
+#map-ui .sheet { width: min(460px, 100%); padding-bottom: 6px; --sheet-pb: 6px; }
 #map-ui h2 { margin-bottom: 2px; }
 @media (min-aspect-ratio: 5/4) { #map-ui { justify-content: flex-end; } }
 .camp-list { display: flex; flex-direction: column; gap: 8px; }

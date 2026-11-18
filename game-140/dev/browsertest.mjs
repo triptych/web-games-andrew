@@ -94,6 +94,41 @@ const controlsOk = (page, sel) => Q(page, (s) => [...document.querySelectorAll(s
 }), sel);
 const reportErrors = (label) => { check(errors.length === 0, `${label}: no console errors, page errors or failed requests`); for (const e of errors.slice(0, 8)) console.log('    ', e); };
 
+/**
+ * Every dialog keeps its way out on screen: with 2000 px of filler before its foot, the foot's buttons (and the
+ * journal's tabs) are inside the sheet's visible rect and on top, before and after scrolling to the bottom.
+ */
+async function dialogsOk(page, label) {
+    const res = await Q(page, () => {
+        const out = [];
+        const G = __tla.G;
+        for (const id of ['journal', 'howto', 'settings', 'log', 'slots', 'menu']) {
+            if (id === 'journal') __tla.ui.openJournal(G, __tla.album); else if (id === 'log') __tla.ui.openLog([]); else if (id === 'slots') __tla.ui.openSlots('load', __tla.slots()); else __tla.ui.openScreen(id);
+            const sheet = document.querySelector(`#${id} .sheet`);
+            const foot = sheet.querySelector(':scope > .sheet-foot');
+            const filler = document.createElement('div');
+            filler.style.height = '2000px';
+            if (foot) sheet.insertBefore(filler, foot); else sheet.appendChild(filler);
+            const visible = (el) => {
+                const r = el.getBoundingClientRect(), c = sheet.getBoundingClientRect();
+                if (!(r.top >= c.top - 1 && r.bottom <= c.bottom + 1 && r.top >= 0 && r.bottom <= innerHeight + 1)) return false;
+                const hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+                return el === hit || el.contains(hit);
+            };
+            const targets = () => [...(foot ? foot.querySelectorAll('button') : []), ...sheet.querySelectorAll(':scope > .tabs .tab:not([hidden])')];
+            let ok = !foot || targets().every(visible);
+            sheet.scrollTop = 1e6;
+            ok = ok && (!foot || targets().every(visible));
+            out.push({ id, ok: ok || !foot && id === 'menu' });
+            filler.remove();
+            sheet.scrollTop = 0;
+            __tla.ui.closeScreen(id);
+        }
+        return out;
+    });
+    for (const r of res) check(r.ok, `${label}: the ${r.id} sheet keeps its buttons${r.id === 'journal' ? ' and tabs' : ''} on screen with a long page`);
+}
+
 // ======================================================================
 async function desktop() {
     console.log('\n== desktop 1280×760');
@@ -140,6 +175,15 @@ async function desktop() {
     await until(page, () => document.querySelectorAll('.lore h3').length >= 2, 'the Lore tab lists what is known');
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('journal').hidden, 'Escape closes the journal');
+    await dialogsOk(page, 'desktop');
+    // Escape closes Settings even with a slider focused (a keydown handler that ignores INPUT never sees it)
+    await click(page, '#btn-menu');
+    await click(page, '#menu-menu [data-act="settings"]');
+    await Q(page, () => document.getElementById('set-music').focus());
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('settings').hidden, 'Escape closes Settings with a slider focused');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('menu').hidden, 'and then the menu');
 
     // the first ward-lock
     await Q(page, () => __tla.toPhase('ward'));
@@ -239,6 +283,7 @@ async function phone(w, h) {
     await until(page, (n) => __tla.G.stats.lines > n, 'tapping the dialogue box advances', 30000, l0);
     for (const z of await controlsOk(page, '#dlg .vbtn, #btn-journal, #btn-menu')) check(z.ok, `${z.s} is at least 44 px and on screen`);
     await shot(page, `phone-${w}x${h}-dlg`);
+    await dialogsOk(page, `phone ${w}×${h}`);
 
     await Q(page, () => __tla.toPhase('ward'));
     await until(page, () => __tla.G.phase === 'ward' && !document.getElementById('ward').hidden, 'the ward-lock is on screen');

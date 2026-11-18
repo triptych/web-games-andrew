@@ -448,6 +448,7 @@ if (DEBUG) {
             G.events.length = 0;
         }
         holdUntil = 0;
+        $('chapter-card').hidden = true;
         stage.setHues(G.hues, true);
         wardView.hide();
         if (G.phase === 'ward') { wardView.show(G.ward); audio.play('ward'); }
