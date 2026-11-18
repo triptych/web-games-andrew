@@ -1,6 +1,6 @@
 // Hemlock Hollow: tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'hemlock-hollow.v1';
 
 export const VIRT = { w: 320, h: 136 };   // the scene is drawn at this size and scaled up, pixels hard

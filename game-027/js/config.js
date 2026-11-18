@@ -1,6 +1,6 @@
 // Alchemist's Lattice — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '2.0.1';
+export const VERSION = '2.0.2';
 export const SAVE_KEY = 'alchemists-lattice.v2';
 
 export const MAX_FRAME = 0.05;            // a long frame never runs more than this much time

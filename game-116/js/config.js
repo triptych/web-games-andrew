@@ -1,6 +1,6 @@
 // SOLITAIRE FROM OUTER SPACE — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'solitaire-from-outer-space.v1';
 
 export const STEP = 1 / 120;              // fixed step (s); the game is turn-based, this only ticks G.t

@@ -1,6 +1,6 @@
 // THE LONG HELIX — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'the-long-helix.v1';
 
 export const MAX_ITEMS = 6;           // the whole pack

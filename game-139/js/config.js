@@ -1,6 +1,6 @@
 // CLEAN SLATE — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.1.2';
+export const VERSION = '1.1.3';
 export const SAVE_KEY = 'clean-slate.v1';
 
 export const STEP = 1 / 120;              // fixed step for the frame loop (the sim itself is turn-based)

@@ -1,6 +1,6 @@
 // STARWRIGHT — every tunable table lives here. Pure data (imported by sim, view and ui).
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'starwright.v1';
 export const SIM_DT = 1 / 60;
 

@@ -1,6 +1,6 @@
 // Hearthwick — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.1.1';
 export const SAVE_KEY = 'hearthwick.v1';
 
 export const STEP = 0.1;                  // fixed simulation step (s). The town is an economy, not a physics body.

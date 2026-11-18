@@ -1,6 +1,6 @@
 // Quill & Legion — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'quill-legion.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

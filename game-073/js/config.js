@@ -3,7 +3,7 @@
 // Pure data: imported by the simulation (Node-safe) and the view alike.
 // ============================================================
 
-export const VERSION = '1.0.5';
+export const VERSION = '1.0.6';
 export const SAVE_KEY = 'runebore.v1';
 
 // --- World grid ---

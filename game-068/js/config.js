@@ -5,7 +5,7 @@ export const H = 15;            // map rows (z)
 export const HAVEN_COLS = 3;    // the Haven fills the right-hand three columns
 export const STEP = 1 / 30;     // fixed simulation step, seconds
 export const SAVE_KEY = 'haven-road.v1';
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 
 export const MAX_ACTORS = 220;  // people + volunteers + dead drawn at once
 export const MAX_FX = 1600;     // particles
