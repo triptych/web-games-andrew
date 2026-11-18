@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **CINDERWING** (game-074) v1.0.2: Space on a focused title button pressed the menu cursor's button instead (with How to Fly focused, it started the game), and Enter pressed both. The menu cursor now carries real focus, so the lit button is the one Space and Enter press, and Tab moves the cursor too (game-078's fix, now in `lib/core/input.js`).
 - **Pale Engine** (game-054) v1.0.1: Space couldn't press a focused button on the pause menu, which focuses Resume when it opens: input stays enabled while paused, so the keyboard handler cancelled Space, and the press was also kept as a jump for after Resume. A focused button on an open screen now takes Space itself (game-078's fix, now in `lib/core/input.js`).
 - **Dirt Crown** (game-069) v1.0.3: Space (drift) couldn't press a focused menu button, and on the title Enter pressed the focused button and also started the career (with Settings focused, both happened). A focused menu button now takes Space and Enter itself; the race HUD and story cards keep both keys (game-078's fix, now in `lib/core/input.js`).
 - **RUNEBORE** (game-073) v1.0.5: Space couldn't press a focused button on the title and menu screens: the keyboard handler cancelled it. Enter could press a focused button and also turn a story card. A focused button on an open screen now takes Space and Enter itself, and a dialogue line on top still takes both keys (game-078's fix, now in `lib/core/input.js`).
