@@ -11,7 +11,9 @@ export class Input {
         this.enabled = true;
 
         window.addEventListener('keydown', (e) => {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            // a focused slider, select or text field keeps its keys (the arrows were cancelled on a
+            // select), but Escape still closes the screen it is on (games 117 and 118; lib/core/input.js)
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') && e.code !== 'Escape') return;
             const k = e.code;
             // A focused button on an open screen takes Space and Enter itself: preventDefault()
             // cancelled Space's click, and queueing the key as well made Enter press the button and
