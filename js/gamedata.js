@@ -645,7 +645,7 @@ const games = [
         description: "A cozy village builder in a forest that remembers magic \u2014 cozy farming and item-gated exploration. You inherit an overgrown glen with a split, leafless Heartwood tree and one resident: the Mayor of a village of one. Farm through four seasons, raise chickens, cows and sheep, forage, mine and chop; cook recipes you discover across the land and refine goods at forges, mills, looms and dairies. Rebuild the Job Board and travellers arrive \u2014 a carpenter, a farmer, a blacksmith, a cook and more \u2014 each needing a home and shop that fits their trade; every villager contributes something daily, has a three-part personal story, and can be sent on board postings or brought along as a companion. As the village grows, the Glen's sleeping magic wakes: sealed dungeons open, faded shrines, fairy rings and treasures shimmer back into sight, and each dungeon's relic opens the next land. Turn-based battles with telegraphed enemy intents and elements. The land, its five regions, dungeons, monsters, villagers, job postings, every sprite and every song are generated from one seed you choose in the character creator. Three save slots plus autosave and file export. Built for a phone.",
         icon: '\uD83C\uDF33',
         folder: 'game-043',
-        version: '1.2.0',
+        version: '1.2.1',
         cssClass: 'glimmerglen',
         genre: 'cozy',
         tags: [
@@ -675,7 +675,7 @@ const games = [
         description: 'A flashy synthwave pinball table with a brick-breaking playfield in its upper half. Plunge, flip, nudge and pop bumpers like pinball, but smash every brick to clear the wave: explosive bricks set off chain reactions, and power-ups (multiball, fireball, flipper lasers, a drain shield, wide flippers, double score) fall down the table to be caught with your flippers. Three.js with bloom, chrome balls, neon trails, shards, shockwaves, hit-stop, slow-mo and a beat-synced synthwave soundtrack.',
         icon: '\uD83D\uDD79\uFE0F',
         folder: 'game-045',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'pinbreak',
         genre: 'arcade',
         tags: [
@@ -690,7 +690,7 @@ const games = [
         description: "A room-based roguelite archery game in three.js. Stand still and your archer fires on the nearest enemy; move and you stop shooting, so every room is a rhythm of dodge, plant your feet, loose arrows, dodge again. Climb ten chapters of twelve procedurally generated rooms each (120 in all, plus an Endless mode that never stops climbing): mirrored obstacle layouts of rock, water, lava, chasms and spike traps, twelve enemy types that all telegraph their attacks, elite champions, and five multi-phase bosses who come back Ascended in the later chapters. Level up mid-run and choose from 29 abilities that stack into real builds — Multishot, Front Arrow, Ricochet, Piercing, Bouncy Wall, fire, frost, poison and lightning arrows, orbiting flame circles, spirit wisps, an Extra Life — pray at angel shrines, and strike deals with the Devil for a slice of your max HP. Coins buy permanent talents between runs. Every room, texture, model and song is generated in code: ten distinct biomes from a mossy glade to a void crown, and no asset files at all. Keyboard, gamepad, or a one-thumb floating joystick on a phone.",
         icon: '\uD83C\uDFF9',
         folder: 'game-046',
-        version: '1.2.0',
+        version: '1.2.1',
         cssClass: 'quiverspire',
         genre: 'dungeon',
         tags: [
@@ -810,7 +810,7 @@ const games = [
         description: "A fast, retro first-person shooter in three.js, set on Io in 2291. The Hadal Consortium's deep-mantle station has gone silent, its Pale Engine drilled through the bottom of everything, and you are the last Warden standing \u2014 with the station AI VESPER in your ear and its own reasons for wanting you at the bottom. Ten levels across three episodes (Tartarus Station, the Sulfur Deep, the Underneath) are generated from a seed: rooms, stairs, lava pits, crates and courtyards from per-cell heights, blue, yellow and red keycard doors, secret walls, exploding barrels, ambushes that teleport in, data terminals that tell the story, and a validator that plays every level before you do. Every run rolls its own monster species \u2014 names, colours, horns, eyes, voices \u2014 across ten archetypes that sight, hear, chase, infight, stagger and get executed, plus three guardians: Overseer Kell's mech, the Furnace Mother and the Archon on the Pale Throne, who shields itself with Engine pylons. Nine weapons from the Arc Blade and a self-charging pistol to the Twin Reaper, the Rail Driver and the Singularity Cannon, modelled in code with working pumps and break-actions; Berserk, Overdrive, Haste, an inverted-colour Aegis Field, a Phase Cloak and a Hazard Suit. Baked lightmaps plus live muzzle-flash light, bump-mapped procedural textures, four skies, bloom and a post pass for every powerup, a generative industrial-metal score, an automap, a helmet portrait that bleeds, intermission tallies with par times, and Endless Descent after the credits. Mouse and keyboard, or full touch controls.",
         icon: '\uD83D\uDD25',
         folder: 'game-054',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'pale-engine',
         genre: 'arcade',
         tags: [
@@ -885,7 +885,7 @@ const games = [
         description: "A neon side-scrolling arcade beat-'em-up in three.js with no asset files. Port Solace, 2089: Aurex Dynamics owns the city and has taken Juno Vega's little sister Mika, the one mind that fits its VANTA neural-link program. Juno steals the VANTA-7 prototype combat suit, whose sarcastic AI ECHO turns out to have been trained on Mika's own brain scans, and fights north to the Aurex Spire through seven stages: rainy Neon Row, the Line 9 maglev (inside and on the roof, ducking signal gantries), the Lantern Market and its rooftops, the Ironwharf docks (forklifts, steam vents), Aurex Biolabs behind laser gates, an express elevator up the Spire, and the Zenith penthouse at dawn. A real 3D street drawn into a 240-pixel render target with bloom and scanlines, and every fighter is pixel art generated from a 2D skeleton rig with palette swaps. A deep move list: four-hit chains, launchers and juggles, backfists, dash knees, flying kicks and dive stomps, grabs with knees, throws, suplexes and vaults, pickup pipes, katanas, shock batons and knives, plus suit specials (Arc Burst, Rail Dash, Meteor Drop) and an Overdrive meter. Eleven enemy types with crowd AI that flanks and takes turns (punks, knife throwers, bruisers that charge and grab, shield guards, gunners, kunoichi that dodge, pouncing rippers, synth troopers that block, acid-spitting husks, drones, tick mines) and seven bosses with phase changes: Jackhammer Malone, Viper and her mirages, Kuroda the Oni and his counter stance, the Bulwark mech, Specimen G-7, Mika herself under neural control, and CEO Magnus Hale with his Ascendant exo-frame, with Mika fighting at your side. Story with portraits and a full ending, a safehouse to upgrade the suit between stages, ranks, continues, three difficulties, Arcade, Boss Rush, Survival and playable Mika to unlock, generative synthwave per stage, and touch controls for phones.",
         icon: '\uD83D\uDC4A',
         folder: 'game-059',
-        version: '1.0.1',
+        version: '1.0.2',
         cssClass: 'sister-circuit',
         genre: 'arcade',
         tags: [
@@ -915,7 +915,7 @@ const games = [
         description: "A procedurally generated space sim in three.js with no asset files: 230 star systems, planets, asteroid belts, stations, ships, eight alien species (with faces, languages, tastes and grudges) and their missions all grow from one seed you can type in and share. You are a newly licensed Wright with a tiny skiff and a derelict outpost called Hearth. Fly in third person, cut asteroids with a mining beam, scoop fuel from stars and Helium-3 from gas giants, scan planets for survey data, salvage derelicts and study anomalies. Trade at alien stations whose prices react to what you sell, take procedural missions (deliveries, bounties, surveys, salvage, raider nests, envoys), and fight off Reaver raiders and the hostile Swarm. Bring it home to build Hearth module by module (refinery, shipyard, research lab, fabricator, drones, hydroponics, trade depot, defences, warp beacon) and watch the station grow; upgrade your procedurally generated ship through five hull classes and eleven components, including the warp drive that opens the galaxy. Cruise autopilot, a 3D radar scanner, galaxy and system maps, a generative score, and an eleven-chapter story about the Lattice Signal at the galactic core. Keyboard and mouse, gamepad or touch.",
         icon: '\uD83D\uDE80',
         folder: 'game-061',
-        version: '1.0.0',
+        version: '1.0.1',
         cssClass: 'starwright',
         genre: 'strategy',
         tags: [
@@ -930,7 +930,7 @@ const games = [
         description: "A light, silly loot-driven action RPG with fruit, in three.js with no asset files. Something rotten has crawled up from under the town: grow a fruit hero (sixteen fruits, colours, eyes, mouths and twelve hats) as a Melon Knight, Seed Ranger or Citromancer, take a butter knife down the cellar stairs and squash your way through twelve procedurally generated levels in three acts (the Root Cellar, the sticky Jam Catacombs and the Rotten Core with its rivers of boiling fruit punch) to Durian the Diabolical. Click to walk and whack, eighteen skills (Big Slice, Blender, Pip Spray, Peel Trap, Raisin Rain, Brain Freeze, Chain Lime-ning, Melon Meteor…), fourteen kinds of rotten fruit and pests with their own tricks (shamans that revive their friends, worms in bowler hats, exploding tomatoes, mimic pies) plus champion and named elites, and three bosses: The Juicer, Mangophisto the Chutney Lord and Durian. Everything bursts into juice that stays on the floor. Loot is kitchenware in four rarities up to Golden uniques; Health is Freshness, mana is Juice, gold is Sugar and town portals are pies. a candy cane sage identifies your loot; Granny Smith heals, Grapeswold forges, Olivia sells magic, Kiwirt sells mystery smoothies. Six quests, waypoints, a stash, three difficulties, fog of war, an automap, generative music and gibberish-talking townsfolk. Mouse and keyboard or touch.",
         icon: '\uD83C\uDF4E',
         folder: 'game-062',
-        version: '1.0.2',
+        version: '1.0.3',
         cssClass: 'rotten-to-the-core',
         genre: 'dungeon',
         tags: [
@@ -945,7 +945,7 @@ const games = [
         description: "A fantasy golf RPG in three.js with no asset files. Lord Bogey, a sorcerer who never once made par, shatters the Golden Tee and curses every hole in Fairhaven; Pip, a clumsy caddie who pulled a talking sand wedge called Wedgewick out of a stone, sets off to win back the five Tee Shards. Twenty holes in five storybook realms, each playing differently: Meadowmere's windmill and spring mushrooms, the Sandsea's quicksand, island greens and strong winds, Frostpeak's sheet ice and frozen lake, Cinder Caldera's lava rivers and geysers that fling the ball skywards, and the Sky Citadel's floating islands over the void. Real 3D golf with a three-press swing meter, four clubs, wind, backspin, bounces and rolls, PERFECT strikes, hooks and slices, a preview arc and an overhead view. Every realm ends in a boss hole where the cup is sealed until you beat the boss with your ball: Grubbins the Gopher King, the sandworm Duneborn, Big Frosty behind his ice walls, the two-headed ogre Double Bogey on his ledge, and Lord Bogey, who becomes the three-headed Triple Bogey. Bonk slimes, scarabs, penguin knights, imps and wisps for XP; roll through coins, gems and mana orbs; level up and spend stat points on Power, Control, Luck and Magic; buy club sets, balls and charms at Old Man Eagle's Pro Shop; cast Mulligan, Gust Ward, Fireball, Frost Step and Seeker; and use Rocket Tees, Sticky, Spring and Ghost balls. Chibi characters with painted faces and toon outlines, a storybook terrain shader with mown stripes and inked edges, a floating-island world map with tilt-shift, a short funny story with rendered portraits, procedural music for every realm, and touch controls for phones.",
         icon: '\u26F3',
         folder: 'game-063',
-        version: '1.0.1',
+        version: '1.0.2',
         cssClass: 'tee-sorcery',
         genre: 'rpg',
         tags: [
@@ -1005,7 +1005,7 @@ const games = [
         description: "A cozy toy-train sandbox in three.js with no asset files, and everything unlocked. Choose one of eight islands (Sunny Cove, Pine Peaks, Twin Isles, Coral Ring, Blossom Bay, Maple Hollow, Snowdrop Isle or a Big Baseplate), each reshaped by a seed, and start blank or with a little town and a train already running. Drag to lay track: curves, crossings and switches come from the shape you draw, track over water becomes a bridge and track through a hill becomes a tunnel. Add station platforms and the residents of every home walk over, wait and climb aboard. Design your own trains in the Workshop (steam, little tank engine with a friendly face, diesel, bullet train or tram, and up to ten coaches, boxcars, tankers, log cars, sheep wagons, ice cream cars, circus cars and more, in sixteen toy colours) and keep them in a Train Shed shared by every island. Build from 80 pieces: homes, shops, a town hall, a fire station, a castle, a Ferris wheel, a carousel, a windmill, a lighthouse, farms, trees, boats and a friendly whale. Trains never crash: they brake for each other, stop at stations and shunt out of dead ends. Tap anything: trains toot, people wave, sheep baa, windmills whirl, points switch. Ride along in the driver's view, change the time of day, collect stickers, undo anything, save as many islands as you like with thumbnails and share codes. A studded baseplate, chunky bricks, little toy people, cotton-wool steam, a shore-foam sea, snow, petals and falling leaves, night lamps and fireflies, tilt-shift, synthesised music and touch controls for phones.",
         icon: '\uD83D\uDE82',
         folder: 'game-067',
-        version: '1.0.1',
+        version: '1.0.2',
         cssClass: 'tootle-isles',
         genre: 'cozy',
         tags: [
@@ -1035,7 +1035,7 @@ const games = [
         description: "A dirt-track racing RPG in three.js with no asset files. Grandpa Gus pulls a tarp off his first racer, the Bucket: a tiny, primer-grey off-roader without a single feature. Win races for coins and bolt on parts that all show on the car (exhausts, a hood scoop, a supercharger, wings, bigger tyres on better rims, coil springs, a bull bar, a roll cage, a light bar, riveted armour and nitro bottles), across six upgrade lines and a paint shop with liveries and race numbers. Race in third person on 20 tracks in seven places: farm ovals on Dustwater Flats, misty logging roads in Pinecrest Woods, big jumps in Redrock Canyon at sunset, lantern-lit mud and water in Gatorback Bayou, snow and sheet ice on Frostbite Pass, stadium supercross under the Thunderdome's floodlights, and the Crown Run on Ravenwood Mesa, with figure eights that cross on bridges. Sliding dirt physics, drifts that fill your nitro, tabletops, kickers and whoops, mud, water, gravel, sand, ice and oil, slipstreams, and computer drivers that pass. 26 events (races, eliminations, time trials and duels), six champions to beat, and a story: Ravenwood Motors has bought every track in the county, and whoever wins the Dirt Crown sets the rules. Face your rival Colt Ravenwood in the ultimate race. Painted portraits, a county map, bloom and colour grading, a synthesised engine and score, autosave, keyboard, gamepad or touch.",
         icon: '\uD83C\uDFC1',
         folder: 'game-069',
-        version: '1.0.2',
+        version: '1.0.3',
         cssClass: 'dirt-crown',
         genre: 'rpg',
         tags: [
@@ -1065,7 +1065,7 @@ const games = [
         description: "An open-world fantasy RPG in three.js with no asset files: Saga of the Stormsworn. A courier carrying a sealed letter reaches Hollowmere Keep on the night the dead walk out of the barrows and a black dragon splits the sky; struck by its lightning, you live, scarred with the shapes of the storm. Explore a frozen province three kilometres across, with five towns, villages, forts, barrows, caves, mines, clockwork ruins, totems and sigil stones, under a sky with weather, auroras and a full day and night. Trace the Storm Sigils (gale, stride, embers, rime, earthbind, stillness, veil) with rings learned from the stones, and absorb the embers of the dragons you kill. Fight with swords, axes, maces, bows, shields and four schools of magic; sneak, pick locks and pockets; forge, hone, smelt and tan; brew potions by discovering ingredients; inscribe runes with creature essences. Eleven main quests to the Eye of the Storm with a choice on Hrimgard's summit, guild lines for the Hunters' Lodge, the Frostspire Academy and the Lampless, town quests, bounties, a house to buy, followers, guards and fines, fast travel, books to read. Twenty-one generated dungeon levels with traps, star-dial puzzles and bosses. Skinned procedural characters, beasts and dragons, PBR terrain, water, grass and forests, bloom and god rays; a synthesised score and ambience; saves, keyboard, gamepad or touch.",
         icon: '\uD83D\uDC09',
         folder: 'game-071',
-        version: '1.0.6',
+        version: '1.0.7',
         cssClass: 'frostmarch',
         genre: 'rpg',
         tags: [
@@ -1095,7 +1095,7 @@ const games = [
         description: "A high-fantasy dig-and-upgrade mining game in three.js with no asset files: The Delve of Old Thimble. In the hill-town of Emberwick you inherit your vanished grandmother's digging automaton, a brass barrel on treads with an auger for a nose and a cracked rune-core for a heart. Drill down through six strata (the Rootloam, the Greystone Halls, the Glimmerdeep, sunken Kharadun, the Emberdeep and the Gloam), manage aether and hull, dodge bogwind, falling boulders, magma, heat and gloam-wisps, sell ore and finds, and upgrade seven lines at the Forge. Seven relics lie in dwarven vaults: each slots into Thimble's heartcore, wakes a power (ore-sight, featherfall, a faster auger, a bigger hold, heat immunity, self-repair, a star-iron lance) and restores a memory, until you learn who is really inside the automaton. An eleven-chapter story with painted portraits, a rival to rescue, Guild contracts, waystones, a codex, the Gloamwyrm to free at the root of the world and an ending you choose. Procedural tiles, models, music and sound; saves; keyboard, gamepad or touch.",
         icon: '\u26CF\uFE0F',
         folder: 'game-073',
-        version: '1.0.4',
+        version: '1.0.5',
         cssClass: 'runebore',
         genre: 'story',
         tags: [
@@ -1110,7 +1110,7 @@ const games = [
         description: "A horizontal side-scrolling shoot-'em-up in three.js with no asset files: An Angel's Ascent from the Pit. When the war in Heaven ended, the last morning star fell into the Pit, and in the ashes a young angel with white wings opened his eyes. Guided by Vesper, a fallen angel in chains, Cael learns to fight his way up through seven circles of Hell to his true home. Win the Halo from the demons' reliquaries: it rides in front of you, swallows bullets and burns what it touches, and you can cast it ahead or call it home to your front or back. Hold to charge the Radiance beam, sing the Halo red, blue or gold, gather Wings, Echoes, Seeker Feathers and the Aegis, and break whole squadrons for their relics. Seven fixed, learnable circles (a lava sea, an orchard of bones, a weeping foundry, the drowned choir of the Styx, a living labyrinth, the frozen betrayal and the gate of dawn) with lava geysers, crushers, bone gates and flesh walls, and seven wardens from Gorrmaw to Malphas, Lord of the Pit. A staged 3D story between circles, three trials, checkpoints and continues. Procedural models, skies, terrain, shaders, bloom, music and sound; keyboard, gamepad or touch.",
         icon: '🕊️',
         folder: 'game-074',
-        version: '1.0.1',
+        version: '1.0.2',
         cssClass: 'cinderwing',
         genre: 'arcade',
         tags: [

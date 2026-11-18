@@ -18,7 +18,9 @@ export class Input {
 
     bindKeys() {
         addEventListener('keydown', e => {
-            if (e.target instanceof HTMLInputElement) return;
+            // a focused slider or text field keeps its keys, but Escape still closes the panel it is in
+            // (games 117 and 118; lib/core/input.js)
+            if (e.target instanceof HTMLInputElement && e.key !== 'Escape') return;
             const k = e.key.toLowerCase();
             if (!this.keys.has(k)) this.edges.push(k);
             this.keys.add(k);

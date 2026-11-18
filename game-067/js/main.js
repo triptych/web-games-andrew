@@ -679,7 +679,9 @@ initInput(canvas, handler);
 // ------------------------------------------------------------------ keyboard
 const keys = new Set();
 window.addEventListener('keydown', (e) => {
-    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+    // a focused slider or text field keeps its keys, but Escape still closes the sheet it is in
+    // (games 117 and 118; lib/core/input.js)
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') && e.key !== 'Escape') return;
     initAudio();
     const k = e.key.toLowerCase();
     if (app.modal) { if (k === 'escape' && app.modalDismiss) ui.closeModal(); return; }

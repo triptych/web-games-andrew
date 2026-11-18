@@ -42,6 +42,11 @@ export class Input {
     key(e, down) {
         const tag = e.target?.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA') { if (down && e.code === 'Enter') this.emit('confirm', {}); return; }
+        // A focused button on an open screen or overlay takes Space and Enter itself. Before, Space
+        // was cancelled and both keys acted on the menu's own cursor instead (Enter pressed the
+        // focused button as well). game-078's fix. The HUD is neither, so Space still swings.
+        if ((e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') && tag === 'BUTTON'
+            && e.target.closest('.screen:not(.hidden), .overlay:not(.hidden)')) return;
         const a = KEYMAP[e.code];
         if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') this.fine = down;
         if (!a) return;

@@ -25,6 +25,9 @@ export function initInput({ onKey }) {
     base = document.getElementById('stick');
     knob = document.getElementById('stick-knob');
     window.addEventListener('keydown', (e) => {
+        // In a menu, Space and Enter belong to the focused button: preventDefault() would cancel
+        // its click, and the title's "Space starts" would fire as well (game-078's fix).
+        if (!enabled && (e.code === 'Space' || e.code === 'Enter') && e.target?.tagName === 'BUTTON') return;
         if (ALL.has(e.code) || e.code === 'Space') e.preventDefault();
         if (!e.repeat) onKey?.(e);
         down.add(e.code);

@@ -28,6 +28,8 @@ export class Menus {
         if (!this.titleItems) return;
         this.titleSel = (this.titleSel + d + this.titleItems.length) % this.titleItems.length;
         [...$('title-menu').children].forEach((b, i) => b.classList.toggle('sel', i === this.titleSel));
+        // real focus follows the cursor, so Space and Enter press the button that is lit
+        $('title-menu').children[this.titleSel]?.focus({ preventScroll: true });
     }
     titleChosen() { return this.titleItems?.[this.titleSel]?.[0]; }
 

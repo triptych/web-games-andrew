@@ -148,6 +148,8 @@ export class UI {
     key(e) {
         if (!this.open) return false;
         if (e.target instanceof HTMLInputElement && e.target.type === 'text' && !['Escape', 'Enter'].includes(e.code)) return false;
+        // a focused slider keeps its arrow keys (they were swallowed as menu moves); Escape still closes
+        if (e.target instanceof HTMLInputElement && e.target.type === 'range' && e.code.startsWith('Arrow')) return 'native';
         const a = KEY_ACTIONS[e.code];
         if (!a) return true;   // swallow game keys while a menu is up
         if (e.repeat && !['up', 'down', 'left', 'right'].includes(a)) return true;

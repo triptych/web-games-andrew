@@ -23,7 +23,12 @@ export class Input {
         addEventListener('pointermove', (e) => { if (e.pointerType === 'mouse') { this.mouse.x = e.clientX; this.mouse.y = e.clientY; this.mouse.moved = true; this.mouse.inside = e.target === canvas || e.target.closest?.('.layer') !== null; } });
         canvas.addEventListener('wheel', (e) => { this.wheel += Math.sign(e.deltaY); e.preventDefault(); }, { passive: false });
         addEventListener('keydown', (e) => {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            // a focused slider, select or text field keeps its keys (the arrows were cancelled on a
+            // select), but Escape still closes the panel it is in (games 117 and 118; lib/core/input.js)
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') && e.code !== 'Escape') return;
+            // On the title and creator screens Space belongs to the focused button: preventDefault()
+            // cancelled its click (game-078's fix). In play, Space still closes the open panels.
+            if (e.code === 'Space' && e.target?.tagName === 'BUTTON' && e.target.closest('.screen:not(.hidden)')) return;
             if (['Tab', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'AltLeft', 'AltRight'].includes(e.code)) e.preventDefault();
             if (!this.keys.has(e.code)) this.pressed.add(e.code);
             this.keys.add(e.code);

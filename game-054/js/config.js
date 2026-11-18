@@ -2,7 +2,7 @@
 // PALE ENGINE — configuration and data tables
 // ============================================================
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'pale-engine-v1';
 
 // --- World grid ---

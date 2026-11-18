@@ -32,6 +32,13 @@ export class Input {
 
     _bind() {
         window.addEventListener('keydown', (e) => {
+            // A focused button in an open menu (reached with Tab, or still focused after a click)
+            // takes Space and Enter itself. Cancelling Space stopped its click, and queueing 'ok'
+            // pressed the menu cursor's button instead (Enter pressed both). game-078's fix.
+            if ((e.code === 'Space' || e.code === 'Enter') && e.target?.tagName === 'BUTTON' && e.target.closest('.screen:not(.hidden)')) {
+                this.usingTouch = false;
+                return;
+            }
             const a = KEYMAP[e.code];
             if (e.code === 'Tab') e.preventDefault();
             if (a) {

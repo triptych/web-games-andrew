@@ -14,6 +14,7 @@ export class UI {
         this.hud = $('hud');
         this.screens = [...document.querySelectorAll('.screen')];
         this.active = null;
+        document.addEventListener('focusin', (e) => { if (this.active?.contains(e.target)) this.syncFocus(e.target); });
         this.focus = 0;
         this.onAction = () => {};
         this.cache = {};
@@ -77,6 +78,12 @@ export class UI {
         }
     }
 
+    /** Real focus (Tab) moves the menu cursor too, so the arrows carry on from the focused button. */
+    syncFocus(el) {
+        const i = this.buttons().indexOf(el);
+        if (i >= 0 && i !== this.focus) this.setFocus(i);
+    }
+
     buttons() {
         if (!this.active) return [];
         return [...this.active.querySelectorAll('nav.menu button')].filter((b) => !b.disabled && b.offsetParent !== null);
@@ -87,6 +94,9 @@ export class UI {
         if (!list.length) return;
         this.focus = (i + list.length) % list.length;
         list.forEach((b, k) => b.classList.toggle('focus', k === this.focus));
+        // real focus follows the cursor, so Space and Enter press the button that is lit, and
+        // lib/a11y.js (which focuses a screen's first button unless focus is already inside) agrees
+        list[this.focus].focus({ preventScroll: true });
     }
 
     /** Keyboard / gamepad menu navigation. Returns true if it used the input. */

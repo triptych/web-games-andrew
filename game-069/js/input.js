@@ -66,6 +66,12 @@ export class Input {
     key(e, down) {
         const tag = e.target?.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+        // A focused menu button takes Space and Enter itself. Before, Space (drift) was cancelled,
+        // and Enter pressed the button and also ran the screen's own "confirm" (on the title, a
+        // focused Settings opened and the career started). game-078's fix. The race HUD and a story
+        // card keep both keys.
+        if ((e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter') && tag === 'BUTTON'
+            && !e.target.closest('#hud') && document.getElementById('story')?.classList.contains('hidden')) return;
         const k = KEYS[e.code];
         if (k) {
             if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();

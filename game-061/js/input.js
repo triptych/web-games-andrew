@@ -20,7 +20,12 @@ export class Input {
         this.blockGame = false; // true while a menu is open
         this.padPrev = [];
         addEventListener('keydown', (e) => {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            // a focused slider or text field keeps its keys, but Escape still closes the menu it is in
+            // (games 117 and 118; lib/core/input.js)
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') && e.code !== 'Escape') return;
+            // In a menu, Space belongs to the focused button: preventDefault() cancelled its click
+            // (game-078's fix). In flight it is still the trigger.
+            if (this.blockGame && e.code === 'Space' && e.target?.tagName === 'BUTTON') return;
             if (e.code === 'Tab' || e.code === 'Space' || e.code.startsWith('Arrow')) e.preventDefault();
             if (!e.repeat && EDGE[e.code]) this.edges.add(EDGE[e.code]);
             if (KEYMAP[e.code]) {

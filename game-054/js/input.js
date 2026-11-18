@@ -42,6 +42,10 @@ export function initInput(el, opts = {}) {
     onLockChange = opts.onLockChange;
     window.addEventListener('keydown', (e) => {
         if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+        // A focused button on an open screen (the pause menu focuses Resume) takes Space itself.
+        // Input stays enabled while paused, so preventDefault() cancelled its click, and the press
+        // was also kept as a jump for after Resume (game-078's fix).
+        if (e.code === 'Space' && e.target?.tagName === 'BUTTON' && e.target.closest('.screen:not([hidden])')) return;
         input.keys.add(e.code);
         if (!e.repeat) {
             const c = e.code;

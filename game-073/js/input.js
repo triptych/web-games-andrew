@@ -11,8 +11,15 @@ export class Input {
         this.enabled = true;
 
         window.addEventListener('keydown', (e) => {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            // a focused slider, select or text field keeps its keys (the arrows were cancelled on a
+            // select), but Escape still closes the screen it is on (games 117 and 118; lib/core/input.js)
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') && e.code !== 'Escape') return;
             const k = e.code;
+            // A focused button on an open screen takes Space and Enter itself: preventDefault()
+            // cancelled Space's click, and queueing the key as well made Enter press the button and
+            // turn a story card. game-078's fix. A dialogue line on top still takes both keys.
+            if ((k === 'Space' || k === 'Enter') && e.target?.tagName === 'BUTTON' && e.target.closest('.screen:not([hidden])')
+                && document.getElementById('dialog')?.hidden !== false) { this.lastDevice = 'keys'; return; }
             if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(k)) e.preventDefault();
             this.lastDevice = 'keys';
             if (!this.keys.has(k)) this.queue.push({ key: k });

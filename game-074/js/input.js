@@ -31,6 +31,13 @@ export class Input {
     bind() {
         addEventListener('keydown', (e) => {
             if (e.metaKey || e.ctrlKey || e.altKey) return;
+            // A focused menu button (reached with Tab, or still focused after a click) takes Space and
+            // Enter itself. Before, Space was cancelled and both pressed the menu cursor's button
+            // instead (Enter pressed both). game-078's fix; ui.js moves the cursor to real focus.
+            if ((e.code === 'Space' || e.code === 'Enter') && e.target?.tagName === 'BUTTON' && e.target.closest('nav.menu')) {
+                this.any = true;
+                return;
+            }
             if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
             if (!e.repeat) this.edges.add(e.code);
             else if (e.code.startsWith('Arrow')) this.edges.add('Rep' + e.code);
