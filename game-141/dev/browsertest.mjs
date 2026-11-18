@@ -247,6 +247,16 @@ async function phone(w, h) {
     await page.waitForTimeout(700);
     await touchAt('touchEnd', 0, 0);
     await until(page, (i) => __ss.G.F.cells[i].m === 1, 'a long-press marks a block', 30000, b2.i);
+    // open a little more floor first: a start in a corner exposes only two blocks
+    await Q(page, () => {
+        for (let k = 0; k < 8; k++) {
+            const F = __ss.G.F;
+            const i = F.cells.findIndex((c, j) => c.k === 'b' && !c.m && __ss.exposed(j) && !['rune', 'panel', 'door'].includes(c.b));
+            if (i < 0) break;
+            __ss.act({ t: 'dig', i });
+        }
+        __ss.ui.closeAll();
+    });
     await tapSel('#btn-mark');
     await until(page, () => document.getElementById('btn-mark').getAttribute('aria-pressed') === 'true', 'the Mark button turns mark mode on');
     const b3 = await exposedBlock(page, [b.i, b2.i]);
