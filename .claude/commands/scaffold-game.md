@@ -162,6 +162,8 @@ Most are here because a game broke without them; the game that did is named.
    that state, never on the clock.
 9. **Silent and saved in the background.** `../lib/page-audio.js` suspends audio in
    a hidden tab; `visibilitychange` also pauses and saves, and `pagehide` saves.
+   `../lib/ios-audio.js` makes the sound play on iPhones with the ringer switch on silent and
+   resumes audio a phone call interrupted; it does nothing on other platforms.
 
 ### Variables for this section
 
@@ -221,6 +223,7 @@ For `RENDERER = canvas`, delete the `<script type="importmap">` block; nothing e
     <meta name="description" content="GAME_TITLE — GAME_CONCEPT">
     <title>GAME_TITLE</title>
     <script src="../lib/page-audio.js"></script>
+    <script src="../lib/ios-audio.js"></script>
     <script src="../lib/a11y.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>

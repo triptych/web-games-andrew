@@ -1,7 +1,7 @@
 // PERIHELION — tuning and constants. Shared by the sim, the view and the tests.
 // Distances are world units on the asteroid's surface; the asteroid's radius comes from the level.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'perihelion.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

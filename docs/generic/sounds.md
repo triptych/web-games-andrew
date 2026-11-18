@@ -8,6 +8,8 @@
 
 Every game uses **procedurally generated** sounds created with the Web Audio API. No audio files are used; instead, all sound effects are synthesized in real-time using oscillators, envelopes, noise generators, and audio processing nodes. This approach keeps the games lightweight and eliminates the need for external audio assets. See the game-024 section below for the current reusable module shape.
 
+**iPhones and iPads (every game).** iOS plays Web Audio through the "ambient" session, so with the ringer switch on silent a game is mute, and a phone call can leave an `AudioContext` `interrupted` for good. Every game loads [`lib/ios-audio.js`](../../lib/ios-audio.js) in `<head>`: on iOS only, the first touch or key starts a looping silent `<audio>` (playing media moves the page to the "playback" session, which the switch doesn't silence), the loop pauses in a hidden tab, and interrupted contexts are resumed. A game needs no code for it. `lib/core/audio.js`'s `unlockMedia()` steps aside when it is loaded. Checked by `dev/core/iosaudiotest.mjs` on an emulated iPhone. The ringer switch itself can only be tried on a real device. *(game-100 first; all games since this fix)*
+
 
 
 ---

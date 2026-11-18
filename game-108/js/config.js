@@ -1,6 +1,6 @@
 // Oathstones — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'oathstones.v1';
 
 export const STEP = 1 / 120;              // fixed step for the view's clock (the sim is turn-based)

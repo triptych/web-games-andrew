@@ -6,7 +6,7 @@
  * the view, so it must not import three.js or touch the DOM.
  */
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 
 // ------------------------------------------------------------------ Battlefield
 
