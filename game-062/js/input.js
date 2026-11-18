@@ -24,6 +24,9 @@ export class Input {
         canvas.addEventListener('wheel', (e) => { this.wheel += Math.sign(e.deltaY); e.preventDefault(); }, { passive: false });
         addEventListener('keydown', (e) => {
             if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            // On the title and creator screens Space belongs to the focused button: preventDefault()
+            // cancelled its click (game-078's fix). In play, Space still closes the open panels.
+            if (e.code === 'Space' && e.target?.tagName === 'BUTTON' && e.target.closest('.screen:not(.hidden)')) return;
             if (['Tab', 'Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'AltLeft', 'AltRight'].includes(e.code)) e.preventDefault();
             if (!this.keys.has(e.code)) this.pressed.add(e.code);
             this.keys.add(e.code);
