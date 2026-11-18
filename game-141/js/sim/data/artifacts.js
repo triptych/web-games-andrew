@@ -1,0 +1,63 @@
+// The sixteen artifacts of the Sunken Spire, one on each story floor (treasure floors keep theirs in a chest).
+// Each one changes the rules a little; the effect is read by js/sim/game.js. kind is used by quests and the museum.
+// art is the description the fal reference image and the Meshy model were made from (dev/art/, dev/models/).
+
+export const KINDS = {
+    tool:  { name: 'Tools',  color: '#e8892a' },
+    jewel: { name: 'Jewels', color: '#3fb6c6' },
+    relic: { name: 'Relics', color: '#c9a15a' },
+    idol:  { name: 'Idols',  color: '#6a7fd8' },
+};
+
+export const ARTIFACTS = [
+    { id: 'compass', floor: 1, kind: 'tool', name: "Wayfinder's Compass",
+      effect: '+8 maximum stamina.',
+      lore: 'Its needle ignores north entirely and points, stubbornly, down.' },
+    { id: 'scarab', floor: 2, kind: 'jewel', name: 'Winged Scarab',
+      effect: '+15% gold from everything.',
+      lore: 'A charm for luck in trade. The previous owner was clearly very lucky, then very buried.' },
+    { id: 'tablet', floor: 3, kind: 'relic', name: 'Glyph Tablet',
+      effect: 'Shows the hidden order of rune blocks on treasure floors.',
+      lore: 'A schoolchild\'s copy of the counting glyphs. The child drew a small camel in the margin.' },
+    { id: 'lens', floor: 4, kind: 'idol', name: 'Sun Lens',
+      effect: 'Wakes empty sun pedestals, so light can run along the conduits to a sun panel.',
+      lore: 'Even underground it remembers noon, and gives it back to whatever needs it.' },
+    { id: 'pickhead', floor: 5, kind: 'tool', name: 'Desert Rose Pick',
+      effect: '+1 pick power.',
+      lore: 'Grown, not forged: desert rose crystal coaxed into a pick head over a patient century.' },
+    { id: 'hourglass', floor: 6, kind: 'relic', name: 'Hourglass of Ages',
+      effect: '+10 maximum stamina.',
+      lore: 'Turn it over and the afternoon feels a little longer. Nobody knows where the time comes from.' },
+    { id: 'bangle', floor: 7, kind: 'jewel', name: 'Cobra Bangle',
+      effect: 'Monsters hit 1 less.',
+      lore: 'Tomb creatures recognise the royal cobra and pull their punches, out of habit.' },
+    { id: 'mask', floor: 8, kind: 'jewel', name: 'Golden Mask',
+      effect: 'Chests hold half as much gold again.',
+      lore: 'Queen Ishet\'s mask. She ran the tower\'s treasury and was famously generous with it.' },
+    { id: 'lamp', floor: 9, kind: 'idol', name: 'Lamp of Lumen',
+      effect: 'Sleeping monsters show as glowing eyes in their blocks.',
+      lore: 'Its cold blue flame burns brighter near anything with a heartbeat.' },
+    { id: 'chisel', floor: 10, kind: 'tool', name: 'Obsidian Chisel',
+      effect: 'Your pick bites obsidian as if you knew one more rank of Obsidian Lore.',
+      lore: 'The masons who cut the deep halls used these, and never once hit a thumb.' },
+    { id: 'starchart', floor: 11, kind: 'relic', name: 'Star Chart Disc',
+      effect: 'Artifacts and chests glint through the blocks that hide them.',
+      lore: 'The tower\'s astronomers mapped the sky by mapping what lay beneath it.' },
+    { id: 'feather', floor: 12, kind: 'relic', name: 'Phoenix Feather',
+      effect: 'Once per expedition, when you would faint, you rise again with half your health.',
+      lore: 'Still warm. It has been still warm for three thousand years.' },
+    { id: 'fork', floor: 13, kind: 'tool', name: 'Crystal Tuning Fork',
+      effect: 'Your pick bites crystal as if you knew one more rank of Crystal Song.',
+      lore: 'Strike it once and every crystal in the room hums back, and loosens.' },
+    { id: 'jackal', floor: 14, kind: 'idol', name: 'Jackal Idol',
+      effect: 'Monsters drop twice as much gold.',
+      lore: 'The jackal guards what is buried, and pays well to whoever brings it back to the light.' },
+    { id: 'scepter', floor: 15, kind: 'idol', name: 'Lapis Scepter',
+      effect: 'A rune struck out of order no longer resets the others.',
+      lore: 'The high priests\' scepter. With it, wrong answers simply do not count.' },
+    { id: 'heart', floor: 16, kind: 'relic', name: 'Heart of the Spire',
+      effect: '+1 pick power and +10 maximum stamina. The tower is awake.',
+      lore: 'The tower sank to keep this safe. Now that it is found, the tower can rise.' },
+];
+export const ART_BY_ID = Object.fromEntries(ARTIFACTS.map((a) => [a.id, a]));
+export const ART_ON_FLOOR = Object.fromEntries(ARTIFACTS.map((a) => [a.floor, a.id]));
