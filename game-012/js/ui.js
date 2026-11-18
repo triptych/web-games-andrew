@@ -169,6 +169,10 @@ export class UI {
         $('charm-badge').hidden = !G.items.length;
         $('charm-badge').textContent = G.armed.length ? `${G.armed.length}/${G.items.length}` : G.items.length;
         $('btn-fight').disabled = !G.party.some(Boolean);
+        // a new player's next step glows: the Well before the first draw, then the fight
+        const fresh = !Object.keys(G.owned).length;
+        $('btn-well').classList.toggle('pulse', fresh);
+        $('btn-fight').classList.toggle('pulse', !fresh && G.stats.fights === 0);
         $('btn-auto').disabled = !Object.keys(G.owned).length;
     }
 

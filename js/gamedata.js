@@ -175,16 +175,17 @@ const games = [
     {
         id: 'game-012',
         title: 'Arcana Pull',
-        description: 'Collect tarot cards through a gacha pull system and field them as fighters in wave-based auto battler combat. Build a four-card party from the 78-card tarot deck — harness the power of the Major Arcana to conquer all 10 waves and defeat The World.',
+        description: "A tarot gacha auto-battler in plain HTML, CSS and JavaScript, with every card painted by fal and music, sound and voices by ElevenLabs. The Great Deck has shattered and the shadows of the Major Arcana, the Hollows, hold ten Thresholds between you and The World. Draw from the Well of Fortune with stardust: all 78 tarot cards are fighters, from the humble pips to the 22 Legendary Major Arcana, each with its own skill (the Magician strikes every foe, the Star raises the fallen, Death ends the weakened, the Wheel of Fortune spins). Set a spread of four, front to back: Wands are strikers, Cups heal, Swords are quick duellists, Pentacles shield and hold the line, and two or more of a suit lend the whole spread a bonus. Read each Threshold's element (Fire beats Air beats Earth beats Water beats Fire) and choose your cards to match, then watch the battle play out as an animated replay at 1×, 2× or 4×. Duplicates raise a card's stars; a ten-draw always holds a Rare, every pull from the thirtieth raises the Legendary chance and the fortieth is guaranteed, and each Threshold features one Major. After the third, sixth and ninth Thresholds the Oracle deals a Reading: choose a card, and it lands upright for a blessing or reversed for a curse. Three lives, charms, The World's three element phases, an ending, and Ascension to begin again harder with every card you own.",
         icon: '🔮',
         folder: 'game-012',
-        version: '1.5.2',
+        version: '2.0.0',
         cssClass: 'arcana-pull',
         genre: 'strategy',
         tags: [
             { emoji: '🃏', label: 'Card Game' },
             { emoji: '⚔️', label: 'Auto Battler' },
-            { emoji: '✨', label: 'Gacha' }
+            { emoji: '✨', label: 'Gacha' },
+            { emoji: '🎙️', label: 'Voiced' }
         ]
     },
     {
