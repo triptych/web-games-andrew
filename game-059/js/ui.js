@@ -46,6 +46,13 @@ export class UI {
             const b = e.target.closest && e.target.closest('.mbtn, .cbtn, #stage-list button');
             if (b && this.top() && this.top().contains(b)) { const list = this.buttons(); const i = list.indexOf(b); if (i >= 0 && i !== this.focusIdx) { this.focusIdx = i; this.paintFocus(); } }
         });
+        // real focus (Tab) moves the menu cursor too, so the arrows carry on from the focused button
+        document.addEventListener('focusin', (e) => {
+            const t = this.top();
+            if (!t || !t.contains(e.target)) return;
+            const i = this.buttons().indexOf(e.target);
+            if (i >= 0 && i !== this.focusIdx) { this.focusIdx = i; this.paintFocus(); }
+        });
     }
 
     // ---------------------------------------------------------------- screens & focus
