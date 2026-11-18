@@ -60,15 +60,15 @@ export const WARDS = {
 export const WARD_ORDER = ['rose', 'forge', 'tide', 'wood', 'sun', 'star', 'dream'];
 
 export const CHAPTERS = [
-    { id: 'prologue', title: 'Ash and Vellum', place: 'Ravenmoor', map: [0.2, 0.3], segs: ['prologue', 'flight'] },
-    { id: 'ch1', title: 'The Drowned Rose', place: 'Hollowmere', map: [0.27, 0.52], segs: ['hollowmere', { ward: 'rose' }, 'rose-bloom', 'hierarch'] },
-    { id: 'ch2', title: 'Hammer and Hush', place: 'Cinderhold', map: [0.45, 0.62], segs: ['cinderhold', 'caius-forge', { ward: 'forge' }, 'forge-bloom', { camp: 1 }] },
-    { id: 'ch3', title: 'Salt and Ink', place: 'Merrowgate', map: [0.64, 0.8], segs: ['merrowgate', 'storm', { ward: 'tide' }, 'tide-bloom', { camp: 2 }] },
-    { id: 'ch4', title: 'The Sleeping Wood', place: 'the Eldwood', map: [0.78, 0.55], segs: ['eldwood', { ward: 'wood' }, 'wood-bloom', { camp: 3 }] },
-    { id: 'ch5', title: 'The Golden Silence', place: 'Aurelfield', map: [0.6, 0.38], segs: ['aurelfield', 'caius-sun', { ward: 'sun' }, 'sun-bloom', { camp: 4 }] },
-    { id: 'ch6', title: 'Where the Stars Were Kept', place: 'the Starfall Peaks', map: [0.8, 0.18], segs: ['starfall', 'confession', 'bridge', { ward: 'star' }, 'star-bloom', { camp: 5 }] },
-    { id: 'ch7', title: 'The Last Ward', place: 'Vael Sanctum', map: [0.47, 0.2], segs: ['sanctum', 'throne', { ward: 'dream' }, 'dream-bloom'] },
-    { id: 'epilogue', title: 'The World in Colour', place: 'Velmaris', map: [0.47, 0.2], segs: ['epilogue'] },
+    { id: 'prologue', title: 'Ash and Vellum', place: 'Ravenmoor', map: [0.2, 0.24], segs: ['prologue', 'flight'] },
+    { id: 'ch1', title: 'The Drowned Rose', place: 'Hollowmere', map: [0.23, 0.55], segs: ['hollowmere', { ward: 'rose' }, 'rose-bloom', 'hierarch'] },
+    { id: 'ch2', title: 'Hammer and Hush', place: 'Cinderhold', map: [0.5, 0.46], segs: ['cinderhold', 'caius-forge', { ward: 'forge' }, 'forge-bloom', { camp: 1 }] },
+    { id: 'ch3', title: 'Salt and Ink', place: 'Merrowgate', map: [0.53, 0.73], segs: ['merrowgate', 'storm', { ward: 'tide' }, 'tide-bloom', { camp: 2 }] },
+    { id: 'ch4', title: 'The Sleeping Wood', place: 'the Eldwood', map: [0.8, 0.57], segs: ['eldwood', { ward: 'wood' }, 'wood-bloom', { camp: 3 }] },
+    { id: 'ch5', title: 'The Golden Silence', place: 'Aurelfield', map: [0.69, 0.35], segs: ['aurelfield', 'caius-sun', { ward: 'sun' }, 'sun-bloom', { camp: 4 }] },
+    { id: 'ch6', title: 'Where the Stars Were Kept', place: 'the Starfall Peaks', map: [0.88, 0.24], segs: ['starfall', 'confession', 'bridge', { ward: 'star' }, 'star-bloom', { camp: 5 }] },
+    { id: 'ch7', title: 'The Last Ward', place: 'Vael Sanctum', map: [0.52, 0.22], segs: ['sanctum', 'throne', { ward: 'dream' }, 'dream-bloom'] },
+    { id: 'epilogue', title: 'The World in Colour', place: 'Velmaris', map: [0.52, 0.22], segs: ['epilogue'] },
 ];
 
 export const CAMP_TALKS = 2;            // conversations a night at the fire allows
