@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **RUNEBORE** (game-073) v1.0.5: Space couldn't press a focused button on the title and menu screens: the keyboard handler cancelled it. Enter could press a focused button and also turn a story card. A focused button on an open screen now takes Space and Enter itself, and a dialogue line on top still takes both keys (game-078's fix, now in `lib/core/input.js`).
 - **FROSTMARCH** (game-071) v1.0.7: Space couldn't press a focused button on the title screen: the keyboard handler cancelled it. A focused title button now takes Space and Enter itself; the menu panels keep their own keys (game-078's fix, now in `lib/core/input.js`).
 - **Rotten to the Core** (game-062) v1.0.3: Space couldn't press a focused button on the title and character-creation screens: the keyboard handler cancelled it everywhere. A focused button on those screens now takes Space; in play, Space still closes the open panels (game-078's fix, now in `lib/core/input.js`).
 - **STARWRIGHT** (game-061) v1.0.1: Space couldn't press a focused button in the menus (the title, docked, map and pause screens): it is the fire key, and the keyboard handler cancelled it everywhere. While a menu is open, a focused button now takes Space; in flight it still fires (game-078's fix, now in `lib/core/input.js`).
