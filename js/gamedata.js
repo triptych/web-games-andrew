@@ -2178,6 +2178,23 @@ const games = [
             { emoji: '🎙️', label: 'Voiced' },
             { emoji: '🖼️', label: 'Canvas 2D + WebGL' }
         ]
+    },
+    {
+        id: 'game-141',
+        title: 'SANDSUNK',
+        description: "A cozy dig-and-collect puzzle in three.js with painted art by fal, sixteen 3D artifacts by Meshy, and music, sound and voices by ElevenLabs. You are Sela Marrow, a young magical archaeologist, and a colossal sandstone tower has been found sunk in the desert to its crown. With Quill, a fussy clockwork owl, climb down it floor by floor and tap away the sand and rubble block by block: loose sand, packed sand, sandstone, mud brick, granite, obsidian and crystal, each harder than the last. Hidden in the blocks are traps and sleeping tomb creatures, and the glowing numbers on open floor count them like Minesweeper, so a careful reader marks a block first and disarms the trap or ambushes the monster inside. Nothing kills you outright: a careless dig only hurts, and the worst that happens is the camel-drivers hauling you up to camp for a small fee. Strike rune blocks in their numerals' order, turn golden channels until light runs from a sun pedestal to a sun panel, light all five runes of a chest lock, find the key for a bronze door. Clear every block, monster and chest and the hatch opens to the next floor. Run out of stamina and climb up to camp to rest, buy potions, tonics, a Hyper Gauntlet, ward charms, blast charges and dowsing rods from Madame Zahra, spend skill points across a 13-skill tree (pickaxe power, lucky strikes, shockwaves, endurance, vitality, stonecraft, obsidian lore, crystal song, dowsing and more), and claim rolling quests for gold. Sixteen artifacts, from a Wayfinder's Compass to the Heart of the Spire, each change the rules and turn on a marble plinth in your museum as real 3D models. Sixteen story floors, three treasure vaults, the Sphinx Warden, an ending at sunrise and the endless Echo Deeps below. Every break throws tumbling debris, dust and light; mouse, touch or keyboard.",
+        icon: '🏺',
+        folder: 'game-141',
+        version: '1.0.1',
+        cssClass: 'sandsunk',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '⛏️', label: 'Dig & collect' },
+            { emoji: '💣', label: 'Minesweeper-ish' },
+            { emoji: '🏛️', label: '3D museum' },
+            { emoji: '🎙️', label: 'Voiced' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 
