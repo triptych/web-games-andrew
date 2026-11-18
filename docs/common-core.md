@@ -67,8 +67,8 @@ Counted in the copies on disk:
 | Space must not be `preventDefault`ed on a focused `<button>`, or it can't press it | game-078 | 55 of 81 `input.js`; 21 of the other 26 call `preventDefault` on Space |
 | a focused slider/select keeps its keys but Escape still closes its sheet | game-117/118 | 58 of 81 |
 | the touch stick ends on `lostpointercapture` | — | 42 of 81 |
-| a looping silent `<audio>` so iOS plays Web Audio with the ringer on silent | game-100 | 1 of 98 `audio.js` |
-| resume an `interrupted` audio context (a phone call) | game-100 | 1 of 98 |
+| a looping silent `<audio>` so iOS plays Web Audio with the ringer on silent | game-100 | 1 of 98 `audio.js` (now every game, through `lib/ios-audio.js`) |
+| resume an `interrupted` audio context (a phone call) | game-100 | 1 of 98 (now every game, through `lib/ios-audio.js`) |
 | a per-sound throttle so 40 pickups in one frame don't clip | — | 18 of 98 |
 | hash the seed so seeds 1, 2, 3 don't start alike | game-126 | 7 of 77 `makeRng` |
 

@@ -408,6 +408,7 @@ web-games-andrew/
 │   ├── phaser/phaser-4.0.0/ # Shared Phaser 4 engine (ESM build)
 │   ├── core/                # Common library: seeded rng, noise, grid search, input, audio, saves, viewport (lib/core/README.md)
 │   ├── a11y.js              # Baseline accessibility for every game: focus ring, live region, labels, reduced motion
+│   ├── ios-audio.js         # Every game: plays sound on iPhones with the ringer switch on silent, resumes interrupted audio
 │   └── page-audio.js        # Silences a game's audio while its tab is hidden (games 001–036)
 ├── dev/                    # Repo-wide smoke test (dev/smoketest.mjs)
 ├── docs/                   # Framework API references and cross-game learnings
