@@ -28,7 +28,7 @@ function canvasTex(w, h, draw) {
 }
 
 /** A number or numeral, inked and outlined, on a transparent square. */
-function glyphTex(text, fill, font = '900 92px "Alegreya Sans", "Trebuchet MS", sans-serif') {
+function glyphTex(text, fill, font = '900 92px "Nunito", "Segoe UI", sans-serif') {
     return canvasTex(128, 128, (g, w, h) => {
         g.font = font;
         g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -161,8 +161,8 @@ export class View {
         // canvas textures
         this.tex = {
             nums: NUM_COLORS.map((c, n) => (n ? glyphTex(String(n), c) : null)),
-            roman: ROMAN.map((r) => (r ? glyphTex(r, '#ffe7a6', '700 76px "Grenze Gotisch", Georgia, serif') : null)),
-            romanLit: ROMAN.map((r) => (r ? glyphTex(r, '#bffff8', '700 76px "Grenze Gotisch", Georgia, serif') : null)),
+            roman: ROMAN.map((r) => (r ? glyphTex(r, '#ffe7a6', '800 74px "Alegreya", Georgia, serif') : null)),
+            romanLit: ROMAN.map((r) => (r ? glyphTex(r, '#bffff8', '800 74px "Alegreya", Georgia, serif') : null)),
             flag: flagTex(), eyes: eyesTex(), warn: warnTex(),
             cracks: [1, 2, 3].map(crackTex),
             pipe: { s0: pipeTex(false, false), s1: pipeTex(false, true), c0: pipeTex(true, false), c1: pipeTex(true, true) },
@@ -191,6 +191,12 @@ export class View {
         this.cursorMesh.visible = false;
         this.scene.add(this.cursorMesh);
 
+        // the numbers and numerals are painted into canvases: paint them again once the web fonts have arrived
+        if (document.fonts?.load) {
+            Promise.all(['900 92px "Nunito"', '800 74px "Alegreya"'].map((f) => document.fonts.load(f).catch(() => null)))
+                .then(() => this.repaintGlyphs());
+        }
+
         this.raycaster = new THREE.Raycaster();
         this.ndc = new THREE.Vector2();
         this.ready = this.load();
@@ -199,6 +205,14 @@ export class View {
         const onResize = () => this.resize(true);
         window.addEventListener('resize', onResize);
         window.visualViewport?.addEventListener('resize', onResize);
+    }
+
+    repaintGlyphs() {
+        this.tex.nums = NUM_COLORS.map((c, n) => (n ? glyphTex(String(n), c) : null));
+        this.tex.roman = ROMAN.map((r) => (r ? glyphTex(r, '#ffe7a6', '800 74px "Alegreya", Georgia, serif') : null));
+        this.tex.romanLit = ROMAN.map((r) => (r ? glyphTex(r, '#bffff8', '800 74px "Alegreya", Georgia, serif') : null));
+        this.mat.num.forEach((m, n) => { if (m) { m.map = this.tex.nums[n]; m.needsUpdate = true; } });
+        for (const cv of this.cells) cv.sig = '';      // rebuild the rune numerals with the new textures
     }
 
     /** Load the painted atlases; until they arrive blocks are drawn in flat colours. */

@@ -32,7 +32,8 @@ if (PKG) {
         route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
     });
 }
-await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+// FONTS=1 lets the real Google Fonts load (the harnesses stub them, so a shot otherwise shows the fallback faces)
+if (!process.env.FONTS) await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text()); });
 page.on('pageerror', (e) => console.log('[pageerror]', e.message));
 await page.goto(`${BASE}/game-141/index.html?debug=1${process.env.Q || ''}`);
