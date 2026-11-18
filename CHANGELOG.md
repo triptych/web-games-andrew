@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Dirt Crown** (game-069) v1.0.3: Space (drift) couldn't press a focused menu button, and on the title Enter pressed the focused button and also started the career (with Settings focused, both happened). A focused menu button now takes Space and Enter itself; the race HUD and story cards keep both keys (game-078's fix, now in `lib/core/input.js`).
 - **RUNEBORE** (game-073) v1.0.5: Space couldn't press a focused button on the title and menu screens: the keyboard handler cancelled it. Enter could press a focused button and also turn a story card. A focused button on an open screen now takes Space and Enter itself, and a dialogue line on top still takes both keys (game-078's fix, now in `lib/core/input.js`).
 - **FROSTMARCH** (game-071) v1.0.7: Space couldn't press a focused button on the title screen: the keyboard handler cancelled it. A focused title button now takes Space and Enter itself; the menu panels keep their own keys (game-078's fix, now in `lib/core/input.js`).
 - **Rotten to the Core** (game-062) v1.0.3: Space couldn't press a focused button on the title and character-creation screens: the keyboard handler cancelled it everywhere. A focused button on those screens now takes Space; in play, Space still closes the open panels (game-078's fix, now in `lib/core/input.js`).
