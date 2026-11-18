@@ -9,8 +9,8 @@ import { ENEMIES } from './data/enemies.js';
 
 const READ_PREF = { wands: 3, swords: 2.6, cups: 2.4, pentacles: 2, major: 3.2 };
 
-/** One command for the bot to play next, or null when the run is over. */
-export function botCommand(G, style = 'careful', rng = Math.random) {
+/** One command for the bot to play next, or null when the run is over. rng is a () => [0, 1) the caller owns. */
+export function botCommand(G, style, rng) {
     switch (G.phase) {
         case 'won': case 'lost': return { t: 'next' };
         case 'reading': {
@@ -60,7 +60,7 @@ function score(id) {
 }
 
 /** Play a whole run (to the ending, or until the lives run out). Returns the final state and a few tallies. */
-export function playRun(G, style = 'careful', { maxSteps = 5000, rng = Math.random, onStep } = {}) {
+export function playRun(G, style, { maxSteps = 5000, rng, onStep } = {}) {
     let steps = 0;
     while (steps++ < maxSteps) {
         const c = botCommand(G, style, rng);
