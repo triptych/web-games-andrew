@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Tee & Sorcery** (game-063) v1.0.2: Space and Enter on a focused title or menu button acted on the title's own cursor instead: with Settings focused, either key started a new quest. A focused button on an open screen or overlay now takes both keys itself; in a hole, Space still swings (game-078's fix, now in `lib/core/input.js`).
 - **Sister Circuit** (game-059) v1.0.2: with a menu button focused by Tab or left focused by a click, Space pressed the menu cursor's button instead (on the title, a focused Settings opened Story mode) and Enter could press both. A focused button in an open menu now takes Space and Enter itself, and the menu cursor follows real focus as it already followed the mouse (game-078's fix, now in `lib/core/input.js`).
 - **PINBREAK '86** (game-045) v1.0.1: Space and Enter couldn't press a focused button on the title, game-over or pause screens: the keyboard handler cancelled them for the plunger, and on the title any Space or Enter started the game whatever button was focused. In menus a focused button now takes Space and Enter as a button should; in play they are still the plunger (game-078's fix, now in `lib/core/input.js`).
 
