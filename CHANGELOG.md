@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **SANDSUNK** (game-141) v1.0.1: the blackletter headings were hard to read, worst on skill names, buttons and small labels. Headings, buttons and names now use Alegreya (a bookish serif with lining figures), body text Nunito, the logo Cinzel; the smallest text is a step larger; the canvas-drawn danger numbers and rune numerals are repainted once the web fonts load, so they no longer stay in the fallback face. Requested by the owner.
 - **Tootle Isles** (game-067) v1.0.2: Escape didn't close Settings while its volume slider had focus: the keyboard handler ignored every key from a focused input. Sliders and selects keep their own keys, and Escape closes the sheet again (the fix from games 117 and 118, now in `lib/core/input.js`).
 - **Glimmerglen** (game-043) v1.2.1: Escape didn't close the menu panel while one of the Save tab's volume sliders had focus: the keyboard handler ignored every key from a focused input. Sliders keep their arrow keys, and Escape closes the panel again (the fix from games 117 and 118, now in `lib/core/input.js`).
 - **CINDERWING** (game-074) v1.0.2: Space on a focused title button pressed the menu cursor's button instead (with How to Fly focused, it started the game), and Enter pressed both. The menu cursor now carries real focus, so the lit button is the one Space and Enter press, and Tab moves the cursor too (game-078's fix, now in `lib/core/input.js`).

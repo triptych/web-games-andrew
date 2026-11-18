@@ -2,7 +2,7 @@
 
 **Genre:** Cozy dig-and-collect puzzle (Minesweeper deduction without instant death, a Motherload-style run back to camp, a museum of 3D finds)
 **Engine:** three.js r165, sim/view layout. Art painted with fal, sixteen artifact models by Meshy, music, sound effects and voices by ElevenLabs. Every one has a code fallback.
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -155,6 +155,9 @@ Tuned against the bot at skill 1 (uses every deduction), 0.5 and 0 (digs at rand
 - No undo for a misplaced mark beyond tapping it again; maybe fine.
 
 ## Changelog
+
+### v1.0.1 (2026-11-18)
+- Readable type: the blackletter headings (Grenze Gotisch) were hard to read, especially skill names and buttons. Headings, buttons and names are now Alegreya, body text Nunito, the logo Cinzel; the smallest text is a step larger; the canvas-drawn danger numbers and rune numerals are repainted once the web fonts load.
 
 ### v1.0.0 (2026-11-18)
 - First release: 16 story floors and the endless Echo Deeps; digging with marks, traps and monsters; rune, sun-conduit, chest-lock and key puzzles; 16 artifacts with 3D models in a museum; a 13-skill tree; Zahra's shop; rolling quests; camp; voiced tutorial; painted UI; desktop, touch and keyboard.
