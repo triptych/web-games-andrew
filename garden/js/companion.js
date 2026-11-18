@@ -129,6 +129,24 @@ export class Companion {
             document.body.classList.toggle('df-hover', e.target === this.canvas && this.active && !!this.hit(e.clientX, e.clientY));
         });
         addEventListener('pagehide', () => this.save());
+        // the Pocket Garden handheld (console/) feeds it, pets it and plays with it too: when it does so in
+        // another tab, take its word for how full and happy it is now
+        addEventListener('storage', (e) => {
+            if (e.key !== 'garden.' + KEY || !e.newValue) return;
+            let v;
+            try {
+                v = JSON.parse(e.newValue);
+            } catch {
+                return;
+            }
+            if (!v || typeof v !== 'object' || !this.mem.met) return;
+            const m = this.mem;
+            for (const k of ['full', 'joy']) if (Number.isFinite(v[k])) m[k] = Math.max(0, Math.min(1, v[k]));
+            for (const k of ['plays', 'petted']) if (Number.isFinite(v[k])) m[k] = Math.max(m[k] || 0, v[k]);
+            if (v.fed && typeof v.fed === 'object') for (const [id, n] of Object.entries(v.fed)) if (Number.isFinite(n)) m.fed[id] = Math.max(m.fed[id] || 0, n);
+            this._mood();
+            this.view.render();
+        });
     }
 
     // ------------------------------------------------------------ memory
@@ -676,27 +694,46 @@ export class Companion {
         ];
     }
 
-    travel(key) {
-        const [kind, id] = key.split(/:(.*)/s);
+    /**
+     * Sent from the Pocket Garden's Dragonfly menu (index.html?go=place:tree): as soon as you are on the
+     * island it comes to you and flies you to `key`, one of travelList()'s keys.
+     */
+    summon(key) {
+        if (!this.met) return false;
+        this.greeted = true;
+        if (this.mode === 'perch' || this.mode === 'greet') {
+            this.mode = 'follow';
+            this.df.perched = false;
+        }
+        return this.travel(key, { summoned: true });
+    }
+
+    travel(key, { summoned = false } = {}) {
+        const [kind, id] = String(key).split(/:(.*)/s);
         let dest = null;
         if (kind === 'place' && T.PLACE_BY_ID[id] && this.mem.places[id]) dest = { place: T.PLACE_BY_ID[id] };
         else if (kind === 'path') {
             const sp = this.world.layout.spokes.find((s) => s.genre.id === id);
             if (sp && this.mem.places[key]) dest = { spoke: sp };
         } else if (kind === 'game' && this.byId.has(id)) dest = { game: this.byId.get(id) };
-        if (!dest) return;
+        if (!dest) {
+            if (summoned) this.say('You called me from your Pocket Garden, but I don’t know the way there yet. Let’s find it together!', [], { chirp: 'sad' });
+            return false;
+        }
         if (!this.info?.canTravel) {
             this.say(T.CHATTER.cantTravel, [], { log: false, chirp: 'sad' });
-            return;
+            return false;
         }
         this.view.closePanel();
         if (!this.hooks.travel(dest)) {
             this.say(T.CHATTER.cantTravel, [], { log: false, chirp: 'sad' });
-            return;
+            return false;
         }
         this.df.startTrick('zip');
         const label = dest.game ? dest.game.title : dest.spoke ? dest.spoke.genre.name : dest.place.name;
-        this.say(`${pick(T.CHATTER.travel, this.rand)} To ${label}!`, [], { log: false, chirp: 'happy', ms: 3500 });
+        const hi = summoned ? 'You called me from your Pocket Garden! ' : '';
+        this.say(`${hi}${pick(T.CHATTER.travel, this.rand)} To ${label}!`, [], { log: false, chirp: 'happy', ms: summoned ? 5000 : 3500 });
+        return true;
     }
 
     // ------------------------------------------------------------ every frame

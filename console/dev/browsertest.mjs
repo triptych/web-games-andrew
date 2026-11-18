@@ -17,12 +17,18 @@
  * Installable app (the only run with service workers on): the manifest,
  * every icon and screenshot at its stated size, the worker's scope, the
  * files it keeps, starting and browsing with the network off, the Install
- * App menu item and prompt, Settings' install help, and the shortcuts. Screenshots → console/dev/shots/.
+ * App menu item and prompt, Settings' install help, and the shortcuts.
+ * The Dragonfly (the Garden's companion as a pet, sharing `garden.companion`):
+ * before meeting it, where it waits; its 8-bit stage; feeding it from the
+ * wheel (written to the island's memory), petting by holding the center and
+ * by tapping it, a trick, a change made on the island showing at once,
+ * Places (found ones and hints) and flying to one (index.html?go=…); the
+ * embossed dragonfly on the shell opens it on a phone. Screenshots → console/dev/shots/.
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node console/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8077), PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage.
+ * Env: BASE (default http://127.0.0.1:8077), PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage|dragonfly.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -704,7 +710,126 @@ async function pwa() {
     await ctx.close();
 }
 
+/** The Dragonfly menu: the Garden's dragonfly companion as a pocket pet (pet.js, pixel-dragonfly.js). */
+async function dragonfly() {
+    console.log('\nThe dragonfly');
+    const now = Date.now();
+    const mem = {
+        v: 1, met: true, name: 'Pip', look: { body: 'ruby', wings: 'glass', acc: 'tophat' }, visits: 4, metAt: now - 5 * 864e5, together: 3600,
+        full: 0.5, joy: 0.5, moodAt: now, fed: { midge: 1 }, plays: 0, petted: 0, catchBest: 3,
+        places: { dock: now - 864e5, hub: now - 864e5, tree: now - 36e5, 'path:arcade': now - 36e5 }, games: { 'game-135': 2 },
+    };
+    const seed = (m) => `if (!sessionStorage.getItem('seeded')) { sessionStorage.setItem('seeded', '1'); localStorage.setItem('garden.companion', ${JSON.stringify(JSON.stringify(m))}); }`;
+
+    // never met: where it waits
+    let { ctx, page } = await open({ width: 1280, height: 800 });
+    await boot(page, '#dragonfly');
+    let t = await top(page);
+    check(t.title === 'Dragonfly' && t.sel === 'Meet it on the island', 'before you have met it on the island, #dragonfly says where it waits');
+    check(/Waiting on the dock/i.test(await page.locator('.view.is-top .pet-card').textContent()), 'and that it is waiting on the dock');
+    await ctx.close();
+
+    ({ ctx, page } = await open({ width: 1280, height: 800 }, { init: seed(mem) }));
+    // the island itself is not under test here: answer the flight there with a stub
+    await ctx.route(/\/index\.html\?go=/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>island</title>' }));
+    await boot(page);
+    await pick(page, 'Dragonfly');
+    await settle(page);
+    check(/Pip/.test(await page.locator('.view.is-top .hero-cap').textContent()), 'the main menu has Dragonfly, with its name and mood');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    t = await top(page);
+    check(t.title === 'Pip' && t.sel === 'Feed', 'Dragonfly opens its screen, its name on the status bar');
+    const px = await page.evaluate(() => {
+        const c = document.querySelector('.view.is-top .pet-cv');
+        const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        let n = 0;
+        for (let i = 3; i < d.length; i += 4) if (d[i]) n++;
+        return { n, w: c.width, h: c.height, cssW: c.offsetWidth };
+    });
+    check(px.n > 300 && px.cssW % px.w === 0, `the 8-bit pet is drawn on its stage at a whole-number scale (${px.w}×${px.h} art pixels, ×${px.cssW / px.w})`);
+
+    // feed it from the wheel: Feed, then a honey bead
+    await page.keyboard.press('Enter');
+    await settle(page);
+    t = await top(page);
+    check(t.title === 'Feed' && t.sel === 'Midge', 'Feed lists the snacks');
+    await pick(page, 'Honey bead');
+    await page.keyboard.press('Enter');
+    await settle(page, 600);
+    check((await top(page)).title === 'Pip', 'choosing one goes back to it');
+    await page.waitForFunction(() => window.pocketGarden.top.stage.act?.kind === 'happy', null, { timeout: 8000 });
+    let m = await stored(page, 'garden.companion');
+    check(m.fed.honey === 1 && m.fed.midge === 1 && m.full > 0.65 && m.joy > 0.65, `it eats it a bite at a time, and the island's memory says so (full ${m.full.toFixed(2)})`);
+    await page.waitForFunction(() => !window.pocketGarden.top.stage.busy, null, { timeout: 8000 });
+
+    // pet it: hold the center (F), or tap its stage
+    await page.keyboard.press('f');
+    await page.waitForFunction(() => !window.pocketGarden.top.stage.busy, null, { timeout: 8000 });
+    await page.locator('.view.is-top .pet-cv').click();
+    m = await stored(page, 'garden.companion');
+    check(m.petted === 2, 'holding the center button pets it, and so does tapping it');
+    await page.waitForFunction(() => !window.pocketGarden.top.stage.busy, null, { timeout: 8000 });
+
+    // play
+    await pick(page, 'Play');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    check((await top(page)).sel === 'Loop the loop', 'Play lists its tricks');
+    await page.keyboard.press('Enter');
+    await settle(page, 600);
+    m = await stored(page, 'garden.companion');
+    check(m.plays === 1 && (await page.evaluate(() => window.pocketGarden.top.stage.act?.kind)) === 'loop', 'and it does a loop the loop');
+
+    // fed in another tab (the island): the meters follow
+    const before = await page.locator('.view.is-top .pet-full').evaluate((e) => e.style.width);
+    await page.evaluate(() => {
+        const v = JSON.parse(localStorage.getItem('garden.companion'));
+        v.full = 0.05;
+        localStorage.setItem('garden.companion', JSON.stringify(v));
+        dispatchEvent(new StorageEvent('storage', { key: 'garden.companion', newValue: JSON.stringify(v) }));
+    });
+    const after = await page.locator('.view.is-top .pet-full').evaluate((e) => e.style.width);
+    check(before !== after && after === '5%' && /Hungry/.test(await page.locator('.view.is-top .pet-mood').textContent()), `a change made on the island shows at once (Full ${before} → ${after}, hungry)`);
+
+    // places: found ones fly you there, the rest give hints
+    await pick(page, 'Places');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    t = await top(page);
+    check(t.title === 'Places' && /found 4 of \d+ places/i.test(await page.locator('.view.is-top .pet-lead').textContent()), 'Places counts what you have found together');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    const rows = await page.evaluate(() => window.pocketGarden.top.items.map((it) => it.label));
+    check(rows.includes('The Dock') && rows.includes('The Great Tree') && rows.includes('? ? ?') && !rows.includes('The Lighthouse'), 'Around the island: the places you have found, and ??? for the rest');
+    await pick(page, '? ? ?');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    check((await top(page)).title === 'Hint' && (await page.locator('.view.is-top blockquote').textContent()).length > 20, 'a place not found yet gives its hint');
+    await page.keyboard.press('Escape');
+    await settle(page, 500);
+    await pick(page, 'The Great Tree');
+    await page.keyboard.press('Enter');
+    await settle(page, 300);
+    check(!(await page.locator('#load').isHidden()) && /Pip is flying you there/.test(await page.locator('#load').textContent()), 'choosing one: Pip flies you there');
+    await page.waitForURL(/index\.html\?go=place%3Atree$/, { timeout: 8000 });
+    check(true, 'to the island, which takes it from there (index.html?go=place:tree)');
+    await ctx.close();
+
+    // the dragonfly pressed into the shell opens it too, on a phone
+    ({ ctx, page } = await open({ width: 390, height: 844 }, { touch: true, init: seed(mem) }));
+    await boot(page);
+    const eb = await page.locator('#emboss').boundingBox();
+    check(eb.width >= 40 && eb.x + eb.width <= 390 && eb.y + eb.height <= 844, `the embossed dragonfly sits in the shell's lower right (${Math.round(eb.width)}px)`);
+    await tap(page, page.locator('#emboss'));
+    await settle(page, 500);
+    check((await top(page)).title === 'Pip', 'tapping it opens the Dragonfly screen');
+    await noSideScroll(page, 'the Dragonfly screen');
+    await ctx.close();
+}
+
 try {
+    if (!ONLY || ONLY === 'dragonfly') await dragonfly();
     if (!ONLY || ONLY === 'desktop') await desktop();
     if (!ONLY || ONLY === 'pwa') await pwa();
     if (!ONLY || ONLY === 'calm') await calm();

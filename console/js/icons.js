@@ -6,6 +6,12 @@ const svg = (body, cls = '') =>
     `<svg class="ico ${cls}" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" stroke-linejoin="miter">${body}</svg>`;
 
 export const ICONS = {
+    dragonfly: svg('<path d="M8 4.6v10M7 3.2a1 1 0 102 0 1 1 0 10-2 0"/><path d="M7.4 5.6C5.6 3.9 2.2 3.6 1.6 4.8s3.2 2 5.8 1.6M8.6 5.6c1.8-1.7 5.2-2 5.8-.8s-3.2 2-5.8 1.6M7.4 7.4c-2 .5-5 1.9-4.6 3s3.4-.5 4.6-2M8.6 7.4c2 .5 5 1.9 4.6 3s-3.4-.5-4.6-2"/>', 'thin'),
+    feed: svg('<path d="M8 5.2c-3-2.2-6.3 0-5.7 3.6S5.5 14.6 8 13.6c2.5 1 6.3-1.2 5.7-4.8S11 3 8 5.2z"/><path d="M8 5c0-1.6.6-2.6 2.2-3.2"/>'),
+    play2: svg('<path d="M8 1.6l1.7 4.7 4.7 1.7-4.7 1.7L8 14.4l-1.7-4.7L1.6 8l4.7-1.7z"/>'),
+    heart: svg('<path d="M8 13.8L2.6 8.4a3.1 3.1 0 014.6-4.2L8 5l.8-.8a3.1 3.1 0 014.6 4.2z"/>'),
+    pin: svg('<path d="M8 14.6S3.4 10 3.4 6.4a4.6 4.6 0 019.2 0C12.6 10 8 14.6 8 14.6z"/><circle cx="8" cy="6.4" r="1.6"/>'),
+    book: svg('<path d="M1.8 3h4.6A1.6 1.6 0 018 4.6V14a1.6 1.6 0 00-1.6-1.4H1.8zM14.2 3H9.6A1.6 1.6 0 008 4.6V14a1.6 1.6 0 011.6-1.4h4.6z"/>'),
     all: svg('<rect x="2" y="2" width="5" height="5"/><rect x="9" y="2" width="5" height="5"/><rect x="2" y="9" width="5" height="5"/><rect x="9" y="9" width="5" height="5"/>'),
     new: svg('<path d="M8 1.5v4M8 10.5v4M1.5 8h4M10.5 8h4M4 4l1.8 1.8M10.2 10.2L12 12M12 4l-1.8 1.8M5.8 10.2L4 12"/>'),
     genres: svg('<path d="M2 3h5l1.5 2H14v8H2z"/><path d="M2 7h12"/>'),

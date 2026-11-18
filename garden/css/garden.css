@@ -309,6 +309,55 @@ kbd {
     color: var(--ink-dim);
 }
 
+/* the dragonfly that loops the title card while the island loads (title-dragonfly.js): the back layer is
+   under the card, so its frosted glass blurs it, the front one over it */
+.title-card { position: relative; z-index: 1; }
+.tdf-layer { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.tdf-back { z-index: 0; }
+.tdf-front { z-index: 2; }
+.tdf {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 0;
+    height: 0;
+    will-change: transform, opacity;
+}
+.tdf-body {
+    position: absolute;
+    left: -42px;
+    top: -42px;
+    width: 84px;
+    height: 112px;
+    transform: rotateY(var(--bank, 0deg));
+    filter: drop-shadow(0 0 6px rgba(255, 236, 170, 0.55)) drop-shadow(0 0 16px rgba(143, 246, 255, 0.35));
+}
+.tdf.far .tdf-body { filter: drop-shadow(0 0 5px rgba(143, 246, 255, 0.4)); }
+.tdf svg { display: block; width: 100%; height: 100%; overflow: visible; --tdf-vein: rgba(120, 90, 30, 0.55); }
+.tdf-wings { transform-box: fill-box; }
+.tdf-l { transform-origin: 100% 50%; animation: tdf-flap 0.075s ease-in-out infinite alternate; }
+.tdf-r { transform-origin: 0% 50%; animation: tdf-flap 0.075s ease-in-out 0.0375s infinite alternate; }
+.tdf.rainbow .tdf-wings { animation-name: tdf-flap, tdf-rainbow; animation-duration: 0.075s, 2.4s; animation-direction: alternate, normal; animation-timing-function: ease-in-out, linear; }
+@keyframes tdf-flap { to { transform: scaleX(0.42) scaleY(1.06); } }
+@keyframes tdf-rainbow { to { filter: hue-rotate(360deg); } }
+.tdf.still .tdf-wings { animation: none; }
+.tdf-spark {
+    position: absolute;
+    width: var(--sz);
+    height: var(--sz);
+    margin: calc(var(--sz) / -2) 0 0 calc(var(--sz) / -2);
+    background: var(--c);
+    clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%);
+    filter: drop-shadow(0 0 3px var(--c));
+    animation: tdf-spark var(--life) ease-out forwards;
+}
+@keyframes tdf-spark {
+    0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+    15% { opacity: 1; transform: scale(1.15) rotate(30deg); }
+    60% { opacity: 0.85; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.2) rotate(140deg); }
+}
+
 /* ------------------------------------------------------------ HUD */
 
 .hud {

@@ -2299,6 +2299,20 @@ async function boot() {
     document.getElementById('enter-library').addEventListener('click', () => enter(true));
     ui.ready();
     if (params.has('enter')) enter(false);
+    // ?go=place:tree (or path:…, game:…): the Pocket Garden's Dragonfly menu. Straight onto the island,
+    // and once the fly-in is over the dragonfly flies you there. The address loses ?go so a reload stays put.
+    const goKey = params.get('go');
+    if (goKey && companion?.met) {
+        const rest = new URLSearchParams(location.search);
+        rest.delete('go');
+        history.replaceState(history.state, '', location.pathname + (rest.toString() ? `?${rest}` : '') + location.hash);
+        enter(false);
+        const iv = setInterval(() => {
+            if (!entered || intro) return;
+            clearInterval(iv);
+            setTimeout(() => companion.summon(goKey), 350);
+        }, 150);
+    }
     if (params.has('cove')) {
         // ?cove: straight to the cove once the fly-in is over (for testing)
         const iv = setInterval(() => {
