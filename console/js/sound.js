@@ -125,4 +125,20 @@ export const sfx = {
     reel(step) {
         tone(600 + (step % 6) * 90, 0, 0.03, { vol: 0.025 });
     },
+    // the dragonfly pet: a happy trill, a bite, a sad little drop, and the whoosh of a trick
+    chirp() {
+        [1760, 2349, 3136].forEach((f, i) => tone(f * 0.8, i * 0.06, 0.06, { type: 'triangle', vol: 0.045, to: f }));
+    },
+    chomp() {
+        click(0, { freq: 1100, vol: 0.45, dur: 0.035 });
+        tone(330, 0, 0.05, { type: 'square', vol: 0.025, to: 220 });
+    },
+    sad() {
+        tone(880, 0, 0.12, { type: 'triangle', vol: 0.04, to: 660 });
+        tone(660, 0.12, 0.18, { type: 'triangle', vol: 0.035, to: 440 });
+    },
+    whoosh() {
+        tone(320, 0, 0.35, { type: 'sine', vol: 0.06, to: 1400 });
+        click(0.05, { freq: 2600, vol: 0.2, dur: 0.25 });
+    },
 };

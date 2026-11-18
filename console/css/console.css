@@ -2168,6 +2168,264 @@ kbd {
     background-image: radial-gradient(circle, rgba(0, 0, 0, 0.8) 1.2px, transparent 1.6px);
 }
 
+/* the dragonfly pressed into the shell at the bottom right: raised from the plastic in the shell's own
+   colour, lit from the top left (a highlight up there, a shadow below and right) */
+.deck {
+    position: relative;
+}
+.emboss {
+    position: absolute;
+    right: 3.5%;
+    bottom: 0;
+    width: calc(var(--dh) * 0.062);
+    aspect-ratio: 1;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transform: rotate(-24deg);
+    transition: transform 0.25s var(--ease-out);
+}
+.emboss svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+.emboss svg > :not(.emb-line) {
+    fill: var(--sh);
+    filter: drop-shadow(-0.6px -0.8px 0 rgba(255, 255, 255, 0.7)) drop-shadow(0.8px 1.1px 0.5px rgba(0, 0, 0, 0.32));
+}
+.emboss .emb-line {
+    fill: none;
+    stroke: rgba(0, 0, 0, 0.16);
+    stroke-width: 0.9;
+    stroke-linecap: round;
+}
+.device[data-shell='charcoal'] .emboss svg > :not(.emb-line),
+.device[data-shell='atomic'] .emboss svg > :not(.emb-line) {
+    filter: drop-shadow(-0.6px -0.8px 0 rgba(255, 255, 255, 0.22)) drop-shadow(0.8px 1.1px 0.5px rgba(0, 0, 0, 0.6));
+}
+.emboss:hover {
+    transform: rotate(-18deg) scale(1.06);
+}
+.emboss:active {
+    transform: rotate(-24deg) scale(0.94);
+}
+.emboss:focus-visible {
+    outline: 2px solid var(--sh-ink-soft);
+    outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------------ the Dragonfly screen (pet.js) */
+
+.ico.thin {
+    stroke-width: 1.25;
+}
+.px-df,
+.px-ico,
+.pet-cv,
+.ld-df img {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+.r-icon .px-ico {
+    width: 1.1em;
+    height: 1.1em;
+}
+.r-icon .emo.lock {
+    opacity: 0.55;
+    filter: grayscale(1);
+}
+.hero-glyph .ico.px-df {
+    height: 46%;
+    filter: drop-shadow(0 0 10px var(--glow-soft));
+}
+.v-list.v-pet {
+    grid-template-rows: minmax(0, 56%) minmax(0, 1fr);
+}
+.v-list.v-pet .preview {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 6px 10px 2px;
+    padding: 0;
+    border: 1px solid var(--ink-faint);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 0 18px var(--glow-soft), inset 0 0 0 1px rgba(0, 0, 0, 0.4);
+    background:
+        radial-gradient(circle at 50% 38%, var(--glow-soft), transparent 64%),
+        repeating-linear-gradient(0deg, var(--ink-faint) 0 1px, transparent 1px 3px);
+    background-blend-mode: normal;
+}
+.pet-stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    cursor: pointer;
+}
+.pet-cv {
+    display: block;
+}
+.pet-say {
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    max-width: calc(100% - 20px);
+    margin: 0;
+    padding: 4px 8px;
+    border: 1px solid var(--ink-dim);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--lcd-bg) 86%, transparent);
+    font: 400 clamp(8px, 2.7cqh, 11px) / 1.35 var(--pixel);
+    color: var(--ink);
+    text-align: center;
+    text-shadow: 0 0 6px var(--glow);
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+.pet-say.on {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+.pet-say.top {
+    top: 5px;
+    bottom: auto;
+}
+.pet-card {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 10px 7px;
+    border-top: 1px dashed var(--ink-faint);
+}
+.pet-name {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.pet-name b {
+    font: 700 clamp(13px, 4.2cqh, 17px) / 1.1 var(--screen);
+    text-shadow: 0 0 8px var(--glow);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.pet-mood {
+    font: 400 clamp(8px, 2.5cqh, 10px) / 1.2 var(--pixel);
+    color: var(--ink-dim);
+    text-transform: uppercase;
+}
+.pet-meters {
+    flex: 0 0 52%;
+    display: grid;
+    gap: 4px;
+}
+.pet-meters[hidden] {
+    display: none;
+}
+.pet-meter {
+    display: grid;
+    grid-template-columns: 4.6em 1fr;
+    align-items: center;
+    font: 400 clamp(7px, 2.3cqh, 9px) / 1 var(--pixel);
+    text-transform: uppercase;
+    color: var(--ink-dim);
+}
+.pet-meter i {
+    display: block;
+    height: 9px;
+    padding: 1px;
+    border: 1px solid var(--ink-dim);
+    border-radius: 2px;
+}
+.pet-meter b {
+    display: block;
+    height: 100%;
+    max-width: 100%;
+    background: repeating-linear-gradient(90deg, var(--ink) 0 5px, transparent 5px 7px);
+    box-shadow: 0 0 6px var(--glow);
+    transition: width 0.6s steps(8);
+}
+.preview.hungry .pet-meter:first-child b {
+    animation: blink-soft 0.6s steps(2) infinite;
+}
+.pet-lead {
+    margin: 2px 14px 4px;
+    font: 400 clamp(8px, 2.6cqh, 10px) / 1.4 var(--pixel);
+    color: var(--ink-dim);
+}
+.pet-hint {
+    display: grid;
+    justify-items: center;
+    gap: 6px;
+    padding-top: 8px;
+    text-align: center;
+}
+.pet-hint .px-df {
+    width: clamp(90px, 34cqw, 160px);
+    height: auto;
+    filter: drop-shadow(0 0 8px var(--glow-soft));
+    animation: float 3.4s ease-in-out infinite;
+}
+.pet-hint blockquote {
+    margin: 4px 6px 0;
+    font: 500 clamp(14px, 4.4cqh, 17px) / 1.45 var(--screen);
+    text-shadow: 0 0 6px var(--glow-soft);
+}
+.pet-hint-by {
+    margin: 0;
+    font: 400 10px/1 var(--pixel);
+    color: var(--ink-dim);
+}
+.pet-hint-by::before {
+    content: '— ';
+}
+/* the launch screen while it flies you to the island: two frames of its wings, in turn */
+.ld-df {
+    position: relative;
+    display: block;
+    width: clamp(66px, 22cqh, 100px);
+    aspect-ratio: 36 / 24;
+    animation: float 1.2s ease-in-out infinite;
+}
+.ld-df img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+.ld-df img:last-child {
+    animation: ld-flap 0.12s steps(1) infinite;
+}
+@keyframes ld-flap {
+    50% {
+        opacity: 0;
+    }
+}
+@container lcd (min-aspect-ratio: 6 / 5) and (min-width: 440px) {
+    .v-list.v-pet {
+        grid-template-rows: minmax(0, 1fr);
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    }
+    .v-list.v-pet .preview {
+        margin: 8px 10px 8px 2px;
+        padding: 0;
+    }
+}
+
 /* ------------------------------------------------------------------ beside the device */
 
 .legend,
