@@ -46,6 +46,9 @@ export class Input {
         window.addEventListener('keydown', (e) => {
             this.lastDevice = 'kb';
             for (const fn of this.keyListeners) if (fn(e) === true) { e.preventDefault(); return; }
+            // A focused button on the title screen takes Space itself: preventDefault() cancelled its
+            // click (game-078's fix). Menu panels have their own keys (above) and are not changed.
+            if ((e.code === 'Space' || e.code === 'Enter') && e.target?.tagName === 'BUTTON' && e.target.closest('.screen:not(.hidden)')) return;
             const a = KEYMAP[e.code];
             if (NO_DEFAULT.has(e.code) || (a && e.target === document.body)) e.preventDefault();
             if (!a || e.repeat) return;
