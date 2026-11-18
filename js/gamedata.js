@@ -2161,6 +2161,23 @@ const games = [
             { emoji: '🎙️', label: 'Voiced' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-140',
+        title: 'The Last Apprentice',
+        description: "A gothic visual novel about giving the world back its colour, with art painted by fal and music, sound and voices by ElevenLabs. Three hundred years ago the Cinereal Order locked the world's magic behind seven wards, and colour drained out of everything with it. You are a scavenger picking over the castle of Ostrander Vael, the last sorcerer, a month dead; his book finds you, binds you with a geas, and his echo in its margins sends you across the continent of Velmaris to open the wards. Every painting in the game is generated in full colour and shown through a WebGL shader that greys each band of hue until its ward is open: the world starts in ash and charcoal, crimson comes back as a ripple when the Rose Ward breaks, then amber, sapphire, verdant, gold and indigo, and when the last ward opens the whole world floods with violet and every colour together. Each ward is a lock of concentric stone rings whose runes must line up, some rings dragging others with them, with hints and a Codex that will open it for you. Travel with Edda, a blind cartographer; Aldwin, a deserter knight turned blacksmith; Kestrel, a smuggler with a forbidden tattoo; and Ione, the last dryad, while Inquisitor Caius Morrow hunts you and the undying Hierarch waits on the Grey Throne. Nights at the fire let you hear their stories, and your choices decide who lives at the Starfall bridge, whether Caius turns, and whether the Hierarch is shown mercy at the very end. Nine chapters, 27 painted places, 35 illustrations and 13 portraits; 14 music themes, 13 effects and 374 voiced lines from ten voices.",
+        icon: '📖',
+        folder: 'game-140',
+        version: '1.0.0',
+        cssClass: 'last-apprentice',
+        genre: 'story',
+        tags: [
+            { emoji: '📜', label: 'Visual novel' },
+            { emoji: '🕯️', label: 'Gothic' },
+            { emoji: '🌈', label: 'Colour returns' },
+            { emoji: '🎙️', label: 'Voiced' },
+            { emoji: '🖼️', label: 'Canvas 2D + WebGL' }
+        ]
     }
 ];
 

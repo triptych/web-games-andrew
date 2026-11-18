@@ -1,0 +1,15 @@
+{
+  "door": ["A heavy ancient oak door creaking open slowly in a stone castle, iron hinges groaning, echo", 2.5],
+  "magic": ["A shimmering magical chime swell, glittering crystal bells and a soft whoosh of light", 2.0],
+  "geas": ["A powerful arcane binding spell: a deep resonant hum rising into a searing golden flare, a heartbeat thud and ringing crystal", 3.5],
+  "bells": ["Distant cathedral bells tolling slowly through fog, deep and ominous", 4.0],
+  "ward": ["An enormous ancient stone seal unlocking: deep grinding stone, then a single vast resonant bell-like note blooming with shimmering choir and chimes", 5.0],
+  "anvil": ["A blacksmith hammer striking an anvil twice, ringing metal in a forge", 1.5],
+  "clash": ["Swords clashing in a fight, steel on steel, two quick ringing strikes", 1.5],
+  "storm": ["A violent storm at sea, crashing waves, howling wind and rain on a wooden ship", 4.0],
+  "axe": ["Iron axes chopping into stone in a quiet forest, echoing, several strikes", 2.5],
+  "fire": ["A sudden burst of fire whooshing up and roaring, crackling flames", 2.0],
+  "thunder": ["A deep rolling thunder crack overhead, rumbling away", 3.0],
+  "turn": ["A heavy stone ring rotating one notch, short grinding stone and a soft click", 0.7],
+  "lock": ["A carved stone ring clicking firmly into place with a bright chime", 1.0]
+}

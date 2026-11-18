@@ -11,10 +11,11 @@ import { sfx, unlockAudio, setSound } from './sound.js';
 import { attachWheel } from './wheel.js';
 import { ICONS } from './icons.js';
 import { ListView, DetailView, CoverFlowView, SearchView, TextView, gameArt, gameIconHTML } from './views.js';
+import { PetView, petGlyph, petCaption, currentMem } from './pet.js';
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.3.0';
+export const CONSOLE_VERSION = '1.4.0';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -112,7 +113,7 @@ class App {
     /**
      * Open what a link asks for: a game's cartridge (#game-135), or one of
      * the app's home-screen shortcuts (#search, #favorites, #shuffle, #new,
-     * #updated, #genres, #cover). Returns whether it opened anything.
+     * #updated, #genres, #cover, #dragonfly). Returns whether it opened anything.
      */
     route(hash, { animate = true } = {}) {
         const g = byId.get(hash);
@@ -128,6 +129,7 @@ class App {
             updated: () => this.push(this.updatedView(), { animate }),
             genres: () => this.push(this.genresView(), { animate }),
             cover: () => this.push(new CoverFlowView(this, { list: ALPHA, index: 0 }), { animate }),
+            dragonfly: () => this.openPet({ animate }),
             shuffle: () => this.shuffle(),
         }[hash];
         if (!go) return false;
@@ -175,6 +177,8 @@ class App {
             'js/store.js',
             'js/util.js',
             'js/icons.js',
+            'js/pet.js',
+            'js/pixel-dragonfly.js',
             'manifest.webmanifest',
             'icons/icon.svg',
             'icons/icon-192.png',
@@ -182,6 +186,7 @@ class App {
             '../js/gamedata.js',
             '../js/updates.json',
             '../garden/js/genres.js',
+            '../garden/js/dragonfly-talk.js',
             '../lib/pwa.js',
             document.querySelector('link[href*="fonts.googleapis"]')?.href,
         ].filter(Boolean);
@@ -468,6 +473,13 @@ class App {
 
     bindChrome() {
         $('st-back').addEventListener('click', () => this.back());
+        // the dragonfly pressed into the shell, bottom right: it opens the Dragonfly screen
+        $('emboss').addEventListener('click', () => {
+            if (this.launching || this.busy) return;
+            this.wake();
+            this.feedback('press');
+            this.openPet();
+        });
         $('sleeve').addEventListener('click', (e) => {
             const g = this.sleeveGame;
             if (!g) return;
@@ -561,6 +573,12 @@ class App {
         this.push(new DetailView(this, { list, index }), { animate, url: `#${list[index].id}` });
     }
 
+    /** The Dragonfly screen (already on it: give it a pet). */
+    openPet({ animate = true } = {}) {
+        if (this.top instanceof PetView) return this.top.pet();
+        this.push(new PetView(this, { genreGroups: GENRE_GROUPS, byId }), { animate });
+    }
+
     openSearch(initial = '') {
         if (this.top.type === 'search') {
             if (initial) this.top.typeChar(initial);
@@ -627,6 +645,7 @@ class App {
         L.querySelector('.ld-icon').innerHTML = gameIconHTML(g, 192);
         L.querySelector('.ld-title').textContent = g.title;
         L.querySelector('.ld-sub').textContent = `${gen.emoji} ${gen.short} · No.${String(gameNo(g)).padStart(3, '0')}`;
+        L.querySelector('.ld-word').textContent = 'Loading';
         L.hidden = false;
         L.classList.remove('go');
         void L.offsetWidth;
@@ -822,6 +841,17 @@ class App {
                         hero: { pool: () => favs, glyph: ICONS.fav, caption: favs.length ? 'Shared with the Garden' : 'Hold ● on a game to star it' },
                         action: () => this.push(this.favoritesView()),
                     },
+                    (() => {
+                        const m = currentMem();
+                        return {
+                            label: 'Dragonfly',
+                            icon: ICONS.dragonfly,
+                            meta: m?.met && m.full < 0.15 ? '!' : '',
+                            say: m?.met ? `Dragonfly: ${petCaption()}` : 'Dragonfly, waiting on the dock',
+                            hero: { glyph: petGlyph(this), caption: petCaption() },
+                            action: () => this.openPet(),
+                        };
+                    })(),
                     {
                         label: 'Recently Played',
                         icon: ICONS.recent,
@@ -1025,7 +1055,9 @@ class App {
                     <li>Start typing anywhere to search titles and descriptions; <kbd>/</kbd> opens search.</li>
                 </ul>
                 <h3>Favorites</h3>
-                <p>Your stars are the same ones the Garden of Games uses, so a game starred on the island is starred here too.</p>`,
+                <p>Your stars are the same ones the Garden of Games uses, so a game starred on the island is starred here too.</p>
+                <h3>Dragonfly</h3>
+                <p>Once you have met the dragonfly on the Garden's dock, it lives here too (the dragonfly pressed into the shell opens it). Feed it, play with it and pet it (hold <b>●</b>, or tap it); it remembers on the island. <b>Places</b> lists where you have been together: pick one and it flies you there.</p>`,
         });
     }
 

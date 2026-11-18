@@ -1723,6 +1723,17 @@ h1 {
     box-shadow: 0 0 14px rgba(240, 180, 80, 0.6);
 }
 
+.game-preview.last-apprentice,
+.carousel-slide-bg.last-apprentice {
+    background: linear-gradient(90deg, #d2463c 0%, #e8822c 14%, #e8c25a 28%, #4fb46a 43%, #3a8fd8 57%, #5d5fc4 71%, #a77ad8 86%, #d2463c 100%) bottom / 100% 6px no-repeat, radial-gradient(circle at 30% 60%, rgba(232, 194, 120, 0.4), transparent 32%), linear-gradient(180deg, #2a2a30 0%, #18181d 60%, #0b0b0e 100%);
+}
+
+.game-card.last-apprentice .play-button {
+    background: linear-gradient(135deg, #e8c25a, #a77ad8, #3a8fd8);
+    color: #0b0b0e;
+    box-shadow: 0 0 14px rgba(232, 194, 120, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

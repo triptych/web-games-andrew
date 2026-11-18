@@ -15,7 +15,12 @@
  * each of those scenes. Snacks, a trick, a new look and a rename; Catch me!
  * by clicking it; the panel by K. Reload as a returning visitor 2 hours later:
  * the visit is counted, it greets you by number and its hunger has grown.
- * "Not now" sends it back to the lamp. ?dragonfly=0 builds nothing. A phone
+ * "Not now" sends it back to the lamp. Sent from the Pocket Garden
+ * (index.html?go=place:tree): it flies you there once you are on the island,
+ * and a snack given there in another tab reaches it at once. On the title
+ * screen, while the island loads, a dragonfly in your dragonfly's colours
+ * loops the card, in front of it and behind it, trailing sparkles.
+ * ?dragonfly=0 builds nothing. A phone
  * (touch only): the HUD button is at least 44 px and clear of the top bar,
  * and the panel fits the screen. No console errors throughout.
  *
@@ -128,6 +133,46 @@ async function open({ viewport = { width: 960, height: 600 }, touch = false, url
 }
 
 try {
+    // -------------------------------------------------------------- the title screen
+    // (three.js is held back so the title stays up: the dragonfly flies from the first frame, before main.js)
+    console.log('title');
+    {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+        await ctx.route('https://unpkg.com/**', () => {});
+        await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (route) => route.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+        await ctx.addInitScript(() => localStorage.setItem('garden.companion', JSON.stringify({ met: true, look: { body: 'ruby', wings: 'amber' } })));
+        const page = await ctx.newPage();
+        const titleErrors = [];
+        page.on('pageerror', (e) => titleErrors.push(e.message));
+        // (the module waiting on three.js holds up the load event, so don't wait for it)
+        await page.goto(`${BASE}/index.html`, { waitUntil: 'commit' });
+        await page.waitForSelector('.tdf', { state: 'attached', timeout: 30000 });
+        const seen = await page.evaluate(() => new Promise((res) => {
+            const out = { layers: new Set(), xs: [], sparks: 0, colour: '' };
+            const t0 = performance.now();
+            const card = document.querySelector('.title-card').getBoundingClientRect();
+            const step = () => {
+                const d = document.querySelector('.tdf');
+                if (d && +d.style.opacity > 0.5) {
+                    out.layers.add(d.parentElement.classList.contains('tdf-front') ? 'front' : 'back');
+                    const m = /translate\(([-\d.]+)px/.exec(d.style.transform);
+                    if (m) out.xs.push(+m[1]);
+                    out.colour = d.style.getPropertyValue('--tdf-a');
+                }
+                out.sparks = Math.max(out.sparks, document.querySelectorAll('.tdf-spark').length);
+                if (performance.now() - t0 < 9000) requestAnimationFrame(step);
+                else res({ layers: [...out.layers], minX: Math.min(...out.xs), maxX: Math.max(...out.xs), sparks: out.sparks, colour: out.colour, card: { l: card.left, r: card.right } });
+            };
+            requestAnimationFrame(step);
+        }));
+        check(seen.layers.includes('front') && seen.layers.includes('back'), `while the island loads, a dragonfly loops the title card, in front of it and behind it (${seen.layers.join(', ')})`);
+        check(seen.minX < seen.card.l + 10 && seen.maxX > seen.card.r - 10, `out past its left edge and round past its right (x ${Math.round(seen.minX)}–${Math.round(seen.maxX)}, card ${Math.round(seen.card.l)}–${Math.round(seen.card.r)})`);
+        check(seen.sparks > 8, `trailing sparkles (${seen.sparks} at once)`);
+        check(seen.colour === '#ff4d63', 'in the colours of your own dragonfly');
+        check(titleErrors.length === 0, 'no errors from it');
+        await ctx.close();
+    }
+
     // -------------------------------------------------------------- first meeting
     console.log('meeting');
     let { ctx, page, G, until, frames, shot } = await open();
@@ -299,6 +344,27 @@ try {
     check(await G("c.df.accId === 'lantern' && c.mem.look.body === 'violet'"), 'in the look you left it in (the lantern is unlocked)');
     await shot('7-greeting');
     check(errors.length === 0, 'no errors as a returning visitor');
+    await ctx.close();
+
+    // -------------------------------------------------------------- sent from the Pocket Garden
+    console.log('pocket garden');
+    const pocket = JSON.parse(saved['garden.companion']);
+    pocket.places.tree = Date.now() - 864e5;
+    ({ ctx, page, G, until, frames, shot } = await open({ storage: { 'garden.companion': JSON.stringify(pocket) }, url: '&go=place%3Atree' }));
+    check(await G('!/[?&]go=/.test(location.search)'), '?go comes off the address, so a reload stays put');
+    await until("/Pocket Garden/.test(document.getElementById('df-say').textContent)", 60000);
+    await until("(() => { const lm = g.world.landmarks.find((l) => l.name === 'The Great Tree'); return Math.hypot(g.controls.pos.x - lm.x, g.controls.pos.z - lm.z) < 14; })()", 60000);
+    check(await G("c.mode === 'follow' && c.greeted"), 'index.html?go=place:tree (the Pocket Garden\u2019s Places): it flies you to the Great Tree once you are on the island');
+    // a snack given in the Pocket Garden in another tab
+    await page.evaluate(() => {
+        const v = JSON.parse(localStorage.getItem('garden.companion'));
+        v.full = 0.97;
+        v.fed = { honey: 7 };
+        dispatchEvent(new StorageEvent('storage', { key: 'garden.companion', newValue: JSON.stringify(v) }));
+    });
+    check(await G('c.mem.full > 0.96 && c.mem.fed.honey === 7'), 'a snack given in the Pocket Garden in another tab reaches it on the island at once');
+    await shot('9-pocket-garden');
+    check(errors.length === 0, 'no errors when sent from the Pocket Garden');
     await ctx.close();
 
     // -------------------------------------------------------------- left out
