@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-139 games, `game-001` through `game-139`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+140 games, `game-001` through `game-140`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -179,6 +179,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 137 | [SHARDFRAME](game-137/) | A 1990s-anime voxel bullet heaven: a walking mech whose kills burst into physics voxels you magnet up for power or leave as temporary walls, destructible voxel terrain, twelve rescue, hive, survival and kaiju sorties, a mech garage, and rescued crew who leave gifts in real time; a narrated opening cinematic, fal art, ElevenLabs music, effects and voices | three.js |
 | 138 | [Lanternhollow](game-138/) | A cozy fantasy dungeon builder: wave function collapse grows tunnels, chambers, waterfalls and wells across up to five stacked levels, proved reachable; seven themes, Meshy-made friendly monsters, hoards and furnishings, paint and place tools, parallax occlusion mapping and interior-mapped peek windows, share links that rebuild the exact dungeon, and a first-person walk by lantern light | three.js |
 | 139 | [CLEAN SLATE](game-139/) | A Pyramid-solitaire roguelike deckbuilder about a retired assassin opening an inn: pair your future against each rival's past to 13, recruit and polish your staff, and choose between the fast old blades and the partners they cost you; fal-painted cards and portraits, ElevenLabs music and 42 voiced lines | three.js |
+| 140 | [The Last Apprentice](game-140/) | A gothic visual novel: bound by a dead sorcerer's book, open seven ward-locks across a grey continent and watch the world's colour come back one band of hue at a time; fal-painted art through a WebGL hue shader, ElevenLabs music and 374 voiced lines | Canvas 2D + WebGL |
 
 ### Highlights
 
