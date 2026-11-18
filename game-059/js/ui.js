@@ -86,6 +86,9 @@ export class UI {
         const b = list[this.focusIdx];
         b.classList.add('focus');
         if (b.scrollIntoView) b.scrollIntoView({ block: 'nearest' });
+        // real focus follows the cursor, so Space and Enter press the button that is lit, and
+        // lib/a11y.js (which focuses a screen's first button unless focus is already inside) agrees
+        if (document.activeElement !== b) b.focus({ preventScroll: true });
     }
     /** Keyboard / pad menu navigation. Returns true if consumed. */
     nav(ev) {
