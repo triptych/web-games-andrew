@@ -1734,6 +1734,17 @@ h1 {
     box-shadow: 0 0 14px rgba(232, 194, 120, 0.6);
 }
 
+.game-preview.sandsunk,
+.carousel-slide-bg.sandsunk {
+    background: radial-gradient(circle at 70% 70%, rgba(64, 224, 208, 0.25), transparent 30%), linear-gradient(180deg, #e9a8b0 0%, #f2c98a 38%, #d9a056 62%, #8a5a2a 100%);
+}
+
+.game-card.sandsunk .play-button {
+    background: linear-gradient(135deg, #ffd98a, #f0a03c, #c96a14);
+    color: #2a1408;
+    box-shadow: 0 0 14px rgba(240, 160, 60, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

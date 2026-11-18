@@ -1,0 +1,39 @@
+{
+  "name": "SANDSUNK",
+  "short_name": "SANDSUNK",
+  "description": "SANDSUNK — a light fantasy dig-and-collect game: tap through a great tower sunk in the desert, floor by floor, read the danger numbers, solve rune and sun puzzles, fill your museum with 3D artifacts.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2a1a10",
+  "theme_color": "#2a1a10",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

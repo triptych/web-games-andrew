@@ -1,0 +1,82 @@
+{
+ "scarab": {
+  "i3d": "01a1f000-aae7-7556-a923-0ce466c474f1",
+  "credits": 15,
+  "glb": "raw-scarab.glb"
+ },
+ "lens": {
+  "i3d": "01a1f000-aa91-7765-a03e-990033aca5eb",
+  "credits": 15,
+  "glb": "raw-lens.glb"
+ },
+ "compass": {
+  "i3d": "01a1f001-da20-7145-8233-1ba975b382da",
+  "credits": 15,
+  "glb": "raw-compass.glb"
+ },
+ "tablet": {
+  "i3d": "01a1f001-d9f2-76d4-99e1-2b466b4c8dbe",
+  "credits": 15,
+  "glb": "raw-tablet.glb"
+ },
+ "pickhead": {
+  "i3d": "01a1f001-d9db-764f-bfe9-62152030084f",
+  "credits": 15,
+  "glb": "raw-pickhead.glb"
+ },
+ "hourglass": {
+  "i3d": "01a1f001-d9ca-7099-8c74-ec0b1c283775",
+  "credits": 15,
+  "glb": "raw-hourglass.glb"
+ },
+ "bangle": {
+  "i3d": "01a1f001-d9ed-7732-90d7-9c2fb5791c07",
+  "credits": 15,
+  "glb": "raw-bangle.glb"
+ },
+ "mask": {
+  "i3d": "01a1f001-da01-754c-9557-30ea13dc6ca2",
+  "credits": 15,
+  "glb": "raw-mask.glb"
+ },
+ "lamp": {
+  "i3d": "01a1f002-8859-7283-acef-5d6407d9d370",
+  "credits": 15,
+  "glb": "raw-lamp.glb"
+ },
+ "chisel": {
+  "i3d": "01a1f002-8947-75cf-bb78-d49e3023215e",
+  "credits": 15,
+  "glb": "raw-chisel.glb"
+ },
+ "starchart": {
+  "i3d": "01a1f002-88f9-7381-b4d5-c6e74b3fdac5",
+  "credits": 15,
+  "glb": "raw-starchart.glb"
+ },
+ "feather": {
+  "i3d": "01a1f002-8acf-73aa-aded-cb16ae472c99",
+  "credits": 15,
+  "glb": "raw-feather.glb"
+ },
+ "fork": {
+  "i3d": "01a1f002-8afe-70ce-8e03-d9b53f236ed6",
+  "credits": 15,
+  "glb": "raw-fork.glb"
+ },
+ "jackal": {
+  "i3d": "01a1f002-d73f-7251-9bd3-21fb0c1f3605",
+  "credits": 15,
+  "glb": "raw-jackal.glb"
+ },
+ "scepter": {
+  "i3d": "01a1f002-f90b-7632-a100-b0a45de228d1",
+  "credits": 15,
+  "glb": "raw-scepter.glb"
+ },
+ "heart": {
+  "i3d": "01a1f002-fb41-77ee-afb4-f9f3151abff9",
+  "credits": 15,
+  "glb": "raw-heart.glb"
+ }
+}
