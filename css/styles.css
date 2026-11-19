@@ -1757,6 +1757,19 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 122, 46, 0.7);
 }
 
+.game-preview.sugar-siege,
+.carousel-slide-bg.sugar-siege {
+    background: radial-gradient(circle at 78% 30%, #ffb3dc 0%, #9ff5d0 16%, rgba(159, 245, 208, 0) 34%),
+        radial-gradient(circle at 22% 22%, #e8f4ff 0%, rgba(232, 244, 255, 0) 12%),
+        linear-gradient(180deg, #2a1546 0%, #4a2a6a 50%, #2f4a3a 72%, #1c2a20 100%);
+}
+
+.game-card.sugar-siege .play-button {
+    background: linear-gradient(135deg, #ffb3dc, #e46fae, #8a4fd8);
+    color: #2a0b22;
+    box-shadow: 0 0 14px rgba(255, 159, 210, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

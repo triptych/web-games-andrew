@@ -1,0 +1,420 @@
+{
+  "systems": {
+    "sprite": "You draw polished HD-2D pixel art game sprites for a cute, spooky, cozy storybook game (Halloween whimsy, moonlit purples, candy colours). Crisp clean pixel art, dark violet outline, soft hue-shifted shading, chibi proportions, readable silhouette. Exactly one subject, full body, centred, nothing cut off. No text, no letters, no UI.",
+    "portrait": "You draw polished HD-2D pixel art character portraits for a cute, spooky, cozy storybook game (Halloween whimsy, moonlit purples, candy colours). Large detailed pixel art, dark violet outline, soft hue-shifted shading, expressive face. One character only. No text, no letters, no UI.",
+    "building": "You draw polished HD-2D pixel art buildings for a cute, spooky, cozy storybook village game (Halloween whimsy, moonlit purples, warm lantern light). Crisp clean pixel art, dark violet outline, soft hue-shifted shading. Exactly one building, centred, nothing cut off. Buildings are ordinary objects, NOT characters: no faces, no eyes, no mouths. No text, no letters, no UI.",
+    "bg": "You paint polished HD-2D pixel art backgrounds for a cute, spooky, cozy storybook game (Halloween whimsy, moonlit purples and teals, warm lantern light). Crisp pixel art, rich atmosphere, soft gradients. No text, no letters, no UI, no characters."
+  },
+  "note": "Every sprite/portrait prompt ends with 'Plain flat solid <key> background, no shadow, no text, no border, no grid lines.' Key is magenta (#ff00ff) unless the subject is pink or purple, then bright green (#00ff00). Edits use the game-110 sprite (refs/<name>.png, drawn 4x on magenta) as the reference.",
+  "items": [
+    {
+      "id": "por-noxia",
+      "sys": "portrait",
+      "ref": "noxia",
+      "key": "green",
+      "prompt": "A detailed pixel art dialogue portrait of this exact character (Lady Noxia: lavender skin, long black-violet hair, curled purple horns, red eyes, one little fang, rosy cheeks, black dress, pink apron with a heart, red-lined black cape), bust from the chest up, three-quarter view facing right, warm confident smile, wearing a purple-and-gold mayor's sash and a small gold chain of office. Same face and colours."
+    },
+    {
+      "id": "por-vellum",
+      "sys": "portrait",
+      "ref": "lich",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of this exact character (a lich party planner), now Lord Vellum, the town's fretful Chief of Staff: bust from the chest up, three-quarter view facing left, skull face with glowing eye lights, a monocle, holding a clipboard with a quill, worried but kind expression. Same colours and outfit as the reference."
+    },
+    {
+      "id": "por-pip",
+      "sys": "portrait",
+      "ref": "imp",
+      "key": "green",
+      "prompt": "A detailed pixel art dialogue portrait of this exact character (a little imp sous-chef), now Pip, the town's eager Head Baker: bust from the chest up, three-quarter view facing left, tall chef's hat, flour on his cheeks and nose, holding a wooden spoon, huge excited grin showing tiny fangs. Same colours as the reference."
+    },
+    {
+      "id": "por-silk",
+      "sys": "portrait",
+      "ref": "spider",
+      "key": "green",
+      "prompt": "A detailed pixel art dialogue portrait of this exact character (a spider seamstress with glasses), now Madame Silkwhistle, head of the town knitting circle: three-quarter view facing left, round spectacles, a tape measure around her, two front legs holding knitting needles with a half-knitted striped scarf, a pincushion hat, kind elegant smile. Same colours as the reference."
+    },
+    {
+      "id": "por-gerald",
+      "sys": "portrait",
+      "ref": "golem",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of this exact character (a big gentle gingerbread cookie man), now Gerald, the shy gentle giant of the town: bust from the chest up, three-quarter view facing left, wearing a little knitted scarf and an oven mitt, white icing smile, shy hopeful eyes, a faint blush. Same colours and icing as the reference."
+    },
+    {
+      "id": "por-grizelda",
+      "sys": "portrait",
+      "ref": "gargoyle",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of this exact character (a stone gargoyle florist), now Grizelda, keeper of the watchtowers: bust from the chest up, three-quarter view facing left, stone wings folded, a crown of flowers on her head, a watering can, a bee buzzing near her, a gruff but warm smile. Same colours as the reference."
+    },
+    {
+      "id": "por-wick",
+      "sys": "portrait",
+      "ref": "wraith",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of this exact character (a candle wraith), now Wick, the town lamplighter and night watch: three-quarter view facing left, a wispy ghost body of pale wax and smoke, a candle flame on top of the head, holding a long brass lamplighter's pole, sleepy gentle eyes. Same colours as the reference."
+    },
+    {
+      "id": "por-mother",
+      "sys": "portrait",
+      "ref": "portrait",
+      "key": "green",
+      "prompt": "A detailed pixel art picture of this exact object (a living portrait in an ornate gilded frame): the painting inside shows Mother, a regal elderly demon lady with grand curled horns, silver-streaked black hair piled high, a lace collar, red eyes and a stern but secretly proud little smile. The whole frame is visible, front view."
+    },
+    {
+      "id": "por-tansy",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Tansy, a brave little village girl of about eight: bust from the chest up, three-quarter view facing left, freckles, messy ginger pigtails, a paper crown, a patched green dress, holding a crayon drawing to her chest, a big gap-toothed fearless smile."
+    },
+    {
+      "id": "por-hollyhock",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Granny Hollyhock, the elderly village baker: bust from the chest up, three-quarter view facing left, deep brown skin, white hair in a bun, round spectacles, a knitted shawl over a flour-dusted apron, holding a rolling pin, a knowing twinkly smile."
+    },
+    {
+      "id": "por-bram",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Farmer Bram: bust from the chest up, three-quarter view facing left, a big burly man with a straw hat and a brown beard, overalls, holding a pitchfork with a bread roll stuck on one prong like a toasting fork, nervous sheepish smile."
+    },
+    {
+      "id": "por-hilde",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Hilde the stonemason: bust from the chest up, three-quarter view facing left, a strong woman with short black hair, olive skin, a leather apron and rolled-up sleeves, a chisel tucked behind her ear, stone dust on her cheek, a steady confident grin."
+    },
+    {
+      "id": "por-tobias",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Sir Tobias Gallant, a young earnest knight: bust from the chest up, three-quarter view facing left, slightly dented silver armour, short blond hair, a round shield painted with a white lace doily and a red heart, a bashful apologetic smile."
+    },
+    {
+      "id": "por-lark",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Lark, a cheerful wandering bard: bust from the chest up, three-quarter view facing left, dark skin, a teal feathered cap, a patchwork cloak, a lute on the shoulder, mid-song with a wink."
+    },
+    {
+      "id": "por-moss",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Moss, a quiet forest ranger: bust from the chest up, three-quarter view facing left, a deep green hood, a longbow over the shoulder, a sleepy little owl sitting on the shoulder, calm half-smile, freckled tan skin."
+    },
+    {
+      "id": "por-ottilie",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Ottilie Fizzwick, a young hedge witch: bust from the chest up, three-quarter view facing left, a wide floppy orange-and-black witch hat with a sprig of herbs, round cheeks, curly dark hair, potion bottles on a bandolier, a mischievous grin, a little spark of magic above her finger."
+    },
+    {
+      "id": "por-fennel",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Brother Fennel, a gentle monk healer: bust from the chest up, three-quarter view facing left, East Asian, bald with a kind round face, simple brown robe, holding a steaming teapot, a calm serene smile."
+    },
+    {
+      "id": "por-gustave",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of Monsieur Gustave, a fussy food critic: bust from the chest up, three-quarter view facing left, a thin curled moustache, a beret, a cravat, a monocle, holding a tiny tasting fork, one eyebrow raised in judgement."
+    },
+    {
+      "id": "por-king",
+      "sys": "portrait",
+      "key": "magenta",
+      "prompt": "A detailed pixel art dialogue portrait of King Crumbleton, the Gingerbread Zombie King: bust from the chest up, three-quarter view facing left, a large stale gingerbread cookie king, cracked and crumbling at the edges, drippy grey icing stitches, a lopsided crown of hard candies, a cape of purple fruit leather, glowing green eyes that look sad and lonely rather than evil."
+    },
+    {
+      "id": "por-king-young",
+      "sys": "portrait",
+      "ref": "por-king",
+      "key": "magenta",
+      "prompt": "The same gingerbread king as this portrait, transformed by true love's kiss like a frog prince: now a young, handsome, freshly baked golden gingerbread king, warm and glossy with crisp white icing trim, no cracks, no grey stitches, no crumbling, bright kind eyes and a shy happy smile with rosy candy cheeks, a neat sparkling crown of hard candies and his purple fruit-leather cape. Same framing: bust from the chest up, three-quarter view facing left."
+    },
+    {
+      "id": "por-queen",
+      "sys": "portrait",
+      "key": "green",
+      "prompt": "A detailed pixel art dialogue portrait of Queen Honeysnap, the Cookie Queen: bust from the chest up, three-quarter view facing right, a cute freshly baked golden gingerbread cookie girl, pink icing dress collar with white icing lace, a little gumdrop tiara, rosy candy cheeks, sparkling hopeful eyes, sweet smile."
+    },
+    {
+      "id": "spr-noxia",
+      "sys": "sprite",
+      "ref": "noxia",
+      "key": "green",
+      "prompt": "Redraw this exact character (Lady Noxia: lavender skin, long black-violet hair, curled purple horns, red eyes, one little fang, rosy cheeks, black dress, pink apron with a heart, black cape lined with red) as a polished HD-2D pixel art game sprite, standing, full body, now she is the town MAYOR: add a purple-and-gold mayor's sash across her body and a small gold chain of office around her neck, holding a rolling pin proudly in one hand, the other hand waving. Same face, same colours, same proportions."
+    },
+    {
+      "id": "spr-noxia-throw",
+      "sys": "sprite",
+      "ref": "noxia",
+      "key": "green",
+      "prompt": "Redraw this exact character (Lady Noxia: lavender skin, long black-violet hair, curled purple horns, red eyes, one little fang, black dress, pink apron with a heart, black cape lined with red, with a purple-and-gold mayor's sash) as a polished HD-2D pixel art game sprite, full body, side view facing RIGHT, in a dramatic throwing pose: one arm flung forward having just thrown a spinning white lace doily, cape billowing, a fierce determined grin. Same face, same colours."
+    },
+    {
+      "id": "spr-noxia-cheer",
+      "sys": "sprite",
+      "ref": "noxia",
+      "key": "green",
+      "prompt": "Redraw this exact character (Lady Noxia: lavender skin, long black-violet hair, curled purple horns, red eyes, one little fang, black dress, pink apron with a heart, black cape lined with red, with a purple-and-gold mayor's sash) as a polished HD-2D pixel art game sprite, full body, front view, cheering with both arms raised high, eyes happily closed, big open laugh with a fang showing, cape flared. Same face, same colours."
+    },
+    {
+      "id": "spr-tobias",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Sir Tobias Gallant, a young earnest knight in slightly dented silver armour with short blond hair, a sword raised and a round shield painted with a white lace doily and a red heart. Full body, side view facing RIGHT, ready stance."
+    },
+    {
+      "id": "spr-lark",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Lark, a cheerful bard with dark skin, a teal feathered cap and a patchwork cloak, strumming a lute, music notes floating. Full body, side view facing RIGHT."
+    },
+    {
+      "id": "spr-moss",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Moss, a forest ranger in a deep green hood, drawing a longbow with an arrow nocked, a little owl on the shoulder. Full body, side view facing RIGHT, aiming."
+    },
+    {
+      "id": "spr-ottilie",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Ottilie Fizzwick, a young hedge witch in a wide floppy orange-and-black hat, curly dark hair, about to hurl a fizzing glowing potion bottle. Full body, side view facing RIGHT."
+    },
+    {
+      "id": "spr-fennel",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Brother Fennel, a gentle bald monk healer in a brown robe, holding up a steaming teapot that glows with soft golden healing light. Full body, side view facing RIGHT."
+    },
+    {
+      "id": "en-zombie",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "A Gingerbread Zombie enemy: a shambling gingerbread cookie man, cracked white icing, one gumdrop button missing, arms stretched out in front, sleepy groggy half-closed eyes, a bite missing from his shoulder, crumbs falling, more silly than scary. Walking, side view facing LEFT."
+    },
+    {
+      "id": "en-corn",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "A Candy-Corn Imp enemy: a small mischievous creature shaped like a piece of candy corn (yellow, orange and white stripes) with tiny bat wings, little legs, a cheeky grin. Running fast, side view facing LEFT."
+    },
+    {
+      "id": "en-slime",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "A Gumdrop Slime enemy: a wobbly translucent green gumdrop jelly blob covered in sugar crystals, with a goofy face and one gummy tooth. Hopping, side view facing LEFT."
+    },
+    {
+      "id": "en-ghost",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "A Marshmallow Ghost enemy: a soft puffy white marshmallow ghost with a wispy tail, slightly toasted brown edges, a round 'ooo' mouth and dot eyes, floating. Side view facing LEFT."
+    },
+    {
+      "id": "en-bat",
+      "sys": "sprite",
+      "key": "green",
+      "prompt": "A Sugar-Skull Bat enemy: a little purple bat whose face is a decorated white sugar skull with colourful icing flowers, wings spread, flying. Side view facing LEFT."
+    },
+    {
+      "id": "en-brute",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "A Peppermint Brute enemy: a huge hulking stale gingerbread brute with a peppermint candy shield and a striped candy-cane club, a cracked icing helmet, a grumpy frown. Marching, side view facing LEFT."
+    },
+    {
+      "id": "en-mimic",
+      "sys": "sprite",
+      "key": "green",
+      "prompt": "A Cupcake Mimic enemy: a big cupcake with a pink frosting swirl and a cherry, its paper wrapper opening into a mouth of sugar teeth and a long tongue, little legs. Waddling, side view facing LEFT."
+    },
+    {
+      "id": "en-licorice",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "A Licorice Spider enemy: a black licorice spider with twisty licorice-rope legs, red gumdrop eyes, a shiny sugary body. Scuttling, side view facing LEFT."
+    },
+    {
+      "id": "en-golem",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "A Jawbreaker Golem mini-boss: a giant golem made of stacked rainbow-layered jawbreaker candy boulders, cracks showing colourful layers, heavy fists, small stubborn eyes. Stomping, side view facing LEFT."
+    },
+    {
+      "id": "en-king",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "King Crumbleton, the Gingerbread Zombie King, the final boss: a towering stale gingerbread cookie king, cracked and crumbling at the edges, drippy grey icing stitches, a lopsided crown of hard candies, a long cape of purple fruit leather, a candy-cane sceptre, glowing green eyes that look lonely and sad. Walking slowly, side view facing LEFT."
+    },
+    {
+      "id": "en-king-young",
+      "sys": "sprite",
+      "ref": "en-king + spr-queen",
+      "key": "magenta",
+      "prompt": "The same gingerbread king as the first image, transformed by true love's kiss like a frog prince: now a young, handsome, freshly baked golden gingerbread king, warm and glossy with crisp white icing trim, no cracks, no grey stitches, no crumbling, bright kind eyes and a shy happy smile with rosy candy cheeks. He keeps his crown of hard candies (now neat and sparkling), his purple fruit-leather cape and his candy-cane sceptre. Same size and proportions, full body, side view facing LEFT, standing tall. Match the pixel art style of the second image."
+    },
+    {
+      "id": "spr-queen",
+      "sys": "sprite",
+      "key": "green",
+      "prompt": "Queen Honeysnap, the Cookie Queen: a cute freshly baked golden gingerbread cookie girl in a pink icing ball gown with white icing lace, a little gumdrop tiara, rosy candy cheeks, a sweet hopeful smile, holding a small heart-shaped cookie. Walking gracefully, side view facing RIGHT."
+    },
+    {
+      "id": "vil-tansy",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Tansy, a brave little village girl with freckles, messy ginger pigtails, a paper crown and a patched green dress, holding a crayon drawing. Small full body, three-quarter front view, walking."
+    },
+    {
+      "id": "vil-hollyhock",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Granny Hollyhock, an elderly village baker with deep brown skin, white hair in a bun, round spectacles, a shawl and an apron, carrying a basket of bread. Full body, three-quarter front view, walking."
+    },
+    {
+      "id": "vil-bram",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Farmer Bram, a burly man with a straw hat, brown beard and overalls, carrying a pitchfork. Full body, three-quarter front view, walking."
+    },
+    {
+      "id": "vil-hilde",
+      "sys": "sprite",
+      "key": "magenta",
+      "prompt": "Hilde the stonemason, a strong woman with short black hair, olive skin and a leather apron, carrying a block of stone on her shoulder. Full body, three-quarter front view, walking."
+    },
+    {
+      "id": "bld-hall",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "The Town Hall of a spooky cozy village: a tall gothic stone building with a clock tower, a purple slate roof with little bat weathervane, a grand arched door with steps, purple banners, flower boxes, warm windows."
+    },
+    {
+      "id": "bld-cottage",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A small crooked village cottage with a thatched roof and a tiny chimney, round wooden door, a pumpkin patch out front, laundry line, warm glowing window."
+    },
+    {
+      "id": "bld-mill",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A village windmill with four patched cloth sails, a stone base and a wooden top, sacks of flour by the door, a crow on the sail."
+    },
+    {
+      "id": "bld-beets",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A sugarbeet patch farm plot: a small wooden barn-shed with a purple roof beside neat rows of leafy plants with fat pink-purple sugarbeets, a scarecrow wearing a witch hat, a little fence."
+    },
+    {
+      "id": "bld-quarry",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A small village stone quarry: a cut rocky outcrop with stacked grey stone blocks, a wooden crane with a rope and pulley, a cart of rocks, lanterns."
+    },
+    {
+      "id": "bld-bakery",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A cozy spooky village bakery building: crooked half-timbered cottage with a purple shingled roof, a big round shop window full of cakes and pies, a striped pink awning, a chimney puffing smoke, a hanging sign shaped like a cupcake (no lettering), jack-o'-lantern by the door, warm light in the windows. Three-quarter front view, the whole building visible standing on a small patch of ground."
+    },
+    {
+      "id": "bld-market",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A village market: three colourful striped market stalls under awnings selling pumpkins, apples, candles and cloth, crates and baskets, string lights with little lanterns."
+    },
+    {
+      "id": "bld-tailor",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A tailor's and knitting circle shop: a narrow tall house with a teal roof, balls of yarn in the window, a spool-shaped hanging sign (no lettering), a mannequin in a scarf by the door, cobweb lace curtains."
+    },
+    {
+      "id": "bld-tavern",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A village tavern inn: a big two-storey timber-framed inn with a hanging sign shaped like a grinning carved gourd (no lettering), benches and barrels outside, a lantern-lit porch, smoke from the chimney."
+    },
+    {
+      "id": "bld-tower",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A wooden-and-stone watchtower: a tall slim tower with a pointed purple roof, a lookout platform with a big crossbow, a flower box, a little bat flag."
+    },
+    {
+      "id": "bld-witch",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A witch's kitchen alchemist cottage: a crooked hut with a pointy twisting roof, a bubbling green cauldron outside, jars of potions on shelves, herbs hanging, a glowing round window."
+    },
+    {
+      "id": "bld-bell",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A village belfry bell tower: a stone tower with a big bronze bell in an open arched top, ivy, a candle in each window, a little shrine of pumpkins at the base."
+    },
+    {
+      "id": "bld-oven",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "The Great Oven: an enormous brick bread oven building shaped like a dome with a huge round iron oven door glowing orange, three tall chimneys, a giant wooden peel leaning on it, bags of flour and sugar piled around."
+    },
+    {
+      "id": "bld-gingerhome",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A gingerbread cottage: a small house built from gingerbread with white icing trim, gumdrop roof tiles, a candy-cane porch rail, a peppermint window, cosy and welcoming."
+    },
+    {
+      "id": "bld-site",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "A building construction site: wooden scaffolding frame, a pile of planks and stones, a wheelbarrow, a little sawhorse with a lantern, sawdust."
+    },
+    {
+      "id": "wall-1",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "Pixel art side view, as in a 2D side-scrolling defence game: the right-facing end of a small town's defensive wall, a tall wooden palisade of sharpened logs on a low stone base with a wooden walkway along the top and a small gate. The wall is tall and narrow in the picture, seen exactly from the side."
+    },
+    {
+      "id": "wall-3",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "Pixel art side view, as in a 2D side-scrolling defence game: the right-facing end of a town's defensive stone wall, tall grey stone with crenellated battlements on top, a wooden walkway, arrow slits, purple banners. The wall is tall and narrow in the picture, seen exactly from the side."
+    },
+    {
+      "id": "wall-5",
+      "sys": "building",
+      "key": "magenta",
+      "prompt": "Pixel art side view, as in a 2D side-scrolling defence game: the right-facing end of a grand castle wall, tall dark stone with gold trim, crenellated battlements, a small round turret with a purple cone roof, glowing lanterns, banners with a heart-shaped doily emblem. The wall is tall and narrow in the picture, seen exactly from the side."
+    },
+    {
+      "id": "bg-town",
+      "sys": "bg",
+      "aspect": "16:9",
+      "prompt": "A wide pixel art background for a cozy spooky village game, at dusk with a huge pale moon: in the far distance a gothic castle with purple-roofed towers on a crag, rolling dark hills, crooked trees, bats, wisps of fog along the horizon. The whole lower 60 percent of the picture is a plain, EMPTY, gently sloping village green of soft grass with a few faint dirt paths, completely free of objects: no lamp posts, no trees, no rocks, no buildings, no fences in that area. A low stone town wall runs along the far right edge. No characters, no text."
+    },
+    {
+      "id": "bg-field",
+      "sys": "bg",
+      "aspect": "16:9",
+      "prompt": "A wide pixel art side-view background for a 2D castle-defence game at night: a long flat meadow battlefield seen from the side, flat ground across the bottom third with a pumpkin patch and wildflowers at the edges, the sky from left to right goes from moonlit purple over the town on the far left to an eerie candy-pink and mint-green swirling storm cloud on the far right where gingerbread-brown hills and a crumbling candy castle silhouette loom. The ground is flat and open across the whole width with nothing on it. No characters, no walls, no text."
+    },
+    {
+      "id": "bg-title",
+      "sys": "bg",
+      "aspect": "16:9",
+      "prompt": "A wide pixel art key art scene for a cozy spooky game title screen: a little gothic village at night under a huge moon, lit windows, a gothic castle with purple towers on a crag behind, and on the far right horizon a giant looming silhouette of a gingerbread king with a candy crown against a pink-and-green candy storm. Leave the upper middle third of the sky fairly plain for a title. No characters in the foreground, no text."
+    }
+  ]
+}

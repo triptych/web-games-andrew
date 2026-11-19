@@ -7396,3 +7396,37 @@ The Kaplay game from February, rebuilt in plain HTML, CSS and JavaScript to the 
 - **A reveal overlay inside a screen hides with it.** The Well's card reveal was a child of the Well's screen, so a Wheel Token's free ten-draw from the Charms sheet would have played invisibly. Overlays that more than one place can open belong at the top level.
 - **A browser test that stops on `phase === 'over'` stops before the player sees it.** The sim ends the run inside the fight command; the result and the last-candle screen come after the replay. Let the replay finish (or skip it) before asserting the screen.
 
+
+## Game 143 Doom & Doilies: The Sugar Siege: a whole-game economy bot, a soft-lock and a death spiral, and a tap eaten by a cooldown (2026-11-19)
+
+A town tycoon with castle-defence sieges in Canvas 2D ([game-143](../../game-143/)), the sequel to game-110. The bot
+([bot.js](../../game-143/js/sim/bot.js)) plays the town through `act()` and the siege through the same `{ ax, aim, fire }`
+input the player uses, and `dev/balance.mjs` runs whole games at three skills. Almost every number in the game changed
+because of something that table showed.
+
+- **A whole-game bot finds the soft-locks a rules test can't.** The first town started with six plots, and the first
+  Town Hall upgrade cost stone. A bot that filled its plots before building a quarry could never get stone, so it could
+  never get more plots: stuck forever, gold piling up. A person could do exactly the same. The fix was in the game, not the
+  bot: eight plots to start, and hall level 2 costs gold only, with a simtest line saying so. When a bot stalls, ask
+  whether a player could stall the same way before teaching the bot around it.
+- **A loss penalty that weakens the town is a death spiral.** Losing a siege cost three building levels and 25% of the
+  stores; the weaker town lost the retry, and so on, for ever (the bot did over thirty retries). Now a loss costs one level
+  and 15%, and each retry makes the wave 15% weaker (up to 45%). Assert in the whole-game test that every bot, weak ones
+  included, reaches the ending inside a time limit.
+- **Zero damage at every skill level is a bug report, not a balance result.** "Wall 100%" for the 0.3 bot as well as the
+  perfect one meant nothing reached the wall. Two causes: enemies trickled in one at a time and died at the edge of the
+  field, and one ability out-damaged a tower. Packs of 3–5, and a throwing range so the Mayor can't hit the spawn
+  point, gave the table a slope. `dev/siege.mjs` (one siege against a town that exactly meets the checklist, at no aim,
+  sloppy, fair and sharp) separates "is the siege fair" from "does the bot build a good town".
+- **Build the bot's town plan in tiers.** A flat want-list ("build what the quests ask, then the checklist, then the
+  economy") had it saving for towers it couldn't afford while it never built a bakery, its only real income. Tiers
+  (engine → main-story buildings → houses → checklist → quests → extras), "saving" whenever something wanted is
+  unaffordable, and "build whatever makes the resource you're short of" fixed it.
+- **A latched tap must survive a cooldown.** Taps were latched until a sim step consumed them (game-059), but a step
+  that couldn't throw because the doily was still cooling down consumed the latch anyway: the tap vanished. The browser
+  test found it with a real mouse click. Now the latch clears only once a step actually throws (or after a second).
+- **`ctx.filter`, not `source-atop`, to tint a sprite on a busy canvas.** `source-atop` composites onto everything
+  already drawn, so tinting a napping sprite painted a lavender rectangle over the background. A CSS filter on the
+  context changes only the sprite's own pixels.
+- **On a portrait phone, size side-view sprites from min(height, 1.25 × width).** Sized by height alone, enemies were a
+  third of the width of a field 310 px wide.
