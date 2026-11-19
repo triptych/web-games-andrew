@@ -8,13 +8,15 @@
 
 const ACTION_KEYS = ['Space', 'KeyZ', 'KeyJ'];
 const NO_SCROLL = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
-const PAD_KEYS = { 0: 'Enter', 1: 'Escape', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown' };
+const PAD_KEYS = { 0: 'Enter', 1: 'Escape', 4: 'KeyQ', 5: 'KeyE', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown' };
+const AMMO_KEYS = { Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4, KeyQ: -1, KeyE: 1 };
 
 export class Input {
     constructor() {
         this.keys = new Set();
         this.queue = [];                    // { key } in the order they were pressed
         this.edges = { a: false };
+        this.ammoCmd = null;                // { index } for 1-5, { step: ±1 } for Q/E and the shoulders
         this.stick = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
         this.pad = { x: 0, y: 0, prev: [] };
         this.lastDevice = 'keys';
@@ -31,6 +33,7 @@ export class Input {
             if (e.repeat) return;
             this.queue.push({ key: e.code });
             if (ACTION_KEYS.includes(e.code)) this.edges.a = true;
+            if (e.code in AMMO_KEYS) this.ammoCmd = e.code.startsWith('Digit') ? { index: AMMO_KEYS[e.code] } : { step: AMMO_KEYS[e.code] };
             this.keys.add(e.code);
         });
         window.addEventListener('keyup', (e) => this.keys.delete(e.code));
@@ -100,7 +103,10 @@ export class Input {
         this.pad.x = b(14) ? -1 : b(15) ? 1 : dead(gp.axes[0] || 0);
         this.pad.y = b(12) ? -1 : b(13) ? 1 : dead(gp.axes[1] || 0);
         for (const i in PAD_KEYS) {
-            if (b(+i) && !this.pad.prev[i]) { this.queue.push({ key: PAD_KEYS[i], pad: true }); this.lastDevice = 'pad'; }
+            if (b(+i) && !this.pad.prev[i]) {
+                this.queue.push({ key: PAD_KEYS[i], pad: true }); this.lastDevice = 'pad';
+                if (i === '4' || i === '5') this.ammoCmd = { step: i === '4' ? -1 : 1 };
+            }
             this.pad.prev[i] = b(+i);
         }
         if (b(0) && !this.pad.prev.a) this.edges.a = true;
@@ -125,7 +131,7 @@ export class Input {
     /** The next queued press, or null. Menus take one per frame. */
     next() { return this.queue.shift() || null; }
     /** Drop queued presses, so a mashed key can't fall through into the next screen. */
-    flush() { this.queue.length = 0; this.edges.a = false; }
+    flush() { this.queue.length = 0; this.edges.a = false; this.ammoCmd = null; }
     clear() {
         this.keys.clear();
         this.flush();

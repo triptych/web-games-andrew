@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0b0d14">
+    <meta name="theme-color" content="#2f7fd8">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="description" content="Kaboom Keep — a whimsical physics cannon game: blast block castles to bits and bonk every little knight.">
+    <meta name="description" content="Kaboom Keep: a whimsical physics cannon game. Blast toy-block castles to bits and bonk every little knight.">
     <title>Kaboom Keep</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@600;800&display=swap">
     <script src="../lib/page-audio.js"></script>
     <script src="../lib/ios-audio.js"></script>
     <script src="../lib/a11y.js"></script>
@@ -18,27 +21,33 @@
     <a id="back-link" href="../index.html">← Games</a>
 
     <canvas id="view" aria-label="Kaboom Keep game view"></canvas>
+    <div id="pops" aria-hidden="true"></div>
 
     <!-- HUD -->
     <div id="hud" hidden>
-        <div id="hud-score">0</div>
-        <div id="hud-time">0</div>
-        <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
-    </div>
-
-    <!-- Touch deck: shown on coarse pointers or after the first touch -->
-    <div id="touch" hidden>
-        <div id="stick-zone"><div id="stick"><div class="ring"></div><div class="knob"></div></div></div>
-        <button id="btn-a" class="tbtn" aria-label="Action">A</button>
+        <div id="hud-top">
+            <div id="hud-castle"></div>
+            <div id="hud-right">
+                <div id="hud-knights" title="Little people still standing"></div>
+                <div id="hud-score">0</div>
+                <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+            </div>
+        </div>
+        <div id="hud-hint"></div>
+        <div id="hud-bottom">
+            <div id="rack" role="group" aria-label="Cannonballs"></div>
+        </div>
+        <button id="btn-fire" class="fire" aria-label="Fire">FIRE</button>
     </div>
 
     <!-- Screens -->
-    <div id="title" class="screen">
-        <div class="sheet">
-            <h1 class="logo">Kaboom Keep</h1>
+    <div id="title" class="screen title-screen">
+        <div class="sheet glass">
+            <h1 class="logo">Kaboom<br>Keep</h1>
+            <p class="tagline">Blast the castles. Bonk the knights.</p>
             <nav class="menu" id="title-menu">
                 <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
-                <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="play" class="btn primary">Play</button>
                 <button data-act="howto" class="btn">How to Play</button>
                 <button data-act="settings" class="btn">Settings</button>
             </nav>
@@ -46,15 +55,47 @@
         </div>
     </div>
 
+    <div id="map" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Choose a Castle</h2>
+            <div id="map-list"></div>
+            <div class="sheet-foot"><span id="map-stars" class="foot-note"></span><button class="btn" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="intro" class="screen" hidden>
+        <div class="sheet card">
+            <img id="intro-portrait" class="portrait" alt="">
+            <div class="intro-body">
+                <div id="intro-region" class="kicker"></div>
+                <h2 id="intro-name"></h2>
+                <p id="intro-text"></p>
+                <div id="intro-ammo" class="ammo-list"></div>
+            </div>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button><button id="intro-go" class="btn primary">Fire away!</button></div>
+        </div>
+    </div>
+
     <div id="howto" class="screen" hidden>
         <div class="sheet">
             <h2>How to Play</h2>
+            <div class="pip-row"><img src="art/cast-pip.webp" alt="Pip the Cannoneer" class="pip"><p>I'm Pip, your cannoneer! Knock over <b>every little person</b> in the castle to clear it. Tip them over, bonk them, or drop the floor out from under them. Smash more blocks for more stars!</p></div>
             <table>
-                <tr><td>Arrows / WASD</td><td>Move</td></tr>
-                <tr><td>Space / Z</td><td>Action</td></tr>
-                <tr><td>P / Esc</td><td>Pause</td></tr>
+                <tr><td>Aim</td><td>Drag anywhere · Arrows / WASD · Stick</td></tr>
+                <tr><td>Fire</td><td>Tap · Space · <b>FIRE</b> · Pad A</td></tr>
+                <tr><td>Ball trick</td><td>Tap again while it flies</td></tr>
+                <tr><td>Pick a ball</td><td>Tap the rack · 1–5 · Q / E · LB / RB</td></tr>
+                <tr><td>Pause</td><td>P / Esc · ❚❚ · Start</td></tr>
             </table>
-            <p>Touch: drag on the left half to move, tap <b>A</b> for the action. Gamepad: stick or d-pad, A, Start.</p>
+            <h3>The cannonballs</h3>
+            <ul class="balls">
+                <li><span class="ball iron"></span><b>Iron Ball</b>: good, honest smashing.</li>
+                <li><span class="ball boom"></span><b>Boom Ball</b>: explodes when it hits. Tap in flight to go off early.</li>
+                <li><span class="ball triple"></span><b>Triple Trouble</b>: tap in flight to split into three.</li>
+                <li><span class="ball bertha"></span><b>Big Bertha</b>: slow, huge, unstoppable.</li>
+                <li><span class="ball boing"></span><b>Boing Ball</b>: bounces all over the place.</li>
+            </ul>
+            <p class="dim">Red crates marked with a bomb go off when hit. Ice shatters. Stone is tough; wood splinters.</p>
             <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
         </div>
     </div>
@@ -64,10 +105,12 @@
             <h2>Settings</h2>
             <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
             <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
+            <label class="row">Camera follows shots <input type="checkbox" id="set-follow"></label>
             <label class="row">Touch controls
                 <select id="set-touch"><option value="auto">Automatic</option><option value="on">Always</option><option value="off">Never</option></select>
             </label>
-            <button id="set-delete" class="btn danger">Delete saved game</button>
+            <button id="set-delete" class="btn danger">Forget saved game and stars</button>
             <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
         </div>
     </div>
@@ -77,6 +120,7 @@
             <h2>Paused</h2>
             <nav class="menu" id="pause-menu">
                 <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="restart" class="btn">Restart Castle</button>
                 <button data-act="howto" class="btn">How to Play</button>
                 <button data-act="settings" class="btn">Settings</button>
                 <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
@@ -85,10 +129,17 @@
     </div>
 
     <div id="over" class="screen" hidden>
-        <div class="sheet">
-            <h2>Time!</h2>
-            <p id="over-text"></p>
-            <div class="sheet-foot"><button id="over-again" class="btn primary">Play Again</button></div>
+        <div class="sheet card">
+            <h2 id="res-head">Castle Cleared!</h2>
+            <div id="res-stars" class="stars"><span>★</span><span>★</span><span>★</span></div>
+            <img id="res-portrait" class="portrait small" alt="">
+            <p id="res-text"></p>
+            <div id="res-score" class="big-score"></div>
+            <div class="sheet-foot" id="over-menu">
+                <button data-act="map" class="btn">Castles</button>
+                <button data-act="retry" id="over-again" class="btn">Retry</button>
+                <button data-act="next" id="res-next" class="btn primary">Next Castle</button>
+            </div>
         </div>
     </div>
 
