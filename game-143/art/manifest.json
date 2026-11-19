@@ -1,0 +1,322 @@
+{
+"bg/field": {
+"file": "bg/field.jpg",
+"h": 893,
+"w": 1600
+},
+"bg/title": {
+"file": "bg/title.jpg",
+"h": 893,
+"w": 1600
+},
+"bg/town": {
+"file": "bg/town.jpg",
+"h": 893,
+"w": 1600
+},
+"bld/bakery": {
+"file": "bld/bakery.png",
+"h": 210,
+"w": 184
+},
+"bld/beets": {
+"file": "bld/beets.png",
+"h": 170,
+"w": 211
+},
+"bld/bell": {
+"file": "bld/bell.png",
+"h": 240,
+"w": 128
+},
+"bld/cottage": {
+"file": "bld/cottage.png",
+"h": 210,
+"w": 212
+},
+"bld/gingerhome": {
+"file": "bld/gingerhome.png",
+"h": 210,
+"w": 214
+},
+"bld/hall": {
+"file": "bld/hall.png",
+"h": 250,
+"w": 219
+},
+"bld/market": {
+"file": "bld/market.png",
+"h": 210,
+"w": 274
+},
+"bld/mill": {
+"file": "bld/mill.png",
+"h": 210,
+"w": 153
+},
+"bld/oven": {
+"file": "bld/oven.png",
+"h": 230,
+"w": 240
+},
+"bld/quarry": {
+"file": "bld/quarry.png",
+"h": 210,
+"w": 218
+},
+"bld/site": {
+"file": "bld/site.png",
+"h": 170,
+"w": 193
+},
+"bld/tailor": {
+"file": "bld/tailor.png",
+"h": 210,
+"w": 152
+},
+"bld/tavern": {
+"file": "bld/tavern.png",
+"h": 210,
+"w": 199
+},
+"bld/tower": {
+"file": "bld/tower.png",
+"h": 240,
+"w": 123
+},
+"bld/witch": {
+"file": "bld/witch.png",
+"h": 210,
+"w": 192
+},
+"en/bat": {
+"file": "en/bat.png",
+"h": 80,
+"w": 123
+},
+"en/brute": {
+"file": "en/brute.png",
+"h": 150,
+"w": 151
+},
+"en/corn": {
+"file": "en/corn.png",
+"h": 80,
+"w": 83
+},
+"en/ghost": {
+"file": "en/ghost.png",
+"h": 95,
+"w": 109
+},
+"en/golem": {
+"file": "en/golem.png",
+"h": 175,
+"w": 181
+},
+"en/king": {
+"file": "en/king.png",
+"h": 230,
+"w": 201
+},
+"en/licorice": {
+"file": "en/licorice.png",
+"h": 80,
+"w": 115
+},
+"en/mimic": {
+"file": "en/mimic.png",
+"h": 110,
+"w": 88
+},
+"en/slime": {
+"file": "en/slime.png",
+"h": 90,
+"w": 98
+},
+"en/zombie": {
+"file": "en/zombie.png",
+"h": 120,
+"w": 78
+},
+"por/bram": {
+"file": "por/bram.png",
+"h": 220,
+"w": 239
+},
+"por/fennel": {
+"file": "por/fennel.png",
+"h": 220,
+"w": 202
+},
+"por/gerald": {
+"file": "por/gerald.png",
+"h": 220,
+"w": 227
+},
+"por/grizelda": {
+"file": "por/grizelda.png",
+"h": 220,
+"w": 217
+},
+"por/gustave": {
+"file": "por/gustave.png",
+"h": 220,
+"w": 206
+},
+"por/hilde": {
+"file": "por/hilde.png",
+"h": 220,
+"w": 206
+},
+"por/hollyhock": {
+"file": "por/hollyhock.png",
+"h": 220,
+"w": 213
+},
+"por/king": {
+"file": "por/king.png",
+"h": 220,
+"w": 212
+},
+"por/lark": {
+"file": "por/lark.png",
+"h": 220,
+"w": 176
+},
+"por/moss": {
+"file": "por/moss.png",
+"h": 220,
+"w": 215
+},
+"por/mother": {
+"file": "por/mother.png",
+"h": 230,
+"w": 227
+},
+"por/noxia": {
+"file": "por/noxia.png",
+"h": 220,
+"w": 185
+},
+"por/ottilie": {
+"file": "por/ottilie.png",
+"h": 220,
+"w": 188
+},
+"por/pip": {
+"file": "por/pip.png",
+"h": 220,
+"w": 164
+},
+"por/queen": {
+"file": "por/queen.png",
+"h": 220,
+"w": 152
+},
+"por/silk": {
+"file": "por/silk.png",
+"h": 220,
+"w": 215
+},
+"por/tansy": {
+"file": "por/tansy.png",
+"h": 220,
+"w": 153
+},
+"por/tobias": {
+"file": "por/tobias.png",
+"h": 220,
+"w": 210
+},
+"por/vellum": {
+"file": "por/vellum.png",
+"h": 220,
+"w": 193
+},
+"por/wick": {
+"file": "por/wick.png",
+"h": 220,
+"w": 188
+},
+"spr/fennel": {
+"file": "spr/fennel.png",
+"h": 150,
+"w": 97
+},
+"spr/lark": {
+"file": "spr/lark.png",
+"h": 150,
+"w": 122
+},
+"spr/moss": {
+"file": "spr/moss.png",
+"h": 150,
+"w": 114
+},
+"spr/noxia": {
+"file": "spr/noxia.png",
+"h": 150,
+"w": 98
+},
+"spr/noxia-cheer": {
+"file": "spr/noxia-cheer.png",
+"h": 150,
+"w": 142
+},
+"spr/noxia-throw": {
+"file": "spr/noxia-throw.png",
+"h": 150,
+"w": 161
+},
+"spr/ottilie": {
+"file": "spr/ottilie.png",
+"h": 150,
+"w": 109
+},
+"spr/queen": {
+"file": "spr/queen.png",
+"h": 130,
+"w": 75
+},
+"spr/tobias": {
+"file": "spr/tobias.png",
+"h": 150,
+"w": 115
+},
+"vil/bram": {
+"file": "vil/bram.png",
+"h": 120,
+"w": 118
+},
+"vil/hilde": {
+"file": "vil/hilde.png",
+"h": 120,
+"w": 69
+},
+"vil/hollyhock": {
+"file": "vil/hollyhock.png",
+"h": 120,
+"w": 68
+},
+"vil/tansy": {
+"file": "vil/tansy.png",
+"h": 95,
+"w": 77
+},
+"wall/1": {
+"file": "wall/1.png",
+"h": 340,
+"w": 155
+},
+"wall/3": {
+"file": "wall/3.png",
+"h": 340,
+"w": 182
+},
+"wall/5": {
+"file": "wall/5.png",
+"h": 340,
+"w": 158
+}
+}
