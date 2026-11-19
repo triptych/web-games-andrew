@@ -227,7 +227,9 @@ if (want('rules')) {
     G = fresh(); G.phase = 3; G.bake.pct = 100; G.mode = 'battle'; G.battle = Bt.newBattle(G); B = G.battle; B.sched = []; B.t = 0; B.kingAt = 0; B.wall.hp = B.wall.max = 1e9;
     B.enemies.push({ id: 50, kind: 'zombie', x: 70, y: 0.5, hp: 99, max: 99, atk: 1, nap: 0, sit: false, block: false, push: 0 });
     run(G, 1);
-    ok(B.canQueen, 'with the bake done, the Queen can be revealed');
+    ok(!B.canQueen, 'the Queen waits until the King has come to a stop');
+    B.enemies.find((e) => e.kind === 'king').x = C.KING.stopX + 0.1; run(G, 0.5);
+    ok(B.canQueen, 'then, with the bake done, she can be revealed');
     ok(Gm.act(G, { t: 'queen' }) && B.queen, 'Queen Honeysnap walks out');
     ok(B.enemies.filter((e) => e.kind !== 'king').every((e) => e.sit), 'the whole horde sits down to watch');
     run(G, 30);

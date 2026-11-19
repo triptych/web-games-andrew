@@ -255,7 +255,6 @@ function onBattleEnd(e) {
     syncMode();
     saveGame(G);
     if (e.result === 'love') { themeFor(); audio.playTheme('love'); scene('ending', () => ui.showEnding(G)); return; }
-    if (quiet) return;
     ui.showResult(e);
     if (e.result === 'win' && !e.epi && G.phase >= 1 && G.phase <= 3) pendingAfterResult = () => scene('phase' + (G.phase + 1));
     else if (e.result === 'retreat') pendingAfterResult = () => scene('retreat');
@@ -278,8 +277,9 @@ function frame(now) {
         let n = 0;
         while (acc >= STEP && n < 12 * FAST * 3) {
             const inp = bot ? botInput(G, bot, STEP) : input.state();
+            const ev0 = G.events.length;
             step(G, inp, STEP);
-            input.consumeEdges();
+            input.consumeEdges(G.mode !== 'battle' || G.events.slice(ev0).some((e) => e.type === 'throw'));
             acc -= STEP;
             n++;
             if (G.events.length && G.events.some((e) => e.type === 'questNew' || e.type === 'questDone' || e.type === 'scene' || e.type === 'kingArrives' || e.type === 'queen' || e.type === 'battleEnd' || e.type === 'invasion')) break;

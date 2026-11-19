@@ -274,13 +274,13 @@ export function stepBattle(G, inp, dt) {
 
     // the King and the Queen
     const king = B.king != null ? B.enemies.find((e) => e.id === B.king) : null;
-    B.canQueen = !!king && G.bake.pct >= 100 && !B.queen;
+    B.canQueen = !!king && B.kingStopT != null && G.bake.pct >= 100 && !B.queen;   // once he stands looming mid-field
     if (B.queen) {
         const Q = B.queen;
         Q.t += dt;
         if (Q.state === 'walk') {
             Q.x += QUEEN.speed * dt;
-            if (king && Q.x >= king.x - 3.5) { Q.state = 'kiss'; Q.t = 0; G.events.push({ type: 'kiss', x: Q.x }); }
+            if (king && Q.x >= king.x - 6.5) { Q.state = 'kiss'; Q.t = 0; G.events.push({ type: 'kiss', x: Q.x }); }
         } else if (Q.state === 'kiss' && Q.t >= QUEEN.kissT) {
             B.result = 'love';
             G.events.push({ type: 'battleOver', result: 'love' });

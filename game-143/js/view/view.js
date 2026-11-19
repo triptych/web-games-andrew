@@ -69,6 +69,12 @@ export class View {
     panBy(dx) { if (this.pan != null) this.pan += dx; }
     centreOn(i) { const t = this.townXf(); const p = PLOT_POS[i] || HALL_POS; this.pan = this.w / 2 - p.x * BG_W * t.k; }
 
+    /** Client point on a plot's lot (for tests and for centring). */
+    plotClient(i) {
+        const r = this.canvas.getBoundingClientRect(), q = this.townPt(PLOT_POS[i]);
+        return { x: r.left + q.x, y: r.top + q.y - 40 * q.k };
+    }
+
     /** Plot under a client point: index, 'hall', or -1. */
     pickTown(G, cx, cy) {
         const r = this.canvas.getBoundingClientRect();

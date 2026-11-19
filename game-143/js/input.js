@@ -26,7 +26,7 @@ export class Input {
             this.lastDevice = 'keys';
             if (e.repeat) return;
             this.queue.push({ key: e.code });
-            if (e.code === 'Space' || e.code === 'KeyZ' || e.code === 'KeyJ') this.fireLatch = true;
+            if (e.code === 'Space' || e.code === 'KeyZ' || e.code === 'KeyJ') { this.fireLatch = true; this.latchT = 0; }
             this.keys.add(e.code);
         });
         window.addEventListener('keyup', (e) => this.keys.delete(e.code));
@@ -39,7 +39,7 @@ export class Input {
     }
 
     /** The view calls these while a finger or mouse button is down on the battlefield. */
-    pointerDown(id, aim) { this.pointer.down = true; this.pointer.id = id; this.pointer.aim = aim; this.fireLatch = true; }
+    pointerDown(id, aim) { this.pointer.down = true; this.pointer.id = id; this.pointer.aim = aim; this.fireLatch = true; this.latchT = 0; }
     pointerMove(id, aim) { if (this.pointer.id === id || this.pointer.id == null) this.pointer.aim = aim; }
     pointerUp(id) { if (this.pointer.id === id) { this.pointer.down = false; this.pointer.id = null; } }
     hoverAim(aim) { if (!this.pointer.down) this.pointer.aim = aim; }
@@ -72,9 +72,16 @@ export class Input {
         return { ax, aim: ax ? null : this.pointer.aim, fire: held || this.fireLatch };
     }
 
-    consumeEdges() { this.fireLatch = false; }
+    /** Clear the fire latch, but only once it has done its job: a tap during the doily's cooldown would
+     *  otherwise be eaten by a step that couldn't throw. `threw` says whether that step threw; a latch older
+     *  than a second is dropped anyway. */
+    consumeEdges(threw = true) {
+        if (!this.fireLatch) return;
+        if (!this.latchT) this.latchT = performance.now();
+        if (threw || performance.now() - this.latchT > 1000) { this.fireLatch = false; this.latchT = 0; }
+    }
     next() { return this.queue.shift() || null; }
-    flush() { this.queue.length = 0; this.fireLatch = false; }
+    flush() { this.queue.length = 0; this.fireLatch = false; this.latchT = 0; }
     clear() {
         this.keys.clear();
         this.flush();
