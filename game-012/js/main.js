@@ -1,771 +1,298 @@
-/**
- * main.js — Kaplay initialisation and scene definitions.
- *
- * Scenes:
- *   'splash'    — Title screen, waits for any key or click
- *   'collection'— Browse owned cards and set party
- *   'gacha'     — Pull new cards from the tarot banner
- *   'battle'    — Auto-battler combat scene
- *
- * Library: ../../lib/kaplay/kaplay.mjs (shared root lib)
- */
+// Arcana Pull: entry point. Boots sound and the UI; turns taps, clicks and keys into commands for act(); drains
+// G.events to the UI, the stage and the sound once per command; plays battles on the stage; saves after every command;
+// moves between the title, the parlour, the Well, battles, Readings and the endings.
+//
+// ?debug=1 exposes window.__ap for the dev/ harnesses (see dev/README.md). &fast=1 skips battle replays.
 
-import kaplay from '../../lib/kaplay/kaplay.mjs';
+import { VERSION, MAX_FRAME, TRIAL_COUNT } from './config.js';
+import { Audio } from './audio.js';
+import { UI } from './ui.js';
+import { Stage } from './view/stage.js';
+import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
+import { newGame, act, legal, trialOf } from './sim/game.js';
+import { botCommand } from './sim/bot.js';
+import { CARDS } from './sim/data/cards.js';
+import { ART, ROOT } from './media.js';
 
-import { GAME_WIDTH, GAME_HEIGHT, COLORS } from './config.js';
-import { state }  from './state.js';
-import { events } from './events.js';
-import { initUI, initNavBar } from './ui.js';
-import { initAudio, playUiClick } from './sounds.js';
-import { CARD_DEFS } from './cards.js';
-import { initGacha, pullSingle, pullTen, clearSave } from './gacha.js';
-import { initCollection } from './collection.js';
-import { initBattle }     from './battle.js';
-import { initReading }    from './reading.js';
+const params = new URLSearchParams(location.search);
+const DEBUG = params.get('debug') === '1';
+const FAST = params.get('fast') === '1';
+const $ = (id) => document.getElementById(id);
 
-// ============================================================
-// KAPLAY API GOTCHAS (read before adding entities)
-// ============================================================
-//
-// 1. POSITION — entity.pos is a getter/setter, NOT a plain field.
-//    Mutating the returned Vec2 has NO visual effect:
-//      BAD:  entity.pos.x = 100;          // silently broken
-//      GOOD: entity.pos = k.vec2(100, y); // correct
-//
-// 2. OPACITY — setting entity.opacity only works if k.opacity()
-//    was declared in the k.add([...]) component list at creation:
-//      BAD:  k.add([k.pos(x,y), k.rect(w,h)])  → entity.opacity = 0.5; // ignored
-//      GOOD: k.add([k.pos(x,y), k.rect(w,h), k.opacity(1)]) → entity.opacity = 0.5; // works
-//
-// 3. TEXT — square brackets in k.text() strings are parsed as style tags.
-//    Use parentheses instead:
-//      BAD:  k.text('[Space] to fire')    // "Styled text error: unclosed tags"
-//      GOOD: k.text('(Space) to fire')
-//
-// 4. COLOR — k.rgba() does not exist. Use k.color(r,g,b,a) or k.color(r,g,b).
-//    For outline/fill params use k.rgb(r,g,b).
-//
-// ============================================================
-// Kaplay init
-// ============================================================
+const settings = loadSettings();
+const audio = new Audio();
+audio.setVolumes(settings.sfx, settings.music, settings.voice);
+let G = null;
+let mode = 'title';                 // title | hub | battle | reading | ending | over
+let pendingBattle = null;           // the 'battle' event being replayed
+let frames = 0;
+const seen = {};                    // a count of every sim event drained, for the tests
+const calm = () => settings.motion === 'off' || !!window.A11Y?.reducedMotion;
 
-const k = kaplay({
-    width:        GAME_WIDTH,
-    height:       GAME_HEIGHT,
-    background:   COLORS.bg,
-    letterbox:    true,
-    crisp:        true,
-    pixelDensity: Math.min(window.devicePixelRatio, 2),
+const stage = new Stage($('stage'), $('fx'), audio);
+const ui = new UI({
+    audio, settings, cmd: (c) => command(c),
+    onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); document.body.classList.toggle('calm', calm()); },
+    onDeleteSave: () => { clearSave(); refreshTitle(); },
 });
+audio.onSay = (id, secs) => ui.subtitle(id, secs);
+document.body.classList.toggle('calm', calm());
+$('version').textContent = 'v' + VERSION;
 
-// ============================================================
-// Asset loading — all 78 tarot card sprites
-// ============================================================
-
-const CARD_IMG_BASE = 'res/tarot/cards/';
-
-for (const card of CARD_DEFS) {
-    k.loadSprite(card.img, `${CARD_IMG_BASE}${card.img}.jpg`);
+// ------------------------------------------------------------------ commands and events
+function command(c) {
+    if (!G) return false;
+    const ok = act(G, c);
+    flush();
+    if (G) saveGame(G);
+    return ok;
 }
 
-// ============================================================
-// SCENE: splash
-// ============================================================
-
-k.scene('splash', () => {
-    const CX = GAME_WIDTH  / 2;
-    const CY = GAME_HEIGHT / 2;
-
-    // Background
-    k.add([
-        k.pos(0, 0),
-        k.rect(GAME_WIDTH, GAME_HEIGHT),
-        k.color(...COLORS.bg),
-        k.z(0),
-    ]);
-
-    // Decorative subtitle
-    k.add([
-        k.pos(CX, CY - 140),
-        k.text('TAROT AUTO BATTLER', { size: 16 }),
-        k.color(...COLORS.accent),
-        k.anchor('center'),
-        k.z(1),
-    ]);
-
-    // Title
-    k.add([
-        k.pos(CX, CY - 80),
-        k.text('ARCANA PULL', { size: 72 }),
-        k.color(...COLORS.gold),
-        k.anchor('center'),
-        k.z(1),
-    ]);
-
-    // Flavour line
-    k.add([
-        k.pos(CX, CY - 10),
-        k.text('Collect the Major Arcana. Build your party. Conquer fate.', { size: 14 }),
-        k.color(...COLORS.silver),
-        k.anchor('center'),
-        k.z(1),
-    ]);
-
-    // Blinking start prompt
-    const prompt = k.add([
-        k.pos(CX, CY + 60),
-        k.text('PRESS ANY KEY OR CLICK TO START', { size: 16 }),
-        k.color(...COLORS.text),
-        k.anchor('center'),
-        k.opacity(1),
-        k.z(1),
-    ]);
-    let blinkTimer = 0;
-    prompt.onUpdate(() => {
-        blinkTimer += k.dt();
-        prompt.opacity = (Math.sin(blinkTimer * Math.PI * 1.5) + 1) / 2 * 0.7 + 0.3;
-    });
-
-    // Controls hint
-    k.add([
-        k.pos(CX, CY + 120),
-        k.text('(G) Gacha Pull   (C) Collection   (B) Battle', { size: 13 }),
-        k.color(80, 60, 140),
-        k.anchor('center'),
-        k.z(1),
-    ]);
-
-    // Version tag
-    k.add([
-        k.pos(GAME_WIDTH - 10, GAME_HEIGHT - 10),
-        k.text('Phase 5', { size: 10 }),
-        k.color(50, 40, 80),
-        k.anchor('botright'),
-        k.z(1),
-    ]);
-
-    // Start on any key or click
-    let started = false;
-
-    function goToGame() {
-        if (started) return;
-        started = true;
-        initAudio();
-        playUiClick();
-        document.removeEventListener('keydown', onAnyKey);
-        k.go('game');
+function flush() {
+    const ev = G.events.splice(0);
+    for (const e of ev) {
+        seen[e.type] = (seen[e.type] || 0) + 1;
+        switch (e.type) {
+            case 'pulled': ui.showReveal(e.cards); audio.play('dust', { vol: 0.5 }); break;
+            case 'starUp': audio.play('star'); ui.toast(`${cardName(e.id)} rises to ${'★'.repeat(e.star)}`); ui.renderDetail(); break;
+            case 'party': if (e.auto && !e.quiet) { audio.play('whoosh'); ui.toast('The spread is set.'); } break;
+            case 'armed': audio.play(e.on ? 'star' : 'click', { vol: 0.7 }); break;
+            case 'used': ui.toast('The Wheel turns: ten free draws!'); break;
+            case 'battle': startBattle(e); break;
+            case 'reading': toReading(e); break;
+            case 'omen': onOmen(e); break;
+            case 'trial': if (mode !== 'reading') toHub(true); break;
+            case 'retry': toHub(false); break;
+            case 'ending': toEnding(); break;
+            case 'ascend': audio.say('ascend'); break;
+            case 'omenEnd': ui.toast('The omen fades.'); break;
+            case 'deny': onDeny(e.why); break;
+            default: break;
+        }
     }
+    if (mode === 'hub') ui.renderHub();
+    if (ui.isOpen('well')) ui.renderWell();
+    if (ui.isOpen('grimoire')) ui.renderGrimoire();
+}
+const cardName = (id) => CARDS[id]?.name || id;
 
-    function onAnyKey(e) {
-        if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
-        goToGame();
+function onDeny(why) {
+    audio.ui('deny');
+    const msg = { dust: 'Not enough stardust.', party: 'Place at least one card in your spread.', copies: 'Not enough copies yet.', phase: null }[why];
+    if (msg) ui.toast(msg);
+}
+
+// ------------------------------------------------------------------ moving between places
+function hideAll() {
+    for (const s of document.querySelectorAll('.screen')) s.hidden = true;
+    ui.stack = [];
+    $('reveal').hidden = true;
+}
+
+function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
+
+function toTitle() {
+    hideAll();
+    mode = 'title';
+    refreshTitle();
+    ui.openScreen('title');
+    audio.music('parlour');
+}
+
+function startGame(g, isNew) {
+    G = g;
+    ui.G = G;
+    G.events.length = 0;
+    if (G.phase === 'reading' && G.reading) { toReading({ cards: G.reading.cards }); return; }
+    if (G.phase === 'ending') { toEnding(); return; }
+    if (G.phase === 'won' || G.phase === 'lost') { act(G, { t: 'next' }); flush(); }
+    if (G.phase === 'over') { hideAll(); mode = 'over'; ui.showOver(G); audio.music('reading'); return; }
+    toHub(false);
+    if (isNew) setTimeout(() => audio.say('intro'), 400);
+    saveGame(G);
+}
+
+function toHub(newTrial) {
+    hideAll();
+    mode = 'hub';
+    ui.openScreen('hub');
+    ui.renderHub();
+    audio.music('parlour');
+    if (newTrial) setTimeout(() => audio.say('t' + G.trial), 500);
+    setTimeout(() => (G.party.some(Boolean) ? $('btn-fight') : $('btn-well')).focus(), 50);
+}
+
+function startBattle(e) {
+    pendingBattle = e;
+    hideAll();
+    mode = 'battle';
+    ui.openScreen('battle');
+    $('realm').style.backgroundImage = `url(${ROOT}${ART.realm(e.realm)})`;
+    $('caption').textContent = '';
+    $('bat-title').textContent = trialOf(G).name;
+    setSpeed(settings.speed);
+    stage.play(e, { speed: speedScale(settings.speed), motion: !calm() });
+    audio.music(e.trial === TRIAL_COUNT ? 'boss' : 'battle');
+    if (e.trial === TRIAL_COUNT) audio.say('wintro');
+    if (FAST) stage.skip();
+}
+stage.onLine = (text, side) => {
+    const c = $('caption');
+    c.textContent = text;
+    c.className = 'caption ' + (side === 0 ? 'ally' : 'foe');
+    clearTimeout(stage.capT);
+    stage.capT = setTimeout(() => { c.textContent = ''; }, 1600);
+};
+stage.onVoice = (id) => audio.say(id);
+stage.onDone = (r) => {
+    if (mode !== 'battle') return;
+    audio.play(r.won ? 'victory' : 'defeat');
+    setTimeout(() => audio.say(r.won ? 'win' : G.phase === 'over' ? 'over' : 'lost'), 900);
+    ui.showResult(r, G);
+};
+/** The stage runs sim seconds; 1× is a calm pace, 4× a quick one. */
+const speedScale = (s) => ({ 1: 1, 2: 1.8, 4: 3.6 }[s] || 1.8);
+function setSpeed(s) {
+    settings.speed = s;
+    saveSettings(settings);
+    stage.speed = speedScale(s);
+    document.querySelectorAll('.speeds .sp').forEach((b) => b.setAttribute('aria-pressed', +b.dataset.speed === s ? 'true' : 'false'));
+}
+
+function afterResult() {
+    ui.closeScreen('result');
+    audio.hush();
+    if (G.phase === 'over') { hideAll(); mode = 'over'; ui.showOver(G); audio.music('reading'); return; }
+    command({ t: 'next' });
+}
+
+function toReading(e) {
+    hideAll();
+    mode = 'reading';
+    ui.showReading(e.cards);
+    audio.music('reading');
+    setTimeout(() => audio.say('reading'), 500);
+}
+function onOmen(e) {
+    audio.play('omen');
+    setTimeout(() => audio.play(e.reversed ? 'curse' : 'rise'), 600);
+    setTimeout(() => audio.say(e.reversed ? 'reversed' : 'upright'), 900);
+    ui.readingResult(e);
+}
+
+function toEnding() {
+    hideAll();
+    mode = 'ending';
+    ui.showEnding(G);
+    audio.music('reading');
+    setTimeout(() => audio.say('ending'), 600);
+}
+
+// ------------------------------------------------------------------ buttons
+$('title-menu').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    audio.ui();
+    const a = b.dataset.act;
+    if (a === 'new') startGame(newGame((Date.now() % 1e9) | 0), true);
+    else if (a === 'continue') { const g = loadGame(); if (g) startGame(g, false); else ui.toast('That save could not be read.'); }
+    else ui.openScreen(a);
+});
+$('pause-menu').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    audio.ui();
+    const a = b.dataset.act;
+    if (a === 'resume') ui.closeScreen('pause');
+    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else ui.openScreen(a);
+});
+$('btn-pause').addEventListener('click', () => { audio.ui(); ui.openScreen('pause'); });
+$('btn-well').addEventListener('click', () => { audio.ui(); ui.openWell(); });
+$('btn-pull1').addEventListener('click', () => command({ t: 'pull', n: 1 }));
+$('btn-pull10').addEventListener('click', () => command({ t: 'pull', n: 10 }));
+$('btn-grimoire').addEventListener('click', () => { audio.ui(); ui.setPick(-1); ui.openGrimoire(); });
+$('btn-charms').addEventListener('click', () => { audio.ui(); ui.openCharms(); });
+$('btn-auto').addEventListener('click', () => command({ t: 'auto' }));
+$('btn-fight').addEventListener('click', () => { audio.ui(); command({ t: 'fight' }); });
+$('btn-skip').addEventListener('click', () => { audio.ui(); stage.skip(); });
+document.querySelectorAll('.speeds .sp').forEach((b) => b.addEventListener('click', () => { audio.ui(); setSpeed(+b.dataset.speed); }));
+$('btn-res-next').addEventListener('click', () => { audio.ui(); afterResult(); });
+$('btn-reading-done').addEventListener('click', () => { audio.ui(); toHub(true); });
+$('btn-ascend').addEventListener('click', () => { audio.ui(); command({ t: 'ascend' }); });
+$('btn-end-title').addEventListener('click', () => { audio.ui(); toTitle(); });
+$('btn-over-title').addEventListener('click', () => { audio.ui(); clearSave(); toTitle(); });
+$('btn-over-new').addEventListener('click', () => { audio.ui(); startGame(newGame((Date.now() % 1e9) | 0), true); });
+
+// ------------------------------------------------------------------ keys
+window.addEventListener('keydown', (e) => {
+    const tag = e.target?.tagName;
+    if ((tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') && e.code !== 'Escape') return;
+    if (e.code === 'Escape') {
+        if (!$('reveal').hidden) { ui.revealAll(); return; }
+        if (ui.closeTop()) return;
+        if (mode === 'hub') { audio.ui(); ui.openScreen('pause'); }
+        return;
     }
-
-    document.addEventListener('keydown', onAnyKey);
-    k.onClick(goToGame);
-    k.onSceneLeave(() => document.removeEventListener('keydown', onAnyKey));
+    if (e.repeat) return;
+    if (mode === 'battle' && !ui.isOpen('result')) {
+        if (e.code === 'Digit1') setSpeed(1);
+        else if (e.code === 'Digit2') setSpeed(2);
+        else if (e.code === 'Digit4') setSpeed(4);
+        else if (e.code === 'KeyS') stage.skip();
+        return;
+    }
+    if (mode === 'hub' && !ui.anySheet()) {
+        if (e.code === 'KeyW') { audio.ui(); ui.openWell(); }
+        else if (e.code === 'KeyG') { audio.ui(); ui.openGrimoire(); }
+        else if (e.code === 'KeyC') { audio.ui(); ui.openCharms(); }
+        else if (e.code === 'KeyA') command({ t: 'auto' });
+        else if (e.code === 'KeyF') { audio.ui(); command({ t: 'fight' }); }
+    }
 });
 
-// ============================================================
-// SCENE: game  (hub / main menu between runs)
-// ============================================================
+// first gesture: start the audio
+const unlock = () => { audio.init(); audio.music(audio.wantTheme || 'parlour'); };
+for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
+window.addEventListener('resize', () => stage.resize());
 
-k.scene('game', () => {
-    // Only reset on a genuinely fresh run (no saved collection).
-    // initGacha() loads from localStorage; if collection is still empty, it's a new run.
-    initGacha();
-    if (state.collection.length === 0) state.reset();
+// ------------------------------------------------------------------ loop
+let last = performance.now();
+function frame(now) {
+    const dt = Math.min(MAX_FRAME, (now - last) / 1000);
+    last = now;
+    frames++;
+    if (mode === 'battle') stage.update(dt);
+    requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
 
-    initUI(k);
-    initNavBar(k, 'game');
+toTitle();
+$('loading').classList.add('gone');
+setTimeout(() => $('loading').remove(), 500);
 
-    const CX = GAME_WIDTH  / 2;
-    const CY = GAME_HEIGHT / 2;
-
-    // Hub background
-    k.add([k.pos(0, 0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(...COLORS.bgPanel), k.z(0)]);
-
-    k.add([k.pos(CX, 55), k.text('ARCANA PULL', { size: 40 }), k.color(...COLORS.gold), k.anchor('center'), k.z(1)]);
-    k.add([k.pos(CX, 100), k.text('Collect the Major Arcana. Build your party. Conquer fate.', { size: 13 }), k.color(...COLORS.silver), k.anchor('center'), k.z(1)]);
-
-    // Status strip
-    k.add([k.pos(CX, CY - 120), k.text(`Wave ${state.wave}  |  ${state.collection.length} Cards Owned  |  Party: ${state.party.length}/4`, { size: 15 }), k.color(...COLORS.text), k.anchor('center'), k.z(1)]);
-
-    // Menu options
-    const menuItems = [
-        { label: '(G) Gacha — Pull Cards',      scene: 'gacha',      color: COLORS.accent },
-        { label: '(C) Collection — View Party',  scene: 'collection', color: COLORS.mana   },
-        { label: '(B) Battle — Start Wave',      scene: 'battle',     color: COLORS.success },
-    ];
-    menuItems.forEach((item, i) => {
-        const btn = k.add([
-            k.pos(CX, CY - 40 + i * 70),
-            k.rect(460, 50, { radius: 6 }),
-            k.color(25, 16, 55),
-            k.outline(1, k.rgb(...item.color)),
-            k.anchor('center'),
-            k.area(),
-            k.z(1),
-        ]);
-        k.add([k.pos(CX, CY - 40 + i * 70), k.text(item.label, { size: 20 }), k.color(...item.color), k.anchor('center'), k.z(2)]);
-        btn.onClick(() => { playUiClick(); events.clearAll(); k.go(item.scene); });
-        btn.onHover(() => { btn.color = k.rgb(40, 25, 80); });
-        btn.onHoverEnd(() => { btn.color = k.rgb(25, 16, 55); });
-    });
-
-    // ---- Active omen status icon ----
-    const omen = state.activeOmen;
-    if (omen) {
-        const isCurse    = omen.type === 'curse';
-        const omenColor  = isCurse ? COLORS.danger : COLORS.success;
-        const omenBgCol  = isCurse ? [30, 8, 8] : [8, 28, 8];
-        k.add([
-            k.pos(CX, CY + 155),
-            k.rect(460, 40, { radius: 5 }),
-            k.color(...omenBgCol),
-            k.outline(1, k.rgb(...omenColor)),
-            k.anchor('center'),
-            k.z(1),
-        ]);
-        const omenTypeStr = isCurse ? 'CURSE' : 'BLESSING';
-        k.add([
-            k.pos(CX, CY + 155),
-            k.text(`${omenTypeStr}: ${omen.label}  —  ${state.omenWavesLeft} wave${state.omenWavesLeft !== 1 ? 's' : ''} remaining`, { size: 13 }),
-            k.color(...omenColor),
-            k.anchor('center'),
-            k.z(2),
-        ]);
-    }
-
-    // ---- Items inventory ----
-    const items = state.items;
-    if (items.length > 0) {
-        k.add([k.pos(CX, CY + 210), k.text('ITEMS  (click to use before battle)', { size: 12 }), k.color(...COLORS.gold), k.anchor('center'), k.z(1)]);
-        items.forEach((item, i) => {
-            const ix = CX - 120 + i * 120;
-            const iy = CY + 248;
-            const ibtn = k.add([
-                k.pos(ix, iy),
-                k.rect(108, 44, { radius: 5 }),
-                k.color(20, 14, 50),
-                k.outline(1, k.rgb(...COLORS.gold)),
-                k.anchor('center'),
-                k.area(),
-                k.z(2),
-            ]);
-            k.add([k.pos(ix, iy - 8), k.text(item.label, { size: 12 }), k.color(...COLORS.gold), k.anchor('center'), k.z(3)]);
-            k.add([k.pos(ix, iy + 8), k.text(item.desc.length > 22 ? item.desc.slice(0, 22) + '...' : item.desc, { size: 9 }), k.color(...COLORS.silver), k.anchor('center'), k.z(3)]);
-            ibtn.onClick(() => {
-                import('./sounds.js').then(s => s.playItemUsed());
-                state.useItem(item.id);
-                events.clearAll();
-                k.go('game');  // refresh hub
-            });
-            ibtn.onHover(()    => { ibtn.color = k.rgb(35, 22, 75); });
-            ibtn.onHoverEnd(() => { ibtn.color = k.rgb(20, 14, 50); });
-        });
-    }
-
-    k.add([k.pos(CX, GAME_HEIGHT - 58), k.text('(R) New Run  |  (ESC) Title', { size: 11 }), k.color(60, 50, 100), k.anchor('center'), k.z(1)]);
-
-
-    k.onKeyPress('r', () => {
-        state.reset();
-        events.clearAll();
-        k.go('game');
-    });
-
-    k.onKeyPress('escape', () => {
-        events.clearAll();
-        k.go('splash');
-    });
-
-    k.onSceneLeave(() => events.clearAll());
-});
-
-// ============================================================
-// SCENE STUBS — fill in during Phase 2+
-// ============================================================
-
-// ============================================================
-// SCENE: gacha
-// ============================================================
-//
-// Layout (1280×720):
-//   Top bar    y=0..50   — HUD (gems, pity meter)
-//   Left panel x=0..400  — Banner art + pity info
-//   Center     x=400..880— Card reveal area (flip animation)
-//   Right      x=880..1280— Pull buttons + result list
-//
-// States: 'idle' → 'flipping' → 'reveal' → 'idle'
-// ============================================================
-
-k.scene('gacha', () => {
-    initGacha();   // load saved data (no-op if already loaded)
-
-    const CX = GAME_WIDTH / 2;
-
-    // ---- Background ----
-    k.add([k.pos(0,0), k.rect(GAME_WIDTH, GAME_HEIGHT), k.color(...COLORS.bg), k.z(0)]);
-
-    // ---- Top bar ----
-    k.add([k.pos(0,0), k.rect(GAME_WIDTH, 50), k.color(...COLORS.bgPanel), k.z(1)]);
-    k.add([k.pos(12,10), k.text('GACHA BANNER', { size: 18 }), k.color(...COLORS.gold), k.anchor('topleft'), k.z(2)]);
-
-    const gemsHud = k.add([
-        k.pos(CX, 10),
-        k.text(`GEMS  ${state.gems}`, { size: 16 }),
-        k.color(...COLORS.gold),
-        k.anchor('top'),
-        k.z(2),
-    ]);
-    const pityHud = k.add([
-        k.pos(GAME_WIDTH - 12, 10),
-        k.text(`PITY  ${state.pullCount} / 90`, { size: 14 }),
-        k.color(...COLORS.silver),
-        k.anchor('topright'),
-        k.z(2),
-    ]);
-
-    // Update HUD when gems change
-    const offGems = events.on('gemsChanged', v => { gemsHud.text = `GEMS  ${v}`; });
-    k.onSceneLeave(() => offGems());
-
-    // ---- Left panel: banner info ----
-    k.add([k.pos(0, 50), k.rect(380, GAME_HEIGHT - 50), k.color(12, 8, 28), k.z(1)]);
-    k.add([k.pos(190, 120), k.text('TAROT BANNER', { size: 22 }), k.color(...COLORS.accent), k.anchor('center'), k.z(2)]);
-    k.add([k.pos(190, 160), k.text('The 78-card tarot deck awaits.', { size: 13 }), k.color(...COLORS.silver), k.anchor('center'), k.z(2)]);
-
-    // Rarity rates display
-    const rarityLines = [
-        { label: 'Common',    pct: '60%', color: COLORS.silver },
-        { label: 'Uncommon',  pct: '25%', color: [100, 220, 120] },
-        { label: 'Rare',      pct: '12%', color: COLORS.mana },
-        { label: 'Legendary', pct:  '3%', color: COLORS.gold },
-    ];
-    rarityLines.forEach((r, i) => {
-        k.add([k.pos(60, 220 + i * 30), k.text(`${r.label}`, { size: 14 }), k.color(...r.color), k.anchor('left'), k.z(2)]);
-        k.add([k.pos(300, 220 + i * 30), k.text(r.pct, { size: 14 }), k.color(...r.color), k.anchor('right'), k.z(2)]);
-    });
-
-    k.add([k.pos(190, 360), k.text('Pity: guaranteed Legendary\nafter 90 pulls', { size: 12 }), k.color(120, 100, 180), k.anchor('center'), k.z(2)]);
-
-    // Single-pull cost
-    k.add([k.pos(190, 430), k.text('Single Pull:  60 Gems', { size: 14 }), k.color(...COLORS.text), k.anchor('center'), k.z(2)]);
-    k.add([k.pos(190, 460), k.text('10-Pull:     500 Gems', { size: 14 }), k.color(...COLORS.text), k.anchor('center'), k.z(2)]);
-
-    initNavBar(k, 'gacha');
-
-    // (ESC) back hint
-    k.add([k.pos(190, GAME_HEIGHT - 58), k.text('(ESC) Back to Hub', { size: 12 }), k.color(80, 60, 130), k.anchor('center'), k.z(2)]);
-
-    // ---- Centre: card reveal area ----
-    const CARD_X = 640;
-    const CARD_Y = 360;
-    const CARD_W = 200;
-    const CARD_H = 320;
-
-    // Card back (shown during flip animation)
-    const cardBack = k.add([
-        k.pos(CARD_X, CARD_Y),
-        k.rect(CARD_W, CARD_H, { radius: 8 }),
-        k.color(30, 20, 60),
-        k.outline(2, k.rgb(100, 60, 180)),
-        k.anchor('center'),
-        k.opacity(0),
-        k.z(5),
-    ]);
-    k.add([k.pos(CARD_X, CARD_Y), k.text('?', { size: 72 }), k.color(...COLORS.accent), k.anchor('center'), k.opacity(0), k.z(6), 'cardBackText']);
-
-    // Card face border (shown behind the sprite on reveal)
-    const cardFaceRect = k.add([
-        k.pos(CARD_X, CARD_Y),
-        k.rect(CARD_W, CARD_H, { radius: 8 }),
-        k.color(20, 12, 40),
-        k.outline(2, k.rgb(...COLORS.accent)),
-        k.anchor('center'),
-        k.opacity(0),
-        k.z(5),
-        'cardFaceRect',
-    ]);
-
-    // Labels sit below the card (card bottom = CARD_Y + CARD_H/2 = 520)
-    const LABEL_Y = CARD_Y + CARD_H / 2 + 22;
-    const cardNameLabel   = k.add([k.pos(CARD_X, LABEL_Y),      k.text('', { size: 16 }), k.color(...COLORS.text),   k.anchor('center'), k.opacity(0), k.z(7), 'cardLabel']);
-    const cardRarityLabel = k.add([k.pos(CARD_X, LABEL_Y + 24), k.text('', { size: 13 }), k.color(...COLORS.gold),   k.anchor('center'), k.opacity(0), k.z(7), 'cardLabel']);
-    const cardStatsLabel  = k.add([k.pos(CARD_X, LABEL_Y + 46), k.text('', { size: 11 }), k.color(...COLORS.silver), k.anchor('center'), k.opacity(0), k.z(7), 'cardLabel']);
-    const cardNewBadge    = k.add([k.pos(CARD_X + CARD_W / 2 - 10, CARD_Y - CARD_H / 2 + 10), k.text('NEW!', { size: 13 }), k.color(...COLORS.success), k.anchor('topright'), k.opacity(0), k.z(8), 'cardLabel']);
-    const cardDupeBadge   = k.add([k.pos(CARD_X + CARD_W / 2 - 10, CARD_Y - CARD_H / 2 + 10), k.text('+1',   { size: 13 }), k.color(160,120,255),       k.anchor('topright'), k.opacity(0), k.z(8), 'cardLabel']);
-
-    // Current card sprite entity (destroyed and re-created on each reveal)
-    let cardSpriteEntity = null;
-
-    // Glow ring (rarity flash)
-    const glowRect = k.add([
-        k.pos(CARD_X, CARD_Y),
-        k.rect(CARD_W + 20, CARD_H + 20, { radius: 12 }),
-        k.color(...COLORS.gold),
-        k.anchor('center'),
-        k.opacity(0),
-        k.z(4),
-        'glow',
-    ]);
-
-    // ---- Right panel: result list + buttons ----
-    k.add([k.pos(880, 50), k.rect(400, GAME_HEIGHT - 50), k.color(10, 6, 24), k.z(1)]);
-    k.add([k.pos(1080, 70), k.text('PULL HISTORY', { size: 14 }), k.color(...COLORS.accent), k.anchor('center'), k.z(2)]);
-
-    // Result list (shows last 10 pulled names)
-    const resultLines = [];
-    for (let i = 0; i < 10; i++) {
-        resultLines.push(k.add([
-            k.pos(895, 95 + i * 34),
-            k.text('', { size: 13 }),
-            k.color(...COLORS.text),
-            k.anchor('topleft'),
-            k.z(2),
-        ]));
-    }
-    let resultHead = 0;
-
-    function addResultLine(card) {
-        const rarityColor = {
-            COMMON: COLORS.silver, UNCOMMON: [100,220,120],
-            RARE: COLORS.mana,     LEGENDARY: COLORS.gold,
-        }[card.rarity] || COLORS.text;
-        const badge = card.isNew ? ' NEW' : card.isDupe ? ' +1' : '';
-        resultLines[resultHead % 10].text  = `${card.name}${badge}`;
-        resultLines[resultHead % 10].color = k.rgb(...rarityColor);
-        resultHead++;
-        pityHud.text = `PITY  ${state.pullCount} / 90`;
-    }
-
-    // ---- Pull buttons ----
-    const BTN_W = 340, BTN_H = 52;
-    const BTN_X = 1080;
-
-    function makeButton(label, y, color, onClick) {
-        const bg = k.add([
-            k.pos(BTN_X, y),
-            k.rect(BTN_W, BTN_H, { radius: 6 }),
-            k.color(...color),
-            k.anchor('center'),
-            k.z(3),
-            k.area(),
-        ]);
-        const lbl = k.add([k.pos(BTN_X, y), k.text(label, { size: 16 }), k.color(...COLORS.bg), k.anchor('center'), k.z(4)]);
-        bg.onClick(() => onClick());
-        bg.onHover(() => { bg.color = k.rgb(Math.min(color[0]+40,255), Math.min(color[1]+40,255), Math.min(color[2]+40,255)); });
-        bg.onHoverEnd(() => { bg.color = k.rgb(...color); });
-        return { bg, lbl };
-    }
-
-    makeButton('(G) Single Pull — 60 Gems', 560, [80, 50, 160], doSinglePull);
-    makeButton('(T) 10-Pull — 500 Gems',    630, [140, 80, 30],  doTenPull);
-
-    // Clear save button (small, bottom-left of right panel)
-    k.add([k.pos(895, GAME_HEIGHT - 58), k.text('(DEL) Clear Save', { size: 11 }), k.color(80, 40, 80), k.anchor('left'), k.z(2)]);
-
-    // ---- Sunburst (drawn behind the card) ----
-    const BURST_RAYS   = 16;
-    const BURST_INNER  = 110;
-    const BURST_OUTER  = 230;
-    let   burstAngle   = 0;
-    let   burstOpacity = 0;
-    let   burstTargetOpacity = 0;
-
-    // We draw the sunburst each frame via drawInspect-style; simplest approach:
-    // use a dedicated entity with onDraw().
-    k.add([
-        k.pos(CARD_X, CARD_Y),
-        k.z(3),
-        k.opacity(1),
-        {
-            id: 'sunburst',
-            draw() {
-                if (burstOpacity <= 0) return;
-                k.pushTransform();
-                k.pushRotate(burstAngle);
-                for (let i = 0; i < BURST_RAYS; i++) {
-                    const a = (i / BURST_RAYS) * Math.PI * 2;
-                    const aOff = (Math.PI / BURST_RAYS);
-                    // Wide ray
-                    const x1 = Math.cos(a - aOff * 0.35) * BURST_INNER;
-                    const y1 = Math.sin(a - aOff * 0.35) * BURST_INNER;
-                    const x2 = Math.cos(a) * BURST_OUTER;
-                    const y2 = Math.sin(a) * BURST_OUTER;
-                    const x3 = Math.cos(a + aOff * 0.35) * BURST_INNER;
-                    const y3 = Math.sin(a + aOff * 0.35) * BURST_INNER;
-                    k.drawPolygon({
-                        pts: [k.vec2(x1,y1), k.vec2(x2,y2), k.vec2(x3,y3)],
-                        color: k.Color.fromArray([255, 210, 60]),
-                        opacity: burstOpacity * 0.35,
-                    });
-                }
-                k.popTransform();
-            },
+// ------------------------------------------------------------------ debug hooks
+if (DEBUG) {
+    window.__ap = {
+        get G() { return G; }, get mode() { return mode; }, get frames() { return frames; },
+        seen, ui, stage, audio, settings,
+        start(seed = 1) { startGame(newGame(seed), true); return true; },
+        act(c) { return command(c); },
+        legal() { return G ? legal(G) : []; },
+        /** The bot plays n commands; battle replays are skipped and results dismissed. */
+        ff(n = 1, style = 'careful') {
+            for (let k = 0; k < n; k++) {
+                if (mode === 'battle') { stage.skip(); }
+                if (ui.isOpen('result')) { afterResult(); continue; }
+                if (!$('reveal').hidden) { $('reveal').hidden = true; continue; }
+                if (mode === 'reading' && !$('btn-reading-done').hidden) { toHub(true); continue; }
+                const c = botCommand(G, style, Math.random);
+                if (!c) break;
+                command(c);
+            }
+            return { phase: G.phase, trial: G.trial, mode };
         },
-    ]);
-
-    // ---- Particle pool ----
-    const particles = [];
-
-    function _spawnParticles(glowColor) {
-        const COUNT = 40;
-        for (let i = 0; i < COUNT; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const speed = 80 + Math.random() * 220;
-            const life  = 0.5 + Math.random() * 0.6;
-            const size  = 3 + Math.random() * 7;
-            const r = glowColor[0], g = glowColor[1], b = glowColor[2];
-            const e = k.add([
-                k.pos(CARD_X, CARD_Y),
-                k.rect(size, size, { radius: size / 2 }),
-                k.color(r, g, b),
-                k.anchor('center'),
-                k.opacity(1),
-                k.z(9),
-                'particle',
-            ]);
-            particles.push({ e, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life, maxLife: life });
-        }
-    }
-
-    // ---- Animation state machine ----
-    // States: 'idle' | 'appearing' | 'shaking' | 'exploding' | 'reveal'
-    let animState    = 'idle';
-    let animTimer    = 0;
-    let pendingCards = [];
-    let currentCard  = null;
-
-    // Shake state
-    let shakeOffset = k.vec2(0, 0);
-
-    function _showIdle() {
-        animState = 'idle';
-        cardBack.opacity = 0;
-        cardFaceRect.opacity = 0;
-        glowRect.opacity = 0;
-        burstTargetOpacity = 0;
-        shakeOffset = k.vec2(0, 0);
-        for (const e of k.get('cardLabel'))    e.opacity = 0;
-        for (const e of k.get('cardBackText')) e.opacity = 0;
-        if (cardSpriteEntity) { cardSpriteEntity.destroy(); cardSpriteEntity = null; }
-    }
-
-    function _startSummon(card) {
-        currentCard = card;
-        animState   = 'appearing';
-        animTimer   = 0;
-        shakeOffset = k.vec2(0, 0);
-
-        // Destroy previous sprite
-        if (cardSpriteEntity) { cardSpriteEntity.destroy(); cardSpriteEntity = null; }
-
-        // Hide face elements
-        cardFaceRect.opacity = 0;
-        glowRect.opacity     = 0;
-        burstTargetOpacity   = 0;
-        for (const e of k.get('cardLabel')) e.opacity = 0;
-
-        // Show card back face-down
-        cardBack.opacity = 0;
-        for (const e of k.get('cardBackText')) e.opacity = 0;
-
-        import('./sounds.js').then(s => s.playCardFlip());
-    }
-
-    function _showReveal(card) {
-        animState = 'reveal';
-        animTimer = 0;
-        shakeOffset = k.vec2(0, 0);
-
-        // Hide back
-        cardBack.opacity = 0;
-        for (const e of k.get('cardBackText')) e.opacity = 0;
-
-        // Spawn card art
-        if (cardSpriteEntity) { cardSpriteEntity.destroy(); cardSpriteEntity = null; }
-        cardSpriteEntity = k.add([
-            k.pos(CARD_X, CARD_Y),
-            k.sprite(card.img, { width: CARD_W, height: CARD_H }),
-            k.anchor('center'),
-            k.z(6),
-            'cardSprite',
-        ]);
-
-        // Rarity glow color
-        const glowColor = {
-            COMMON: [160,160,160], UNCOMMON: [100,220,120],
-            RARE: [80,140,255],    LEGENDARY: [255,180,0],
-        }[card.rarity] || [255,255,255];
-
-        glowRect.color   = k.rgb(...glowColor);
-        glowRect.opacity = 0.5;
-        cardFaceRect.color   = k.rgb(...glowColor.map(c => Math.floor(c * 0.15)));
-        cardFaceRect.opacity = 1;
-
-        // Sunburst burst
-        burstTargetOpacity = 1;
-        _spawnParticles(glowColor);
-
-        // Labels
-        cardNameLabel.text    = card.name;
-        cardNameLabel.color   = k.rgb(...glowColor);
-        cardNameLabel.opacity = 1;
-
-        cardRarityLabel.text    = card.rarity;
-        cardRarityLabel.color   = k.rgb(...glowColor);
-        cardRarityLabel.opacity = 1;
-
-        cardStatsLabel.text    = `HP ${card.hp}  ATK ${card.atk}  SPD ${card.spd}  DEF ${card.def}`;
-        cardStatsLabel.opacity = 1;
-
-        cardNewBadge.opacity  = card.isNew  ? 1 : 0;
-        cardDupeBadge.opacity = card.isDupe ? 1 : 0;
-
-        import('./sounds.js').then(s => {
-            if (card.rarity === 'LEGENDARY')  s.playPullLegendary();
-            else if (card.rarity === 'RARE')  s.playPullRare();
-            else                              s.playPullCommon();
-        });
-
-        addResultLine(card);
-    }
-
-    // ---- Update loop ----
-    k.onUpdate(() => {
-        const dt = k.dt();
-
-        // Sunburst rotation + fade
-        burstAngle  = (burstAngle + dt * 18) % 360;
-        burstOpacity += (burstTargetOpacity - burstOpacity) * Math.min(dt * 8, 1);
-        if (burstOpacity < 0.005) burstOpacity = 0;
-
-        // Particle update
-        for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i];
-            p.life -= dt;
-            if (p.life <= 0) {
-                p.e.destroy();
-                particles.splice(i, 1);
-                continue;
-            }
-            const t = p.life / p.maxLife;
-            p.e.pos = k.vec2(p.e.pos.x + p.vx * dt, p.e.pos.y + p.vy * dt);
-            p.vy   += 120 * dt; // gravity
-            p.e.opacity = t * t;
-        }
-
-        // ---- State machine ----
-        if (animState === 'appearing') {
-            animTimer += dt;
-            // Card back slides in from above (0 → 0.4s)
-            const t = Math.min(animTimer / 0.4, 1);
-            const eased = 1 - Math.pow(1 - t, 3);
-            const startY = CARD_Y - 120;
-            const cardPosY = startY + (CARD_Y - startY) * eased;
-            cardBack.pos = k.vec2(CARD_X + shakeOffset.x, cardPosY + shakeOffset.y);
-            for (const e of k.get('cardBackText')) {
-                e.pos    = k.vec2(CARD_X + shakeOffset.x, cardPosY + shakeOffset.y);
-                e.opacity = eased;
-            }
-            cardBack.opacity = eased;
-
-            if (animTimer >= 0.4) {
-                // Transition to shaking
-                animState = 'shaking';
-                animTimer = 0;
-                cardBack.pos = k.vec2(CARD_X, CARD_Y);
-                for (const e of k.get('cardBackText')) e.pos = k.vec2(CARD_X, CARD_Y);
-            }
-        } else if (animState === 'shaking') {
-            animTimer += dt;
-            // Shake intensifies over 0.7s then explodes
-            const intensity = (animTimer / 0.7) * 8;
-            shakeOffset = k.vec2(
-                (Math.random() - 0.5) * intensity * 2,
-                (Math.random() - 0.5) * intensity * 2,
-            );
-            cardBack.pos = k.vec2(CARD_X + shakeOffset.x, CARD_Y + shakeOffset.y);
-            for (const e of k.get('cardBackText')) {
-                e.pos = k.vec2(CARD_X + shakeOffset.x, CARD_Y + shakeOffset.y);
-            }
-            // Pulse glow during shake
-            burstTargetOpacity = (animTimer / 0.7) * 0.4;
-
-            if (animTimer >= 0.7) {
-                _showReveal(currentCard);
-            }
-        } else if (animState === 'reveal') {
-            animTimer += dt;
-            // Pulse the glow
-            glowRect.opacity = 0.3 + 0.2 * Math.sin(animTimer * Math.PI * 2);
-            // Auto-advance if more cards queued after short pause
-            if (pendingCards.length > 0 && animTimer >= 0.6) {
-                _startSummon(pendingCards.shift());
-            }
-            // NOTE: If no more cards pending, the card stays displayed indefinitely
-            // until the next pull. Do NOT auto-hide.
-        }
-    });
-
-    // ---- Pull actions ----
-    function doSinglePull() {
-        if (animState !== 'idle' && animState !== 'reveal') return;
-        const results = pullSingle();
-        if (!results) {
-            import('./sounds.js').then(s => s.playUiClick());
-            return; // not enough gems
-        }
-        import('./sounds.js').then(s => s.playUiClick());
-        pendingCards = results.slice(1);
-        _startSummon(results[0]);
-    }
-
-    function doTenPull() {
-        if (animState !== 'idle' && animState !== 'reveal') return;
-        const results = pullTen();
-        if (!results) {
-            import('./sounds.js').then(s => s.playUiClick());
-            return;
-        }
-        import('./sounds.js').then(s => s.playUiClick());
-        pendingCards = results.slice(1);
-        _startSummon(results[0]);
-    }
-
-    // ---- Key bindings ----
-    k.onKeyPress('g', doSinglePull);
-    k.onKeyPress('t', doTenPull);
-    k.onKeyPress('escape', () => { events.clearAll(); k.go('game'); });
-    k.onKeyPress('delete', () => { clearSave(); pityHud.text = 'PITY  0 / 90'; gemsHud.text = `GEMS  ${state.gems}`; });
-
-    k.onSceneLeave(() => {
-        _showIdle();
-        for (const p of particles) p.e.destroy();
-        particles.length = 0;
-        events.clearAll();
-    });
-});
-
-k.scene('collection', () => {
-    initGacha();   // ensure collection is loaded
-    initCollection(k);
-});
-
-k.scene('battle', () => {
-    initGacha();   // ensure collection is loaded
-    initBattle(k);
-});
-
-k.scene('reading', () => {
-    initGacha();   // ensure collection is loaded
-    initReading(k);
-});
-
-// ============================================================
-// Start
-// ============================================================
-
-k.go('splash');
+        save() { return saveGame(G); }, hasSave,
+        battleDone() { return mode === 'battle' && !stage.running; },
+    };
+}

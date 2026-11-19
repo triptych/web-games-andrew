@@ -1,0 +1,46 @@
+{
+ "oracle-a": {
+  "voice": "jTAlT4VvvXlYNDrxqpNQ",
+  "name": "Andrea - British female character voice",
+  "lines": [
+   "intro",
+   "t1",
+   "t2",
+   "t3",
+   "t4",
+   "t5",
+   "t6",
+   "t7",
+   "t8",
+   "t9"
+  ],
+  "text": "[mysterious, warm] Welcome, Cartomancer. The Great Deck has shattered, and its shadows hold the ten Thresholds. Draw from the Well, and take the world back, one card at a time. [long pause] [mysterious, warm] The Wandering Path. Every journey begins with a fool who will not look down. [long pause] [mysterious, warm] The Hidden Veil. What lurks behind it has been waiting for you. [long pause] [mysterious, warm] The Iron Decree. The Emperor's shadow does not bend. Make it break. [long pause] [mysterious, warm] The Relentless Advance. They are fast. Be faster, or be stronger. [long pause] [mysterious, warm] The Inverted World. Up is down here. Trust nothing but your cards. [long pause] [mysterious, warm] The Pale Crossing. What falls here does not always stay fallen. [long pause] [mysterious, warm] The Falling Spire. Lightning, fire and stone. Nothing stands forever. [long pause] [mysterious, warm] The Dream Labyrinth. The moon lies. Your fears will look very real. [long pause] [mysterious, warm] The Final Calling. The dead rise to judge you. Do not let them."
+ },
+ "oracle-b": {
+  "voice": "jTAlT4VvvXlYNDrxqpNQ",
+  "name": "Andrea - British female character voice",
+  "lines": [
+   "t10",
+   "reading",
+   "upright",
+   "reversed",
+   "legendary",
+   "win",
+   "lost",
+   "over",
+   "ending",
+   "ascend"
+  ],
+  "text": "[mysterious, warm] The World Entire. This is the last door. Everything you have drawn has led you here. [long pause] [mysterious, warm] Three cards wait upon the cloth. Choose one, and let the Arcana speak. [long pause] [mysterious, warm] Upright. Fortune smiles on you. [long pause] [mysterious, warm] Reversed. The cards are not kind tonight. [long pause] [mysterious, warm] A Major Arcanum answers your call! [long pause] [mysterious, warm] The Threshold is yours. [long pause] [mysterious, warm] The candle gutters, but it has not gone out. Draw again, and try again. [long pause] [mysterious, warm] The deck scatters into the dark. Another night, another reading. [long pause] [mysterious, warm] The World is whole again, and every card has found its place. You were the hand that dealt them. [long pause] [mysterious, warm] Again, then. The shadows grow longer with every turning of the wheel."
+ },
+ "world": {
+  "voice": "d3qrd1ge6zWDvUxIeXiH",
+  "name": "Final Boss - Evil All Powerful Villain",
+  "lines": [
+   "wintro",
+   "wphase",
+   "wfall"
+  ],
+  "text": "[cold, vast, menacing] I am the end of every journey, little reader. Lay down your cards. [long pause] [cold, vast, menacing] Fire, water, air. I wear them all, and I wear them better. [long pause] [cold, vast, menacing] Then let the circle close."
+ }
+}

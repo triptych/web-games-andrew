@@ -1,12 +1,12 @@
 {
   "name": "Arcana Pull",
   "short_name": "Arcana Pull",
-  "description": "Collect tarot cards through a gacha pull system and field them as fighters in wave-based auto battler combat. Build a four-card party from the 78-card tarot deck — harness the power of the Major…",
+  "description": "A tarot gacha auto-battler in plain HTML, CSS and JavaScript, with every card painted by fal and music, sound and voices by ElevenLabs. The Great Deck has shattered and the shadows of the Major…",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#0d0820",
+  "theme_color": "#0d0820",
   "categories": [
     "games"
   ],

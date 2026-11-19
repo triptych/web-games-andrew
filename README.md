@@ -52,7 +52,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 009 | [Chronicles of the Ember Crown](game-009/) | Turn-based RPG | Kaplay |
 | 010 | [Tiny Town](game-010/) | City builder / sandbox | Kaplay |
 | 011 | [Nonogram Fleet](game-011/) | Puzzle | Kaplay |
-| 012 | [Arcana Pull](game-012/) | Gacha auto battler | Kaplay |
+| 012 | [Arcana Pull](game-012/) | A tarot gacha auto-battler: draw all 78 cards from the Well, set a four-card spread by element and suit, and watch it fight the Hollows of ten Thresholds to The World; fal-painted cards, ElevenLabs music and a voiced Oracle | Vanilla JS (Canvas 2D + DOM), no dependencies |
 | 013 | [Petal & Purse](game-013/) | Cozy idle sim | Kaplay |
 | 014 | [Trackrunner](game-014/) | Endless runner | three.js |
 | 015 | [Tamagoji](game-015/) | Virtual pet | Kaplay |
