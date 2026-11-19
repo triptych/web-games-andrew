@@ -184,6 +184,8 @@ async function desktop() {
     await click(page, '#res-next');
     await until(page, () => !document.getElementById('intro').hidden && document.getElementById('intro-name').textContent.includes('Gatehouse'), 'Next Castle opens castle 2\'s intro');
     await click(page, '#intro .sheet-foot [data-close]');
+    // Back from that intro must land on a menu, never on the bare demo with no UI (v1.0.0 did)
+    await until(page, () => !document.getElementById('title').hidden && __kk.ui.top() === 'title', 'Back from the next castle\'s intro returns to the title');
     await click(page, '#title-menu [data-act="play"]');
     await until(page, () => !document.getElementById('map').hidden && !document.querySelectorAll('.lvl')[1].disabled, 'castle 2 is now open on the map');
 

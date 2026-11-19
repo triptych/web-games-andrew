@@ -79,8 +79,8 @@ on('pause-menu', (act) => {
 });
 on('over-menu', (act) => {
     if (act === 'retry') startGame(newGame(seedNow(), G.level));
-    else if (act === 'next') { const n = Math.min(LEVELS.length - 1, G.level + 1); toTitle(false); introLevel = n; ui.showIntro(n); }
-    else if (act === 'map') { toTitle(false); ui.buildMap(); ui.openScreen('map'); }
+    else if (act === 'next') { const n = Math.min(LEVELS.length - 1, G.level + 1); toTitle(); introLevel = n; ui.showIntro(n); }
+    else if (act === 'map') { toTitle(); ui.buildMap(); ui.openScreen('map'); }
 });
 document.getElementById('intro-go').addEventListener('click', () => { audio.ui('click'); startGame(newGame(seedNow(), introLevel)); });
 document.getElementById('btn-pause').addEventListener('click', () => pause());
@@ -105,7 +105,9 @@ function startGame(g, resumed = false) {
     saveGame(G);
 }
 
-function toTitle(showTitle = true) {
+/** Back to the title. The title screen always goes back underneath, so closing whatever opens on
+ *  top of it (the map, an intro) lands on a menu, never on the bare demo (v1.0.0 did). */
+function toTitle() {
     for (const id of [...ui.stack]) ui.closeScreen(id);
     mode = 'title';
     view.mode = 'title';
@@ -115,7 +117,7 @@ function toTitle(showTitle = true) {
     attractT = 0;
     if (attract) attract = makeBot({ skill: 0.8, settle: 3 });
     refreshTitle();
-    if (showTitle) ui.openScreen('title');
+    ui.openScreen('title');
     audio.playMusic('title');
 }
 
@@ -211,6 +213,8 @@ function frame(now) {
     last = now;
     time += dt;
     handlePresses();
+    // outside a castle there is always a menu on screen
+    if (mode === 'title' && !ui.anyScreen()) ui.openScreen('title');
 
     const running = mode === 'play' && !ui.anyScreen();
     // back from a menu: the key or tap that closed it must not also act in the castle
