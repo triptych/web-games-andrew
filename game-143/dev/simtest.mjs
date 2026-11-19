@@ -232,8 +232,14 @@ if (want('rules')) {
     ok(B.canQueen, 'then, with the bake done, she can be revealed');
     ok(Gm.act(G, { t: 'queen' }) && B.queen, 'Queen Honeysnap walks out');
     ok(B.enemies.filter((e) => e.kind !== 'king').every((e) => e.sit), 'the whole horde sits down to watch');
-    run(G, 30);
-    ok(G.events.some((e) => e.type === 'kiss') || G.phase === 4, 'they meet and kiss');
+    for (let i = 0; i < 4000 && B.queen.state !== 'kiss'; i++) Gm.step(G, IDLE, DT);
+    ok(B.queen.state === 'kiss' && G.events.some((e) => e.type === 'kiss'), 'they meet and kiss');
+    const oldKing = B.enemies.find((e) => e.kind === 'king');
+    ok(!oldKing.young, 'the King is still stale at the moment of the kiss');
+    run(G, C.QUEEN.transformT + 0.05);
+    ok(oldKing.young && G.events.some((e) => e.type === 'transform'), 'and the kiss turns him young and freshly baked, like a frog prince');
+    ok(!B.result, 'the moment lingers before the war is declared over');
+    run(G, C.QUEEN.kissT);
     run(G, 10);
     ok(G.phase === 4 && G.ended && G.unlocks.ginger, 'the war ends: the epilogue begins and gingerfolk cottages unlock');
 

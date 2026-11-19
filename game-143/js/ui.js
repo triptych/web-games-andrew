@@ -447,7 +447,7 @@ export class UI {
         this.openScreen('result');
     }
     showEnding(G) {
-        $('ending-text').textContent = `Queen Honeysnap crossed the battlefield, and King Crumbleton stopped crumbling. ${G.stats.calmed} gingerfolk napped through the war, ${G.stats.quests} favours were done for the village, and nobody was ever eaten. The Mayor of Thistlegloom is, it turns out, a terrible overlord and a wonderful neighbour.`;
+        $('ending-text').textContent = `Queen Honeysnap crossed the battlefield and kissed King Crumbleton, and like a frog prince he was baked fresh again: golden, young and not a crack on him. ${G.stats.calmed} gingerfolk napped through the war, ${G.stats.quests} favours were done for the village, and nobody was ever eaten. The Mayor of Thistlegloom is, it turns out, a terrible overlord and a wonderful neighbour.`;
         this.openScreen('ending');
     }
 }

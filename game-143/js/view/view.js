@@ -126,6 +126,14 @@ export class View {
                     else if (e.id === 'web') this.web = 1;
                     this.flash = 0.25;
                 } else if (e.type === 'kiss') { for (let i = 0; i < 40; i++) this.fx.push({ kind: 'heart', x: this.fx2s(e.x), y: g.groundY - 120 * g.u, vx: (Math.random() - 0.5) * 240, vy: -60 - Math.random() * 200, life: 3, max: 3 }); }
+                else if (e.type === 'transform') {
+                    // the frog-prince moment: a flash, golden sparkles, rings and a shower of hearts
+                    const kx = this.fx2s(e.x), ky = g.groundY - this.S * 0.22;
+                    this.flash = 1;
+                    this.burst(kx, ky, 70, ['#fff6c8', '#ffd36b', '#ffb3dc', '#ffffff'], 'spark');
+                    for (let i = 0; i < 3; i++) this.rings.push({ x: kx, y: g.groundY, r: 10 + i * 20, max: (18 + i * 10) / FIELD.w * (g.right - g.wallFace), life: 0.8 + i * 0.25, color: i ? '#ffb3dc' : '#fff6c8' });
+                    for (let i = 0; i < 24; i++) this.fx.push({ kind: 'heart', x: kx, y: ky, vx: (Math.random() - 0.5) * 300, vy: -80 - Math.random() * 220, life: 2.6, max: 2.6 });
+                }
                 else if (e.type === 'knightDown') this.burst(this.fx2s(KNIGHT.x), g.groundY - 30 * g.u, 10, ['#d8dde8', '#fff'], 'spark');
             }
             if (e.type === 'built' && e.plot != null) { const q = this.townPt(PLOT_POS[e.plot]); this.burst(q.x, q.y - 60 * q.k, 18, ['#ffd36b', '#fff', '#ff9fd2'], 'spark'); }
@@ -317,6 +325,7 @@ export class View {
         for (let i = 0; i < n; i++) who.push(VILLAGERS[i % VILLAGERS.length]);
         for (const id in G.staff) if (G.staff[id].joined && G.staff[id].at == null) who.push(STAFF_SPRITE[id]);
         who.push('staff/mimic', 'staff/skeleton');
+        if (G.ended) who.push('en/king-young', 'spr/queen');   // the royal couple, settled in town after the war
         who.forEach((key, i) => {
             const period = 9 + (i % 4) * 2;
             const ph = (time + i * 3.7) / period;
@@ -329,7 +338,7 @@ export class View {
             out.push({ y, draw: () => {
                 const q = this.townPt({ x, y, s });
                 const bob = walk > 0 && walk < 1 ? Math.abs(Math.sin(time * 9 + i)) * 3 * q.k : 0;
-                const h = (key.startsWith('vil/') ? (key === 'vil/tansy' ? 62 : 80) : 66) * q.k;
+                const h = (key.startsWith('vil/') ? (key === 'vil/tansy' ? 62 : 80) : key === 'en/king-young' ? 96 : key === 'spr/queen' ? 78 : 66) * q.k;
                 this.img(key, q.x, q.y - bob, h, { flip: b.x < a.x });
             } });
         });
@@ -427,7 +436,7 @@ export class View {
 
     drawEnemy(e, g, time) {
         const def = ENEMIES[e.kind];
-        const key = 'en/' + (def.sprite || e.kind);
+        const key = e.young ? 'en/king-young' : 'en/' + (def.sprite || e.kind);
         const depth = 0.82 + 0.18 * e.y;
         let h = (def.boss ? this.S * 0.44 : this.S * 0.13 * def.size) * depth;
         const x = this.fx2s(e.x);
@@ -444,7 +453,12 @@ export class View {
         const lean = walk ? Math.sin(time * (def.spd + 4) + e.id) * 0.06 : Math.sin(time * 10 + e.id) * 0.12;
         this.img(key, x, y - bob, h, { rot: lean });
         if (e.hp < e.max && !def.boss) this.bar(x, y - h - 6, 30 * g.u * def.size, e.hp / e.max, '#ff7aa8');
-        if (def.boss) this.bar(x, y - h - 10, 120 * g.u, (e.hp - e.max * 0.5) / (e.max * 0.5), '#ffd36b');
+        if (def.boss && !e.young) this.bar(x, y - h - 10, 120 * g.u, (e.hp - e.max * 0.5) / (e.max * 0.5), '#ffd36b');
+        if (e.young) {   // a warm glow around the freshly baked King
+            const c = this.ctx, gr = c.createRadialGradient(x, y - h / 2, 4, x, y - h / 2, h * 0.7);
+            gr.addColorStop(0, `rgba(255, 220, 150, ${0.18 + Math.sin(time * 3) * 0.05})`); gr.addColorStop(1, 'rgba(255, 220, 150, 0)');
+            c.save(); c.globalCompositeOperation = 'lighter'; c.fillStyle = gr; c.fillRect(x - h, y - h * 1.3, h * 2, h * 1.6); c.restore();
+        }
     }
 
     drawShot(s, g, B) {

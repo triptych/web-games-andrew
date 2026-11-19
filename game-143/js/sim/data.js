@@ -205,7 +205,7 @@ export const CAST = {
     bram: { name: 'Farmer Bram', por: 'bram' }, hilde: { name: 'Hilde the Stonemason', por: 'hilde' }, tobias: { name: 'Sir Tobias', por: 'tobias' },
     lark: { name: 'Lark', por: 'lark' }, moss: { name: 'Moss', por: 'moss' }, ottilie: { name: 'Ottilie', por: 'ottilie' },
     fennel: { name: 'Brother Fennel', por: 'fennel' }, gustave: { name: 'Monsieur Gustave', por: 'gustave' },
-    king: { name: 'King Crumbleton', por: 'king' }, queen: { name: 'Queen Honeysnap', por: 'queen', side: 'left' },
+    king: { name: 'King Crumbleton', por: 'king' }, kingYoung: { name: 'King Crumbleton', por: 'king-young' }, queen: { name: 'Queen Honeysnap', por: 'queen', side: 'left' },
 };
 
 // Voice clips: [speaker, clip number] for lines that have one (see audio/README.md).
@@ -247,7 +247,9 @@ export const SCENES = {
         ['queen', 'Shall we stop all this crumbling, and have a dance instead?', ['queen', 2]],
     ],
     ending: [
-        ['king', 'I\'m not stale anymore.', ['king', 4]],
+        ['vellum', 'Madam Mayor... the King. He\'s... he\'s fresh! Golden-brown, not a crack on him. Is that even allowed?', null],
+        ['noxia', 'True love\'s kiss, Vellum. It works on frogs. Apparently it works on biscuits.', null],
+        ['kingYoung', 'I\'m not stale anymore.', ['king', 4]],
         ['queen', 'Sweet dreams, everyone.', ['queen', 3]],
         ['vellum', 'The Crumb Horde has... sat down. Several of them are holding hands. The war is over, Madam Mayor.', null],
         ['mother', 'I was proud of the evil. I\'m prouder of this.', ['mother', 2]],

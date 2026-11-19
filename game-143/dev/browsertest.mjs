@@ -215,6 +215,9 @@ async function desktop() {
     await Q(page, () => { __ds.ui.talkQ.length = 0; __ds.ui.nextLine(); });
     await until(page, () => __ds.G.battle?.queen?.state === 'kiss', 'she crosses the field and they kiss', 60000);
     await shot(page, 'desktop-kiss');
+    await until(page, () => __ds.G.battle?.enemies.some((e) => e.kind === 'king' && e.young) && (__ds.seen.transform || 0) > 0, 'the kiss turns the King young and freshly baked', 30000);
+    await page.waitForTimeout(250);
+    await shot(page, 'desktop-transform');
     await until(page, () => __ds.G.ended && !document.getElementById('talk').hidden, 'the war ends with the ending scene', 60000);
     await Q(page, () => { __ds.ui.talkQ.length = 0; __ds.ui.nextLine(); });
     await until(page, () => !document.getElementById('ending').hidden, 'the ending sheet appears');

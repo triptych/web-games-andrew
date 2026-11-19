@@ -175,6 +175,7 @@ export class Audio {
                 case 'invasion': this.play('bell', { vol: 0.8, gap: 0 }); setTimeout(() => this.play('horn', { vol: 0.8, gap: 0 }), 1400); break;
                 case 'kingArrives': case 'kingLooms': this.play('roar', { vol: 0.9, gap: 3 }); break;
                 case 'kiss': this.play('kiss', { vol: 1, gap: 0 }); break;
+                case 'transform': this.play('magic', { vol: 1, gap: 0, rate: 0.85, vary: 0 }); setTimeout(() => this.play('cheer', { vol: 0.7, gap: 0 }), 700); break;
                 case 'battleEnd': if (e.result === 'win' || e.result === 'love') { this.play('cheer', { vol: 0.8, gap: 0 }); this.play('coins', { vol: 0.6, gap: 0 }); } break;
                 case 'refused': this.ui('no'); break;
             }

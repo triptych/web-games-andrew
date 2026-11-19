@@ -119,6 +119,11 @@
 "h": 230,
 "w": 201
 },
+"en/king-young": {
+"file": "en/king-young.png",
+"h": 230,
+"w": 201
+},
 "en/licorice": {
 "file": "en/licorice.png",
 "h": 80,
@@ -178,6 +183,11 @@
 "file": "por/king.png",
 "h": 220,
 "w": 212
+},
+"por/king-young": {
+"file": "por/king-young.png",
+"h": 220,
+"w": 213
 },
 "por/lark": {
 "file": "por/lark.png",

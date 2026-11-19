@@ -15,6 +15,9 @@ for the backdrops), one render each, then cut out and sized by `export.py`. Abou
 - **Prompts are written from the game's data** (`prompts.json` → `items`), and every one ends with a flat key
   background: magenta, or bright green for pink and purple subjects (Noxia, Pip, Silkwhistle, the Queen, the bat,
   the cupcake mimic, Mother's frame).
+- **The frog-prince King** (`en/king-young`, `por/king-young`) was made afterwards with the edit endpoint from the
+  stale King's own renders (and the Queen's sprite for style), asking for the same king, pose and framing, now freshly
+  baked, young and smiling. It's what he turns into at the kiss.
 - A pilot of six (Noxia's sprite and portrait, Vellum, a zombie, the bakery, the town) was checked by eye first. The
   town backdrop was re-rolled: the first one had lamp posts standing in the middle of the green where the buildings go.
 - `grab.py` pulls the URLs out of a saved `wait_for_jobs` result (they overflow the conversation) and downloads them by

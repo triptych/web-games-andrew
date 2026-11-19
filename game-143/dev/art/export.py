@@ -17,7 +17,7 @@ RAW = sys.argv[1]
 
 # id prefix -> (folder, target height in px)
 SIZES = {'por': ('por', 220), 'spr': ('spr', 150), 'vil': ('vil', 120), 'en': ('en', 120), 'bld': ('bld', 210), 'wall': ('wall', 340)}
-TALL = {'en-king': 230, 'en-golem': 175, 'en-brute': 150, 'en-corn': 80, 'en-licorice': 80, 'en-bat': 80, 'en-ghost': 95,
+TALL = {'en-king': 230, 'en-king-young': 230, 'en-golem': 175, 'en-brute': 150, 'en-corn': 80, 'en-licorice': 80, 'en-bat': 80, 'en-ghost': 95,
         'en-slime': 90, 'en-mimic': 110, 'spr-queen': 130, 'vil-tansy': 95, 'bld-oven': 230, 'bld-hall': 250,
         'bld-tower': 240, 'bld-bell': 240, 'bld-site': 170, 'bld-beets': 170, 'por-mother': 230}
 BGS = {'bg-town': 1600, 'bg-field': 1600, 'bg-title': 1600}

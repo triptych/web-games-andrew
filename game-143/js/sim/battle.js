@@ -281,6 +281,10 @@ export function stepBattle(G, inp, dt) {
         if (Q.state === 'walk') {
             Q.x += QUEEN.speed * dt;
             if (king && Q.x >= king.x - 6.5) { Q.state = 'kiss'; Q.t = 0; G.events.push({ type: 'kiss', x: Q.x }); }
+        } else if (Q.state === 'kiss' && king && !king.young && Q.t >= QUEEN.transformT) {
+            // true love's kiss: like the frog prince, the stale old King is baked fresh again
+            king.young = true;
+            G.events.push({ type: 'transform', x: king.x });
         } else if (Q.state === 'kiss' && Q.t >= QUEEN.kissT) {
             B.result = 'love';
             G.events.push({ type: 'battleOver', result: 'love' });

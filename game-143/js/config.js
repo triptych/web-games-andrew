@@ -38,6 +38,6 @@ export const AIM_SPEED = 70;              // field units per second with the key
 export const TOWER = { dps: 6, range: 75, flight: 0.45, grizelda: 0.25 };
 export const KNIGHT = { x: 12, hp: 140, dps: 10, respawn: 12 };
 export const KING = { hp: 4000, stopX: 34, patience: 60, floor: 0.5, regen: 30 };
-export const QUEEN = { speed: 9, kissT: 4.5 };
+export const QUEEN = { speed: 9, kissT: 6, transformT: 1.6 };   // the kiss lasts kissT; the King turns young transformT into it
 export const BRACE = 3;                   // seconds of "here they come" before the first spawn
 export const NAP_T = 2.2;                 // a calmed enemy naps this long before it wanders off

@@ -19,7 +19,8 @@ from the right. Hold the wave and she wins time to go back and build again.
 
 All the while she is secretly preparing the **Grand Bake** in the Great Oven. In the fourth wave the King himself
 comes, and he can't be beaten. Instead she reveals the **Cookie Queen**, Queen Honeysnap, a gingerbread girl baked
-just for him. She crosses the battlefield, they kiss, and the war ends. After that comes an endless **epilogue**:
+just for him. She crosses the battlefield and they kiss, and like a frog prince the stale old zombie King is baked fresh
+again: young, golden and handsome. The war ends. After that comes an endless **epilogue**:
 keep building and fend off the leftovers who never heard the news.
 
 It riffs on village tycoons (Townsmen, Kingdom Two Crowns' build-and-hold rhythm), wall defence (Defend Your Castle,
@@ -116,7 +117,9 @@ Wick, at 70%). Honey comes from "Bees in the Belfry".
 - **Lose:** one building loses a level, stores ×0.85, hope −10, the wave returns in 3 days with 15% less HP per retry
   (up to 45%).
 - **The King** (4,000 HP) walks to x 34 and looms. He can't be beaten below half and regenerates. With the bake at
-  100%, the Queen button appears: the horde sits down, Queen Honeysnap walks out, they kiss, and the war is over.
+  100% and the King standing still mid-field, the Queen button appears: the horde sits down, Queen Honeysnap walks
+  out, they kiss, and 1.6 s into the kiss the King transforms into his young, freshly baked self (a flash, golden
+  sparkles and hearts). The war is over; in the epilogue the royal couple stroll around town.
   Without it, he withdraws 60 s after he stops: three more days.
 - **Epilogue waves:** 28 × (1 + 0.22n) enemies from the pool, HP × (1 + 0.15n), a golem for every two waves held.
 

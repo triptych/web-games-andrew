@@ -57,3 +57,6 @@ wall-5 01a1f475-972f-78e2-b4cc-8ab7667ce255 t2i
 bg-town 01a1f475-b328-77d2-abc0-c0790defcd97 t2i
 bg-field 01a1f475-b2cf-7fe1-8621-ba0a175e7570 t2i
 bg-title 01a1f475-b273-71b2-a08f-00d452abf0e0 t2i
+en-king-young 01a1f4b0-d46a-7592-b7a0-f6ca89312f83 edit
+por-king-young 01a1f4b0-d483-7671-8ad7-c89b81d16e5e edit
+icon-143 01a1f4b0-3784-7f41-b287-0a78975b8a92 t2i
