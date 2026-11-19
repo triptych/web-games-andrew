@@ -193,7 +193,7 @@ export const QUESTS = [
         outro: ['wick', 'A little candle-flame, a little lich magic, and all the sugar in Thistlegloom. She\'s ready to finish baking.'] },
     { id: 'q_drawing', phase: 3, giver: 'tansy', title: 'Tansy\'s Drawing', obj: { kind: 'hope', v: 70 }, reward: { gold: 120 },
         intro: ['tansy', 'I drew you, Mayor! That\'s you, and those are your horns, and that\'s everybody being happy. Can you make everybody happy for real, so the drawing\'s true?'],
-        outro: ['tansy', 'It\'s true now! I\'m putting it up in the bakery window. Granny Hollyhock says it\'s very good. She said "very".'] },
+        outro: ['tansy', 'It\'s true now! I\'m putting it up in the bakery window, where everyone can see it. Granny Hollyhock says it\'s very good. She said "very".'] },
 ];
 
 // ------------------------------------------------------------------ portraits and story scenes
