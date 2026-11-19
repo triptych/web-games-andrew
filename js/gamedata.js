@@ -2196,6 +2196,23 @@ const games = [
             { emoji: '🎙️', label: 'Voiced' },
             { emoji: '🧊', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-142',
+        title: 'Kaboom Keep',
+        description: "A whimsical physics cannon game in three.js with painted art by fal and music, sound and voices by ElevenLabs. Pip the Cannoneer sits behind a chunky bronze cannon on a grassy hill, and across the meadow stand toy-block castles: walls in running bond, interlocking square towers, round towers, cone roofs, wooden floors, ice windows and red crates with a bomb painted on. Every block is a real rigid body in a physics engine written for the game, so the castles stand by themselves and come down the way stacked blocks do: walls topple, floors drop, towers lean and crash, stone cracks in two, wood splinters, ice shatters and crates go off in chains. Little knights, a pompous prince, a sleepy wizard and King Bumble himself guard the battlements; knock every one of them over to clear the castle, and smash more for more stars. Five cannonballs: the honest Iron Ball, the Boom Ball (tap mid-flight to set it off early), Triple Trouble (tap to split it in three), Big Bertha, and the Boing Ball that ricochets around inside the walls. Drag to aim with a dotted arc to the landing spot, tap to fire, and the camera rides the ball in. Twelve castles across Greenmeadow, Frostpeak and Sunset Shire, with fireballs, flying chips, dust, shockwaves, slow motion on the big moments and a lot of very surprised little people. Mouse, touch, keyboard or gamepad.",
+        icon: '💥',
+        folder: 'game-142',
+        version: '1.0.0',
+        cssClass: 'kaboom-keep',
+        genre: 'arcade',
+        tags: [
+            { emoji: '🏰', label: 'Castle smashing' },
+            { emoji: '🧱', label: 'Block physics' },
+            { emoji: '💣', label: 'Kaboom' },
+            { emoji: '🎙️', label: 'Voiced' },
+            { emoji: '🧊', label: 'three.js' }
+        ]
     }
 ];
 

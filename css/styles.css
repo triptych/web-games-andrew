@@ -1745,6 +1745,18 @@ h1 {
     box-shadow: 0 0 14px rgba(240, 160, 60, 0.6);
 }
 
+.game-preview.kaboom-keep,
+.carousel-slide-bg.kaboom-keep {
+    background: radial-gradient(circle at 70% 40%, #ffd86a 0%, #ff8a3d 18%, rgba(255, 138, 61, 0) 34%),
+        linear-gradient(180deg, #4f9fe8 0%, #9fd4ff 55%, #7cc35a 56%, #4d9a3c 100%);
+}
+
+.game-card.kaboom-keep .play-button {
+    background: linear-gradient(135deg, #ffb347, #ff7a2e, #e63a2e);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(255, 122, 46, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
