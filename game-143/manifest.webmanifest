@@ -1,0 +1,39 @@
+{
+  "name": "Doom & Doilies: The Sugar Siege",
+  "short_name": "Doom & Doilies",
+  "description": "Doom & Doilies: The Sugar Siege — Lady Noxia has been found out and voted mayor. Build up the spooky village of Thistlegloom, hold the wall against King Crumbleton",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#140c22",
+  "theme_color": "#140c22",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

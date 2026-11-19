@@ -4798,6 +4798,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] Taps land under the finger: canvas sized in px, pointers mapped through its `getBoundingClientRect()` (game-058, game-067).
 - [ ] A fast tap is never dropped: presses carried to the next sim step (game-059, game-071).
 - [ ] A *held* button (fire, jump) is latched too: a keydown and keyup in the same frame, before any step runs, still fire or jump once (game-079).
+- [ ] A latched tap survives a cooldown: clear the latch only once a step has actually acted on it (fired, jumped), or a tap during a reload is eaten by a step that couldn't fire (game-143). Test it with a real click right after another shot.
 - [ ] A queued key or a double-tap that closes a dialogue doesn't also act in the world: swallow the rest of the frame and ~250 ms of real time (game-073).
 - [ ] Escape closes a sheet even when a slider or select has focus: a keydown handler that returns early for `INPUT`/`SELECT` never sees it, so Settings could not be closed with the keyboard and the pause overlay stayed on top of everything (game-117, game-118). Test it with a real key press right after opening Settings, and when a browser-test run fails in a cluster, fix the first failure and rerun before reading the rest.
 - [ ] Space presses a focused menu button: a keydown handler that calls `preventDefault()` on Space to stop scrolling also cancels the button's click, so Resume and Play Again did nothing from the keyboard (game-078). Test it with a real key press, not `element.click()`.
