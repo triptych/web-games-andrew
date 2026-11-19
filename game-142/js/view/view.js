@@ -371,7 +371,7 @@ export class View {
             k = 1 - Math.exp(-dt * 1.5);
         } else if (this.mode === 'end') {
             c.orbit += dt * 0.18;
-            P.set(Math.sin(c.orbit) * 20 - 4, 8, castle.z - Math.cos(c.orbit) * 20);
+            P.set(Math.sin(c.orbit * 0.6 - 0.5) * 26, 11, castle.z - Math.cos(c.orbit * 0.6 - 0.5) * 26);
             L.copy(castle);
             k = 1 - Math.exp(-dt * 1.5);
         } else {

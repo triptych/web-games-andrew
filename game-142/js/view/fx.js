@@ -45,7 +45,23 @@ export class FX {
         scene.add(this.puffs);
 
         // fire: bright unlit puffs that cool from yellow to red as they swell and shrink away
-        this.fires = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), FIRES);
+        const fireMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+        // unlit spheres read as flat discs: darken toward the rim so each puff looks round
+        fireMat.onBeforeCompile = (sh) => {
+            sh.vertexShader = sh.vertexShader
+                .replace('#include <common>', '#include <common>\nvarying float vRim;')
+                .replace('#include <project_vertex>', `#include <project_vertex>
+                    vec3 kN = normal;
+                    #ifdef USE_INSTANCING
+                    kN = mat3(instanceMatrix) * kN;
+                    #endif
+                    kN = normalize(normalMatrix * kN);
+                    vRim = clamp(dot(kN, normalize(-mvPosition.xyz)), 0.0, 1.0);`);
+            sh.fragmentShader = sh.fragmentShader
+                .replace('#include <common>', '#include <common>\nvarying float vRim;')
+                .replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb *= 0.25 + 0.75 * pow(vRim, 0.7);');
+        };
+        this.fires = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 2), fireMat, FIRES);
         this.fires.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         this.fires.frustumCulled = false;
         this.fires.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(FIRES * 3), 3);
@@ -117,12 +133,12 @@ export class FX {
 
     /** A cartoon kaboom: a cluster of fire puffs, sparks, smoke, a shockwave ring, a flash. */
     boom(p, radius, big = true) {
-        const n = big ? 16 : 10;
+        const n = big ? 26 : 14;
         for (let i = 0; i < n; i++) {
             const a = rnd() * Math.PI * 2, e = rnd() * 0.9 - 0.2, r = radius * (0.15 + rnd() * 0.35);
             const dir = [Math.cos(a) * Math.cos(e), Math.abs(Math.sin(e)) + 0.25, Math.sin(a) * Math.cos(e)];
             this.fire([p[0] + dir[0] * r * 0.4, p[1] + dir[1] * r * 0.4, p[2] + dir[2] * r * 0.4],
-                radius * (0.22 + rnd() * 0.2) * (big ? 1 : 0.8), 0.35 + rnd() * 0.35, [dir[0] * r * 3, dir[1] * r * 3, dir[2] * r * 3]);
+                radius * (0.13 + rnd() * 0.14) * (big ? 1 : 0.8), 0.35 + rnd() * 0.35, [dir[0] * r * 3, dir[1] * r * 3, dir[2] * r * 3]);
         }
         const fb = this.balls.find((b) => b.life <= 0) || this.balls[0];
         fb.life = fb.max = 0.16;
@@ -135,7 +151,7 @@ export class FX {
         rg.m.position.set(p[0], 0.06, p[2]);
         rg.m.visible = true;
         for (let i = 0; i < (big ? 26 : 14); i++) { const d = this.chip(p, [0xffd23f, 0xff8a2a, 0xff4a2a][i % 3], radius * 3, 0.08, 3); d.glow = 1; d.life = 0.7 + rnd() * 0.5; }
-        for (let i = 0; i < (big ? 14 : 8); i++) this.puff(p, [0x7a6f66, 0x9a9088, 0x5e5650][i % 3], radius * 0.45, 1.6, 1.6 + rnd());
+        for (let i = 0; i < (big ? 18 : 10); i++) this.puff([p[0], p[1] + radius * 0.2, p[2]], [0xb3aaa1, 0xcdc4ba, 0x958b82][i % 3], radius * 0.2, 1.8, 1.4 + rnd());
         this.flash.position.set(p[0], p[1] + 1, p[2]);
         this.flash.intensity = big ? 160 : 90;
         this.flashT = 0.35;
