@@ -39,7 +39,10 @@ function planShot(G, bot) {
             // refine for damping: nudge the pitch until the flight passes through the target
             let a = { ...aim };
             let f = predict(G, a, kind);
-            for (let k = 0; k < 3 && f.body !== target; k++) {
+            // A block just in front of the target is a fine thing to hit: the ball smashes through
+            // it (or knocks the floor out from under). Only refine a flight that falls short or long.
+            const shield = (ff) => ff.body && ff.body.kind === 'block' && Math.hypot(ff.hit[0] - target.p[0], ff.hit[2] - target.p[2]) < 2.6 && Math.abs(ff.hit[1] - target.p[1]) < 1.2;
+            for (let k = 0; k < 3 && f.body !== target && !shield(f); k++) {
                 const hit = f.hit || f.pts[f.pts.length - 1];
                 const dh = Math.hypot(hit[0], hit[2]) - Math.hypot(target.p[0], target.p[2]);
                 if (Math.abs(dh) > 4) break;
@@ -47,7 +50,7 @@ function planShot(G, bot) {
                 f = predict(G, a, kind);
             }
             const hit = f.hit || f.pts[f.pts.length - 1];
-            const miss = f.body === target ? 0 : Math.hypot(hit[0] - target.p[0], hit[1] - target.p[1], hit[2] - target.p[2]);
+            const miss = f.body === target ? 0 : shield(f) ? 1 : Math.hypot(hit[0] - target.p[0], hit[1] - target.p[1], hit[2] - target.p[2]);
             const score = miss + (aim.pitch > 0.6 ? 0.4 : 0);          // prefer the flatter arc a little
             if (!best || score < best.score) best = { aim: a, kind, target: target.id, score };
             if (miss === 0) break;

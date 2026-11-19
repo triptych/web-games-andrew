@@ -135,7 +135,7 @@ export const LEVELS = [
     {
         id: 'watchtower', name: 'The Wobbly Watchtower', region: 'meadow',
         intro: 'Sir Wobbleton keeps watch from the top. Knock him off his perch!',
-        ammo: { iron: 4 },
+        ammo: { iron: 4 }, stars: [2500, 4500],
         build(K) {
             const top = K.tower('stone', 0, 28, 2, 0, 8);
             K.slab('wood', 0, top, 28, 2, 2);
@@ -149,7 +149,7 @@ export const LEVELS = [
     {
         id: 'gatehouse', name: "Sir Grumble's Gatehouse", region: 'meadow',
         intro: 'Two towers, one grumpy gate. Three knights on guard.',
-        ammo: { iron: 3, boom: 1 },
+        ammo: { iron: 3, boom: 1 }, stars: [4500, 7500],
         build(K) {
             for (const x of [-3.5, 3.5]) {
                 const top = K.tower('stone', x, 30, 2, 0, 10);
@@ -167,7 +167,7 @@ export const LEVELS = [
     {
         id: 'timberfort', name: 'The Timber Fort', region: 'meadow',
         intro: 'A fort of logs and planks... and crates marked BOOM. What could go wrong?',
-        ammo: { iron: 2, boom: 1, triple: 1 },
+        ammo: { iron: 2, boom: 1, triple: 1 }, stars: [3000, 9000],
         build(K) {
             const t = K.tower('wood', 0, 31, 3, 0, 6);
             K.slab('wood', 0, t, 31, 3, 3);
@@ -184,7 +184,7 @@ export const LEVELS = [
     {
         id: 'twintowers', name: 'The Twin Towers of Toot', region: 'meadow',
         intro: 'Two round towers and a rickety bridge. The knights on it look nervous.',
-        ammo: { iron: 2, triple: 1, bertha: 1, boom: 1 },
+        ammo: { iron: 2, triple: 1, bertha: 1, boom: 1 }, stars: [4500, 7500],
         build(K) {
             let top = 0;
             for (const x of [-2.6, 2.6]) {
@@ -200,7 +200,7 @@ export const LEVELS = [
     {
         id: 'iciclekeep', name: 'Icicle Keep', region: 'frost',
         intro: 'Walls of ice glitter in the cold. Ice shatters. Just saying.',
-        ammo: { iron: 3, triple: 1 },
+        ammo: { iron: 3, triple: 1 }, stars: [3000, 5500],
         build(K) {
             const ice = (c) => (c < 3 ? 'stone' : 'ice');
             const t = K.tower('stone', 0, 30, 4, 0, 8, { matAt: ice });
@@ -219,7 +219,7 @@ export const LEVELS = [
     {
         id: 'snowcap', name: 'Snowcap Citadel', region: 'frost',
         intro: 'A tall round citadel with ice windows. Bounce something around in there!',
-        ammo: { iron: 2, boom: 2, boing: 1 },
+        ammo: { iron: 2, boom: 2, boing: 1 }, stars: [4000, 6500],
         build(K) {
             const t = K.ring('stone', 0, 32, 1.8, 0, 12, { n: 10, matAt: (c) => (c % 4 === 2 ? 'ice' : 'stone') });
             K.slab('wood', 0, t, 32, 3.8, 3.8);
@@ -238,7 +238,7 @@ export const LEVELS = [
     {
         id: 'spire', name: "The Wizard's Spire", region: 'frost',
         intro: 'Mumbleby the Wizard lives at the very top. It is a long way down.',
-        ammo: { iron: 3, bertha: 1 },
+        ammo: { iron: 3, bertha: 1 }, stars: [3000, 5000],
         build(K) {
             const t = K.tower('stone', 0, 33, 1.5, 0, 20, { L: 0.75, window: (c, s) => (c % 5 === 3 && s === 0 ? 'ice' : null) });
             K.slab('wood', 0, t, 33, 2.2, 2.2);
@@ -257,7 +257,7 @@ export const LEVELS = [
     {
         id: 'bastion', name: 'Frostbite Bastion', region: 'frost',
         intro: 'The knights are hiding in the courtyard. Lob one over the wall!',
-        ammo: { iron: 2, boom: 2, triple: 1, boing: 1 },
+        ammo: { iron: 2, boom: 2, triple: 1, boing: 1 }, stars: [6000, 10000],
         build(K) {
             const z0 = 28, z1 = 35, x0 = -4, x1 = 4;
             K.wallX('stone', x0 + 1.5, x1 - 1.5, z0 + 0.25, 0, 6);
@@ -277,7 +277,7 @@ export const LEVELS = [
     {
         id: 'bluff', name: "Bertha's Bluff", region: 'sunset',
         intro: 'A castle on a cliff. Bring something big.',
-        ammo: { bertha: 2, iron: 2, boom: 1 },
+        ammo: { bertha: 2, iron: 2, boom: 1 }, stars: [5500, 9000],
         build(K) {
             const top = K.rock(0, 0, 33, 10, 3, 6);
             for (const x of [-3, 3]) {
@@ -296,7 +296,7 @@ export const LEVELS = [
     {
         id: 'treasury', name: 'The TNT Treasury', region: 'sunset',
         intro: 'They keep the royal fireworks here. Lots of fireworks.',
-        ammo: { iron: 2, triple: 1 },
+        ammo: { iron: 2, triple: 1 }, stars: [8000, 15000],
         build(K) {
             for (let i = 0; i < 5; i++) {
                 const x = -4 + i * 2;
@@ -313,7 +313,7 @@ export const LEVELS = [
     {
         id: 'palace', name: 'Palace of Prince Pompous', region: 'sunset',
         intro: 'The Prince is very important. Just ask him. Bonk him and his guards.',
-        ammo: { iron: 3, boom: 2, triple: 1, bertha: 1 },
+        ammo: { iron: 3, boom: 2, triple: 1, bertha: 1 }, stars: [6500, 11000],
         build(K) {
             const t = K.tower('brick', 0, 33, 4, 0, 8, { window: (c, s) => (c % 3 === 1 && s === 0 ? 'ice' : null) });
             K.slab('wood', 0, t, 33, 4, 4);
@@ -332,7 +332,7 @@ export const LEVELS = [
     {
         id: 'grandcastle', name: "King Bumble's Grand Castle", region: 'sunset',
         intro: 'The biggest castle in the land. King Bumble is waiting at the top. Kaboom!',
-        ammo: { iron: 3, boom: 2, triple: 1, bertha: 1, boing: 1 },
+        ammo: { iron: 3, boom: 2, triple: 1, bertha: 1, boing: 1 }, stars: [10000, 17000],
         build(K) {
             const t = K.tower('stone', 0, 35, 4, 0, 12, { window: (c, s) => (c % 4 === 2 ? 'ice' : null) });
             K.slab('wood', 0, t, 35, 4, 4);

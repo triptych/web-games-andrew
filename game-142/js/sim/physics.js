@@ -504,23 +504,8 @@ export function stepWorld(W, dt, opts = {}) {
         // would touch, so it can't step through a wall between two frames. The contact next step
         // then does the hitting.
         const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (b.shape === 'sphere' && dist > b.r * 0.5) {
-            const d = [dx / dist, dy / dist, dz / dist];
-            let tHit = dist;
-            if (d[1] < 0) { const tg = (b.p[1] - b.r) / -d[1]; if (tg >= 0 && tg < tHit) tHit = tg; }
-            for (const o of bodies) {
-                if (o === b || (opts.filter && !opts.filter(b, o))) continue;
-                const reach = dist + b.r + boundR(o);
-                const e = sub(o.p, b.p);
-                if (dot(e, e) > reach * reach) continue;
-                const t = rayBody(o, b.p, d, tHit, b.r);
-                if (t < tHit) tHit = t;
-            }
-            if (tHit < dist) {
-                const k = Math.max(0, tHit - 0.01);
-                b.p[0] += d[0] * k; b.p[1] += d[1] * k; b.p[2] += d[2] * k;
-            } else { b.p[0] += dx; b.p[1] += dy; b.p[2] += dz; }
-        } else { b.p[0] += dx; b.p[1] += dy; b.p[2] += dz; }
+        if (b.shape === 'sphere' && dist > b.r * 0.5) sweepSphere(b, [dx, dy, dz], dist, bodies, opts);
+        else { b.p[0] += dx; b.p[1] += dy; b.p[2] += dz; }
         const w = b.w;
         const q = b.q;
         const dq = quatMul([w[0], w[1], w[2], 0], q);
@@ -551,6 +536,43 @@ export function stepWorld(W, dt, opts = {}) {
 // Cached impulses are rounded so a save (JSON) and the live world agree to the last bit.
 // (JSON round-trips doubles exactly; rounding only keeps the cache small.)
 const r6 = (x) => Math.round(x * 1e6) / 1e6;
+
+// March a fast sphere along its step in pieces of half its radius; at the first piece where it
+// would overlap something, bisect back to the last free spot (within a few mm of touching), so the
+// next step's contact does the hitting. Testing the true distance matters: a box grown by the
+// radius is fatter than the real shape at its corners, and a ball stopped there never touches.
+function sweepSphere(b, D, dist, bodies, opts) {
+    const reach = dist + b.r;
+    const near = [];
+    for (const o of bodies) {
+        if (o === b || (opts.filter && !opts.filter(b, o))) continue;
+        const e = sub(o.p, b.p);
+        const rr = reach + boundR(o);
+        if (dot(e, e) <= rr * rr) near.push(o);
+    }
+    const at = (t) => [b.p[0] + D[0] * t, b.p[1] + D[1] * t, b.p[2] + D[2] * t];
+    const hits = (q) => {
+        if (q[1] < b.r) return true;
+        for (const o of near) {
+            if (o.shape === 'sphere') { const e = sub(o.p, q); if (dot(e, e) < (o.r + b.r) ** 2) return true; continue; }
+            const c = closestPoint(o, q);
+            const e = sub(c, q);
+            if (dot(e, e) < b.r * b.r) return true;
+        }
+        return false;
+    };
+    const n = Math.ceil(dist / (b.r * 0.5));
+    let free = 0;
+    for (let i = 1; i <= n; i++) {
+        const t = i / n;
+        if (!hits(at(t))) { free = t; continue; }
+        let lo = free, hi = t;
+        for (let k = 0; k < 5; k++) { const m = (lo + hi) / 2; if (hits(at(m))) hi = m; else lo = m; }
+        b.p = at(lo);
+        return;
+    }
+    b.p = at(1);
+}
 
 function relVel(A, B, rA, rB) {
     const va = A._dyn ? add(A.v, cross(A.w, rA)) : [0, 0, 0];
