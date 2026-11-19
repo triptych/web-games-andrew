@@ -5,15 +5,23 @@
 
 import * as THREE from 'three';
 import { CANNON, AMMO, CHARS } from '../config.js';
-import { LEVELS, REGIONS } from '../sim/levels.js';
+import { REGIONS } from '../sim/levels.js';
 import { predict, aimDir } from '../sim/aim.js';
 import { makeRng } from '../rng.js';
 import { Blocks } from './blocks.js';
 import { FX, MAT_COLORS } from './fx.js';
 import { makeCannon, makePip, makeCharacter, makeBallMaterials, makeFlag, waveFlag, makeTrees } from './models.js';
 
-const SKY_TOP = { meadow: 0x2f7fd8, frost: 0x8fc4ee, sunset: 0x9c8ad6 };
-const GROUND_TEX = { meadow: 'grass', frost: 'snow', sunset: 'autumn' };
+const SKY_TOP = { meadow: 0x2f7fd8, frost: 0x8fc4ee, sunset: 0x9c8ad6, marsh: 0x1b2150 };
+const GROUND_TEX = { meadow: 'grass', frost: 'snow', sunset: 'autumn', marsh: 'marsh' };
+// light per region: [hemisphere sky, hemisphere ground, hemisphere intensity, sun colour, sun intensity, exposure]
+const LIGHT = {
+    meadow: [0xdff0ff, 0x6a7a4a, 1.1, 0xfff1d6, 2.6, 1.05],
+    frost: [0xdff0ff, 0x8090a0, 1.15, 0xf4f8ff, 2.5, 1.0],
+    sunset: [0xffe0c0, 0x7a6a4a, 1.1, 0xffd2a0, 2.5, 1.05],
+    marsh: [0x8fa6ff, 0x2a3a3a, 0.9, 0xbcd0ff, 1.5, 1.15],      // moonlight: explosions glow
+};
+const hashStr = (s) => [...String(s)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
 
 export class View {
     constructor(canvas, { lowPower = false } = {}) {
@@ -87,11 +95,11 @@ export class View {
             tex[key] = t;
             return t;
         };
-        for (const k of ['stone', 'wood', 'roof', 'ice', 'brick', 'tnt', 'grass', 'snow', 'autumn']) load(k, `tex-${k}`, { repeat: true });
+        for (const k of ['stone', 'wood', 'roof', 'ice', 'brick', 'tnt', 'grass', 'snow', 'autumn', 'marsh']) load(k, `tex-${k}`, { repeat: true });
         // a pale copy of the roof tiles for the cone roofs, so they can be tinted per tower
         tex.roofCone = load('roofCone', 'tex-roof', { repeat: true });
         tex.roofCone.repeat.set(3, 2);
-        for (const r of ['meadow', 'frost', 'sunset']) {
+        for (const r of ['meadow', 'frost', 'sunset', 'marsh']) {
             const t = load(`sky-${r}`, `sky-${r}`);
             t.wrapS = THREE.MirroredRepeatWrapping;   // the painted edges don't quite meet: mirror them
             t.repeat.set(2, 1);
@@ -151,11 +159,14 @@ export class View {
         const gt = this.textures[GROUND_TEX[region]];
         gt.repeat.set(90, 90);
         this.ground.material.map = gt;
+        this.ground.material.color.setHex(region === 'marsh' ? 0x6f8f7c : 0xffffff);   // the marsh grass tiles too bright and too blue
         this.ground.material.needsUpdate = true;
-        this.hemi.color.setHex(region === 'sunset' ? 0xffe0c0 : 0xdff0ff);
-        this.sun.color.setHex(region === 'sunset' ? 0xffd2a0 : region === 'frost' ? 0xf4f8ff : 0xfff1d6);
+        const Lt = LIGHT[region] || LIGHT.meadow;
+        this.hemi.color.setHex(Lt[0]); this.hemi.groundColor.setHex(Lt[1]); this.hemi.intensity = Lt[2];
+        this.sun.color.setHex(Lt[3]); this.sun.intensity = Lt[4];
+        this.renderer.toneMappingExposure = Lt[5];
         if (this.trees) { this.scene.remove(this.trees); this.trees.traverse((m) => m.geometry?.dispose?.()); }
-        const rng = makeRng(1234 + level * 77);
+        const rng = makeRng(1234 + hashStr(level));
         this.trees = makeTrees(rng, region, (x, z) => (Math.abs(x) < 16 && z > 14 && z < 50) || (Math.abs(x) < 9 && z < 24) || z < -6);
         this.trees.traverse((m) => { if (m.isMesh) m.castShadow = true; });
         this.scene.add(this.trees);
@@ -183,7 +194,7 @@ export class View {
         for (const f of this.flags) this.scene.remove(f.obj);
         this.chars.clear(); this.balls.clear(); this.flags = [];
         for (const f of G.flags) { const obj = makeFlag(f.color); this.scene.add(obj); this.flags.push({ ...f, obj }); }
-        this.setRegion(LEVELS[G.level].region, G.level);
+        this.setRegion(G.spec.region, G.spec.id);
         this.cam.watch = null; this.cam.follow = 0;
         this.aimKey = '';
         this.slowT = 0; this.timeScale = 1;
@@ -241,7 +252,7 @@ export class View {
     frame(G, dt, time, opts = {}) {
         this.resize();
         if (this.slowT > 0) { this.slowT -= dt; if (this.slowT <= 0) this.timeScale = 1; }
-        this.setRegion(LEVELS[G.level].region, G.level);
+        this.setRegion(G.spec.region, G.spec.id);
         this.blocks.update(G);
         this.syncChars(G, dt, time);
         this.syncBalls(G, dt);

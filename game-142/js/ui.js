@@ -3,16 +3,17 @@
 
 import { VERSION, AMMO, AMMO_ORDER } from './config.js';
 import { LEVELS, REGIONS } from './sim/levels.js';
-import { loadProgress, unlocked, totalStars } from './save.js';
+import { loadProgress, unlocked, totalStars, endlessOpen } from './save.js';
 
 const $ = (id) => document.getElementById(id);
 const PORTRAIT = { knight: 'cast-knight', king: 'cast-king', wizard: 'cast-wizard', prince: 'cast-prince', pip: 'cast-pip' };
 const ICON = { knight: '🛡️', king: '👑', wizard: '🧙' };
 
-/** Who stars on a castle's intro card: its most important resident. */
-export function castleStar(level) {
-    const L = LEVELS[level];
+/** Who stars on a castle's intro card: its most important resident. L: a level or a G.spec. */
+export function castleStar(L) {
     if (L.id === 'palace') return 'prince';
+    if (L.star) return L.star;
+    if (!L.build) return 'knight';
     const src = L.build.toString();
     if (src.includes("'king'")) return 'king';
     if (src.includes("'wizard'")) return 'wizard';
@@ -20,13 +21,14 @@ export function castleStar(level) {
 }
 
 export class UI {
-    constructor({ audio, settings, onSettings, onDeleteSave, onAmmo, onPickLevel }) {
+    constructor({ audio, settings, onSettings, onDeleteSave, onAmmo, onPickLevel, onEndless }) {
         this.audio = audio;
         this.settings = settings;
         this.stack = [];
         this.touchOn = false;
         this.onAmmo = onAmmo;
         this.onPickLevel = onPickLevel;
+        this.onEndless = onEndless;
         $('version').textContent = 'v' + VERSION + ' · art by fal · sound by ElevenLabs';
 
         this.downIn = null;
@@ -122,15 +124,26 @@ export class UI {
             });
             list.appendChild(sec);
         }
+        // Endless Siege: a fresh generated castle every time, harder each time
+        const open = endlessOpen();
+        const sec = document.createElement('section');
+        sec.className = 'region endless';
+        sec.innerHTML = `<div class="region-banner" style="background-image:url('art/title.webp')"><h3 class="outline">Endless Siege</h3></div>
+            <div class="endless-row"><p>${open ? `New castles forever, each one harder. Best run: <b>${P.endless.best}</b> castle${P.endless.best === 1 ? '' : 's'}${P.endless.best ? ` (${P.endless.score.toLocaleString()} points)` : ''}.` : 'Clear the first twelve castles to open it.'}</p>
+            <button class="btn primary" id="btn-endless" ${open ? '' : 'disabled'}>${open ? 'Start a Siege' : '🔒 Locked'}</button></div>`;
+        sec.querySelector('#btn-endless').addEventListener('click', () => { this.audio.ui('click'); this.onEndless(); });
+        list.appendChild(sec);
         $('map-stars').textContent = `★ ${totalStars()} / ${LEVELS.length * 3}`;
     }
 
-    showIntro(level) {
-        const L = LEVELS[level];
-        const who = castleStar(level);
+    showIntro(level) { this.showIntroFor(LEVELS[level], `${REGIONS[LEVELS[level].region].name} · Castle ${level + 1}`); }
+
+    /** The intro card for any castle (a campaign castle, or an Endless one from its G.spec). */
+    showIntroFor(L, kicker) {
+        const who = castleStar(L);
         $('intro-portrait').src = `art/${PORTRAIT[who]}.webp`;
         $('intro-portrait').alt = who;
-        $('intro-region').textContent = `${REGIONS[L.region].name} · Castle ${level + 1}`;
+        $('intro-region').textContent = kicker;
         $('intro-name').textContent = L.name;
         $('intro-text').textContent = L.intro;
         $('intro-ammo').innerHTML = AMMO_ORDER.filter((k) => L.ammo[k]).map((k) => `<span><i class="ball ${k}"></i>${L.ammo[k]} × ${AMMO[k].name}</span>`).join('');
@@ -147,14 +160,14 @@ export class UI {
         if (key !== this.hudKey) {
             this.hudKey = key;
             $('hud-score').textContent = G.score.toLocaleString();
-            $('hud-castle').textContent = LEVELS[G.level].name;
+            $('hud-castle').textContent = G.endless ? `Siege ${G.endless.n + 1}: ${G.spec.name}` : G.spec.name;
             // one token per resident: standing ones bright, bonked ones faded
             const standing = chars.filter((c) => !c.bonked);
             const down = G.targets - standing.length;
             $('hud-knights').innerHTML = standing.map((c) => `<span>${ICON[c.role]}</span>`).join('') + '<span class="down">🛡️</span>'.repeat(Math.max(0, Math.min(6, down)));
             for (const k of AMMO_ORDER) {
                 const b = this.rackBtns[k], n = G.ammo[k] || 0;
-                b.hidden = !(k in LEVELS[G.level].ammo);
+                b.hidden = !(k in G.spec.ammo);
                 b.disabled = n === 0;
                 b.classList.toggle('sel', G.sel === k);
                 b.querySelector('.n').textContent = n;
@@ -188,18 +201,28 @@ export class UI {
     // ------------------------------------------------------------------ results
     showResult(G, e, best) {
         const won = e.won;
-        $('res-head').textContent = won ? 'Castle Cleared!' : 'Out of Cannonballs!';
-        $('res-portrait').src = `art/${won ? 'cast-pip' : PORTRAIT[castleStar(G.level)]}.webp`;
-        $('res-text').textContent = won
-            ? (e.spare ? `${e.spare} spare ball${e.spare > 1 ? 's' : ''}: +${e.bonus.toLocaleString()}!` : 'Every last one of them bonked!') + (best ? ' New best!' : '')
-            : `${G.targets - G.bonked} still standing. Have another go!`;
+        const last = !G.endless && G.level >= LEVELS.length - 1;
+        $('res-head').textContent = won ? (last ? 'Every Castle Cleared!' : 'Castle Cleared!') : (G.endless ? 'The Siege Is Over!' : 'Out of Cannonballs!');
+        $('res-portrait').src = `art/${won ? 'cast-pip' : PORTRAIT[castleStar(G.spec)]}.webp`;
+        if (G.endless) {
+            const n = G.endless.n + (won ? 1 : 0);
+            $('res-text').textContent = won
+                ? `${n} castle${n === 1 ? '' : 's'} in a row! Run total: ${G.endless.total.toLocaleString()}. On to the next!`
+                : `You flattened ${n} castle${n === 1 ? '' : 's'} in a row, ${G.endless.total.toLocaleString()} points.${best ? ' A new best run!' : ''}`;
+        } else {
+            $('res-text').textContent = won
+                ? (e.spare ? `${e.spare} spare ball${e.spare > 1 ? 's' : ''}: +${e.bonus.toLocaleString()}!` : 'Every last one of them bonked!') + (best ? ' New best!' : '') + (last ? ' King of the cannon! Try Endless Siege next.' : '')
+                : `${G.targets - G.bonked} still standing. Have another go!`;
+        }
         $('res-score').textContent = G.score.toLocaleString();
         $('res-stars').hidden = !won;
         const stars = [...$('res-stars').children];
         stars.forEach((s) => s.classList.remove('on'));
         if (won) stars.forEach((s, i) => { if (i < e.stars) setTimeout(() => { s.classList.add('on'); this.audio.play('star', { vol: 0.7, rate: 1 + i * 0.12, gap: 0 }); }, 500 + i * 380); });
         const next = $('res-next');
-        next.hidden = !won || G.level >= LEVELS.length - 1;
+        next.hidden = !won || last;
+        next.textContent = G.endless ? 'Next Siege Castle' : 'Next Castle';
+        $('over-again').textContent = G.endless ? 'New Siege' : 'Retry';
         $('over-again').classList.toggle('primary', !won || next.hidden);
         this.openScreen('over');
     }

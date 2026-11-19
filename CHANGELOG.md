@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Kaboom Keep** (game-142) v1.1.0: far more castles, requested by the owner ([game-plan.md](game-142/game-plan.md)).
+  - **48 castles** in four regions, up from 12: a castle generator ([castlegen.js](game-142/js/sim/castlegen.js)) builds new ones from the same kit (square and round towers, walls, keeps with a floor inside, spires, crate shelves, colonnades, bridges between level towers, cliffs, a keep behind), seats people only on surfaces it built and checks each seat against the real blocks, sizes the rack to the people (always one ball spare) and sets star lines from what there is to win. The hand-made castles sit at 1, 4, 8 and 12 of the first three regions; difficulty climbs across all 48.
+  - **Moonbeam Marsh**, a fourth region by moonlight (fal sky, ground and map banner; moonlit lighting so explosions glow).
+  - **Endless Siege**: once the first twelve are cleared, a fresh generated castle every time, a little harder each time, through the four regions in turn; the run total carries over and the best run is kept.
+  - Tests: `simtest` proves all 48 castles and 10 Endless ones stand on their own with every block awake and start small enough for a phone, the perfect bot clears all 48 and the first 8 of an Endless run, a sloppy bot clears most; 150 random generated castles stood in development.
+
+### Fixed
+- **Kaboom Keep** (game-142) v1.1.0: after clearing a castle, Next Castle or Castles followed by Back left the screen with no menu at all, just the title's demo knocking castles down behind nothing. The title screen was being closed underneath; it now always stays under the map and the intro cards, and the frame loop puts it back if the menus are ever empty outside a castle. A browser test step fails without the fix.
+
+### Added
 - **Kaboom Keep** (game-142) v1.0.0: a whimsical third-person physics cannon game in three.js, sim/view layout ([game-plan.md](game-142/game-plan.md)). Blast toy-block castles to bits and knock over every little person in them.
   - **Physics** ([physics.js](game-142/js/sim/physics.js)): a 3D rigid-body engine written for the game, pure and seeded: boxes and spheres on a ground plane, separating-axis box-box contacts with the incident face clipped against the reference face, sequential impulses with warm starting, speculative contacts, shock propagation so tall stacks settle at once, island sleeping, and a swept test that marches a fast ball and bisects to the first true contact, so it can't tunnel or freeze on a corner.
   - **Rules** ([game.js](game-142/js/sim/game.js), [levels.js](game-142/js/sim/levels.js), [aim.js](game-142/js/sim/aim.js)): twelve castles from a building kit in Greenmeadow, Frostpeak and Sunset Shire; damage from the velocity change of every contact; stone and wood split in two, ice shatters, crates go off in chains; knights, a prince, a wizard and kings are bonked by tipping, hits or falls; five cannonballs with tricks (Boom Ball goes off early, Triple Trouble splits); stars from score bands; progress and a mid-castle save.
