@@ -39,7 +39,8 @@ let progress = null;
 export function loadProgress() {
     if (progress) return progress;
     const p = read(PROGRESS_KEY);
-    progress = { v: 1, stars: {}, best: {}, ...(p && p.v === 1 ? p : {}) };
+    progress = { v: 1, stars: {}, best: {}, endless: { best: 0, score: 0 }, ...(p && p.v === 1 ? p : {}) };
+    if (!progress.endless) progress.endless = { best: 0, score: 0 };
     return progress;
 }
 export function unlocked(i) {
@@ -57,9 +58,18 @@ export function recordResult(level, won, stars, score) {
     write(PROGRESS_KEY, p);
     return best;
 }
+/** Endless Siege opens once the first region is cleared. */
+export const endlessOpen = () => unlocked(12);
+/** Record an Endless run that ended after `cleared` castles; returns whether it is a new best. */
+export function recordEndless(cleared, score) {
+    const p = loadProgress();
+    const best = cleared > p.endless.best || (cleared === p.endless.best && score > p.endless.score);
+    if (best) { p.endless = { best: cleared, score }; write(PROGRESS_KEY, p); }
+    return best;
+}
 export function totalStars() { const p = loadProgress(); return Object.values(p.stars).reduce((a, b) => a + b, 0); }
 export function forgetAll() {
     clearSave();
-    progress = { v: 1, stars: {}, best: {} };
+    progress = { v: 1, stars: {}, best: {}, endless: { best: 0, score: 0 } };
     try { localStorage.removeItem(PROGRESS_KEY); } catch { /* blocked */ }
 }

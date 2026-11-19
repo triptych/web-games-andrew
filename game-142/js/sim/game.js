@@ -7,19 +7,41 @@
 import { CANNON, AMMO, AMMO_ORDER, MATS, CHARS, BONK, BREAK, SCORE, PLAY } from '../config.js';
 import { makeRng } from '../rng.js';
 import * as P from './physics.js';
-import { LEVELS, buildLevel } from './levels.js';
+import { LEVELS, makeKit, REGION_ORDER } from './levels.js';
+import { generateCastle } from './castlegen.js';
 import { aimDir, muzzle, clampAim } from './aim.js';
 
 const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 
+/** A castle of the campaign by its index. */
 export function newGame(seed = 1, level = 0) {
-    const L = LEVELS[level];
+    return newGameFromLevel(seed, LEVELS[level], level);
+}
+
+/**
+ * Endless Siege: castle n of a run (0, 1, 2, ...), generated, harder each time, through the four
+ * regions in turn. total is the score banked by the castles before it.
+ */
+export function newEndless(seed, n = 0, total = 0) {
+    const region = REGION_ORDER[n % REGION_ORDER.length];
+    const tier = Math.min(1, 0.22 + n * 0.06);
+    const L = generateCastle((seed + n * 7919) >>> 0, tier, region, `endless-${n + 1}`);
+    return newGameFromLevel(seed, L, -1, { endless: { n, total, seed } });
+}
+
+/**
+ * A game of any castle description (a campaign castle, or one made by castlegen.js for Endless
+ * Siege, level = -1). The description's plain fields are copied into G.spec, so a save carries
+ * everything the view and the UI need, and a generated castle never has to be rebuilt.
+ */
+export function newGameFromLevel(seed, L, level = -1, extra = {}) {
     const G = {
         v: 1,
         seed,
         rng: makeRng(seed),
         t: 0,
         level,
+        spec: { id: L.id, name: L.name, region: L.region, intro: L.intro, ammo: { ...L.ammo }, stars: L.stars ? [...L.stars] : null, star: L.star || null },
         W: P.makeWorld(),
         state: 'aim',
         stateT: 0,
@@ -40,9 +62,31 @@ export function newGame(seed = 1, level = 0) {
         won: false,
         stars: 0,
         events: [],
+        ...extra,
     };
-    loadCastle(G, buildLevel(level));
+    const K = makeKit();
+    L.build(K);
+    loadCastle(G, K.parts);
+    if (!G.spec.stars) G.spec.stars = starLines(G);
     return G;
+}
+
+/**
+ * Star lines for a castle that has none (generated ones): from what there is to win. Two stars a
+ * little below a clean clear with some demolition, three for a proper flattening.
+ * Tuned against the bot in dev/simtest.mjs.
+ */
+export function starLines(G) {
+    let people = 0, blocks = 0;
+    for (const b of G.W.bodies) {
+        if (b.kind === 'char') people += CHARS[b.role].score;
+        else if (b.kind === 'block') blocks += MATS[b.mat].score;
+    }
+    const balls = AMMO_ORDER.reduce((n, k) => n + (G.spec.ammo[k] || 0), 0);
+    const spare = Math.max(0, balls - Math.ceil(G.targets * 0.5) - 1) * SCORE.spareBall;
+    const est = people + blocks * 0.35 + spare;
+    const r = (x) => Math.max(500, Math.round(x / 500) * 500);
+    return [r(est * 0.62), r(est * 1.2)];
 }
 
 function loadCastle(G, parts) {
@@ -341,8 +385,9 @@ function finish(G, won) {
     if (won) {
         bonus = ammoLeft(G) * SCORE.spareBall;
         G.score += bonus;
-        const st = LEVELS[G.level].stars || [Infinity, Infinity];
+        const st = G.spec.stars || [Infinity, Infinity];
         G.stars = 1 + (G.score >= st[0] ? 1 : 0) + (G.score >= st[1] ? 1 : 0);
+        if (G.endless) G.endless.total += G.score;
     }
     G.events.push({ type: 'over', won, score: G.score, stars: G.stars, bonus, spare: won ? ammoLeft(G) : 0 });
 }
@@ -356,7 +401,7 @@ export function serialize(G) {
 }
 
 export function deserialize(d) {
-    if (!d || d.v !== 1 || !d.W || !LEVELS[d.level]) throw new Error('unknown save version');
+    if (!d || d.v !== 1 || !d.W || !d.spec) throw new Error('unknown save version');
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);

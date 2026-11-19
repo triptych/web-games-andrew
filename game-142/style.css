@@ -180,6 +180,9 @@ td:first-child { color: #e2621f; white-space: nowrap; font-weight: 800; }
 .lvl .st { color: #d9a41a; letter-spacing: 2px; font-size: 15px; }
 .lvl .st i { color: #e6d8bf; font-style: normal; }
 .lvl:disabled { opacity: 0.5; cursor: default; filter: grayscale(0.6); }
+.endless-row { display: flex; align-items: center; gap: 12px; padding: 10px; flex-wrap: wrap; }
+.endless-row p { margin: 0; flex: 1 1 200px; }
+.endless .region-banner { background-position: center 35%; }
 
 /* intro and results cards */
 .card { text-align: center; }

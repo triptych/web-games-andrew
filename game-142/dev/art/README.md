@@ -1,6 +1,6 @@
 # Kaboom Keep — the art (fal)
 
-`../../art/` (21 files, about 820 KB) was made on 2026-11-19 with [fal](https://fal.ai) `fal-ai/nano-banana-2` (21 jobs at about $0.08 each) and exported by `export.py`:
+`../../art/` (24 files, about 950 KB) was made on 2026-11-19 with [fal](https://fal.ai) `fal-ai/nano-banana-2` (24 jobs, plus the icon, at about $0.08 each) and exported by `export.py`:
 
 ```bash
 python3 -I game-142/dev/art/export.py RAW     # RAW holds the downloaded originals, named as below
@@ -27,7 +27,8 @@ Everything else you see (the castles, the cannon, the people, the trees, every e
 | `tex-tnt.webp` | `tnt.png` | 512² | one face of a red explosives crate with a dark frame and a cartoon bomb, no words |
 | `tex-grass.webp`, `tex-snow.webp`, `tex-autumn.webp` | `grass.png`, `snow.png`, `autumn.png` | 512² | the ground of each region seen from above |
 | `sky-meadow.webp`, `sky-frost.webp`, `sky-sunset.webp` | `sky.jpg`, `sky-frost.jpg`, `sky-sunset.jpg` | 2048 × 869 | a 21:9 panorama, horizon just below the middle: blue sky and cumulus / pale winter sky over snowy mountains / golden-hour sky over purple hills |
-| `region-meadow.webp`, `region-frost.webp`, `region-sunset.webp` | `region-*.jpg` | 1200 × 509 | a banner of each region with its castles, for the map |
+| `region-meadow.webp`, `region-frost.webp`, `region-sunset.webp`, `region-marsh.webp` | `region-*.jpg` | 1200 × 509 | a banner of each region with its castles, for the map |
+| `sky-marsh.webp`, `tex-marsh.webp` | `sky-marsh.jpg`, `marsh.png` | 2048 × 869, 512² | v1.1.0: Moonbeam Marsh, a starry violet twilight with a full moon over misty pools and willows; mossy teal ground with glowing flowers (darkened in the view) |
 | `cast-knight.webp` | `knight.png` | 257 × 384 | Sir Wobbleton: round silver helmet, red plume, blue tabard with a star, wooden sword, "uh-oh" |
 | `cast-king.webp` | `cast-king.png` | 384 × 369 | King Bumble: white moustache, wobbly gold crown, red cape and ermine, "not my castle!" |
 | `cast-wizard.webp` | `cast-wizard.png` | 309 × 384 | Mumbleby: tall floppy purple hat with stars, white beard, spectacles, glowing wand |

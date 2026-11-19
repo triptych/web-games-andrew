@@ -184,6 +184,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 141 | [SANDSUNK](game-141/) | Dig down through a tower sunk in the desert: tap away blocks, read Minesweeper numbers to disarm traps and ambush monsters, solve rune, sun-conduit and chest-lock puzzles, and fill a museum with 3D artifacts; fal art, Meshy models, ElevenLabs music, effects and voices | three.js |
 | 142 | [Kaboom Keep](game-142/) | A whimsical physics cannon game: blast toy-block castles to bits and knock over every little knight, prince and wizard; a rigid-body engine written for the game, five cannonballs, twelve castles; fal art, ElevenLabs music, effects and voices | three.js |
 | 143 | [Doom & Doilies: The Sugar Siege](game-143/) | The sequel to Doom & Doilies: Mayor Noxia builds up a spooky village between four sieges, holds the wall against the Gingerbread Zombie King's horde, and ends the war with the Cookie Queen's kiss; fal pixel art, ElevenLabs music and voices | Canvas 2D |
+| 142 | [Kaboom Keep](game-142/) | A whimsical physics cannon game: blast toy-block castles to bits and knock over every little knight, prince and wizard; a rigid-body engine written for the game, five cannonballs, 48 castles from a proved generator plus Endless Siege; fal art, ElevenLabs music, effects and voices | three.js |
 
 ### Highlights
 

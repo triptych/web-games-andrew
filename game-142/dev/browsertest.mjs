@@ -110,7 +110,8 @@ async function desktop() {
 
     await click(page, '#title-menu [data-act="play"]');
     await until(page, () => !document.getElementById('map').hidden, 'Play opens the map of castles');
-    check(await Q(page, () => { const b = document.querySelectorAll('.lvl'); return b.length === 12 && !b[0].disabled && b[1].disabled; }), 'twelve castles: the first open, the second locked');
+    check(await Q(page, () => { const b = document.querySelectorAll('.lvl'); return b.length === 48 && !b[0].disabled && b[1].disabled; }), '48 castles: the first open, the second locked');
+    check(await Q(page, () => document.querySelectorAll('.region').length === 5 && document.getElementById('btn-endless').disabled), 'four regions and Endless Siege, which starts locked');
     await shot(page, 'desktop-map');
     await click(page, '.lvl[data-level="0"]');
     await until(page, () => !document.getElementById('intro').hidden && document.getElementById('intro-name').textContent.length > 3, 'a castle opens its intro card');
@@ -182,19 +183,35 @@ async function desktop() {
     check(await Q(page, () => !__kk.hasSave()), 'a finished castle leaves no Continue');
     await shot(page, 'desktop-results');
     await click(page, '#res-next');
-    await until(page, () => !document.getElementById('intro').hidden && document.getElementById('intro-name').textContent.includes('Gatehouse'), 'Next Castle opens castle 2\'s intro');
+    await until(page, () => !document.getElementById('intro').hidden && document.getElementById('intro-region').textContent.includes('Castle 2'), 'Next Castle opens castle 2\'s intro');
     await click(page, '#intro .sheet-foot [data-close]');
+    // Back from that intro must land on a menu, never on the bare demo with no UI (v1.0.0 did)
+    await until(page, () => !document.getElementById('title').hidden && __kk.ui.top() === 'title', 'Back from the next castle\'s intro returns to the title');
     await click(page, '#title-menu [data-act="play"]');
     await until(page, () => !document.getElementById('map').hidden && !document.querySelectorAll('.lvl')[1].disabled, 'castle 2 is now open on the map');
 
-    // a castle with two kinds of ball: the number keys pick them
-    await Q(page, () => __kk.start(1));
-    await until(page, () => __kk.mode === 'play' && __kk.G.level === 1, 'castle 2 starts');
+    // a castle with two kinds of ball: the number keys pick them (the Gatehouse is castle 4)
+    await Q(page, () => __kk.start(3));
+    await until(page, () => __kk.mode === 'play' && __kk.G.spec.id === 'gatehouse', 'the Gatehouse starts');
     await page.keyboard.press('Digit2');
     await until(page, () => __kk.G.sel === 'boom' && document.querySelector('.rack-btn.sel')?.dataset.ammo === 'boom', 'key 2 loads the Boom Ball and the rack shows it');
     await page.keyboard.press('KeyQ');
     await until(page, () => __kk.G.sel === 'iron', 'Q cycles back to the Iron Ball');
     await shot(page, 'desktop-play');
+
+    // Endless Siege (started by the debug hook; the map locks it until the first twelve are cleared)
+    await Q(page, () => __kk.endless(0, 7));
+    await until(page, () => __kk.mode === 'play' && __kk.G.endless && __kk.G.endless.n === 0 && document.getElementById('hud-castle').textContent.startsWith('Siege 1'), 'an Endless Siege castle starts and the HUD says so');
+    await Q(page, () => __kk.ff(80));
+    await until(page, () => __kk.mode === 'over' && !document.getElementById('over').hidden, 'clearing it shows the results');
+    check(await Q(page, () => document.getElementById('res-next').textContent.includes('Siege') && !document.getElementById('res-next').hidden), 'with a Next Siege Castle button');
+    check(await Q(page, () => __kk.progress().endless.best >= 1), 'and the run is recorded');
+    await click(page, '#res-next');
+    await until(page, () => !document.getElementById('intro').hidden && document.getElementById('intro-region').textContent.includes('Castle 2'), 'Next opens the second siege castle\'s intro');
+    await shot(page, 'desktop-siege-intro');
+    await click(page, '#intro-go');
+    await until(page, () => __kk.mode === 'play' && __kk.G.endless.n === 1 && __kk.G.endless.total > 0, 'which plays on with the run total carried over');
+    await shot(page, 'desktop-siege');
     reportErrors('desktop');
 }
 

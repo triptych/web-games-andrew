@@ -242,7 +242,7 @@ export function waveFlag(flag, t) {
 export function makeTrees(rng, region, avoid) {
     const g = new THREE.Group();
     const trunkMat = std(0x7a4f2c, { roughness: 0.9 });
-    const leaf = region === 'frost' ? [0x2f6b4f, 0x3c7d5d] : region === 'sunset' ? [0xe08a2e, 0xc75a2a, 0x9cab3c] : [0x4aa84a, 0x5cc25a, 0x3d9440];
+    const leaf = region === 'frost' ? [0x2f6b4f, 0x3c7d5d] : region === 'sunset' ? [0xe08a2e, 0xc75a2a, 0x9cab3c] : region === 'marsh' ? [0x3d8a7a, 0x4f6fa8, 0x2f7a6a] : [0x4aa84a, 0x5cc25a, 0x3d9440];
     const snow = std(0xffffff, { roughness: 1 });
     const trunkGeo = new THREE.CylinderGeometry(0.18, 0.26, 1.6, 7);
     const blob = new THREE.IcosahedronGeometry(1.2, 1);
