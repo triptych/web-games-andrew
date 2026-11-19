@@ -2,7 +2,7 @@
 
 **Genre:** casual physics cannon game (third person; castle demolition)
 **Engine:** three.js r165, sim/view layout. A 3D rigid-body engine written for the game. Art by fal (`nano-banana-2`), music, effects and voices by ElevenLabs; every model is code, and a Web Audio synth stands in for any sound that fails to load.
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -77,7 +77,21 @@ One castle: read the intro card (who lives there, what is in the rack) → aim (
 | king (and the prince) | 0.52 × 0.84 × 0.44 | 1500 | Grampa Werthers (cranky) |
 | wizard | 0.4 × 0.84 × 0.36 | 800 | Potato (earthy, wrinkled) |
 
-### Castles ([js/sim/levels.js](js/sim/levels.js))
+### Castles ([js/sim/levels.js](js/sim/levels.js), [js/sim/castlegen.js](js/sim/castlegen.js))
+
+**48 castles, 12 per region** (Greenmeadow, Frostpeak, Sunset Shire, Moonbeam Marsh). In the first three regions the hand-made castles below sit at positions 1, 4, 8 and 12; the generator fills the rest, and all of Moonbeam Marsh. Difficulty (the generator's tier) climbs from 0.06 to 1 across the 48; the last marsh castle is tier 1.
+
+**The generator** lays a row of modules across the meadow (square towers 2 or 3 wide, round towers, walls in running bond, a keep with a floor on columns inside, a spire, a crate shelf, a colonnade), sometimes a big keep behind and a cliff underneath, then wooden bridges between neighbouring towers whose plain tops are level. Rules that each came from a castle that fell over on its own:
+- every module reports its **perches** (surfaces it built); people are only seated on perches, and each seat is checked against the real parts (a bridge landing on a tower top, a crenel, a roof);
+- a wall at either end becomes a tower and steps 0.3 m outward, because its neighbour sits flush and a round tower or a spire's slab pokes 0.2 m past its footprint; the crate shelf's plank is exactly its footprint;
+- a **block budget** (340 before the next module) keeps a castle under about 520 bodies, the most a phone should have to collapse;
+- the rack always holds one ball more than there are people (added without a random draw, so it never changes the castle); star lines come from what there is to win (`starLines()` in game.js).
+Names ("The Wobblewick Bastion"), the knights' names and the intro line are drawn from the same seed.
+
+**Endless Siege** opens once the first twelve castles are cleared: castle *n* of a run is generated with tier 0.22 + 0.06 *n* (capped at 1), cycling through the four regions; the run's total score carries over, and the best run (castles cleared, then score) is kept.
+
+The hand-made twelve:
+
 | # | Castle | Region | Rack | Idea |
 |---|---|---|---|---|
 | 1 | The Wobbly Watchtower | Greenmeadow | 4 iron | one tower, one knight: learn to aim |
@@ -94,6 +108,8 @@ One castle: read the intro card (who lives there, what is in the rack) → aim (
 | 12 | King Bumble's Grand Castle | Sunset Shire | 3 iron, 2 boom, triple, bertha, boing | the finale: 520 bodies |
 
 A castle opens when the one before has a star.
+
+Moonbeam Marsh is lit by the moon (a dim blue hemisphere, a pale blue "sun" at 1.5, exposure 1.15), so fire and flashes glow.
 
 ## Controls
 
@@ -164,6 +180,10 @@ From `ONLY=bot node game-142/dev/simtest.mjs` (the perfect bot aims at the lowes
 - More castles (the kit makes them quick), a sandbox mode with unlimited balls.
 
 ## Changelog
+
+### v1.1.0 (2026-11-19)
+- 48 castles in four regions (36 from the new castle generator), Moonbeam Marsh, Endless Siege.
+- Fixed: Next Castle or Castles, then Back, left the screen with no menu (the title screen had been closed underneath).
 
 ### v1.0.0 (2026-11-19)
 - First release: a rigid-body engine, twelve castles in three regions, five cannonballs, bonkable knights, prince, wizard and kings, fal art and ElevenLabs audio, map, intro cards, stars and saves, simtest and browsertest.

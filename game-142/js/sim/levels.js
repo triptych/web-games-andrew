@@ -5,6 +5,8 @@
 //
 // Coordinates: the cannon is at the origin and fires along +z; the ground is y = 0.
 
+import { generateCastle } from './castlegen.js';
+
 const GAP = 0.003;          // blocks side by side are made this much narrower, so they don't start overlapping
 
 function quatYaw(a) { return [0, Math.sin(a / 2), 0, Math.cos(a / 2)]; }
@@ -129,9 +131,9 @@ export function makeKit() {
     return K;
 }
 
-// ------------------------------------------------------------------ the castles
+// ------------------------------------------------------------------ the hand-made castles
 // ammo: what is in the rack. stars: score for two and three stars (one is for clearing it).
-export const LEVELS = [
+const HANDMADE = [
     {
         id: 'watchtower', name: 'The Wobbly Watchtower', region: 'meadow',
         intro: 'Sir Wobbleton keeps watch from the top. Knock him off his perch!',
@@ -359,10 +361,27 @@ export const REGIONS = {
     meadow: { name: 'Greenmeadow', sky: 0x9fd4ff, fog: 0xcfe8ff, ground: 0x7cc35a },
     frost:  { name: 'Frostpeak',   sky: 0xbfe0ff, fog: 0xe8f4ff, ground: 0xe9f2fa },
     sunset: { name: 'Sunset Shire', sky: 0xffc59a, fog: 0xffe0c4, ground: 0xb9c35a },
+    marsh:  { name: 'Moonbeam Marsh', sky: 0x2a3466, fog: 0x2c3a6e, ground: 0x3f7a6a },
 };
+export const REGION_ORDER = ['meadow', 'frost', 'sunset', 'marsh'];
 
-export function buildLevel(i) {
-    const K = makeKit();
-    LEVELS[i].build(K);
-    return K.parts;
+// ------------------------------------------------------------------ the campaign: 48 castles
+// Twelve per region. In the first three regions the hand-made castles sit at 1, 4, 8 and 12 and
+// generated ones fill the rest; Moonbeam Marsh is all generated. Difficulty climbs across all 48.
+// Every generated castle here is proved by dev/simtest.mjs to stand on its own and to be won by
+// the bot with its rack.
+export const PER_REGION = 12;
+const HAND_SLOTS = [0, 3, 7, 11];
+
+export const LEVELS = [];
+for (let r = 0; r < REGION_ORDER.length; r++) {
+    const region = REGION_ORDER[r];
+    const hand = HANDMADE.filter((L) => L.region === region);
+    for (let i = 0; i < PER_REGION; i++) {
+        const g = r * PER_REGION + i;
+        const h = HAND_SLOTS.indexOf(i);
+        if (h >= 0 && hand[h]) { LEVELS.push(hand[h]); continue; }
+        const tier = region === 'marsh' && i === PER_REGION - 1 ? 1 : Math.min(1, 0.06 + (g / 47) * 0.94);
+        LEVELS.push(generateCastle(5000 + g * 37, tier, region, `${region}-${i + 1}`));
+    }
 }

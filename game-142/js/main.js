@@ -9,8 +9,8 @@ import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
 import { UI } from './ui.js';
-import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, loadProgress, recordResult, forgetAll, unlocked } from './save.js';
-import { newGame, step } from './sim/game.js';
+import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, loadProgress, recordResult, recordEndless, forgetAll, unlocked } from './save.js';
+import { newGame, newEndless, step } from './sim/game.js';
 import { makeBot, botInput } from './sim/bot.js';
 import { clampAim } from './sim/aim.js';
 import { LEVELS } from './sim/levels.js';
@@ -30,12 +30,14 @@ const view = new View(canvas, { lowPower: coarse() });
 view.followShots = settings.follow;
 let pendingAmmo = null;
 let introLevel = 0;
+let introGame = null;            // an Endless castle, built and waiting behind its intro card
 const ui = new UI({
     audio, settings,
     onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); view.followShots = s.follow; updateTouch(); },
     onDeleteSave: () => { forgetAll(); refreshTitle(); if (ui.stack.includes('map')) ui.buildMap(); },
     onAmmo: (k) => { pendingAmmo = k; },
-    onPickLevel: (i) => { introLevel = i; ui.showIntro(i); },
+    onPickLevel: (i) => { introLevel = i; introGame = null; ui.showIntro(i); },
+    onEndless: () => showSiegeIntro(newEndless(seedNow(), 0, 0)),
 });
 
 const firstOpen = () => { for (let i = LEVELS.length - 1; i >= 0; i--) if (unlocked(i)) return i; return 0; };
@@ -78,11 +80,25 @@ on('pause-menu', (act) => {
     else ui.openScreen(act);
 });
 on('over-menu', (act) => {
-    if (act === 'retry') startGame(newGame(seedNow(), G.level));
-    else if (act === 'next') { const n = Math.min(LEVELS.length - 1, G.level + 1); toTitle(); introLevel = n; ui.showIntro(n); }
-    else if (act === 'map') { toTitle(); ui.buildMap(); ui.openScreen('map'); }
+    const E = G.endless;
+    if (act === 'retry') { if (E) { const g = newEndless(seedNow(), 0, 0); toTitle(); showSiegeIntro(g); } else startGame(newGame(seedNow(), G.level)); }
+    else if (act === 'next') {
+        if (E) { const g = newEndless(E.seed, E.n + 1, E.total); toTitle(); showSiegeIntro(g); }
+        else { const n = Math.min(LEVELS.length - 1, G.level + 1); toTitle(); introLevel = n; introGame = null; ui.showIntro(n); }
+    } else if (act === 'map') { toTitle(); ui.buildMap(); ui.openScreen('map'); }
 });
-document.getElementById('intro-go').addEventListener('click', () => { audio.ui('click'); startGame(newGame(seedNow(), introLevel)); });
+document.getElementById('intro-go').addEventListener('click', () => {
+    audio.ui('click');
+    const g = introGame || newGame(seedNow(), introLevel);
+    introGame = null;
+    startGame(g);
+});
+
+/** The intro card of an Endless castle, which is already built (its name and rack are on the card). */
+function showSiegeIntro(g) {
+    introGame = g;
+    ui.showIntroFor(g.spec, `Endless Siege · Castle ${g.endless.n + 1}${g.endless.total ? ` · ${g.endless.total.toLocaleString()} so far` : ''}`);
+}
 document.getElementById('btn-pause').addEventListener('click', () => pause());
 
 const seedNow = () => (Date.now() % 1e9) | 0;
@@ -160,7 +176,7 @@ const endDrag = (e) => {
 for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, endDrag);
 
 function ammoFromCmd() {
-    const avail = AMMO_ORDER.filter((k) => k in LEVELS[G.level].ammo);
+    const avail = AMMO_ORDER.filter((k) => k in G.spec.ammo);
     let k = pendingAmmo;
     pendingAmmo = null;
     const c = input.ammoCmd;
@@ -200,7 +216,9 @@ function flushEvents(silent = false) {
     if (over && mode === 'play') {
         mode = 'over';
         clearSave();
-        const best = recordResult(G.level, over.won, over.stars, over.score);
+        const best = G.endless
+            ? recordEndless(G.endless.n + (over.won ? 1 : 0), G.endless.total)
+            : recordResult(G.level, over.won, over.stars, over.score);
         view.mode = 'end';
         setTimeout(() => { if (mode === 'over') { ui.showHud(false); ui.showResult(G, over, best); } }, DEBUG ? 300 : 1100);
     }
@@ -268,6 +286,7 @@ if (DEBUG) {
         get mode() { return mode; },
         seen, view, ui, audio, input,
         start(level = 0, seed = 1) { startGame(newGame(seed, level)); return G; },
+        endless(n = 0, seed = 1) { startGame(newEndless(seed, n, 0)); return G; },
         autoplay(on = true, skill = 1) { bot = on ? makeBot({ skill }) : null; },
         /** Run the sim ahead synchronously with the bot playing; events reach the view as usual. */
         ff(sec, skill = 1) { const b = makeBot({ skill }); for (let t = 0; t < sec && !G.over; t += STEP) step(G, botInput(G, b), STEP); flushEvents(); },

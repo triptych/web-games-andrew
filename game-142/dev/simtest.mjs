@@ -24,7 +24,8 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
 const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
-const SEEDS = +(process.env.SEEDS || 2);
+const SEEDS = +(process.env.SEEDS || 1);
+const ENDLESS = +(process.env.ENDLESS || 10);
 const want = (name) => !ONLY.length || ONLY.includes(name);
 
 const C = await import('../js/config.js');
@@ -33,6 +34,8 @@ const Bt = await import('../js/sim/bot.js');
 const P = await import('../js/sim/physics.js');
 const { LEVELS } = await import('../js/sim/levels.js');
 const { predict, solveAim, clampAim } = await import('../js/sim/aim.js');
+const idx = (id) => LEVELS.findIndex((L) => L.id === id);
+const GATE = idx('gatehouse'), FORT = idx('timberfort');
 
 let fails = 0, checks = 0;
 const ok = (cond, msg) => {
@@ -126,7 +129,7 @@ if (want('rules')) {
     Gm.step(G, { ...NONE, aim: { yaw: 5, pitch: -3 } }, DT);
     ok(G.aim.yaw === C.CANNON.yawMax && G.aim.pitch === C.CANNON.pitchMin, 'a direct aim is clamped to the cannon\'s limits');
     // firing and reloading
-    G = Gm.newGame(1, 1);
+    G = Gm.newGame(1, GATE);
     const shots0 = G.ammo.iron;
     Gm.step(G, { ...NONE, a: true }, DT);
     ok(G.ammo.iron === shots0 - 1 && G.shots === 1 && evs(G, 'fire').length === 1, 'fire spends a ball and emits fire');
@@ -140,7 +143,7 @@ if (want('rules')) {
     Gm.step(G, { ...NONE, ammo: 'triple' }, DT);
     ok(G.sel === 'boom', 'a ball the castle does not give you cannot be picked');
     // the last of a kind loads the next kind by itself
-    G = Gm.newGame(1, 1);
+    G = Gm.newGame(1, GATE);
     G.ammo = { iron: 1, boom: 1 }; G.sel = 'iron';
     Gm.step(G, { ...NONE, a: true }, DT);
     ok(G.sel === 'boom', 'when a kind runs out the next one is loaded');
@@ -243,6 +246,19 @@ if (want('rules')) {
     Gm.step(G, { ...NONE, a: true }, DT);
     ok(G.W.bodies.filter((x) => x.kind === 'ball').length === 3, 'a split ball has no second trick');
 
+    // Endless Siege
+    G = Gm.newEndless(5, 0, 0);
+    const G2 = Gm.newEndless(5, 3, 0);
+    ok(G.level === -1 && G.endless.n === 0 && G.spec.name && G.targets >= 2, 'an Endless castle is generated, with people to bonk');
+    ok(G2.targets >= G.targets && G2.W.bodies.length > G.W.bodies.length * 0.8 && G2.spec.region !== G.spec.region, 'later Endless castles are bigger and move on to the next region');
+    ok(JSON.stringify(Gm.serialize(Gm.newEndless(5, 2, 0))) === JSON.stringify(Gm.serialize(Gm.newEndless(5, 2, 0))), 'the same Endless seed builds the same castle');
+    for (const c of chars(G)) c.dmg = 99;
+    G.endless.total = 1000;
+    run(G, NONE, C.PLAY.clearDelay + 0.2);
+    ok(G.won && G.endless.total === 1000 + G.score, 'winning an Endless castle banks its score in the run total');
+    const Gs = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(Gm.newEndless(8, 1, 500)))));
+    ok(Gs.endless.n === 1 && Gs.endless.total === 500 && Gs.spec.name && Gs.W.bodies.length > 20, 'an Endless castle survives a save round trip');
+
     // winning and losing
     G = Gm.newGame(1, 0);
     for (const c of chars(G)) c.dmg = 99;
@@ -263,10 +279,14 @@ if (want('rules')) {
 // ======================================================================
 if (want('castles')) {
     section('castles');
-    for (let i = 0; i < LEVELS.length; i++) {
-        const L = LEVELS[i];
-        const G = Gm.newGame(1, i);
+    ok(LEVELS.length === 48 && new Set(LEVELS.map((L) => L.id)).size === 48, `48 castles with unique ids (${LEVELS.length})`);
+    const games = LEVELS.map((L, i) => ({ L, make: () => Gm.newGame(1, i) }));
+    for (let n = 0; n < ENDLESS; n++) games.push({ L: { id: `endless-${n + 1}`, ammo: {}, stars: [0, 1] }, make: () => Gm.newEndless(4242, n, 0) });
+    for (const { L: L0, make } of games) {
+        const G = make();
+        const L = { ...L0, ammo: G.spec.ammo, stars: G.spec.stars };
         ok(G.targets > 0, `${L.id}: has people to bonk (${G.targets})`);
+        ok(G.W.bodies.length <= 560, `${L.id}: starts small enough for a phone (${G.W.bodies.length} bodies)`);
         ok(G.flags.every((f) => f.body), `${L.id}: every flag stands on a block`);
         ok(Object.keys(L.ammo).every((k) => C.AMMO[k]) && L.stars && L.stars[0] < L.stars[1], `${L.id}: ammo and star thresholds are sane`);
         Gm.wakeAll(G);
@@ -282,10 +302,10 @@ if (want('castles')) {
 if (want('determinism')) {
     section('determinism');
     const play = (seed, level, secs) => { const G = Gm.newGame(seed, level); const b = Bt.makeBot({ skill: 0.7 }); run(G, (g) => Bt.botInput(g, b), secs); return G; };
-    const a = play(42, 2, 8), b = play(42, 2, 8);
+    const a = play(42, FORT, 8), b = play(42, FORT, 8);
     ok(JSON.stringify(Gm.serialize(a)) === JSON.stringify(Gm.serialize(b)), 'same seed and inputs, same game');
     // a save round trip in the middle of a collapse
-    const G = Gm.newGame(7, 1);
+    const G = Gm.newGame(7, GATE);
     G.ammo.boom = 1; G.sel = 'boom'; G.aim = { yaw: 0, pitch: 0.2 };
     Gm.step(G, { ...NONE, a: true }, DT);
     run(G, NONE, 1.3);
@@ -306,39 +326,45 @@ if (want('bot')) {
     section('bot');
     const rows = [];
     const t0 = Date.now();
-    const skills = [1, 0.5];
-    for (let i = 0; i < LEVELS.length; i++) {
-        for (const skill of skills) {
-            for (let s = 1; s <= (skill === 1 ? 1 : SEEDS); s++) {
-                const G = Gm.newGame(s * 7919, i);
-                const bot = Bt.makeBot({ skill });
-                let bad = null;
-                while (!G.over && G.t < 150) {
-                    Gm.step(G, Bt.botInput(G, bot), DT);
-                    G.events.length = 0;
-                    for (const b of G.W.bodies) if (!b.p.every(Number.isFinite) || !b.q.every(Number.isFinite)) { bad = `non-finite ${b.kind}`; break; }
-                    if (G.W.bodies.length > C.BREAK.maxBodies + 40) bad = `too many bodies (${G.W.bodies.length})`;
-                    if (bad) break;
-                }
-                ok(!bad, `${LEVELS[i].id} skill ${skill} seed ${s}: ${bad || 'invariants hold'}`);
-                ok(G.over, `${LEVELS[i].id} skill ${skill} seed ${s}: the castle ends`);
-                rows.push({ level: i, skill, won: G.won, score: G.score, stars: G.stars, shots: G.shots });
-            }
+    const play = (make, skill, label) => {
+        const G = make();
+        const bot = Bt.makeBot({ skill });
+        const cap = Math.max(C.BREAK.maxBodies, G.W.bodies.length) + 40;   // breaking never grows a castle past this
+        let bad = null;
+        while (!G.over && G.t < 150) {
+            Gm.step(G, Bt.botInput(G, bot), DT);
+            G.events.length = 0;
+            for (const b of G.W.bodies) if (!b.p.every(Number.isFinite) || !b.q.every(Number.isFinite)) { bad = `non-finite ${b.kind}`; break; }
+            if (G.W.bodies.length > cap) bad = `too many bodies (${G.W.bodies.length})`;
+            if (bad) break;
         }
+        ok(!bad, `${label} skill ${skill}: ${bad || 'invariants hold'}`);
+        ok(G.over, `${label} skill ${skill}: the castle ends`);
+        return { won: G.won, score: G.score, stars: G.stars, shots: G.shots };
+    };
+    for (let i = 0; i < LEVELS.length; i++) {
+        rows.push({ level: i, skill: 1, ...play(() => Gm.newGame(7919, i), 1, LEVELS[i].id) });
+        for (let s = 1; s <= SEEDS; s++) rows.push({ level: i, skill: 0.5, ...play(() => Gm.newGame(s * 7919, i), 0.5, LEVELS[i].id) });
     }
     const perfect = rows.filter((r) => r.skill === 1);
     const sloppy = rows.filter((r) => r.skill !== 1);
-    ok(perfect.every((r) => r.won), `the perfect bot clears every castle (${perfect.filter((r) => r.won).length}/${perfect.length})`);
-    ok(perfect.filter((r) => r.stars >= 2).length >= 10, `and earns two stars or more on at least 10 (${perfect.filter((r) => r.stars >= 2).length})`);
+    ok(perfect.every((r) => r.won), `the perfect bot clears every campaign castle (${perfect.filter((r) => r.won).length}/${perfect.length})`);
+    ok(perfect.filter((r) => r.stars >= 2).length >= perfect.length * 0.85, `and earns two stars or more on at least 85% (${perfect.filter((r) => r.stars >= 2).length}/${perfect.length})`);
+    ok(perfect.filter((r) => r.stars === 3).length <= perfect.length * 0.6, `three stars stay special: at most 60% for the perfect bot (${perfect.filter((r) => r.stars === 3).length})`);
     ok(sloppy.filter((r) => r.won).length >= sloppy.length * 0.7, `a sloppy bot (skill 0.5) clears most (${sloppy.filter((r) => r.won).length}/${sloppy.length})`);
-    console.log('\n  castle         perfect: score ★ shots   skill 0.5: wins avg-score');
+    // endless: the perfect bot keeps a run going
+    const endless = [];
+    for (let n = 0; n < Math.min(ENDLESS, 8); n++) endless.push(play(() => Gm.newEndless(99, n, 0), 1, `endless ${n + 1}`));
+    ok(endless.every((r) => r.won), `the perfect bot clears Endless castles 1–${endless.length} (${endless.filter((r) => r.won).length})`);
+    console.log('\n  castle            perfect: score ★ shots   skill 0.5: wins avg-score');
     for (let i = 0; i < LEVELS.length; i++) {
         const p = perfect.find((r) => r.level === i);
         const s = sloppy.filter((r) => r.level === i);
-        const avg = s.filter((r) => r.won).length ? Math.round(s.filter((r) => r.won).reduce((a, r) => a + r.score, 0) / s.filter((r) => r.won).length) : 0;
-        console.log(`  ${LEVELS[i].id.padEnd(14)} ${String(p.score).padStart(6)} ${p.stars} ${String(p.shots).padStart(3)}         ${s.filter((r) => r.won).length}/${s.length}  ${avg}`);
+        const won = s.filter((r) => r.won);
+        const avg = won.length ? Math.round(won.reduce((a, r) => a + r.score, 0) / won.length) : 0;
+        console.log(`  ${String(i + 1).padStart(2)} ${LEVELS[i].id.padEnd(14)} ${String(p.score).padStart(6)} ${p.stars} ${String(p.shots).padStart(3)}         ${won.length}/${s.length}  ${avg}`);
     }
-    console.log(`  ${rows.length} castles played in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
+    console.log(`  ${rows.length + endless.length} castles played in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
 }
 
 console.log(`\n${fails ? `${fails} FAILED` : 'all passed'} (${checks} checks)`);

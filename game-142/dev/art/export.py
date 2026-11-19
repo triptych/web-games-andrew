@@ -16,9 +16,9 @@ RAW = Path(sys.argv[1])
 OUT = Path(__file__).resolve().parents[2] / 'art'
 OUT.mkdir(exist_ok=True)
 
-TEXTURES = ['stone', 'wood', 'roof', 'ice', 'brick', 'tnt', 'grass', 'snow', 'autumn']
-SKIES = {'sky-meadow': 'sky.jpg', 'sky-frost': 'sky-frost.jpg', 'sky-sunset': 'sky-sunset.jpg'}
-REGIONS = ['region-meadow', 'region-frost', 'region-sunset']
+TEXTURES = ['stone', 'wood', 'roof', 'ice', 'brick', 'tnt', 'grass', 'snow', 'autumn', 'marsh']
+SKIES = {'sky-meadow': 'sky.jpg', 'sky-frost': 'sky-frost.jpg', 'sky-sunset': 'sky-sunset.jpg', 'sky-marsh': 'sky-marsh.jpg'}
+REGIONS = ['region-meadow', 'region-frost', 'region-sunset', 'region-marsh']
 CAST = {'cast-knight': 'knight.png', 'cast-king': 'cast-king.png', 'cast-wizard': 'cast-wizard.png',
         'cast-prince': 'cast-prince.png', 'cast-pip': 'cast-pip.png'}
 
