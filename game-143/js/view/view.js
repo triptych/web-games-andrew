@@ -1,8 +1,9 @@
 // The Canvas 2D view: the town as a little diorama on its painted green, the siege seen from the side, the
 // title's key art, and the particles. Reads G and answers events; never changes G.
 
-import { DAY_LEN, FIELD, DOILY, KNIGHT, PLOTS_OPEN } from '../config.js';
-import { BUILDINGS, ENEMIES, STAFF, ADVENTURERS } from '../sim/data.js';
+import { DAY_LEN, FIELD, DOILY, KNIGHT, PLOTS_OPEN, BUILD_DAYS, UPGRADE_DAYS, POP } from '../config.js';
+import { BUILDINGS, ENEMIES, STAFF, ADVENTURERS, RES_ICON } from '../sim/data.js';
+import { buildingRate, isRipe, harvestValue } from '../sim/town.js';
 import { IMG } from './assets.js';
 import { hash3 } from '../rng.js';
 
@@ -17,6 +18,10 @@ const BG_W = 1600, BG_H = 900;
 const STAFF_SPRITE = Object.fromEntries(Object.entries(STAFF).map(([k, v]) => [k, v.sprite]));
 const VILLAGERS = ['vil/tansy', 'vil/hollyhock', 'vil/bram', 'vil/hilde'];
 
+const RES_COLOR = { gold: '#ffd36b', flour: '#fff3d6', sugar: '#ffb3dc', stone: '#d9d0e0' };
+const FLOW_T = 2.2;
+const TOWN_PAD = 136;        // the dock (64 px) and the tip row above it          // a building shows what it made every this many seconds of sim time
+
 const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -25,6 +30,10 @@ export class View {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.fx = [];
+        this.floats = [];          // "+3 🌾" numbers rising from the buildings
+        this.flow = [];            // per plot: what it has made since its last number
+        this.bub = [];             // harvest bubbles drawn this frame: { i, x, y, r }
+        this.pulse = null;         // "Show me": { plot, t } a plot (or 'hall') to point at
         this.rings = [];
         this.shake = 0;
         this.pan = null;           // town pan in screen px (null = centre on the next frame)
@@ -62,7 +71,8 @@ export class View {
         const sw = BG_W * k;
         if (this.pan == null) this.pan = clamp(this.w / 2 - sw * 0.47, this.w - sw, 0);
         this.pan = clamp(this.pan, Math.min(0, this.w - sw), 0);
-        const oy = this.h - 64 - BG_H * k * 0.985;
+        // the town rests on the helper's tip row, which sits on the dock, so no building hides behind either
+        const oy = this.h - TOWN_PAD - BG_H * k * 0.985;
         return { k, ox: this.pan, oy, sw };
     }
     townPt(p) { const t = this.townXf(); return { x: t.ox + p.x * BG_W * t.k, y: t.oy + p.y * BG_H * t.k, k: t.k * p.s }; }
@@ -91,6 +101,83 @@ export class View {
         PLOT_POS.forEach((p, i) => { if (i < PLOTS_OPEN[2]) test(p, i); });
         test(HALL_POS, 'hall');
         return best;
+    }
+
+    /** The harvest bubble under a client point (plot index), or -1. Generous, for thumbs. */
+    pickBubble(cx, cy) {
+        const r = this.canvas.getBoundingClientRect();
+        const x = cx - r.left, y = cy - r.top;
+        let best = -1, bd = Infinity;
+        for (const b of this.bub) {
+            const d = Math.hypot(x - b.x, y - b.y);
+            if (d < Math.max(b.r + 14, 30) && d < bd) { bd = d; best = b.i; }
+        }
+        return best;
+    }
+    /** Client point of a plot's bubble (for tests). */
+    bubbleClient(i) {
+        const r = this.canvas.getBoundingClientRect(), b = this.bub.find((o) => o.i === i);
+        return b ? { x: r.left + b.x, y: r.top + b.y } : null;
+    }
+    point(plot, t = 4) { this.pulse = { plot, t }; }
+
+    // ------------------------------------------------------------------ activity: floating numbers
+    /** Feed the rising numbers from what each building made in `dt` of sim time (call in town only). */
+    tickTown(G, dt) {
+        if (dt <= 0 || G.mode !== 'town') return;
+        for (let i = 0; i < G.plots.length; i++) {
+            const b = G.plots[i].b;
+            if (!b || (b.build > 0 && !b.up)) { this.flow[i] = null; continue; }
+            let f = this.flow[i];
+            if (!f || f.b !== b) f = this.flow[i] = { b, t: (i * 0.37) % FLOW_T, acc: {} };
+            const r = buildingRate(G, i);
+            // a building that can't pay for its inputs makes nothing, as in the sim
+            if (Object.keys(r.use).some((k) => (G.res[k] || 0) < r.use[k] * dt)) continue;
+            for (const k in r.make) f.acc[k] = (f.acc[k] || 0) + r.make[k] * dt;
+            if (r.bake) f.acc.bake = (f.acc.bake || 0) + r.bake * dt;
+            f.t += dt;
+            if (f.t >= FLOW_T) { f.t = 0; this.emit(i, f.acc); }
+        }
+        // the villagers' taxes go to the hall
+        const h = this.flow.hall || (this.flow.hall = { t: 0, acc: {} });
+        h.acc.gold = (h.acc.gold || 0) + POP.tax * G.pop * dt;
+        h.t += dt;
+        if (h.t >= FLOW_T * 1.5) { h.t = 0; this.emit('hall', h.acc); }
+    }
+    emit(plot, acc) {
+        let slot = 0;
+        for (const k in acc) {
+            if (k === 'bake') { if (acc.bake >= 0.1) { this.float(plot, `+${acc.bake.toFixed(1)}% 🎂`, '#ffb3dc', slot++); acc.bake = 0; } continue; }
+            const n = Math.floor(acc[k]);
+            if (n >= 1) { this.float(plot, `+${n} ${RES_ICON[k]}`, RES_COLOR[k], slot++); acc[k] -= n; }
+        }
+    }
+    float(plot, text, color, slot = 0, big = false) {
+        if (this.floats.length > 80) this.floats.shift();
+        this.floats.push({ plot, text, color, t: 0, max: big ? 1.7 : 1.15, big, dx: slot ? (slot % 2 ? 1 : -1) * 34 : 0, dy: slot * 8 });
+    }
+    drawFloats(dt) {
+        const c = this.ctx;
+        c.save();
+        c.textAlign = 'center';
+        c.lineJoin = 'round';
+        for (let i = this.floats.length - 1; i >= 0; i--) {
+            const f = this.floats[i];
+            f.t += dt;
+            if (f.t >= f.max) { this.floats.splice(i, 1); continue; }
+            const q = this.townPt(f.plot === 'hall' ? HALL_POS : PLOT_POS[f.plot]);
+            const p = f.t / f.max;
+            const lift = (f.plot === 'hall' ? 230 : 175) * q.k;
+            const x = q.x + f.dx * q.k, y = q.y - lift - f.dy - p * (f.big ? 70 : 46);
+            const pop = f.t < 0.12 ? 0.6 + (f.t / 0.12) * 0.4 : 1;
+            const size = Math.round((f.big ? 26 : 17) * pop * clamp(q.k * 1.4, 0.75, 1.25));
+            c.globalAlpha = p > 0.6 ? (1 - p) / 0.4 : 1;
+            c.font = `bold ${size}px Fredoka, sans-serif`;
+            c.strokeStyle = 'rgba(30, 10, 40, 0.9)'; c.lineWidth = f.big ? 5 : 4;
+            c.strokeText(f.text, x, y);
+            c.fillStyle = f.color; c.fillText(f.text, x, y);
+        }
+        c.restore();
     }
 
     // ------------------------------------------------------------------ battle geometry
@@ -136,9 +223,16 @@ export class View {
                 }
                 else if (e.type === 'knightDown') this.burst(this.fx2s(KNIGHT.x), g.groundY - 30 * g.u, 10, ['#d8dde8', '#fff'], 'spark');
             }
+            if (e.type === 'collect') {
+                const b = this.bub.find((o) => o.i === e.plot);
+                const q = this.townPt(PLOT_POS[e.plot]);
+                this.burst(b ? b.x : q.x, b ? b.y : q.y - 180 * q.k, 16, ['#fff6c8', '#ffd36b', '#ffb3dc', '#ffffff'], 'spark');
+                const parts = Object.entries(e.got).map(([k, v]) => `+${Math.round(v)} ${RES_ICON[k]}`);
+                parts.forEach((t, n) => this.float(e.plot, t, RES_COLOR[Object.keys(e.got)[n]] || '#fff', n, true));
+            }
             if (e.type === 'built' && e.plot != null) { const q = this.townPt(PLOT_POS[e.plot]); this.burst(q.x, q.y - 60 * q.k, 18, ['#ffd36b', '#fff', '#ff9fd2'], 'spark'); }
             if (e.type === 'battleEnd') { this.fx.length = 0; this.rings.length = 0; this.web = 0; this.pan = null; }
-            if (e.type === 'invasion') { this.fx.length = 0; this.love = 0; }
+            if (e.type === 'invasion') { this.fx.length = 0; this.love = 0; this.floats.length = 0; this.bub.length = 0; this.pulse = null; }
         }
     }
     burst(x, y, n, colors, kind) {
@@ -230,6 +324,7 @@ export class View {
         c.imageSmoothingEnabled = false;
 
         // everything stands in depth order: plots, the hall and the walkers
+        this.bub = [];
         const items = [];
         const open = PLOTS_OPEN[G.hall.lvl - 1];
         PLOT_POS.forEach((p, i) => items.push({ y: p.y, draw: () => this.drawPlot(G, i, p, i < open, time) }));
@@ -254,6 +349,51 @@ export class View {
             c.globalCompositeOperation = 'source-over';
         }
         this.fog(time, t.oy + BG_H * t.k * 0.5, 0.12);
+        this.drawBubbles(time);
+        this.drawPulse(dt, time);
+        this.drawFloats(dt);
+    }
+
+    /** Harvest bubbles float over everything, so a thumb can always reach them. */
+    drawBubbles(time) {
+        const c = this.ctx;
+        for (const b of this.bub) {
+            const bob = Math.sin(time * 3 + b.i) * 4;
+            const y = b.y + bob, r = b.r * (1 + Math.sin(time * 5 + b.i) * 0.04);
+            b.y = y;
+            c.save();
+            const g = c.createRadialGradient(b.x, y, r * 0.2, b.x, y, r * 1.8);
+            g.addColorStop(0, 'rgba(255, 230, 150, 0.55)'); g.addColorStop(1, 'rgba(255, 230, 150, 0)');
+            c.fillStyle = g; c.beginPath(); c.arc(b.x, y, r * 1.8, 0, Math.PI * 2); c.fill();
+            c.fillStyle = 'rgba(255, 246, 252, 0.28)'; c.strokeStyle = 'rgba(255, 255, 255, 0.95)'; c.lineWidth = 2.5;
+            c.beginPath(); c.arc(b.x, y, r, 0, Math.PI * 2); c.fill(); c.stroke();
+            c.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            c.beginPath(); c.ellipse(b.x - r * 0.38, y - r * 0.42, r * 0.22, r * 0.13, -0.6, 0, Math.PI * 2); c.fill();
+            c.textAlign = 'center'; c.textBaseline = 'middle';
+            c.font = `${Math.round(r * 1.05)}px sans-serif`;
+            c.fillText(b.icon, b.x, y + r * 0.06);
+            c.restore();
+        }
+    }
+
+    /** "Show me": a bouncing arrow and a ring on a plot or the hall. */
+    drawPulse(dt, time) {
+        const P = this.pulse;
+        if (!P) return;
+        P.t -= dt;
+        if (P.t <= 0) { this.pulse = null; return; }
+        const c = this.ctx, q = this.townPt(P.plot === 'hall' ? HALL_POS : PLOT_POS[P.plot]);
+        const a = Math.min(1, P.t / 0.5);
+        c.save();
+        c.globalAlpha = a;
+        c.strokeStyle = '#ffd36b'; c.lineWidth = 4;
+        const w = (P.plot === 'hall' ? 115 : 105) * q.k * (1 + 0.08 * Math.sin(time * 8));
+        c.beginPath(); c.ellipse(q.x, q.y - 6 * q.k, w, w * 0.25, 0, 0, Math.PI * 2); c.stroke();
+        const ay = q.y - (P.plot === 'hall' ? 280 : 230) * q.k - Math.abs(Math.sin(time * 5)) * 16;
+        c.textAlign = 'center'; c.font = `bold ${Math.round(40 * clamp(q.k * 1.4, 0.8, 1.3))}px sans-serif`;
+        c.lineWidth = 6; c.strokeStyle = 'rgba(30, 10, 40, 0.85)'; c.strokeText('⬇', q.x, ay);
+        c.fillStyle = '#ffd36b'; c.fillText('⬇', q.x, ay);
+        c.restore();
     }
 
     drawPlot(G, i, p, open, time) {
@@ -288,7 +428,7 @@ export class View {
         // level stars and progress
         c.save(); c.textAlign = 'center'; c.font = `${Math.round(15 * q.k + 4)}px Fredoka, sans-serif`;
         if (b.build > 0) {
-            const tot = (b.up ? 0.4 : 0.25) * DAY_LEN, f = 1 - b.build / tot;
+            const tot = (b.up ? UPGRADE_DAYS : BUILD_DAYS) * DAY_LEN, f = 1 - b.build / tot;
             c.fillStyle = 'rgba(0,0,0,0.6)'; c.fillRect(q.x - 40 * q.k, q.y + 8 * q.k, 80 * q.k, 8 * q.k);
             c.fillStyle = '#ffd36b'; c.fillRect(q.x - 40 * q.k, q.y + 8 * q.k, 80 * q.k * clamp(f, 0, 1), 8 * q.k);
         } else if (b.lvl > 1) { c.fillStyle = '#ffd36b'; c.fillText('★'.repeat(b.lvl), q.x, q.y + 20 * q.k); }
@@ -298,6 +438,10 @@ export class View {
             if (G.staff[id].at !== i) continue;
             const bob = Math.abs(Math.sin(time * 4 + i)) * 4 * q.k;
             this.img(STAFF_SPRITE[id], q.x + 78 * q.k, q.y + 6 * q.k - bob, 58 * q.k);
+        }
+        if (isRipe(b)) {
+            const got = harvestValue(G, i), k = Object.keys(got)[0] || 'gold';
+            this.bub.push({ i, x: q.x, y: q.y - h - 26 * q.k, r: Math.max(17, 30 * q.k), icon: RES_ICON[k] });
         }
         if (def.unique && b.kind === 'oven' && G.bake.pct > 0) {
             c.save(); c.textAlign = 'center'; c.font = `bold ${Math.round(14 * q.k + 5)}px Fredoka, sans-serif`;

@@ -2,12 +2,14 @@
  * browsertest.mjs — the real game in real Chromium.
  *
  * desktop (1280×760): title, the ← Games link on top, New Game by click, the intro dialogue advanced with real
- *   keys, a plot built by a real click on the town canvas and the panel's Build button, the dock panels, a
+ *   keys, a plot built by a real click on the town canvas and the panel's Build button, the tip card's Show me
+ *   (the suggested building highlighted, locked ones explained), a harvest bubble collected by a click and by C,
+ *   the rising numbers, the What next? window and its Show me, the dock panels, a
  *   delivery, sleeping until morning, the siege: real keys aim and throw, a staff ability by its number key, the
  *   result sheet; Save & Quit → Continue; the King and the Queen → the ending → the epilogue. Sound: the clips
  *   decode and a theme plays. No sideways scroll; the canvas fills the window.
  * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus and the dialogue, a tap
- *   on a plot opens it, a building is built by tap, the siege: a tap on the field throws, the ability button
+ *   on a plot opens it, a building is built by tap, a bubble is collected by tap, the tip card fits, the siege: a tap on the field throws, the ability button
  *   works, controls ≥ 44 px and on screen, no sideways scroll, the canvas matches the visible viewport, every
  *   panel's Close button stays on screen.
  * nostorage: localStorage throws; the game still boots and plays.
@@ -124,8 +126,57 @@ async function desktop() {
     await until(page, (g) => __ds.G.plots[1].b?.kind === 'mill' && __ds.G.res.gold < g, 'the Build button builds a windmill and pays for it', 30000, gold0);
     check(await Q(page, () => document.getElementById('panel').hidden), 'and the sheet closes');
 
+    // the helper: the tip card and Show me
+    await until(page, () => !document.getElementById('tip').hidden && document.getElementById('tip-title').textContent.length > 3, 'Lord Vellum\'s tip card says what to do next');
+    await Q(page, () => { __ds.ui.tipT = 0; });
+    await page.waitForTimeout(150);
+    const tip = await Q(page, () => ({ id: __ds.ui.tipGoal?.id, title: document.getElementById('tip-title').textContent }));
+    await click(page, '#tip-show');
+    if (tip.id?.startsWith('build:')) {
+        await until(page, (k) => !document.getElementById('panel').hidden && !!document.querySelector(`#panel-body .card.hint button[data-cmd*="${k}"]`), `Show me opens a free plot with the suggested building highlighted (${tip.title})`, 10000, tip.id.slice(6));
+        check(await Q(page, () => !!document.querySelector('#panel-body .card .lock')), 'the build list shows locked buildings and how to unlock them');
+        await shot(page, 'desktop-showme');
+        await page.keyboard.press('Escape');
+        await until(page, () => document.getElementById('panel').hidden, 'Escape closes it', 10000);
+    } else {
+        await until(page, () => !document.getElementById('panel').hidden || !!__ds.view.pulse, `Show me points at the goal (${tip.title})`);
+        await Q(page, () => __ds.ui.closeScreen('panel'));
+    }
+
+    // harvest bubbles and the rising numbers
+    await Q(page, () => __ds.act({ t: 'speed', v: 3 }));
+    if (!await until(page, () => __ds.G.plots[0].b.ripe >= 10 && __ds.view.bub.some((b) => b.i === 0), 'a glowing bubble grows over the cottage', 30000)) {
+        console.log('    state', await Q(page, () => JSON.stringify({ ripe: __ds.G.plots[0].b, speed: __ds.G.speed, stack: __ds.ui.stack, bub: __ds.view.bub, t: __ds.G.t })));
+    }
+    await Q(page, () => __ds.act({ t: 'speed', v: 0 }));
+    check(await visible(page, 'btn-collect'), 'the ✨ collect-all button appears');
+    await shot(page, 'desktop-bubbles');
+    const gold1 = await Q(page, () => __ds.G.res.gold);
+    const bp = await Q(page, () => __ds.view.bubbleClient(0));
+    await page.mouse.click(bp.x, bp.y);
+    await until(page, (g) => (__ds.seen.collect || 0) > 0 && __ds.G.res.gold > g, 'clicking the bubble collects it', 10000, gold1);
+    check(await Q(page, () => document.getElementById('panel').hidden), 'and does not open the building under it');
+    check(await Q(page, () => __ds.view.floats.some((f) => f.big)), 'a big number rises from it');
+    await Q(page, () => __ds.act({ t: 'speed', v: 3 }));
+    await until(page, () => __ds.view.floats.some((f) => !f.big), 'working buildings show what they make as small rising numbers', 20000);
+    await until(page, () => __ds.G.plots.some((p) => p.b && p.b.ripe >= 10), 'another bubble ripens', 30000);
+    await Q(page, () => __ds.act({ t: 'speed', v: 0 }));
+    await shot(page, 'desktop-floaters');
+    const c0 = await Q(page, () => __ds.seen.collect || 0);
+    await page.keyboard.press('KeyC');
+    await until(page, (n) => (__ds.seen.collect || 0) > n, 'C collects every bubble', 10000, c0);
+
+    // the What next window
+    await click(page, '[data-sheet="whatnext"]');
+    await until(page, () => document.getElementById('panel-title').textContent === 'What next?' && document.querySelectorAll('#panel-body .card.goal').length >= 2, 'the 💡 Next button opens What next? with a list of goals');
+    check(await Q(page, () => /How Thistlegloom works/.test(document.getElementById('panel-body').textContent)), 'and a short guide to the town');
+    await shot(page, 'desktop-whatnext');
+    await click(page, '#panel-body .card.goal button[data-cmd]');
+    await until(page, () => __ds.ui.panel !== 'whatnext', 'its Show me button takes you there');
+    await Q(page, () => __ds.ui.closeScreen('panel'));
+
     // the dock panels
-    for (const [k, title] of [['quests', 'Quests'], ['staff', 'The Household'], ['heroes', 'Adventurers'], ['defence', 'The Siege'], ['bake', 'The Grand Bake']]) {
+    for (const [k, title] of [['whatnext', 'What next?'], ['quests', 'Quests'], ['staff', 'The Household'], ['heroes', 'Adventurers'], ['defence', 'The Siege'], ['bake', 'The Grand Bake']]) {
         await click(page, `[data-sheet="${k}"]`);
         await until(page, (t) => !document.getElementById('panel').hidden && document.getElementById('panel-title').textContent === t, `the ${title} panel opens`, 10000, title);
         await page.keyboard.press('Escape');
@@ -256,7 +307,7 @@ async function phone(w, h) {
     const L = await layout(page);
     check(L.noHScroll, 'no sideways scroll');
     check(L.canvas, 'the canvas matches the visible viewport');
-    const sizes = await Q(page, () => [...document.querySelectorAll('#topbar button, #dock button')].map((b) => {
+    const sizes = await Q(page, () => [...document.querySelectorAll('#topbar button, #dock button, #tip button')].filter((b) => !b.hidden && b.getClientRects().length).map((b) => {
         const r = b.getBoundingClientRect();
         return { s: b.textContent.trim().slice(0, 8) || b.id, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth + 0.5 && r.bottom <= innerHeight + 0.5 };
     }));
@@ -271,8 +322,19 @@ async function phone(w, h) {
     check(await Q(page, () => !document.getElementById('panel').hidden), 'the sheet stays open after the finger lifts');
     await tapSel('#panel-body button[data-cmd*="cottage"]');
     await until(page, () => __ds.G.plots[1].b?.kind === 'cottage', 'a tap on Build builds a cottage');
+    // a bubble by tap
+    await Q(page, () => { __ds.view.centreOn(0); __ds.act({ t: 'speed', v: 3 }); });
+    await until(page, () => __ds.view.bub.some((b) => b.i === 0), 'a bubble ripens over the cottage', 30000);
+    await Q(page, () => __ds.act({ t: 'speed', v: 0 }));
+    const bc = await Q(page, () => __ds.view.bubbleClient(0));
+    const col0 = await Q(page, () => __ds.seen.collect || 0);
+    await tapAt(bc.x, bc.y);
+    await until(page, (n) => (__ds.seen.collect || 0) > n && document.getElementById('panel').hidden, 'a tap on the bubble collects it', 10000, col0);
+    await page.waitForTimeout(700);   // let the card's slide-in finish (a transform moves its box)
+    const tipOk = await Q(page, () => { const t = document.getElementById('tip'); if (t.hidden) return false; const r = t.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 0.5 && r.bottom <= document.getElementById('dock').getBoundingClientRect().top + 1; });
+    if (!check(tipOk, 'the tip card sits on screen, above the dock')) console.log('    tip', await Q(page, () => JSON.stringify({ hidden: document.getElementById('tip').hidden, row: document.getElementById('tiprow').hidden, r: document.getElementById('tip').getBoundingClientRect(), dock: document.getElementById('dock').getBoundingClientRect().top, h: innerHeight })));
     // every panel's Close button is on screen, even with a long list
-    for (const k of ['quests', 'staff', 'heroes', 'defence', 'bake']) {
+    for (const k of ['whatnext', 'quests', 'staff', 'heroes', 'defence', 'bake']) {
         await tapSel(`[data-sheet="${k}"]`);
         await until(page, () => !document.getElementById('panel').hidden, `the ${k} panel opens by tap`, 10000);
         const foot = await Q(page, () => { const s = document.querySelector('#panel .sheet'); s.scrollTop = 1e6; const b = document.querySelector('#panel [data-close]').getBoundingClientRect(); return b.bottom <= innerHeight && b.top >= 0 && b.height >= 44; });

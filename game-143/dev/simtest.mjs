@@ -9,6 +9,8 @@
  * rules: building, upgrading, workers and housing, hope, production, the oven and its ingredient caps, quests and
  *        deliveries, the day clock and the invasion, the siege (doily, towers, knight, abilities, nap, split, win, lose),
  *        the King who can't be beaten, the Queen, the retreat, the loss penalty, the epilogue.
+ * harvest: bubbles ripen, pay out, can't be taken twice, survive a save; the advisor always has a doable tip and
+ *          following it finishes the first phase.
  * content: every quest giver, reward, building and portrait the data names exists.
  * determinism: same seed and inputs, same game; a save round trip mid-siege plays on identically.
  * siege: calibration bands (a town that meets the checklist and aims wins; one that doesn't aim loses).
@@ -30,6 +32,7 @@ const T = await import('../js/sim/town.js');
 const Bt = await import('../js/sim/battle.js');
 const D = await import('../js/sim/data.js');
 const Bot = await import('../js/sim/bot.js');
+const Adv = await import('../js/sim/advice.js');
 const { readyTown, fight } = await import('./siege.mjs');
 
 let fails = 0, checks = 0;
@@ -254,6 +257,67 @@ if (want('rules')) {
     ok(G.battle.epi && G.battle.hpMult > 1 && G.battle.kingAt == null, 'epilogue leftovers grow tougher and bring no King');
     G.battle.result = 'win'; run(G, 3);
     ok(G.epi.waves === 4 && G.daysLeft === C.EPI_DAYS, 'each one held counts, and the next comes in EPI_DAYS');
+}
+
+if (want('harvest')) {
+    section('harvest bubbles and the advisor');
+    const run = (G, sec) => { for (let i = 0; i < sec * 120; i++) Gm.step(G, null, 1 / 120); };
+    {
+        const G = Gm.newGame(5);
+        ok(!T.isRipe(G.plots[0].b), 'a fresh cottage has no bubble yet');
+        ok(!Gm.act(G, { t: 'collect', plot: 0 }) && G.events.some((e) => e.type === 'refused' && e.cmd === 'collect'), 'collecting an unripe building is refused');
+        run(G, C.HARVEST.ripe + 0.1);
+        ok(T.isRipe(G.plots[0].b) && G.events.some((e) => e.type === 'ripe' && e.plot === 0), `the cottage ripens after ${C.HARVEST.ripe} s, with a ripe event`);
+        const gold = G.res.gold;
+        G.events.length = 0;
+        ok(Gm.act(G, { t: 'collect', plot: 0 }), 'collecting a ripe bubble works');
+        const ev = G.events.find((e) => e.type === 'collect');
+        ok(ev && ev.got.gold === C.HARVEST.coins && Math.abs(G.res.gold - gold - C.HARVEST.coins) < 1e-6, `it pays out (${ev?.got.gold} gold)`);
+        ok(!T.isRipe(G.plots[0].b) && G.stats.collected === 1, 'and the bubble starts filling again');
+        ok(!Gm.act(G, { t: 'collect', plot: 0 }), 'a bubble cannot be collected twice');
+        // a mill under construction does not ripen; once built it gives at least the minimum
+        Gm.act(G, { t: 'build', plot: 1, kind: 'mill' });
+        run(G, 2);
+        ok(!T.isRipe(G.plots[1].b) && !(G.plots[1].b.ripe > 0), 'a building site grows no bubble');
+        run(G, C.BUILD_DAYS * C.DAY_LEN + C.HARVEST.ripe + 0.5);
+        ok(T.isRipe(G.plots[1].b), 'a finished mill ripens');
+        const fl = G.res.flour;
+        ok(Gm.act(G, { t: 'collectAll' }) && G.res.flour - fl >= C.HARVEST.min - 1e-6, `collect-all gathers the mill (+${(G.res.flour - fl).toFixed(1)} flour)`);
+        ok(!Gm.act(G, { t: 'collectAll' }), 'collect-all with nothing ripe does nothing');
+        const saved = Gm.deserialize(Gm.serialize(G));
+        ok(saved.plots[1].b.ripe === G.plots[1].b.ripe, 'bubble progress survives a save');
+    }
+    {
+        // the advisor: a fresh town always has something doable, and following it moves the story on
+        for (let seed = 1; seed <= SEEDS; seed++) {
+            const G = Gm.newGame(seed * 13);
+            const g0 = Adv.doableGoal(G);
+            ok(g0 && g0.show?.build && G.plots[g0.show.plot].b === null, `seed ${seed}: the first tip is a building the town can afford (${g0?.title})`);
+            let idleSec = 0, longestIdle = 0;
+            for (let t = 0; t < C.PHASE_DAYS[0] * C.DAY_LEN - 5; t += 1) {
+                const g = Adv.doableGoal(G);
+                if (g) {
+                    if (g.show?.build) Gm.act(G, { t: 'build', plot: g.show.plot, kind: g.show.build });
+                    else if (g.id === 'collect') Gm.act(G, { t: 'collectAll' });
+                    else if (g.id === 'oven') Gm.act(G, { t: 'oven', on: true });
+                    else if (g.id.startsWith('deliver:')) Gm.act(G, { t: 'deliver', id: g.id.slice(8) });
+                    else if (g.id === 'upgrade') Gm.act(G, { t: 'upgrade', plot: g.show.plot });
+                    else if (g.id === 'hall') Gm.act(G, { t: 'hall' });
+                    else if (g.id === 'wall') Gm.act(G, { t: 'wall' });
+                    else if (g.id === 'staff') { const id = D.STAFF_ORDER.find((s) => G.staff[s].joined && G.staff[s].at == null); const p = g.show.plot ?? G.plots.findIndex((p) => p.b && p.b.kind !== 'cottage' && !D.STAFF_ORDER.some((s) => G.staff[s].at === G.plots.indexOf(p))); Gm.act(G, { t: 'assign', staff: id, plot: p }); }
+                    idleSec = 0;
+                } else idleSec++;
+                longestIdle = Math.max(longestIdle, idleSec);
+                run(G, 1);
+                G.events.length = 0;
+            }
+            ok(longestIdle <= 25, `seed ${seed}: following the tips, the player is never stuck more than 25 s with nothing doable in the first phase (longest ${longestIdle} s)`);
+            ok(['q_flour', 'q_pies', 'q_oven', 'q_tobias'].every((q) => G.quests.done[q]), `seed ${seed}: following the tips finishes the first phase's story quests (${Object.keys(G.quests.done).join(' ')})`);
+            ok(Bt.readiness(G).every((r) => r.ok), `seed ${seed}: and meets the first siege's checklist (${Bt.readiness(G).map((r) => r.k + (r.ok ? '✓' : '✗')).join(' ')}; ${G.plots.map((p) => p.b ? p.b.kind : '-').join(' ')})`);
+        }
+        const G = Gm.newGame(9); G.mode = 'battle';
+        ok(Adv.nextGoals(G).length === 0, 'no town advice during a siege');
+    }
 }
 
 if (want('content')) {

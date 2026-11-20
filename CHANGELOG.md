@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Doom & Doilies: The Sugar Siege** (game-143) v1.1.0: a first player was lost and sat waiting for money, so the town now always has something to do and someone to ask ([game-plan.md](game-143/game-plan.md#the-helper-v110)).
+  - **Lord Vellum's helper** ([advice.js](game-143/js/sim/advice.js)): a short tutorial after the intro and another before the first siege; a tip card above the dock with the best next step and **Show me** (the town scrolls to the plot, an arrow points, and the build list opens with the suggestion first and outlined); a **What next?** window (💡 Next, or `T`) listing the top goals with a guide to how the town works. Goals say what's missing when you can't afford them, and point at the quarry, mill or beet patch first when nothing makes it yet.
+  - **Harvest bubbles**: every building but the oven fills a glowing bubble every 10 s; tap it (or press `C`, or the ✨ button) for a bonus of what it makes, or a few coins from buildings that make nothing.
+  - **Rising numbers**: each building floats a small "+N 🌾" for what it made every couple of seconds (taxes rise from the hall, the oven shows its %), and a big one when a bubble is collected.
+  - **A faster, richer start**: 300 gold and 100 stone, six-second builds, a quarry that digs faster, cheaper watchtowers, bigger early quest rewards; locked buildings are listed with the quest that unlocks them; the town view sits above the tip row so no plot hides behind it.
+  - **Tests**: `simtest` follows the tips through the first phase on three seeds (never stuck more than 25 s, story quests done, checklist met) and checks the bubbles; `browsertest` clicks Show me, collects bubbles by click, `C` and touch, and opens What next?. The bot collects bubbles, and no longer fills every plot with bakeries.
+
 ### Added
 - **Pocket Garden Messages** (console v1.5.0): a meta game inside the handheld, where the characters of the games you play text you ([console/js/messages.js](console/js/messages.js), [docs/generic/avatars.md](docs/generic/avatars.md)).
   - **A character for every game**: 143 characters plus the Garden's dragonfly, each in its game's own folder as [`game-NNN/avatar/avatar.json`](game-001/avatar/avatar.json): name, role, bio, the fal portrait prompt, and a message bank in their voice (about 3,000 lines: a friend request, hellos, real controls, real tips, chatter, nudges, idle lines, save-aware progress lines, questions with answer chips, update news, goodbyes) and the game's save keys. All 144 avatars painted with fal (`fal-ai/nano-banana-2`) in one shared chibi style ([dev/avatar-style.json](dev/avatar-style.json)) as `avatar.webp` (256) and `avatar-tiny.webp` (64).

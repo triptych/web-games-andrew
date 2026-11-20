@@ -153,6 +153,8 @@ export class Audio {
         if (kind === 'click') this.tone({ freq: 740, dur: 0.05, vol: 0.1 });
         else if (kind === 'open') this.tone({ freq: 520, to: 780, dur: 0.08, vol: 0.1 });
         else if (kind === 'close') this.tone({ freq: 780, to: 520, dur: 0.08, vol: 0.1 });
+        else if (kind === 'pop') { this.tone({ freq: 380, to: 1100, dur: 0.07, type: 'sine', vol: 0.18 }); this.tone({ freq: 1500, to: 2200, dur: 0.06, type: 'sine', vol: 0.08, delay: 0.05 }); }
+        else if (kind === 'ripe') this.tone({ freq: 1320, to: 1760, dur: 0.06, type: 'sine', vol: 0.035 });
         else if (kind === 'no') this.tone({ freq: 220, to: 160, dur: 0.15, type: 'square', vol: 0.06 });
     }
 
@@ -177,7 +179,9 @@ export class Audio {
                 case 'kiss': this.play('kiss', { vol: 1, gap: 0 }); break;
                 case 'transform': this.play('magic', { vol: 1, gap: 0, rate: 0.85, vary: 0 }); setTimeout(() => this.play('cheer', { vol: 0.7, gap: 0 }), 700); break;
                 case 'battleEnd': if (e.result === 'win' || e.result === 'love') { this.play('cheer', { vol: 0.8, gap: 0 }); this.play('coins', { vol: 0.6, gap: 0 }); } break;
-                case 'refused': this.ui('no'); break;
+                case 'collect': this.ui('pop'); this.play('coins', { vol: 0.3, gap: 0.12, rate: 1.25 }); break;
+                case 'ripe': if (this.ctx && !(this.ctx.currentTime - (this.last.ripe || -9) < 0.8)) { this.last.ripe = this.ctx.currentTime; this.ui('ripe'); } break;
+                case 'refused': if (e.cmd !== 'collect') this.ui('no'); break;
             }
         }
     }

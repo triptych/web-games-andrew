@@ -49,6 +49,7 @@ function tryUpgrade(G, kind, maxLvl = 3, withBuffer = true) {
 
 /** One planning pass over the town. Does at most a few things, like a player would. */
 function townTurn(G, bot) {
+    act(G, { t: 'collectAll' });   // pop every ripe bubble on the way past
     const r = rates(G);
     // kinds to build, in tiers: the engine, room for workers, the siege checklist, quests, extras
     const engine = [], homes = [], main = [], ready = [], quests = [], extras = [];
@@ -57,7 +58,8 @@ function townTurn(G, bot) {
     if (!hasAny(G, 'beets') || (r.sugar < 0.1 && G.res.sugar < 40)) engine.push('beets');
     if (!hasAny(G, 'quarry') || (r.stone < 0.15 && G.res.stone < 100)) engine.push('quarry');
     // a second (third...) bakery once the inputs are piling up
-    if (r.flour > 0.45 && r.sugar > 0.3 && G.res.flour > 60 && G.res.sugar > 40) engine.push('bakery');
+    // (a third or more only once the story's buildings are in: bakeries must not crowd out the tower and the oven)
+    const moreBakery = r.flour > 0.45 && r.sugar > 0.3 && G.res.flour > 60 && G.res.sugar > 40;
     if (housing(G) < workersNeeded(G) + 2) (G.pop < workersNeeded(G) * 0.85 ? engine : homes).unshift(G.unlocks.ginger ? 'gingerhome' : 'cottage');
 
     const checklist = readiness(G, Math.min(G.phase, 3));
@@ -82,6 +84,7 @@ function townTurn(G, bot) {
         if (q.obj.kind === 'wall' && G.wall.lvl < q.obj.lvl) act(G, { t: 'wall' });
     }
     if (!hasAny(G, 'market') && G.pop >= 10) extras.push('market');
+    if (moreBakery) (countOf(G, 'bakery') < 2 ? engine : extras).push('bakery');
     if (!hasAny(G, 'tailor') && G.phase >= 1) extras.push('tailor');
     if (!hasAny(G, 'bell') && G.phase >= 1) extras.push('bell');
     const want = [...engine, ...main, ...homes, ...ready, ...quests, ...extras].filter((k) => !(BUILDINGS[k].unique && hasAny(G, k)));

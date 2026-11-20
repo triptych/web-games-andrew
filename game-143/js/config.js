@@ -1,6 +1,6 @@
 // Doom & Doilies: The Sugar Siege — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'doom-doilies-sugar-siege.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
@@ -15,9 +15,13 @@ export const PLOTS = 12;
 export const PLOTS_OPEN = [8, 10, 12];    // plots usable at town hall level 1, 2, 3
 export const LVL_MULT = [1, 1.8, 2.8];    // output by building level
 export const UPGRADE_COST = 2.4;          // each level costs this many times the build cost
-export const BUILD_DAYS = 0.25;           // a new building takes a quarter of a day
+export const BUILD_DAYS = 0.15;           // a new building takes about six seconds
 export const UPGRADE_DAYS = 0.4;
-export const START = { gold: 220, flour: 30, sugar: 20, stone: 70, pop: 8, hope: 45 };
+export const START = { gold: 300, flour: 40, sugar: 30, stone: 100, pop: 8, hope: 48 };
+// Harvest bubbles: a working building fills up over `ripe` seconds, then a tap collects `bonus` seconds of its
+// output (at least `min` of each), or `coins` gold per level from a building that makes nothing. Something to do
+// every few seconds, and a reward for paying attention.
+export const HARVEST = { ripe: 10, bonus: 8, min: 4, coins: 6 };
 export const HALL_HOUSING = 6;
 export const HALL_COST = [null, { gold: 300 }, { gold: 700, stone: 200 }];   // level 2 is gold only, so a town short of stone can always grow
 export const HOPE = { base: 38, fearMax: 18, approach: 0.06 };
