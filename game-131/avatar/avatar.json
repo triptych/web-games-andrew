@@ -6,8 +6,9 @@
  "color": "#80cbc4",
  "bio": "The small goblin you found hurt under a fallen shrine in Fray & the Spiral Isle. She can't see, but she knows the way.",
  "portrait": {
-  "subject": "a cute small gentle goblin girl with soft green skin, a bandage wrapped around her eyes, a peaceful smile and a silver spiral pendant",
-  "background": "calm misty island shore with soft pastel sky"
+  "subject": "a cute small gentle blind goblin girl with soft green skin and pointed ears, a wide cream cloth bandage wrapped snugly around her head covering both eyes completely so no eyes are visible, a peaceful closed-mouth smile and a silver spiral pendant",
+  "background": "calm misty island shore with soft pastel sky",
+  "style": "A cute chibi character avatar portrait for a phone messaging app contact picture. Head and shoulders, centered, facing the viewer with a warm, gentle expression. Polished painterly 3D-rendered cartoon style, soft rim light, glossy highlights, high contrast so it reads at 32 pixels. Square, full-bleed, a simple soft background that reaches every edge. No border, no frame, no circle, no text, no letters. Character: {subject}. Her eyes are hidden under the blindfold; do not draw any eyes. Background: {background}."
  },
  "request": "Hello... it's Fray. From the Spiral Isle. You healed me. Will you be my friend? 🌀",
  "hello": [

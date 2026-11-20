@@ -80,7 +80,8 @@ for name, folder in folders():
     if args.pending:
         if meta.get("art") != "fal":
             p = meta["portrait"]
-            print(f"{name}\t{STYLE.replace('{subject}', p['subject']).replace('{background}', p['background'])}")
+            style = p.get('style') or STYLE  # a character can override the shared style (game-131: Fray is blind, so no "big shiny eyes")
+            print(f"{name}\t{style.replace('{subject}', p['subject']).replace('{background}', p['background'])}")
         continue
     src = args.src / f"{name}.png" if args.src else None
     if src and src.exists():
