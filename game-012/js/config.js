@@ -1,6 +1,6 @@
 // Arcana Pull — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '2.0.1';
+export const VERSION = '2.0.2';
 export const SAVE_KEY = 'arcana-pull.v2';
 
 export const PARTY_SIZE = 4;

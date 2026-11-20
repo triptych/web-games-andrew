@@ -20,7 +20,7 @@ small Web Audio synth for any effect that fails to load. Every spoken line is al
 
 | File | Plays | Prompt (abridged) |
 |---|---|---|
-| `music-parlour` | title, the parlour, the Well | A fortune-teller's parlour at night: harp arpeggios, celesta and music box, hand drum, cello drone, glass harmonica; D minor, 76 BPM |
+| `music-parlour` | title, the parlour, the Well | (v2.0.2 retake) Mysterious, intimate dark-fantasy chamber music for a fortune-teller's candlelit parlour: harp arpeggios, soft celesta, cello drone, glass harmonica, string pad; D minor, 76 BPM; no percussion, no clicks or ticking |
 | `music-battle` | Thresholds 1–9 | A dark-fantasy card duel: frame drums and taiko, staccato strings, harpsichord riff, brass stabs, wordless choir; D minor, 120 BPM |
 | `music-boss` | The World | A cosmic final battle: timpani, pipe organ, huge wordless choir, soaring strings, celestial bells; D minor, 132 BPM |
 | `music-reading` | Readings, the ending, the last candle | A tarot reading by candlelight that blooms into hope: harp, glass harmonica, airy choir pad, solo violin; F major, 66 BPM |
@@ -30,6 +30,11 @@ small Web Audio synth for any effect that fails to load. Every spoken line is al
 itself is dark (99.9% of its energy under 1.3 kHz for the parlour, 6.2 kHz at most), so `process.py` low-passes each theme
 (parlour 4 kHz, reading 5 kHz, battle 7 kHz, boss 8 kHz; three 2-pole filters, 36 dB/octave). The shipped files were filtered in
 place from the 2.0.0 encodes (the raw downloads aren't kept): the parlour's ticks fell from −13 dB to −33 dB against a typical frame.
+
+**The parlour retake (v2.0.2).** Filtered at 4 kHz the parlour sounded muffled, so it was regenerated (flow "Arcana Pull:
+music-parlour (v2.0.1 retake)", 2026-11-20, four takes at 900 credits each) with the hand drum and music box left out and "no
+percussion, no drums, no clicks or ticking" in the prompt. Take 1 was kept: one high-frequency event and no sharp transients in 60 s
+(the old track had 53 and 22), and brighter (99.9% rolloff 2.6 kHz). It is encoded by `process.py` with no low-pass.
 
 ## Effects (`eleven_text_to_sound_v2`)
 

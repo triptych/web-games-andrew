@@ -63,13 +63,15 @@ def align(gaps, chars, total):
 
 # The takes are dark (99.9% of their energy under 1.3-6.2 kHz) but carried short broadband ticks above 4 kHz: on every beat
 # of the parlour (76 BPM), now and then in the others. Three stacked 2-pole low-passes (36 dB/octave) remove them.
-LOWPASS = {'parlour': 4000, 'reading': 5000, 'battle': 7000, 'boss': 8000}
+# The parlour was regenerated clean in 2.0.2 (no percussion in its prompt), so it plays unfiltered.
+LOWPASS = {'reading': 5000, 'battle': 7000, 'boss': 8000}
 
 for f in sorted(glob.glob(os.path.join(RAW, 'music-*.mp3'))):
     d = dur(f)
     out = os.path.join(OUT, os.path.basename(f))
-    lp = LOWPASS.get(os.path.basename(f)[6:-4], 8000)
-    run(['-i', f, '-af', f'lowpass=f={lp},lowpass=f={lp},lowpass=f={lp},afade=t=in:d=1.5,afade=t=out:st={d - 1.5:.2f}:d=1.5,loudnorm=I=-18:TP=-2', '-ac', '2', '-b:a', '80k', '-ar', '44100', out])
+    lp = LOWPASS.get(os.path.basename(f)[6:-4])
+    lpf = f'lowpass=f={lp},lowpass=f={lp},lowpass=f={lp},' if lp else ''
+    run(['-i', f, '-af', f'{lpf}afade=t=in:d=1.5,afade=t=out:st={d - 1.5:.2f}:d=1.5,loudnorm=I=-18:TP=-2', '-ac', '2', '-b:a', '80k', '-ar', '44100', out])
     print(os.path.basename(f), f'{d:.1f}s', os.path.getsize(out) // 1024, 'KB')
 
 for f in sorted(glob.glob(os.path.join(RAW, 'sfx-*.mp3'))):
