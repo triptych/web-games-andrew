@@ -25,6 +25,12 @@ small Web Audio synth for any effect that fails to load. Every spoken line is al
 | `music-boss` | The World | A cosmic final battle: timpani, pipe organ, huge wordless choir, soaring strings, celestial bells; D minor, 132 BPM |
 | `music-reading` | Readings, the ending, the last candle | A tarot reading by candlelight that blooms into hope: harp, glass harmonica, airy choir pad, solo violin; F major, 66 BPM |
 
+**The tick (v2.0.1).** The takes came back with a short broadband tick above 4 kHz on every beat of `music-parlour` (one every
+0.79 s, 76 BPM) and scattered ones in `music-reading` and `music-battle`, heard in play as a clicking under the parlour. The music
+itself is dark (99.9% of its energy under 1.3 kHz for the parlour, 6.2 kHz at most), so `process.py` low-passes each theme
+(parlour 4 kHz, reading 5 kHz, battle 7 kHz, boss 8 kHz; three 2-pole filters, 36 dB/octave). The shipped files were filtered in
+place from the 2.0.0 encodes (the raw downloads aren't kept): the parlour's ticks fell from −13 dB to −33 dB against a typical frame.
+
 ## Effects (`eleven_text_to_sound_v2`)
 
 The prompts are `sfx.json` (24): `pull` (the Well swirls), `flip`, `reveal` / `rare` / `legend` (by rarity), `star` (a star up, a
