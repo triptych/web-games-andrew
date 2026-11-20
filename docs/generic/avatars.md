@@ -82,7 +82,11 @@ paths for a game's own words (`"gems": ["stardust"]`). Timestamps such as
 The shared style is in [dev/avatar-style.json](../../dev/avatar-style.json)
 (`fal-ai/nano-banana-2`, 1:1, 0.5K): a cute chibi head-and-shoulders portrait in
 the same painterly style as the game icons. The prompt is that style with the
-game's `portrait.subject` and `portrait.background` filled in. Save the
+game's `portrait.subject` and `portrait.background` filled in. A character the
+shared style doesn't fit can carry its own `portrait.style` (same `{subject}` and
+`{background}` slots): Fray (game-131) is blind, and the shared style's "big shiny
+eyes" kept painting eyes over her blindfold until her own style dropped it and
+said so outright. Save the
 painting as `game-NNN.png` in a folder, then:
 
 ```bash
