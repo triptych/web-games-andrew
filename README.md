@@ -68,7 +68,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 025 | [Crypt Crawler](game-025/) | arcade dungeon-crawler dungeon crawler | three.js |
 | 026 | [Crypt of the Forgotten](game-026/) | First-person blobber | three.js |
 | 027 | [Alchemist's Lattice](game-027/) | A block-placement puzzle in a cozy alchemy adventure: fill rows and columns to peel buried deposits, brew potions and cut down foes; learn tile types at the cauldron across a three-chapter story | three.js |
-| 028 | [Echoes of Aethermoor](game-028/) | Visual novel fantasy RPG | Phaser 4 |
+| 028 | [Echoes of Aethermoor](game-028/) | Voiced visual-novel fantasy RPG with painted art | Canvas 2D |
 | 029 | [Wayfarer's Path](game-029/) | Procedural road RPG | three.js |
 | 030 | [Coppergate Lane](game-030/) | Cozy-fantasy top-down RPG adventure | Kaplay |
 | 031 | [Grimhold Abyss](game-031/) | Retro 90s PC-style dungeon crawler | Custom software renderer |
@@ -438,7 +438,7 @@ Note: three.js is not vendored — three.js-based games (e.g. game-014, game-018
 - **JavaScript** - Game logic and interactivity
 - **CSS3** - Styling and responsive design
 - **Kaplay (v4000)** - Used by the early arcade, puzzle, RPG and strategy games.
-- **Phaser 4.0.0 (ESM)** - Used by selected games, including game-019, game-020, game-028 and game-035 (game-027 used it until v2.0.0).
+- **Phaser 4.0.0 (ESM)** - Used by selected games, including game-019, game-020 and game-035 (game-027 and game-028 used it until v2.0.0).
 - **three.js (r165)** - Used by 3D games; loaded from a CDN with an import map rather than vendored in the repo.
 - **Vanilla JavaScript** - DOM, Canvas 2D, WebGL and custom simulation/view implementations; most later games use a deterministic simulation with a separate renderer and a `dev/` harness.
 - **Custom software 3D** - Hand-written renderers including a palette-indexed framebuffer and a Canvas 2D triangle rasterizer.

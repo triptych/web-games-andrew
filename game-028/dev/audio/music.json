@@ -1,0 +1,11 @@
+{
+ "title":   [70, "Main title theme for a fantasy visual-novel RPG: a lone harp and celesta melody over warm strings and a soft wordless choir pad, wistful, mysterious and hopeful, slowly building to a gentle swell and settling again, D minor, 72 bpm, instrumental, made to loop."],
+ "village": [60, "Cosy medieval village theme for a fantasy RPG: acoustic guitar, recorder, fiddle and light hand percussion, warm, gentle and homely with a lilting folk melody, G major, 96 bpm, instrumental, made to loop."],
+ "forest":  [60, "Enchanted dark forest exploration theme for a fantasy RPG: plucked strings, wooden flute, soft marimba and low woodwinds, curious and mysterious with a hint of unease, E minor, 84 bpm, instrumental, made to loop."],
+ "grove":   [60, "Sacred ancient tree grove theme for a fantasy RPG: ethereal choir pads, harp arpeggios, glassy chimes and soft strings, serene, luminous and a little sad, A major, 64 bpm, instrumental, made to loop."],
+ "ruins":   [60, "Haunted ancient ruins dungeon theme for a fantasy RPG: low drones, distant tolling bells, sparse piano notes and eerie tremolo strings, ominous and cold, C minor, 70 bpm, instrumental, made to loop."],
+ "sanctum": [60, "Final dungeon theme for a fantasy RPG, a vast underground sanctum: deep pipe organ drones, low male choir, slow heartbeat timpani, dread and grandeur, B minor, 60 bpm, instrumental, made to loop."],
+ "battle":  [60, "Fast heroic JRPG battle theme: driving drums, galloping staccato strings, brass stabs and a soaring violin melody, energetic and determined, A minor, 150 bpm, instrumental, made to loop."],
+ "boss":    [75, "Epic boss battle theme for a fantasy RPG: full orchestra, chanting choir, heavy taiko drums, pipe organ and racing strings, dark, intense and desperate, D minor, 140 bpm, instrumental, made to loop."],
+ "ending":  [80, "Ending theme for a fantasy RPG: tender solo piano and cello rising into warm strings and a full orchestra with a gentle choir, bittersweet, peaceful and hopeful, F major, 76 bpm, instrumental."]
+}
