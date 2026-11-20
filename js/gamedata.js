@@ -418,16 +418,18 @@ const games = [
     {
         id: 'game-028',
         title: 'Echoes of Aethermoor',
-        description: 'A Phaser 4 visual novel fantasy RPG. Lead a party of four heroes — mage, knight, ranger, warlock — through four chapters of branching dialogue, turn-based battles, tile-based maps, quests, and a deep storyline. Uncover the truth of the Lich of Aethermoor before the ancient seals break for good.',
+        description: 'A fantasy visual-novel RPG in plain HTML, CSS and JavaScript, with every scene and character painted by fal and every line voiced with ElevenLabs. Lyra fled the burning Aethermoor Academy with a prophecy that names her as the key to the Lich sealed below it. Gather a knight, an elf ranger and a warlock across four chapters of voiced story; explore a painted village, forest, grove and ruins; take quests, buy and equip gear, and fight turn-based battles where every status effect counts and the bosses act twice a round. Your choice at the end decides how the story is remembered.',
         icon: '📖',
         folder: 'game-028',
-        version: '1.4.2',
+        version: '2.0.0',
         cssClass: 'echoes-of-aethermoor',
         genre: 'story',
         tags: [
             { emoji: '⚔️', label: 'RPG' },
             { emoji: '📖', label: 'Visual Novel' },
-            { emoji: '🎲', label: 'Turn-Based' }
+            { emoji: '🎨', label: 'fal art' },
+            { emoji: '🎙️', label: 'Voiced' },
+            { emoji: '🖼️', label: 'Canvas 2D' }
         ]
     },
     {

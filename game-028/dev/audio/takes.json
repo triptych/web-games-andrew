@@ -1,0 +1,1240 @@
+[
+ {
+  "who": "n",
+  "voice": "River",
+  "text": "Three weeks ago the Aethermoor Academy burned. Its masters died in the fire, or so the songs say. [long pause] One apprentice ran into the night with a scroll she had copied by candlelight: a prophecy about the Lich sealed beneath the Academy's older ruins. [long pause] It named her. She has not stopped running since. [long pause] At the edge of the Thornwood, the village of Thornhaven lights its lamps. [long pause] The village elder's house stands to the north-west. Lamps are lit in the window. Someone is waiting up. [long pause] The road east into the Thornwood is open now, and something in the square is waiting for you. [long pause] The trees here are scorched black in long streaks, as if cold fire had raked through them. [long pause] Two bandits step out of the thorn trees, blades already drawn. [long pause] \"Another one for the hand,\" one of them mutters. \"Take her alive if you can.\" [long pause] The Academy's lecture hall lies open to the sky, its dome cracked like an egg. Wisps of loose Aether drift between the pillars. [long pause] A scorched lectern still holds an open book, its pages fused to ash. [long pause] Wrapped in oilcloth behind a fallen shelf: a scroll, sealed in violet wax. Untouched by the fire. [long pause] The thorns give way to soft grass and air that tastes of rain. At the centre of the grove stands a tree older than any kingdom. [long pause] Three of its great roots pulse with violet veins, like poison in a wound. [long pause] The root throbs with violet poison. It needs a soul gem to draw the corruption out. [long pause] The root throbs with a sick violet light. The spirit of this grove may know what it needs. [long pause] You press the soul gem into the bark. The violet veins flare, then drain away like ink in water, and the root glows a clean, living green. [long pause] The chapel of the Solarian Order. Its great sun window is shattered, and violet rot crawls over the pews. [long pause] Korvas falls to his knees. The violet fire burns out of his armour, and underneath it is only an old, tired man. [long pause] The southern path out of the Thornwood is open now. It leads down to the Aethermoor ruins. [long pause] The ruins of old Aethermoor sprawl under a storm that never breaks. Cyan crystals grow from the cracks like frost. [long pause] Below the ruins, the Sanctum waits. [long pause] Two hulks of masonry lurch upright before the open sanctum doors, runes blazing cyan. [long pause] The Sanctum is a vault so vast the braziers cannot find its ceiling. On the dais, something tall unfolds itself from a broken throne. [long pause] The Lich staggers. His crown cracks, and the cyan fire pours out of him like water from a broken jar. [long pause] He is dust before the last word. The scroll is warm in Lyra's hands. [long pause] Dawn comes through a crack in the Sanctum's vault for the first time in two hundred years. [long pause] Lyra carries the scroll back to Thornhaven. In the years that follow, she rebuilds the Academy on open ground, far from any tomb, and its first lesson is the story of Vaelthas. [long pause] Orin rides to the Solarian capital with Korvas's sword, and the Order is remade under its old oath. [long pause] Sera returns to the Conclave. This time, they listen. [long pause] Thane teaches the Academy's darkest class: how to say no to a bargain. It is always full. [long pause] And on the first stone of the new Academy, someone carves a line: remember what it cost. [long pause] On a cliff above the Thornwood, the scroll burns away in Lyra's hand, and the sparks drift up into the morning. [long pause] No one writes the Lich's name again. In a generation, he is a story told to frighten apprentices. In two, not even that. [long pause] Orin hangs up his sword in Thornhaven and becomes the worst fisherman the river has ever known. [long pause] Sera stays. Somebody has to show the village children where the roots trip you. [long pause] Thane's brand fades a little more each year. He stops counting. [long pause] And Lyra, for the first time since the fire, sleeps through the night. [long pause] The chest is empty. [long pause] Darkness. Then firelight, and the smell of stew.",
+  "parts": [
+   {
+    "key": "n-ugchtq",
+    "start": 0,
+    "end": 97,
+    "text": "Three weeks ago the Aethermoor Academy burned. Its masters died in the fire, or so the songs say."
+   },
+   {
+    "key": "n-o79bkx",
+    "start": 111,
+    "end": 257,
+    "text": "One apprentice ran into the night with a scroll she had copied by candlelight: a prophecy about the Lich sealed beneath the Academy's older ruins."
+   },
+   {
+    "key": "n-13g0pz3",
+    "start": 271,
+    "end": 319,
+    "text": "It named her. She has not stopped running since."
+   },
+   {
+    "key": "n-18vcgv3",
+    "start": 333,
+    "end": 406,
+    "text": "At the edge of the Thornwood, the village of Thornhaven lights its lamps."
+   },
+   {
+    "key": "n-1ip5u7e",
+    "start": 420,
+    "end": 523,
+    "text": "The village elder's house stands to the north-west. Lamps are lit in the window. Someone is waiting up."
+   },
+   {
+    "key": "n-1x27yh9",
+    "start": 537,
+    "end": 630,
+    "text": "The road east into the Thornwood is open now, and something in the square is waiting for you."
+   },
+   {
+    "key": "n-1cx5qtz",
+    "start": 644,
+    "end": 734,
+    "text": "The trees here are scorched black in long streaks, as if cold fire had raked through them."
+   },
+   {
+    "key": "n-lh84ux",
+    "start": 748,
+    "end": 810,
+    "text": "Two bandits step out of the thorn trees, blades already drawn."
+   },
+   {
+    "key": "n-14umwod",
+    "start": 824,
+    "end": 901,
+    "text": "\"Another one for the hand,\" one of them mutters. \"Take her alive if you can.\""
+   },
+   {
+    "key": "n-n9gn0d",
+    "start": 915,
+    "end": 1042,
+    "text": "The Academy's lecture hall lies open to the sky, its dome cracked like an egg. Wisps of loose Aether drift between the pillars."
+   },
+   {
+    "key": "n-14kyv4c",
+    "start": 1056,
+    "end": 1124,
+    "text": "A scorched lectern still holds an open book, its pages fused to ash."
+   },
+   {
+    "key": "n-1v1ti7j",
+    "start": 1138,
+    "end": 1235,
+    "text": "Wrapped in oilcloth behind a fallen shelf: a scroll, sealed in violet wax. Untouched by the fire."
+   },
+   {
+    "key": "n-1u9q2xg",
+    "start": 1249,
+    "end": 1376,
+    "text": "The thorns give way to soft grass and air that tastes of rain. At the centre of the grove stands a tree older than any kingdom."
+   },
+   {
+    "key": "n-ve7odz",
+    "start": 1390,
+    "end": 1463,
+    "text": "Three of its great roots pulse with violet veins, like poison in a wound."
+   },
+   {
+    "key": "n-1xr2ytf",
+    "start": 1477,
+    "end": 1560,
+    "text": "The root throbs with violet poison. It needs a soul gem to draw the corruption out."
+   },
+   {
+    "key": "n-d42uko",
+    "start": 1574,
+    "end": 1664,
+    "text": "The root throbs with a sick violet light. The spirit of this grove may know what it needs."
+   },
+   {
+    "key": "n-1cc560o",
+    "start": 1678,
+    "end": 1816,
+    "text": "You press the soul gem into the bark. The violet veins flare, then drain away like ink in water, and the root glows a clean, living green."
+   },
+   {
+    "key": "n-10wvuaw",
+    "start": 1830,
+    "end": 1935,
+    "text": "The chapel of the Solarian Order. Its great sun window is shattered, and violet rot crawls over the pews."
+   },
+   {
+    "key": "n-1fofbwh",
+    "start": 1949,
+    "end": 2061,
+    "text": "Korvas falls to his knees. The violet fire burns out of his armour, and underneath it is only an old, tired man."
+   },
+   {
+    "key": "n-1stf4ve",
+    "start": 2075,
+    "end": 2165,
+    "text": "The southern path out of the Thornwood is open now. It leads down to the Aethermoor ruins."
+   },
+   {
+    "key": "n-9p44f9",
+    "start": 2179,
+    "end": 2293,
+    "text": "The ruins of old Aethermoor sprawl under a storm that never breaks. Cyan crystals grow from the cracks like frost."
+   },
+   {
+    "key": "n-15bhm5i",
+    "start": 2307,
+    "end": 2342,
+    "text": "Below the ruins, the Sanctum waits."
+   },
+   {
+    "key": "n-t81f4o",
+    "start": 2356,
+    "end": 2441,
+    "text": "Two hulks of masonry lurch upright before the open sanctum doors, runes blazing cyan."
+   },
+   {
+    "key": "n-gkx9aa",
+    "start": 2455,
+    "end": 2588,
+    "text": "The Sanctum is a vault so vast the braziers cannot find its ceiling. On the dais, something tall unfolds itself from a broken throne."
+   },
+   {
+    "key": "n-12dsn3y",
+    "start": 2602,
+    "end": 2703,
+    "text": "The Lich staggers. His crown cracks, and the cyan fire pours out of him like water from a broken jar."
+   },
+   {
+    "key": "n-bolqdc",
+    "start": 2717,
+    "end": 2785,
+    "text": "He is dust before the last word. The scroll is warm in Lyra's hands."
+   },
+   {
+    "key": "n-ygy165",
+    "start": 2799,
+    "end": 2889,
+    "text": "Dawn comes through a crack in the Sanctum's vault for the first time in two hundred years."
+   },
+   {
+    "key": "n-zsmsof",
+    "start": 2903,
+    "end": 3079,
+    "text": "Lyra carries the scroll back to Thornhaven. In the years that follow, she rebuilds the Academy on open ground, far from any tomb, and its first lesson is the story of Vaelthas."
+   },
+   {
+    "key": "n-9rabat",
+    "start": 3093,
+    "end": 3192,
+    "text": "Orin rides to the Solarian capital with Korvas's sword, and the Order is remade under its old oath."
+   },
+   {
+    "key": "n-k22hlw",
+    "start": 3206,
+    "end": 3259,
+    "text": "Sera returns to the Conclave. This time, they listen."
+   },
+   {
+    "key": "n-1hvx1uj",
+    "start": 3273,
+    "end": 3362,
+    "text": "Thane teaches the Academy's darkest class: how to say no to a bargain. It is always full."
+   },
+   {
+    "key": "n-1ut27dl",
+    "start": 3376,
+    "end": 3464,
+    "text": "And on the first stone of the new Academy, someone carves a line: remember what it cost."
+   },
+   {
+    "key": "n-1bcu1ky",
+    "start": 3478,
+    "end": 3589,
+    "text": "On a cliff above the Thornwood, the scroll burns away in Lyra's hand, and the sparks drift up into the morning."
+   },
+   {
+    "key": "n-1kc3yep",
+    "start": 3603,
+    "end": 3723,
+    "text": "No one writes the Lich's name again. In a generation, he is a story told to frighten apprentices. In two, not even that."
+   },
+   {
+    "key": "n-11ip6ve",
+    "start": 3737,
+    "end": 3832,
+    "text": "Orin hangs up his sword in Thornhaven and becomes the worst fisherman the river has ever known."
+   },
+   {
+    "key": "n-1jkmbdn",
+    "start": 3846,
+    "end": 3925,
+    "text": "Sera stays. Somebody has to show the village children where the roots trip you."
+   },
+   {
+    "key": "n-59rpgo",
+    "start": 3939,
+    "end": 4002,
+    "text": "Thane's brand fades a little more each year. He stops counting."
+   },
+   {
+    "key": "n-1az1g7w",
+    "start": 4016,
+    "end": 4086,
+    "text": "And Lyra, for the first time since the fire, sleeps through the night."
+   },
+   {
+    "key": "n-1533r0g",
+    "start": 4100,
+    "end": 4119,
+    "text": "The chest is empty."
+   },
+   {
+    "key": "n-dsij8u",
+    "start": 4133,
+    "end": 4181,
+    "text": "Darkness. Then firelight, and the smell of stew."
+   }
+  ]
+ },
+ {
+  "who": "lyra",
+  "voice": "Lily",
+  "text": "[sadly] I left the scroll behind. In the Academy, in the fire. If anyone else reads it... [long pause] No. One thing at a time. A bed, a meal, and then the ruins. The old Academy is just west of the forest path. [long pause] [determined] Whatever that prophecy says about me, I will read it with my own eyes before anyone tells me what I am. [long pause] [sadly] This isn't a forest fire. That's Aether, burned wrong. The same light I saw in the Academy windows. [long pause] [sadly] Watching for what? [long pause] [determined] Then I'd better see Elder Varec before they try again. Can you make it back to the village? [long pause] [warmly] East, to the World Tree. And thank you, Orin. [long pause] [sadly] I sat in that row. Third from the front. We used to throw ink pellets at the statue of the headmaster. [long pause] The divination hall is through the north wall. If the scroll survived, it's there. [long pause] [sadly] This is where I copied it. The night before the fire. I hid the copy in the west alcove, behind the shelf. Please, please still be there. [long pause] [sadly] \"When the third seal wanes, the one who reads this shall be the key: to wake the sleeper, or to end him.\" It's real. It's all real. [long pause] [determined] A key opens doors in both directions. Fine. Then I choose which way it turns. [long pause] [determined] Everything can die. Even promises. [long pause] [sadly] The first Academy. Before it was an academy. Before it was a tomb. [long pause] [warmly] Mistress Aneth! I thought everyone had... I thought I was the only one. [long pause] [determined] \"The one who reads this shall be the key.\" I am reading it. And I am choosing: open. [long pause] [determined] You wrote the prophecy? [long pause] [determined] The scroll said I could wake you, or end you. You forgot to say which one I'd choose. [long pause] Burn it, and he's forgotten. Keep it, and nobody forgets what he cost us. [long pause] [determined] I'll keep it. Not for you. So that no one ever builds a school on top of a tomb and forgets again. [long pause] Then let it burn. You don't get to live on in anything. Not even a story. [long pause] [shouting] Burn! [long pause] [shouting] Hold still! [long pause] [shouting] Hold on, I've got you. [long pause] [shouting] Stars, fall! [long pause] [shouting] We did it! [long pause] [shouting] I can't... see...",
+  "parts": [
+   {
+    "key": "lyra-qbei5h",
+    "start": 8,
+    "end": 89,
+    "text": "I left the scroll behind. In the Academy, in the fire. If anyone else reads it..."
+   },
+   {
+    "key": "lyra-6gkura",
+    "start": 103,
+    "end": 211,
+    "text": "No. One thing at a time. A bed, a meal, and then the ruins. The old Academy is just west of the forest path."
+   },
+   {
+    "key": "lyra-14ankqp",
+    "start": 238,
+    "end": 341,
+    "text": "Whatever that prophecy says about me, I will read it with my own eyes before anyone tells me what I am."
+   },
+   {
+    "key": "lyra-9b2jl7",
+    "start": 363,
+    "end": 462,
+    "text": "This isn't a forest fire. That's Aether, burned wrong. The same light I saw in the Academy windows."
+   },
+   {
+    "key": "lyra-h679qw",
+    "start": 484,
+    "end": 502,
+    "text": "Watching for what?"
+   },
+   {
+    "key": "lyra-o453lw",
+    "start": 529,
+    "end": 620,
+    "text": "Then I'd better see Elder Varec before they try again. Can you make it back to the village?"
+   },
+   {
+    "key": "lyra-1sc97na",
+    "start": 643,
+    "end": 688,
+    "text": "East, to the World Tree. And thank you, Orin."
+   },
+   {
+    "key": "lyra-1qjvw2o",
+    "start": 710,
+    "end": 812,
+    "text": "I sat in that row. Third from the front. We used to throw ink pellets at the statue of the headmaster."
+   },
+   {
+    "key": "lyra-1fopp0d",
+    "start": 826,
+    "end": 908,
+    "text": "The divination hall is through the north wall. If the scroll survived, it's there."
+   },
+   {
+    "key": "lyra-1fa4uxs",
+    "start": 930,
+    "end": 1067,
+    "text": "This is where I copied it. The night before the fire. I hid the copy in the west alcove, behind the shelf. Please, please still be there."
+   },
+   {
+    "key": "lyra-1yb7qfp",
+    "start": 1089,
+    "end": 1220,
+    "text": "\"When the third seal wanes, the one who reads this shall be the key: to wake the sleeper, or to end him.\" It's real. It's all real."
+   },
+   {
+    "key": "lyra-jtz3bd",
+    "start": 1247,
+    "end": 1324,
+    "text": "A key opens doors in both directions. Fine. Then I choose which way it turns."
+   },
+   {
+    "key": "lyra-ibz6ba",
+    "start": 1351,
+    "end": 1385,
+    "text": "Everything can die. Even promises."
+   },
+   {
+    "key": "lyra-2c6ccs",
+    "start": 1407,
+    "end": 1473,
+    "text": "The first Academy. Before it was an academy. Before it was a tomb."
+   },
+   {
+    "key": "lyra-fn9m0f",
+    "start": 1496,
+    "end": 1567,
+    "text": "Mistress Aneth! I thought everyone had... I thought I was the only one."
+   },
+   {
+    "key": "lyra-1nq4nxe",
+    "start": 1594,
+    "end": 1678,
+    "text": "\"The one who reads this shall be the key.\" I am reading it. And I am choosing: open."
+   },
+   {
+    "key": "lyra-1bd55ol",
+    "start": 1705,
+    "end": 1728,
+    "text": "You wrote the prophecy?"
+   },
+   {
+    "key": "lyra-v7ivnm",
+    "start": 1755,
+    "end": 1840,
+    "text": "The scroll said I could wake you, or end you. You forgot to say which one I'd choose."
+   },
+   {
+    "key": "lyra-u9dsij",
+    "start": 1854,
+    "end": 1927,
+    "text": "Burn it, and he's forgotten. Keep it, and nobody forgets what he cost us."
+   },
+   {
+    "key": "lyra-bkamf1",
+    "start": 1954,
+    "end": 2052,
+    "text": "I'll keep it. Not for you. So that no one ever builds a school on top of a tomb and forgets again."
+   },
+   {
+    "key": "lyra-1tz5rws",
+    "start": 2066,
+    "end": 2139,
+    "text": "Then let it burn. You don't get to live on in anything. Not even a story."
+   },
+   {
+    "key": "lyra-16bogyj",
+    "start": 2164,
+    "end": 2169,
+    "text": "Burn!"
+   },
+   {
+    "key": "lyra-13v8jzt",
+    "start": 2194,
+    "end": 2205,
+    "text": "Hold still!"
+   },
+   {
+    "key": "lyra-11fzou1",
+    "start": 2230,
+    "end": 2252,
+    "text": "Hold on, I've got you."
+   },
+   {
+    "key": "lyra-1x3emve",
+    "start": 2277,
+    "end": 2289,
+    "text": "Stars, fall!"
+   },
+   {
+    "key": "lyra-u5z2u4",
+    "start": 2314,
+    "end": 2324,
+    "text": "We did it!"
+   },
+   {
+    "key": "lyra-qkx6j0",
+    "start": 2349,
+    "end": 2366,
+    "text": "I can't... see..."
+   }
+  ]
+ },
+ {
+  "who": "varec",
+  "voice": "George",
+  "text": "A traveller, out of the Thornwood at this hour? Come in from the dark, child. The stars must have sent you; we are in need of someone brave. [long pause] [worried] Borin, our merchant, went down the Thornwood road three days ago and never came back. Bandits have grown bold this season. Bolder than bandits should be. [long pause] The Academy studied the Aether, the raw magic that binds the worlds. Its first headmaster tried to bind it to himself. They sealed what was left of him under the old ruins, south of the forest. Lately the seals feel... thin. [long pause] Bless you. The bandits camp in a clearing east of the forest path, past the burnt trees. Take care of yourself, and bring him home. [long pause] Then rest at the Ember Hearth and go with our thanks. But if you change your mind, Thornhaven could use a friend. [long pause] [worried] Any word of Borin? The bandits' camp is east of the Thornwood path, walled in by thorn trees. [long pause] [worried] Borin lives! But \"the Lich's hand\", directing bandits? Then the seals are not merely thin. Something below is reaching out. [long pause] Thornhaven owes you more than gold. Listen: the forest itself is sickening. The old spirit of the World Tree lives east of the Thornwood path. If anyone understands this corruption, she does. [long pause] And take a sword arm with you. A knight came into the village tonight; he is in the square asking after the ruins. I think you two want the same thing. [long pause] The World Tree Grove lies east, along the Thornwood path. Sylvara, the old spirit, will know what poisons her roots. Go carefully. [long pause] [worried] The southern path to the Aethermoor ruins is open. I feel it in my bones at night, child: something down there is awake and listening. [long pause] Whatever happens below, Thornhaven will keep a lamp lit for you. Come home.",
+  "parts": [
+   {
+    "key": "varec-ypiuqa",
+    "start": 0,
+    "end": 140,
+    "text": "A traveller, out of the Thornwood at this hour? Come in from the dark, child. The stars must have sent you; we are in need of someone brave."
+   },
+   {
+    "key": "varec-1ncjrkc",
+    "start": 164,
+    "end": 317,
+    "text": "Borin, our merchant, went down the Thornwood road three days ago and never came back. Bandits have grown bold this season. Bolder than bandits should be."
+   },
+   {
+    "key": "varec-he2hkm",
+    "start": 331,
+    "end": 555,
+    "text": "The Academy studied the Aether, the raw magic that binds the worlds. Its first headmaster tried to bind it to himself. They sealed what was left of him under the old ruins, south of the forest. Lately the seals feel... thin."
+   },
+   {
+    "key": "varec-1qbgrs7",
+    "start": 569,
+    "end": 700,
+    "text": "Bless you. The bandits camp in a clearing east of the forest path, past the burnt trees. Take care of yourself, and bring him home."
+   },
+   {
+    "key": "varec-1r62qed",
+    "start": 714,
+    "end": 827,
+    "text": "Then rest at the Ember Hearth and go with our thanks. But if you change your mind, Thornhaven could use a friend."
+   },
+   {
+    "key": "varec-7j3u8o",
+    "start": 851,
+    "end": 944,
+    "text": "Any word of Borin? The bandits' camp is east of the Thornwood path, walled in by thorn trees."
+   },
+   {
+    "key": "varec-1cwmh5t",
+    "start": 968,
+    "end": 1091,
+    "text": "Borin lives! But \"the Lich's hand\", directing bandits? Then the seals are not merely thin. Something below is reaching out."
+   },
+   {
+    "key": "varec-8vk65g",
+    "start": 1105,
+    "end": 1296,
+    "text": "Thornhaven owes you more than gold. Listen: the forest itself is sickening. The old spirit of the World Tree lives east of the Thornwood path. If anyone understands this corruption, she does."
+   },
+   {
+    "key": "varec-1xdjcbl",
+    "start": 1310,
+    "end": 1461,
+    "text": "And take a sword arm with you. A knight came into the village tonight; he is in the square asking after the ruins. I think you two want the same thing."
+   },
+   {
+    "key": "varec-g5vthy",
+    "start": 1475,
+    "end": 1605,
+    "text": "The World Tree Grove lies east, along the Thornwood path. Sylvara, the old spirit, will know what poisons her roots. Go carefully."
+   },
+   {
+    "key": "varec-zg4fsi",
+    "start": 1629,
+    "end": 1763,
+    "text": "The southern path to the Aethermoor ruins is open. I feel it in my bones at night, child: something down there is awake and listening."
+   },
+   {
+    "key": "varec-5opq48",
+    "start": 1777,
+    "end": 1852,
+    "text": "Whatever happens below, Thornhaven will keep a lamp lit for you. Come home."
+   }
+  ]
+ },
+ {
+  "who": "holt",
+  "voice": "Bill",
+  "text": "Oh, thank the gods, a proper adventurer! Slimes, miss. Slimes out of the Thornwood, eating my turnips down to the stalks! [long pause] Bring me three of their cores, if you would. The Elder keeps a ledger, and he won't believe it without proof. I can't pay much, but I'll pay. [long pause] Fine. Fine! I'll fight them off with a pitchfork, then. Again. [long pause] Three slime cores, miss. They wobble about the Thornwood like they own it. [long pause] Three cores! You did it! Here, take this, and an old vest of mine. It's kept the rain off me for twenty years. [long pause] Not a slime in sight. My little ones won't go hungry this winter, thanks to you.",
+  "parts": [
+   {
+    "key": "holt-uma89w",
+    "start": 0,
+    "end": 121,
+    "text": "Oh, thank the gods, a proper adventurer! Slimes, miss. Slimes out of the Thornwood, eating my turnips down to the stalks!"
+   },
+   {
+    "key": "holt-15fieqk",
+    "start": 135,
+    "end": 276,
+    "text": "Bring me three of their cores, if you would. The Elder keeps a ledger, and he won't believe it without proof. I can't pay much, but I'll pay."
+   },
+   {
+    "key": "holt-7lijcb",
+    "start": 290,
+    "end": 352,
+    "text": "Fine. Fine! I'll fight them off with a pitchfork, then. Again."
+   },
+   {
+    "key": "holt-159w33k",
+    "start": 366,
+    "end": 440,
+    "text": "Three slime cores, miss. They wobble about the Thornwood like they own it."
+   },
+   {
+    "key": "holt-1wbflzr",
+    "start": 454,
+    "end": 564,
+    "text": "Three cores! You did it! Here, take this, and an old vest of mine. It's kept the rain off me for twenty years."
+   },
+   {
+    "key": "holt-18r3baw",
+    "start": 578,
+    "end": 658,
+    "text": "Not a slime in sight. My little ones won't go hungry this winter, thanks to you."
+   }
+  ]
+ },
+ {
+  "who": "marta",
+  "voice": "Aria",
+  "text": "Need steel? You've come to the right forge. None of that bandit junk here. [long pause] Mind the sparks. [long pause] Wolf pelts. Three of them, for the bellows and for lining armour. The wolves in the Thornwood have gone mean this year. Bring me three and I'll forge you a blade worth carrying. [long pause] Good. Don't get bitten. [long pause] Three pelts. Wolves. Teeth. You know the ones. [long pause] Fine pelts. Here: a steel longsword, folded twelve times. It wants a knight's hand, but it'll sell, if you have no knight. [long pause] Door's behind you.",
+  "parts": [
+   {
+    "key": "marta-1yoetop",
+    "start": 0,
+    "end": 74,
+    "text": "Need steel? You've come to the right forge. None of that bandit junk here."
+   },
+   {
+    "key": "marta-r32ucm",
+    "start": 88,
+    "end": 104,
+    "text": "Mind the sparks."
+   },
+   {
+    "key": "marta-1h9v6jw",
+    "start": 118,
+    "end": 295,
+    "text": "Wolf pelts. Three of them, for the bellows and for lining armour. The wolves in the Thornwood have gone mean this year. Bring me three and I'll forge you a blade worth carrying."
+   },
+   {
+    "key": "marta-1ja2f0c",
+    "start": 309,
+    "end": 332,
+    "text": "Good. Don't get bitten."
+   },
+   {
+    "key": "marta-i53b99",
+    "start": 346,
+    "end": 392,
+    "text": "Three pelts. Wolves. Teeth. You know the ones."
+   },
+   {
+    "key": "marta-y3zdzv",
+    "start": 406,
+    "end": 528,
+    "text": "Fine pelts. Here: a steel longsword, folded twelve times. It wants a knight's hand, but it'll sell, if you have no knight."
+   },
+   {
+    "key": "marta-ll875s",
+    "start": 542,
+    "end": 560,
+    "text": "Door's behind you."
+   }
+  ]
+ },
+ {
+  "who": "aldric",
+  "voice": "Eric",
+  "text": "Welcome to the Ember Hearth! A hot meal and a soft bed, thirty gold for the whole party. Shall I make up the rooms? [long pause] Sleep well! Tomorrow's troubles can wait for tomorrow. Your journal is safe with me, too; I've written down where you've been. [long pause] Ah. A bit short tonight, are we? Sell some of those pelts at the forge and come back. The stew will keep. [long pause] Potions, ethers, antidotes. Everything a hero forgets to pack. [long pause] Farmer Holt's at war with the slimes again, and Marta wants wolf pelts. If you're handy with a blade, there's coin in both. [long pause] Folk say the forest east of the path is glowing at night. Pretty, if it weren't so purple. [long pause] The cold wind's coming up from the south now. Nobody's sleeping well. Except you lot, I hope. [long pause] The fire's always lit. [long pause] Easy, easy! A woodcutter carried you all in. You were lucky. I took what you owed from your purse; don't argue, you'd do the same.",
+  "parts": [
+   {
+    "key": "aldric-rhpl0s",
+    "start": 0,
+    "end": 115,
+    "text": "Welcome to the Ember Hearth! A hot meal and a soft bed, thirty gold for the whole party. Shall I make up the rooms?"
+   },
+   {
+    "key": "aldric-1qo6ov9",
+    "start": 129,
+    "end": 255,
+    "text": "Sleep well! Tomorrow's troubles can wait for tomorrow. Your journal is safe with me, too; I've written down where you've been."
+   },
+   {
+    "key": "aldric-shvzd4",
+    "start": 269,
+    "end": 374,
+    "text": "Ah. A bit short tonight, are we? Sell some of those pelts at the forge and come back. The stew will keep."
+   },
+   {
+    "key": "aldric-k3897v",
+    "start": 388,
+    "end": 450,
+    "text": "Potions, ethers, antidotes. Everything a hero forgets to pack."
+   },
+   {
+    "key": "aldric-b0iarf",
+    "start": 464,
+    "end": 587,
+    "text": "Farmer Holt's at war with the slimes again, and Marta wants wolf pelts. If you're handy with a blade, there's coin in both."
+   },
+   {
+    "key": "aldric-1608q0s",
+    "start": 601,
+    "end": 691,
+    "text": "Folk say the forest east of the path is glowing at night. Pretty, if it weren't so purple."
+   },
+   {
+    "key": "aldric-1vzzet6",
+    "start": 705,
+    "end": 798,
+    "text": "The cold wind's coming up from the south now. Nobody's sleeping well. Except you lot, I hope."
+   },
+   {
+    "key": "aldric-l581x8",
+    "start": 812,
+    "end": 834,
+    "text": "The fire's always lit."
+   },
+   {
+    "key": "aldric-7hwnyt",
+    "start": 848,
+    "end": 978,
+    "text": "Easy, easy! A woodcutter carried you all in. You were lucky. I took what you owed from your purse; don't argue, you'd do the same."
+   }
+  ]
+ },
+ {
+  "who": "borin",
+  "voice": "Charlie",
+  "text": "My rescuers! Borin's Wares is open for business again, and for you, the friendly price. Which is the normal price. But friendlier! [long pause] Feathers, potions, ethers! All genuine. Mostly. [long pause] Those Lich Shards that drift through the forest now? Smash one and you'll sometimes find a soul gem inside. Nasty things. Valuable things! [long pause] Mind the bandits! Ha. You don't need to. [long pause] You found me! Oh, sweet mercy. They took my coin, my goods, my good hat. Not this hat. This is my bad hat. [long pause] Listen. They weren't ordinary bandits. They kept talking about \"the Lich's hand\", like it was a person. Somebody's paying them to watch the roads. [long pause] For a girl with silver hair, coming from the Academy. Er. That's you, isn't it? [long pause] I'll set up shop in the square the moment I'm home. Come and see me. Rescuers get the friendly price!",
+  "parts": [
+   {
+    "key": "borin-1gp6w3f",
+    "start": 0,
+    "end": 130,
+    "text": "My rescuers! Borin's Wares is open for business again, and for you, the friendly price. Which is the normal price. But friendlier!"
+   },
+   {
+    "key": "borin-1hajaq5",
+    "start": 144,
+    "end": 191,
+    "text": "Feathers, potions, ethers! All genuine. Mostly."
+   },
+   {
+    "key": "borin-1ua6zc",
+    "start": 205,
+    "end": 343,
+    "text": "Those Lich Shards that drift through the forest now? Smash one and you'll sometimes find a soul gem inside. Nasty things. Valuable things!"
+   },
+   {
+    "key": "borin-1d9gmyv",
+    "start": 357,
+    "end": 397,
+    "text": "Mind the bandits! Ha. You don't need to."
+   },
+   {
+    "key": "borin-1wiemva",
+    "start": 411,
+    "end": 517,
+    "text": "You found me! Oh, sweet mercy. They took my coin, my goods, my good hat. Not this hat. This is my bad hat."
+   },
+   {
+    "key": "borin-19qhhjz",
+    "start": 531,
+    "end": 677,
+    "text": "Listen. They weren't ordinary bandits. They kept talking about \"the Lich's hand\", like it was a person. Somebody's paying them to watch the roads."
+   },
+   {
+    "key": "borin-9v2byw",
+    "start": 691,
+    "end": 770,
+    "text": "For a girl with silver hair, coming from the Academy. Er. That's you, isn't it?"
+   },
+   {
+    "key": "borin-lmn088",
+    "start": 784,
+    "end": 885,
+    "text": "I'll set up shop in the square the moment I'm home. Come and see me. Rescuers get the friendly price!"
+   }
+  ]
+ },
+ {
+  "who": "sera",
+  "voice": "Laura",
+  "text": "Careful. The wolves moved east again, and something worse is drifting with them. You're heading deeper in. Want a guide who knows where the roots trip you? [long pause] Sera. Ranger, once, of the Thornwood Conclave. They exiled me for walking with humans, so now I walk with humans. It's worked out. [long pause] [playfully] Good. Stay behind me, keep quiet when I raise my hand, and don't step on anything purple. [long pause] [playfully] And a knight with one. Truly, the end times. [long pause] Brave or foolish. In the Thornwood it's hard to tell the difference. I'll be here. [long pause] [playfully] He smells like a bonfire. I like him already. [long pause] I've got the big ugly one. Obviously. [long pause] [shouting] Three for you! [long pause] [shouting] This one stings. [long pause] [shouting] Behind you. [long pause] [shouting] Marked. [long pause] [shouting] Too easy. [long pause] [shouting] Tripped on a root...",
+  "parts": [
+   {
+    "key": "sera-1oy1cl4",
+    "start": 0,
+    "end": 155,
+    "text": "Careful. The wolves moved east again, and something worse is drifting with them. You're heading deeper in. Want a guide who knows where the roots trip you?"
+   },
+   {
+    "key": "sera-9zak3r",
+    "start": 169,
+    "end": 299,
+    "text": "Sera. Ranger, once, of the Thornwood Conclave. They exiled me for walking with humans, so now I walk with humans. It's worked out."
+   },
+   {
+    "key": "sera-1ipemle",
+    "start": 325,
+    "end": 414,
+    "text": "Good. Stay behind me, keep quiet when I raise my hand, and don't step on anything purple."
+   },
+   {
+    "key": "sera-4sk9n0",
+    "start": 440,
+    "end": 484,
+    "text": "And a knight with one. Truly, the end times."
+   },
+   {
+    "key": "sera-tn3r0d",
+    "start": 498,
+    "end": 580,
+    "text": "Brave or foolish. In the Thornwood it's hard to tell the difference. I'll be here."
+   },
+   {
+    "key": "sera-d5xw8n",
+    "start": 606,
+    "end": 651,
+    "text": "He smells like a bonfire. I like him already."
+   },
+   {
+    "key": "sera-7zxxyk",
+    "start": 665,
+    "end": 702,
+    "text": "I've got the big ugly one. Obviously."
+   },
+   {
+    "key": "sera-1buc2qa",
+    "start": 727,
+    "end": 741,
+    "text": "Three for you!"
+   },
+   {
+    "key": "sera-h2qjtl",
+    "start": 766,
+    "end": 782,
+    "text": "This one stings."
+   },
+   {
+    "key": "sera-1s16ek",
+    "start": 807,
+    "end": 818,
+    "text": "Behind you."
+   },
+   {
+    "key": "sera-gi3scd",
+    "start": 843,
+    "end": 850,
+    "text": "Marked."
+   },
+   {
+    "key": "sera-mjhpsx",
+    "start": 875,
+    "end": 884,
+    "text": "Too easy."
+   },
+   {
+    "key": "sera-c7cxpp",
+    "start": 909,
+    "end": 929,
+    "text": "Tripped on a root..."
+   }
+  ]
+ },
+ {
+  "who": "orin",
+  "voice": "Daniel",
+  "text": "An elf with a sense of humour. The Thornwood is full of surprises. [long pause] You're the one the Elder told me about. The girl from the Academy. I'm heading for the ruins myself, and the road is long for one sword. [long pause] I was a knight of the Solarian Order. Our commander, Korvas, made a bargain with something in the ruins and ordered us to guard its road. I refused. They stripped my emblem and cast me out. [long pause] [angrily] The oath they broke, I still keep. Protect the innocent. Whatever stirs under Aethermoor, the innocent are in its way. [long pause] Ha. I hoped you'd say that. I take the front; you stay behind my shield. Where do we start? [long pause] As you wish. I'll be in the square. The dark ahead is not a thing to face alone. [long pause] [angrily] Korvas. Then the Order's bargain was with the Lich himself. I should have stopped him years ago. [long pause] [angrily] This is where they stripped my emblem. Korvas will be at the altar. He always liked the altar. [long pause] [angrily] I came back to finish what you started when you sold the Order to a corpse. [long pause] Rest, commander. I'll keep the oath for both of us. [long pause] Stay behind my shield, Lyra. [long pause] [shouting] Down you go! [long pause] [shouting] Face me, coward! [long pause] [shouting] Behind my shield! [long pause] [shouting] For the oath! [long pause] [shouting] Stand easy. [long pause] [shouting] Forgive me...",
+  "parts": [
+   {
+    "key": "orin-1qtlkis",
+    "start": 0,
+    "end": 66,
+    "text": "An elf with a sense of humour. The Thornwood is full of surprises."
+   },
+   {
+    "key": "orin-is6yrc",
+    "start": 80,
+    "end": 216,
+    "text": "You're the one the Elder told me about. The girl from the Academy. I'm heading for the ruins myself, and the road is long for one sword."
+   },
+   {
+    "key": "orin-1emq4ah",
+    "start": 230,
+    "end": 419,
+    "text": "I was a knight of the Solarian Order. Our commander, Korvas, made a bargain with something in the ruins and ordered us to guard its road. I refused. They stripped my emblem and cast me out."
+   },
+   {
+    "key": "orin-5jatfz",
+    "start": 443,
+    "end": 561,
+    "text": "The oath they broke, I still keep. Protect the innocent. Whatever stirs under Aethermoor, the innocent are in its way."
+   },
+   {
+    "key": "orin-mfpn2c",
+    "start": 575,
+    "end": 666,
+    "text": "Ha. I hoped you'd say that. I take the front; you stay behind my shield. Where do we start?"
+   },
+   {
+    "key": "orin-v1cmvi",
+    "start": 680,
+    "end": 760,
+    "text": "As you wish. I'll be in the square. The dark ahead is not a thing to face alone."
+   },
+   {
+    "key": "orin-tc8vs5",
+    "start": 784,
+    "end": 880,
+    "text": "Korvas. Then the Order's bargain was with the Lich himself. I should have stopped him years ago."
+   },
+   {
+    "key": "orin-9j40y8",
+    "start": 904,
+    "end": 998,
+    "text": "This is where they stripped my emblem. Korvas will be at the altar. He always liked the altar."
+   },
+   {
+    "key": "orin-b3bt2t",
+    "start": 1022,
+    "end": 1097,
+    "text": "I came back to finish what you started when you sold the Order to a corpse."
+   },
+   {
+    "key": "orin-1cd2mci",
+    "start": 1111,
+    "end": 1162,
+    "text": "Rest, commander. I'll keep the oath for both of us."
+   },
+   {
+    "key": "orin-8koctx",
+    "start": 1176,
+    "end": 1204,
+    "text": "Stay behind my shield, Lyra."
+   },
+   {
+    "key": "orin-pd6sj7",
+    "start": 1229,
+    "end": 1241,
+    "text": "Down you go!"
+   },
+   {
+    "key": "orin-8g76ch",
+    "start": 1266,
+    "end": 1282,
+    "text": "Face me, coward!"
+   },
+   {
+    "key": "orin-1t7rogh",
+    "start": 1307,
+    "end": 1324,
+    "text": "Behind my shield!"
+   },
+   {
+    "key": "orin-tr379o",
+    "start": 1349,
+    "end": 1362,
+    "text": "For the oath!"
+   },
+   {
+    "key": "orin-15d3k2j",
+    "start": 1387,
+    "end": 1398,
+    "text": "Stand easy."
+   },
+   {
+    "key": "orin-csel7d",
+    "start": 1423,
+    "end": 1436,
+    "text": "Forgive me..."
+   }
+  ]
+ },
+ {
+  "who": "sylvara",
+  "voice": "Matilda",
+  "text": "[sadly] Mortals. You carry the smell of lich-shadow on you. But also light. You are not enemies of the forest. [long pause] [sadly] The corruption seeps up from the ruins and into three of my roots. I cannot cleanse them myself. A soul gem pressed into each root would draw the poison out. [long pause] The Lich Shards that drift through the Thornwood are splinters of his will. Break one and, often enough, a gem of his stolen power falls out. [long pause] The voice of the World Tree, child. My roots drink from every ley line in this land. If I fall, the Thornwood's magic dies with me. [long pause] Bless you. The roots that ache are the ones veined with violet: two beside my trunk, one in the southern glade. [long pause] [sadly] Some of my roots still ache. A soul gem for each; the Shards in the Thornwood carry them. [long pause] I feel it. All three are clean. The poison recedes, and I can breathe again. Take this, with the forest's gratitude. [long pause] One more thing troubles me. A name echoes from the chapel beyond my southern roots: Korvas. An iron-hearted knight in your village carries that name like a wound. Bring him to me. [long pause] Knight. I hear a name in your heart that echoes from the shattered chapel beyond my southern roots: Korvas. He is there, and he is no longer a man. [long pause] I will part my roots. Go with care. What waits there wears your old commander's face, but it does not remember mercy. [long pause] The path south lies open. The chapel waits, and so does he. [long pause] The wood breathes easier because of you. Walk safely, friends of the forest.",
+  "parts": [
+   {
+    "key": "sylvara-1324d9i",
+    "start": 8,
+    "end": 110,
+    "text": "Mortals. You carry the smell of lich-shadow on you. But also light. You are not enemies of the forest."
+   },
+   {
+    "key": "sylvara-whw9fo",
+    "start": 132,
+    "end": 289,
+    "text": "The corruption seeps up from the ruins and into three of my roots. I cannot cleanse them myself. A soul gem pressed into each root would draw the poison out."
+   },
+   {
+    "key": "sylvara-ktiwtr",
+    "start": 303,
+    "end": 444,
+    "text": "The Lich Shards that drift through the Thornwood are splinters of his will. Break one and, often enough, a gem of his stolen power falls out."
+   },
+   {
+    "key": "sylvara-wsu5wk",
+    "start": 458,
+    "end": 589,
+    "text": "The voice of the World Tree, child. My roots drink from every ley line in this land. If I fall, the Thornwood's magic dies with me."
+   },
+   {
+    "key": "sylvara-bote0e",
+    "start": 603,
+    "end": 714,
+    "text": "Bless you. The roots that ache are the ones veined with violet: two beside my trunk, one in the southern glade."
+   },
+   {
+    "key": "sylvara-12imo0r",
+    "start": 736,
+    "end": 825,
+    "text": "Some of my roots still ache. A soul gem for each; the Shards in the Thornwood carry them."
+   },
+   {
+    "key": "sylvara-y930q8",
+    "start": 839,
+    "end": 955,
+    "text": "I feel it. All three are clean. The poison recedes, and I can breathe again. Take this, with the forest's gratitude."
+   },
+   {
+    "key": "sylvara-2eurn2",
+    "start": 969,
+    "end": 1148,
+    "text": "One more thing troubles me. A name echoes from the chapel beyond my southern roots: Korvas. An iron-hearted knight in your village carries that name like a wound. Bring him to me."
+   },
+   {
+    "key": "sylvara-10pdqaz",
+    "start": 1162,
+    "end": 1309,
+    "text": "Knight. I hear a name in your heart that echoes from the shattered chapel beyond my southern roots: Korvas. He is there, and he is no longer a man."
+   },
+   {
+    "key": "sylvara-1lk2yqx",
+    "start": 1323,
+    "end": 1440,
+    "text": "I will part my roots. Go with care. What waits there wears your old commander's face, but it does not remember mercy."
+   },
+   {
+    "key": "sylvara-1jigud2",
+    "start": 1454,
+    "end": 1513,
+    "text": "The path south lies open. The chapel waits, and so does he."
+   },
+   {
+    "key": "sylvara-s5f2xf",
+    "start": 1527,
+    "end": 1603,
+    "text": "The wood breathes easier because of you. Walk safely, friends of the forest."
+   }
+  ]
+ },
+ {
+  "who": "korvas",
+  "voice": "Brian",
+  "text": "Orin. My most stubborn knight. Did you come back to kneel? [long pause] Sold? I was promised forever. The Lich keeps his word. Look at me. I cannot die. [long pause] Orin. It's quiet. I had forgotten it could be quiet. [long pause] The seal under Aethermoor. Three shards held it, and he broke two through us. The scholar in the ruins knows the rest. Stop him. Please. [long pause] [shouting] Judgment! [long pause] [shouting] I cannot die!",
+  "parts": [
+   {
+    "key": "korvas-x0u4fw",
+    "start": 0,
+    "end": 58,
+    "text": "Orin. My most stubborn knight. Did you come back to kneel?"
+   },
+   {
+    "key": "korvas-19mazuv",
+    "start": 72,
+    "end": 152,
+    "text": "Sold? I was promised forever. The Lich keeps his word. Look at me. I cannot die."
+   },
+   {
+    "key": "korvas-z7y451",
+    "start": 166,
+    "end": 218,
+    "text": "Orin. It's quiet. I had forgotten it could be quiet."
+   },
+   {
+    "key": "korvas-7kdje1",
+    "start": 232,
+    "end": 368,
+    "text": "The seal under Aethermoor. Three shards held it, and he broke two through us. The scholar in the ruins knows the rest. Stop him. Please."
+   },
+   {
+    "key": "korvas-1srgyls",
+    "start": 393,
+    "end": 402,
+    "text": "Judgment!"
+   },
+   {
+    "key": "korvas-1jppj8c",
+    "start": 427,
+    "end": 440,
+    "text": "I cannot die!"
+   }
+  ]
+ },
+ {
+  "who": "aneth",
+  "voice": "Alice",
+  "text": "Lyra? Lyra of the third row, who threw ink at the headmaster's statue? You lived! Oh, child, sit down before I cry on you. [long pause] There is no time for tea, sadly. The seal on the Sanctum was held by three lich shards. Two were broken by the Order's treachery. The third is the seal itself. [long pause] To break it, we need two soul gems to resonate with it, and the one thing that was written to open it: your prophecy. The scroll names its reader as the key. [long pause] Vaelthas. Our first headmaster. He tried to bind the Aether to his own soul so he could never die. The other masters could not destroy him, so they sealed him and built the Academy on top, as a guard. And then forgot why. [long pause] The Shards in these halls carry gems. Bring me two, and the scroll. And Lyra... whatever is down there knows your name. [long pause] Two soul gems and the Elder Scroll. The Shards drift through these halls; the golems are slow, so mind your footing and you'll be fine. [long pause] [worried] The gems are perfect, but the seal won't answer to them alone. It needs the Elder Scroll, from the Academy ruins west of the Thornwood path. [long pause] The gems, and the scroll. Hold it up, Lyra. Read the line that names you. Out loud. [long pause] It's breaking! The seal, the whole sanctum is... Gods help us, I can feel him waking. [long pause] The sanctum doors stand open to the south. Something heavy guards them now. Take this robe; it was mine, when I was young and foolish enough to go adventuring. [long pause] I'll keep the ruins clear for your return, and sell you what I carry. Go, and end what my order began. [long pause] Do you need supplies? I have potions and feathers. Take what you need, and come back alive. [long pause] Pay what you like. No, pay what's on the tag. Old habits. [long pause] Then go. I'll be here.",
+  "parts": [
+   {
+    "key": "aneth-13xjj6p",
+    "start": 0,
+    "end": 122,
+    "text": "Lyra? Lyra of the third row, who threw ink at the headmaster's statue? You lived! Oh, child, sit down before I cry on you."
+   },
+   {
+    "key": "aneth-1vd7eao",
+    "start": 136,
+    "end": 295,
+    "text": "There is no time for tea, sadly. The seal on the Sanctum was held by three lich shards. Two were broken by the Order's treachery. The third is the seal itself."
+   },
+   {
+    "key": "aneth-1ey7x39",
+    "start": 309,
+    "end": 466,
+    "text": "To break it, we need two soul gems to resonate with it, and the one thing that was written to open it: your prophecy. The scroll names its reader as the key."
+   },
+   {
+    "key": "aneth-13wdld3",
+    "start": 480,
+    "end": 701,
+    "text": "Vaelthas. Our first headmaster. He tried to bind the Aether to his own soul so he could never die. The other masters could not destroy him, so they sealed him and built the Academy on top, as a guard. And then forgot why."
+   },
+   {
+    "key": "aneth-13irgo",
+    "start": 715,
+    "end": 834,
+    "text": "The Shards in these halls carry gems. Bring me two, and the scroll. And Lyra... whatever is down there knows your name."
+   },
+   {
+    "key": "aneth-jn1k4l",
+    "start": 848,
+    "end": 983,
+    "text": "Two soul gems and the Elder Scroll. The Shards drift through these halls; the golems are slow, so mind your footing and you'll be fine."
+   },
+   {
+    "key": "aneth-1l94cv9",
+    "start": 1007,
+    "end": 1147,
+    "text": "The gems are perfect, but the seal won't answer to them alone. It needs the Elder Scroll, from the Academy ruins west of the Thornwood path."
+   },
+   {
+    "key": "aneth-360vd7",
+    "start": 1161,
+    "end": 1244,
+    "text": "The gems, and the scroll. Hold it up, Lyra. Read the line that names you. Out loud."
+   },
+   {
+    "key": "aneth-39vm19",
+    "start": 1258,
+    "end": 1343,
+    "text": "It's breaking! The seal, the whole sanctum is... Gods help us, I can feel him waking."
+   },
+   {
+    "key": "aneth-b4hde",
+    "start": 1357,
+    "end": 1516,
+    "text": "The sanctum doors stand open to the south. Something heavy guards them now. Take this robe; it was mine, when I was young and foolish enough to go adventuring."
+   },
+   {
+    "key": "aneth-1mmtccq",
+    "start": 1530,
+    "end": 1632,
+    "text": "I'll keep the ruins clear for your return, and sell you what I carry. Go, and end what my order began."
+   },
+   {
+    "key": "aneth-163n21y",
+    "start": 1646,
+    "end": 1737,
+    "text": "Do you need supplies? I have potions and feathers. Take what you need, and come back alive."
+   },
+   {
+    "key": "aneth-1x57gfk",
+    "start": 1751,
+    "end": 1808,
+    "text": "Pay what you like. No, pay what's on the tag. Old habits."
+   },
+   {
+    "key": "aneth-687ahj",
+    "start": 1822,
+    "end": 1844,
+    "text": "Then go. I'll be here."
+   }
+  ]
+ },
+ {
+  "who": "thane",
+  "voice": "Callum",
+  "text": "You're here for the Lich. I can feel his resonance from here; it stirs every time the seal is touched. Don't look at me like that. I am not your enemy. [long pause] [sadly] You can't. Not entirely. I was bound to a demon once, Kaelthas. I broke the bond, and it left this brand. The darkness still clings, but I aim it now. Against something worse. [long pause] Then let's end this. I've waited a long time for a chance to do one thing right. [long pause] [sadly] Admirable stubbornness. I'll be here if the Lich proves more than you bargained for. [long pause] Your kind made me what I am, lich. Let me return the favour. [long pause] [shouting] Your life is mine. [long pause] [shouting] Wither. [long pause] [shouting] Kaelthas, I take back what is mine! [long pause] [shouting] It's done. [long pause] [shouting] Not... yet...",
+  "parts": [
+   {
+    "key": "thane-17093rl",
+    "start": 0,
+    "end": 151,
+    "text": "You're here for the Lich. I can feel his resonance from here; it stirs every time the seal is touched. Don't look at me like that. I am not your enemy."
+   },
+   {
+    "key": "thane-15p6i7c",
+    "start": 173,
+    "end": 348,
+    "text": "You can't. Not entirely. I was bound to a demon once, Kaelthas. I broke the bond, and it left this brand. The darkness still clings, but I aim it now. Against something worse."
+   },
+   {
+    "key": "thane-7chmiv",
+    "start": 362,
+    "end": 442,
+    "text": "Then let's end this. I've waited a long time for a chance to do one thing right."
+   },
+   {
+    "key": "thane-10kn25p",
+    "start": 464,
+    "end": 548,
+    "text": "Admirable stubbornness. I'll be here if the Lich proves more than you bargained for."
+   },
+   {
+    "key": "thane-q9cial",
+    "start": 562,
+    "end": 622,
+    "text": "Your kind made me what I am, lich. Let me return the favour."
+   },
+   {
+    "key": "thane-wd2bej",
+    "start": 647,
+    "end": 665,
+    "text": "Your life is mine."
+   },
+   {
+    "key": "thane-l0bq4k",
+    "start": 690,
+    "end": 697,
+    "text": "Wither."
+   },
+   {
+    "key": "thane-an57hl",
+    "start": 722,
+    "end": 757,
+    "text": "Kaelthas, I take back what is mine!"
+   },
+   {
+    "key": "thane-sfvrlc",
+    "start": 782,
+    "end": 792,
+    "text": "It's done."
+   },
+   {
+    "key": "thane-zxwmcg",
+    "start": 817,
+    "end": 830,
+    "text": "Not... yet..."
+   }
+  ]
+ },
+ {
+  "who": "vaelthas",
+  "voice": "Roger",
+  "text": "Little key. You came. I wrote that line two hundred years ago, and I was so sure you would. [long pause] Who else? Come closer. Let me see the face of the one who sets me free. [long pause] Your teachers sealed me under their pretty school and forgot. But I left a door, and a key, and I waited for someone curious enough to read. [long pause] Then let us find out together. [long pause] Two hundred years of waiting. And still the key turns the wrong way. [long pause] The Aether will not keep me now. But the scroll remembers me, little key. Everything I was, I wrote into it. Burn it, and I am truly gone. Keep it, and the world remembers what I did. [long pause] [shouting] Kneel before the void! [long pause] [shouting] Rise again, my children. [long pause] [shouting] Hear the ages weep.",
+  "parts": [
+   {
+    "key": "vaelthas-1vyk265",
+    "start": 0,
+    "end": 91,
+    "text": "Little key. You came. I wrote that line two hundred years ago, and I was so sure you would."
+   },
+   {
+    "key": "vaelthas-13zvpbs",
+    "start": 105,
+    "end": 176,
+    "text": "Who else? Come closer. Let me see the face of the one who sets me free."
+   },
+   {
+    "key": "vaelthas-kidgae",
+    "start": 190,
+    "end": 330,
+    "text": "Your teachers sealed me under their pretty school and forgot. But I left a door, and a key, and I waited for someone curious enough to read."
+   },
+   {
+    "key": "vaelthas-1pbv9fg",
+    "start": 344,
+    "end": 374,
+    "text": "Then let us find out together."
+   },
+   {
+    "key": "vaelthas-1y88xsp",
+    "start": 388,
+    "end": 456,
+    "text": "Two hundred years of waiting. And still the key turns the wrong way."
+   },
+   {
+    "key": "vaelthas-5d6b2o",
+    "start": 470,
+    "end": 653,
+    "text": "The Aether will not keep me now. But the scroll remembers me, little key. Everything I was, I wrote into it. Burn it, and I am truly gone. Keep it, and the world remembers what I did."
+   },
+   {
+    "key": "vaelthas-o9xj5j",
+    "start": 678,
+    "end": 700,
+    "text": "Kneel before the void!"
+   },
+   {
+    "key": "vaelthas-334gyt",
+    "start": 725,
+    "end": 749,
+    "text": "Rise again, my children."
+   },
+   {
+    "key": "vaelthas-chv23r",
+    "start": 774,
+    "end": 793,
+    "text": "Hear the ages weep."
+   }
+  ]
+ }
+]

@@ -46,11 +46,11 @@ What the audit found:
 Each one is its own PR. Each takes the game from an old engine or no harness to the scaffold, and from emoji, shapes or nothing to
 painted and voiced media.
 
-- [ ] **game-028 Echoes of Aethermoor** (Phaser 4, visual novel / fantasy RPG). Four chapters of branching dialogue, a party of four,
+- [x] **game-028 Echoes of Aethermoor** (done in v2.0.0: no framework, every mechanic fixed, 75 fal paintings, 190 voiced lines, 9 themes, 20 effects; see its game-plan.md) (Phaser 4, visual novel / fantasy RPG). Four chapters of branching dialogue, a party of four,
   and turn-based battles. Its Phase 5 (art, portraits, mobile input) was never started. It is the closest match to game-027: the
   last Phaser RPG, and a visual novel depends on portraits and voices. Paint the cast in several expressions each (game-027,
   game-140) and voice the lines (game-140 has 401 clips). Model the DOM visual-novel layer on game-133 or game-140. Once this and
-  game-035 are done, `lib/phaser` can be removed.
+  game-035 are done, `lib/phaser` can be removed. (Checked when game-028 was done: game-019, 020, 021 and 022 load it too.)
 - [ ] **game-030 Coppergate Lane** (Canvas 2D, cozy-fantasy RPG; rated Playable-but-partial). It is the only early game the audit
   still rates *partial*: no save or load, one hero, and every enemy uses the same AI. The rebuild finishes it with saves, a party,
   and enemies with distinct behaviour. Paint the town and townsfolk and give the quest-givers voices. Reuse game-103 Crown &
@@ -85,7 +85,7 @@ These are small enough that a 2.x is mostly a port. Do them only when a game is 
 `lib/kaplay`.
 
 - [ ] **game-035 N2 Overdrive** (Phaser 4, tube shooter). Its tunnel is naturally 3D, so a three.js view fits better. It needs
-  ElevenLabs music more than art. With game-028, this retires Phaser.
+  ElevenLabs music more than art. game-028 left Phaser in v2.0.0; `lib/phaser` is still loaded by game-019, 020, 021, 022 and this one.
 - [ ] **game-011 Nonogram Fleet** (Kaplay): fal ships to reveal, and a sim that a solver test can check, like game-017's.
 - [ ] **game-006 raycasting FPS** (Kaplay, 70 images already). It overlaps 021, 026, 031 and 054, so port it only if it gets its own
   hook.

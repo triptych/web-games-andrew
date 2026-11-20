@@ -1,75 +1,112 @@
 {
  "id": "game-028",
- "name": "Seren",
- "role": "Mage of Aethermoor",
+ "name": "Lyra",
+ "role": "Runaway apprentice mage",
  "emoji": "📜",
- "color": "#5e8cff",
- "bio": "The party's mage in Echoes of Aethermoor. Reads ancient seals for fun.",
+ "color": "#b48cff",
+ "bio": "Ran from the burning Aethermoor Academy with a prophecy that names her. Going back anyway, with a knight, an elf and a warlock.",
  "portrait": {
-  "subject": "a cute young fantasy mage with long blue hair, a starry blue cloak, holding an old glowing spellbook",
-  "background": "deep blue misty fantasy ruins"
+  "subject": "a cute young woman mage with long silver-lavender hair in a loose side braid and violet eyes, a deep violet travelling cloak embroidered with tiny silver stars, a slender staff with a glowing violet crystal over her shoulder",
+  "background": "a violet twilight forest with distant glowing cyan ruins"
  },
- "request": "Greetings. I am Seren, mage of Aethermoor. The seals are weakening... I could use a friend. 📜",
+ "request": "Hello. I'm Lyra. I copied a prophecy I shouldn't have, and now it's following me. Friends would help. 📜",
  "hello": [
-  "Thank you. The knight sends his regards. The warlock sends a frown.",
-  "Every choice matters in Aethermoor. Remember that."
+  "Hello again! Orin says hello. Sera says nothing, which means hello.",
+  "Every line I say in the game is spoken now. Strange to hear yourself."
  ],
- "about": "I'm Seren, mage of our party of four. Knight, ranger, warlock and me. Together we must stop the Lich before the seals break.",
- "how": "A visual novel RPG: talk, choose, explore tile maps, take quests and fight turn-based battles across four chapters.",
+ "about": "I'm Lyra, an apprentice from the Aethermoor Academy, the night it burned. The prophecy I copied says I'm the key to the Lich below the ruins: to wake him, or to end him. I'd like a say in which.",
+ "how": "A voiced visual-novel RPG. Walk with the arrow keys, WASD, the pad or a tap; Space talks and opens chests. M is the menu, H tells you where to go next. In battle pick Attack, Skills, Items, Defend or Flee, then a target.",
  "tips": [
-  "Talk to everyone twice. People remember things.",
-  "The warlock hits hard but needs protecting.",
-  "Side quests make the final chapter much easier."
+  "Equip what you buy! Marta's forge gear does nothing in your pack.",
+  "Press H if you're lost. A gold marker on the map points the way too.",
+  "Defend halves the damage and gives back a little MP. Use it when the Lich gathers the void.",
+  "Lich Shards drop soul gems. Sylvara needs three, Aneth needs two.",
+  "If we fall, you can retry the fight right away, or wake at the inn for half our gold.",
+  "Bosses act twice a round. Orin's Bulwark shields the whole party."
  ],
  "chat": [
-  "The ranger caught a fish with an arrow. Showoff.",
-  "I read the seal inscription again. It's a warning. Also a poem.",
-  "The warlock laughed today. We were all concerned.",
-  "Aethermoor's sunsets are purple. I'll never get used to it."
+  "Orin tried to fish again. The fish won.",
+  "Sera marked a squirrel. Just to see if she could.",
+  "Thane laughed at something today. We were all very concerned.",
+  "I found the third row of seats in the old lecture hall. Ink stains and everything.",
+  "Aneth still corrects my handwriting. I'm nineteen!"
  ],
  "nudge": [
-  "The next chapter awaits, and the party is waiting for you.",
-  "A new quest appeared on the board. Shall we?"
+  "The Thornwood is quiet. Too quiet. Shall we go?",
+  "Elder Varec keeps a lamp lit for us. Let's not keep him waiting."
  ],
  "idle": [
   "{ago}... the seals grow weaker without you.",
-  "The party has been at camp for {ago}. The knight is polishing everything."
+  "We've been at the Ember Hearth for {ago}. Aldric keeps bringing stew."
  ],
  "progress": [
-  "Our party is level {level}. The Lich should fear us soon."
+  "Our party is level {level}. Korvas should be worried.",
+  "Chapter {chapter} already! I can almost see the ruins from here.",
+  "We have {gold} gold. Marta will be delighted."
  ],
  "questions": [
+  {
+   "q": "Should I keep the prophecy, or burn it?",
+   "a": [
+    [
+     "Keep it",
+     "So nobody forgets what he cost us. I like that."
+    ],
+    [
+     "Burn it",
+     "Let him be truly gone... yes. That's tempting."
+    ],
+    [
+     "Decide when it's time",
+     "Wise. The scroll isn't going anywhere. Probably."
+    ]
+   ]
+  },
   {
    "q": "Who in our party do you trust most?",
    "a": [
     [
-     "The knight",
-     "Steady and true. Good choice."
+     "Orin",
+     "Steady as a wall. Literally, with that shield."
     ],
     [
-     "The ranger",
-     "Quiet, but never misses."
+     "Sera",
+     "She never misses. Unless it's on purpose."
     ],
     [
-     "The warlock",
-     "Risky... but interesting."
+     "Thane",
+     "Risky... but he's trying so hard."
     ],
     [
-     "You, Seren",
+     "You, Lyra",
      "Oh! Thank you. I'll try to deserve it."
     ]
    ]
   }
  ],
- "update": "The echoes stir: Echoes of Aethermoor is now v{version}.",
+ "update": "Echoes of Aethermoor is now v{version}!",
  "bye": [
   "May the seals hold. 📜",
-  "Farewell, friend."
+  "Farewell, friend. Keep a lamp lit."
  ],
  "save": {
   "keys": [
-   "echoes_of_aethermoor_save"
-  ]
+   "echoes-of-aethermoor.v2"
+  ],
+  "stats": {
+   "level": [
+    "level"
+   ],
+   "gold": [
+    "gold"
+   ],
+   "chapter": [
+    "chapter"
+   ]
+  }
  },
- "art": "fal"
+ "art": "fal",
+ "updates": {
+  "2.0.0": "Big news: our story is painted now, every word of it is spoken, and the knight's sword actually works when you equip it! v2.0.0 ▶"
+ }
 }

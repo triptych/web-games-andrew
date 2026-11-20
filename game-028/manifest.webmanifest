@@ -1,12 +1,12 @@
 {
   "name": "Echoes of Aethermoor",
   "short_name": "Echoes of Aet…",
-  "description": "A Phaser 4 visual novel fantasy RPG. Lead a party of four heroes — mage, knight, ranger, warlock — through four chapters of branching dialogue, turn-based battles, tile-based maps, quests, and a deep…",
+  "description": "A fantasy visual-novel RPG in plain HTML, CSS and JavaScript, with every scene and character painted by fal and every line voiced with ElevenLabs. Lyra fled the burning Aethermoor Academy with a…",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#120a24",
+  "theme_color": "#120a24",
   "categories": [
     "games"
   ],

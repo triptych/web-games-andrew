@@ -1,336 +1,167 @@
 # Echoes of Aethermoor
 
-**Genre:** Visual Novel / Fantasy RPG
-**Engine:** Phaser 4.0.0 (ES6 modules)
-**Target Resolution:** 1280 × 720
-**Status:** Phase 4 complete
+**Genre:** Visual novel / fantasy RPG
+**Layout:** sim/view, plain HTML, CSS and JavaScript (Canvas 2D for the map and battles, DOM for everything else)
+**Version:** 2.0.0
+**Status:** Complete: four chapters, two endings, every line voiced
 
 ---
 
 ## Concept
 
-A Phaser 4 visual novel fantasy RPG with branching dialogue, turn-based battles, a cast of fantasy characters, explorable tile-based maps, quests, items, and a deep multi-chapter storyline. The player leads a party of four heroes — a wandering mage, an exiled knight, an elven ranger, and a reformed warlock — through four chapters as they uncover the truth behind the awakening of the Lich of Aethermoor.
+Three weeks ago the Aethermoor Academy burned. Lyra, an apprentice, ran into the night with a copy of a prophecy about
+the Lich sealed beneath the Academy's older ruins, and the prophecy names her as the key: to wake him, or to end him.
+She gathers a disgraced knight (Orin), an exiled elf ranger (Sera) and a warlock who broke his demon pact (Thane), and
+goes back.
 
-The game blends classic JRPG mechanics (SPD-ordered turn-based combat, ability costs, status effects) with visual novel presentation (typewriter dialogue, portrait art, narrative choices that set story flags and open new quests).
+It is the same game as v1 (the Phaser 4 build, phases 1–4): the same cast, places, four chapters, quests, items and
+turn-based battles. Version 2 rebuilds it without a framework, finishes Phase 5 (art, portraits, mobile input) and
+fixes every mechanic that was broken or missing.
 
----
+## Core loop
 
-## Core Mechanics
+Talk to people (voiced visual-novel scenes with choices) → take quests → walk the painted maps (random battles in the
+wilds, fixed fights, chests, story scenes) → fight → level up, loot, buy and equip gear → rest at the inn → the next
+chapter opens.
 
-### 1. Tile-based Exploration (MapScene)
-Player moves tile by tile on hand-authored maps. Each map has NPCs, exits to other maps, random encounter zones, and event tiles (lore, treasure, boss triggers). Maps are chapter-gated via condition checks on exits and NPCs.
+## Mechanics
 
-### 2. Branching Dialogue (DialogScene)
-Typewriter-speed text, speaker portraits, and choice menus. Choices can trigger side-effects: accepting quests, giving items, setting story flags, joining party members, opening shops, resting at inns.
+### Exploration
+Tile maps drawn from painted textures with soft edges, props and buildings that block their footprint, trees, chests,
+waiting foes and people, sorted by depth. Arrow keys / WASD walk, Space talks or opens; walking into a person or a chest
+does too. On a phone: a pad, an action button, or tap where to go (a path is walked; tapping a person walks up and talks).
+The party follows the leader. Random battles start after a few safe steps from any map change or battle.
 
-### 3. Turn-based Battle (BattleScene)
-Combatants are sorted by SPD. Player chooses actions (Attack / Abilities / Item / Flee) from a menu. Abilities cost MP. Enemy AI picks random abilities. Status effects planned (poison, stun, weaken, taunt, guard, lifesteal). Win → XP + gold + loot. Lose → game over.
+### Guide
+`js/sim/guide.js` knows the next main step and the side errands. **H** (or the **?** button) says it, the journal shows
+it, and a gold marker floats over the person or place on the current map. It also recommends a party level before each
+big fight. The test bot follows the same guide, so a hint can never point at something the bot couldn't do.
 
-### 4. Party & Progression
-Four recruitable party members each with unique ability kits. Global XP shared across party — levelling raises max HP/MP (8%/6% per level) and ATK/DEF/SPD (5% per level). Orin recruits in Thornhaven (Ch2), Sera in Thornwood (Ch2), Thane in the Ruins (Ch3). Gold buys items from shops.
+### Battles
+Everyone acts in order of speed each round (shown at the top). Commands: Attack, Skills (MP), Items (on a chosen ally),
+Defend (half damage until your next turn, +8% MP), Flee (not from bosses), Auto. Bosses act twice a round.
+Statuses: Poison (7% max HP a turn), Stun (lose a turn; bosses resist), Slow (half speed), Weak (−30% attack),
+ATK Up (+30%), Taunt (foes must attack the taunter), Guard (half damage), Evade (the next attack misses),
+Marked (+30% damage taken). Damage is attack × power − defence × 0.6 (physical) or × 0.3 (magic), ±10%, 6% crits on
+physical hits. The Lich telegraphs Void Eclipse a turn ahead and raises his fallen Shards.
 
-### 5. Quests
-Quests are accepted via NPC dialogue and tracked in state. Objectives include: defeat N enemies, collect N items, talk to NPC, visit map, trigger story flag. Completions grant XP, gold, and items.
+### Party and gear
+One shared level (HP +11%, MP +7%, ATK/DEF +7%, SPD +3.5% a level); recruits join at the party's level. Each hero has
+a weapon and an armour slot; gear says who can use it. New abilities at levels 4–8 (Bulwark, Hunter's Mark, Starfall,
+Rallying Cry). Anyone knocked out gets up with 1 HP after a won battle.
 
-### 6. Inventory & Items
-Consumables (heal HP/MP, cure status, revive), weapons (+ATK), armor (+DEF). Items are looted from enemies, bought from shops, or given by quests. In-game Menu (M key) shows Party, Items, Quests, Map tabs.
+### Defeat
+Retry the battle exactly as it began, or wake at the Ember Hearth Inn with half your gold.
 
----
+### Quests
+Eight quests; every objective is read from the live state (kills since the quest was taken, items carried, flags,
+places visited), so the journal can never disagree with the world.
 
-## Game Loop
+## What v2 fixed from v1
 
-1. Start in **Thornhaven Village** → talk to Elder Varec → accept first quest
-2. Explore the **Thornwood Forest** → fight random encounters → find Borin
-3. Return to village → complete quest → buy gear at blacksmith → rest at inn
-4. Story progresses through **Chapter 2** (Orin's arc, World Tree) and **Chapter 3** (sealing the ruins)
-5. **Chapter 4** final boss — the Lich of Aethermoor — in the ruins depths
-6. Victory screen → credits
+| v1 | v2 |
+|---|---|
+| Weapons and armour could be bought but there was no way to equip them, and their stats did nothing | Equipment slots in the Party menu and straight after buying; stats apply everywhere |
+| Loot had sell prices and no way to sell | Every shop buys loot and spare gear |
+| Frostbind's slow, Provoke, Iron Guard, Shadowstep, Hex, Howl, Flicker, Reanimate and Void Eclipse did nothing | All implemented; Iron Guard became Bulwark (whole party), the Lich telegraphs Void Eclipse |
+| Turn order was sorted once, so speed changes never mattered | Re-sorted every round with slow counted |
+| Heals, potions and revives picked their own target | You choose |
+| Antidotes did nothing | Cure poison, slow and weakness |
+| Enemies always picked a random ability and a random target | Abilities by weight with conditions and cooldowns; taunt is obeyed; 40% of attacks go for the weakest |
+| Losing sent you to the title screen | Retry, or wake at the inn |
+| "Defeat two bandits" was never counted; Borin appeared whether or not you fought | The bandits block the camp; kills are counted |
+| One-time events lived on the shared map data and were not saved: chests and anchor roots could be used again after a reload, bosses refought | Events are recorded in the save |
+| `not_flag_` conditions were built wrong, so Sylvara re-gave Orin's quest on every visit | Conditions rewritten; she offers it once |
+| The Elder Scroll did nothing after Lyra's Past | The seal needs it: Lyra really is the key |
+| Slime cores could become impossible to find after chapter 1 | Slimes stay in the Thornwood |
+| The ending was one fixed text | A choice: keep the scroll (Remember) or burn it (Release), with epilogues for each companion who joined |
+| Emoji portraits and coloured squares | Painted cast, expressions, map sprites, places, foes, items and story illustrations |
+| Synth beeps | Voiced script, nine music themes, twenty effects |
 
----
+## Content
 
-## Player Controls
+- **Places**: Thornhaven (village, inn, forge), the Thornwood, the Academy Ruins, the World Tree Grove, the Shattered
+  Chapel, the Aethermoor Ruins, the Sanctum.
+- **Cast**: Lyra, Orin, Sera, Thane; Elder Varec, Farmer Holt, Borin, Marta, Aldric, Sylvara, Scholar Aneth; Korvas and
+  Vaelthas, the Lich.
+- **Foes**: slime, wolf, bandit, wisp, lich shard, corrupted knight, golem; Korvas; Vaelthas.
+- **Quests**: The Missing Merchant, Slime Infestation, Pelts for the Forge, Lyra's Past, Spirit of the Wood, Orin's
+  Broken Oath, The Sealed Sanctum, Echoes End.
 
-| Action | Key(s) |
-|--------|--------|
-| Move   | Arrow Keys / WASD |
-| Interact / Confirm | Space / Enter |
-| Open Menu | M |
-| Back / Close | Escape |
-| Battle: navigate | Arrow Keys |
-| Battle: confirm | Space / Enter |
-| Dialog: advance | Space / Enter |
-| Dialog: navigate choices | Arrow Keys |
+## Story
 
----
+1. **The Road to Thornhaven**: the bandits on the Thornwood road answer to "the Lich's hand", and they are watching for
+   Lyra. She recovers her copy of the prophecy from the Academy ruins.
+2. **Roots and Oaths**: Orin and Sera join; three soul gems cleanse the World Tree's roots; Orin faces Korvas, the
+   commander who sold the Solarian Order to the Lich.
+3. **The Sealed Sanctum**: in the ruins Lyra finds her old teacher Aneth, and Thane. Two soul gems and the scroll, read
+   aloud by the one it names, break the seal.
+4. **Echoes End**: Vaelthas wrote the prophecy himself, as a door and a key. When he falls, his memory lives on only in
+   the scroll: Lyra keeps it or burns it.
 
-## Characters
+## Controls
 
-### Party Members
-| Character | Class | Role | Unlock |
-|-----------|-------|------|--------|
-| Lyra | Wandering Mage | Magic DPS + Healer | Start |
-| Orin | Iron Vanguard | Tank | Chapter 2 |
-| Sera | Thornwood Ranger | Physical DPS + Debuffer | Chapter 2 |
-| Thane | Soulbrand Warlock | Magic DPS + Debuffer | Chapter 3 |
+| Action | Keys | Touch |
+|---|---|---|
+| Walk | Arrows / WASD | Pad, or tap a tile |
+| Talk, open, confirm | Space / Enter / Z | A button, tap |
+| Menu / journal / hint | M / J / H | ☰ / ? buttons |
+| Dialogue | Space next, 1–9 choose, L log, Q auto, E skip | tap |
+| Battle | Arrows move between buttons and targets, Enter, Esc back, Q auto | tap |
+| Close | Esc | ✕ / Done |
 
-### Key NPCs
-- Elder Varec — Village Elder, quest giver
-- Farmer Holt — quest giver
-- Borin — missing merchant, story witness
-- Marta (Blacksmith) — shop
-- Aldric (Innkeeper) — rest/restore
-- Sylvara (Dryad) — Chapter 2 quest giver
-- Scholar Aneth — Chapter 3 quest giver
+## Look and sound
 
-### Enemies
-Slimes, Forest Wolves, Thornwood Bandits, Academy Wisps, Corrupted Knights, Stone Golems, Lich Shards, Korvas the Fallen Paladin (Chapter 2 mini-boss), and the Lich of Aethermoor (final boss).
+Everything is painted with fal `nano-banana-2` from the data's descriptions (dev/art/README.md); everything you hear was
+made with ElevenLabs (dev/audio/README.md): the effects directly, the music (Music v2.5) and the 190 voice lines
+(Eleven v4, 14 voices) through fal. A Web Audio synth stands in for any music or effect that fails to load.
 
----
+## Module overview
 
-## Story / Chapters
+| File | What |
+|---|---|
+| `js/sim/data/*.js` | Party, foes and groups, items and shops, quests, maps, the whole script (story.js), cast, barks |
+| `js/sim/rules.js` | Conditions, stats and levels, inventory, quests |
+| `js/sim/world.js` | What stands where, walkability, paths (also across maps) |
+| `js/sim/battle.js` | Battles, statuses, the foes' AI, the auto command |
+| `js/sim/game.js` | `newGame`, `act(G, cmd)`, dialogue, exploration, shops, equipment, defeat, saves |
+| `js/sim/guide.js` | The next step and the recommended levels |
+| `js/sim/bot.js` | A bot that plays the whole game |
+| `js/view/map.js`, `js/view/battle.js` | Canvas 2D map and battle stage |
+| `js/vn.js`, `js/ui.js` | Dialogue box; HUD, menus, shop, battle menus |
+| `js/audio.js`, `js/input.js`, `js/save.js`, `js/main.js` | Sound, input, storage, boot and loop |
 
-### Chapter 1 — The Road to Thornhaven
-Lyra arrives in Thornhaven, a village on the edge of the corrupted Thornwood. She hears of missing merchants and slime infestations, and discovers the Academy ruins that hold the scroll behind her exile.
+## Testing
 
-### Chapter 2 — Roots and Oaths
-Orin and Sera join the party. An ancient dryad reveals the lich-shards are poisoning the World Tree. Orin confronts the corrupted paladin Korvas who exiled him.
+- `node game-028/dev/simtest.mjs`: purity, every map/tree/quest/art/voice reference, every v1 bug above, determinism,
+  save round trips, and whole games by the bot at three skills.
+- `node game-028/dev/browsertest.mjs`: desktop by real keys and clicks (prologue, walking, talking, choices, menu, hint,
+  a battle, the forge, save and continue), two touch-only phones, blocked storage, autoplay in the browser.
 
-### Chapter 3 — The Third Shard
-Scholar Aneth reveals that three lich shards power the seal on the Aethermoor ruins. The party destroys them and breaks the seal, with Thane joining before the final descent.
+## Balance notes
 
-### Chapter 4 — Echoes End
-The party enters the Aethermoor ruins and faces the Lich of Aethermoor. Victory reveals the prophecy Lyra carried: she was always the key to the Lich's defeat — or awakening. The choice is hers.
+Measured with the bot (12 games per row, recommended levels Korvas 7, gate golems 9, Vaelthas 10):
 
----
+| Bot | Finished | Battles | Defeats per game | Final level |
+|---|---|---|---|---|
+| careful (skill 1) | 100% | ~73 | 0 | 10 |
+| sloppy (0.6) | 100% | ~78 | ~5 | 10–11 |
+| careless (0.3) | 100% | ~100 | ~16 | 10–11 |
 
-## Maps
+Before tuning, Korvas and Vaelthas were never beaten once; doubling their turns (rather than their HP) made them
+dangerous without making the fights long. A careful party at the recommended level wins Korvas every time and Vaelthas
+about 85%; one level lower drops the Lich to under 50%.
 
-| Map | Description | Reachable |
-|-----|-------------|-----------|
-| thornhaven | Village exterior — quest givers, doors to forge/inn | Ch1+ |
-| blacksmith_interior | Marta's forge — shop | Ch1+ |
-| inn_interior | Ember Hearth Inn — rest, general goods (Aldric) | Ch1+ |
-| thornwood | Forest hub — random encounters, Borin, Sera, exits to all forest side-locations | Ch1+ |
-| academy_ruins | Lyra's old Academy — `lyras_past` quest (elder_scroll), academy wisps | Ch1+ |
-| world_tree_grove | Sylvara's real home — 3 corrupted anchor points cleansed with soul gems | Ch2+ |
-| korvas_chapel | Shattered chapel — Orin confronts Korvas (mini-boss) | Ch2+, after grove anchors cleansed |
-| aethermoor_ruins | Outer ruins — Scholar Aneth, lich shard grinding, seal-breaking | Ch3+ |
-| aethermoor_sanctum | True final dungeon — the Lich of Aethermoor | after `flag_seal_broken` |
+## Open questions / next steps
 
-Each map's tile grid, NPC positions, exits, and events are validated at build time (dimensions match, every NPC/exit/event tile is walkable, every exit lands on a walkable destination tile) — see the Phase 4 changelog.
-
----
-
-## Progression / Difficulty
-
-- Chapter 1: slimes, wolves, bandits, academy wisps (weak)
-- Chapter 2: wolves + bandits (medium), forest wolves in the grove, corrupted knights + Korvas (chapel mini-boss, hard)
-- Chapter 3: lich shards + bandits (hard), outer ruins mobs
-- Chapter 4: sanctum mobs (lich shards, golems, corrupted knights) + final boss (very hard)
-- Difficulty gates via story flags and chapter checks — the World Tree Grove needs Ch2, the chapel needs all 3 grove anchors cleansed, the outer ruins need Ch3, and the sanctum needs `flag_seal_broken`
-
----
-
-## UI / HUD
-
-- Top-right: gold counter
-- Top-center: chapter label
-- Bottom: XP bar strip
-- Toast notifications: level up, quest accepted/completed, item received
-- Menu (M): Party / Items / Quests / Map tabs
-- Battle: combatant portraits, HP/MP bars, action menu, battle log
-
----
-
-## Sound Design
-
-All sounds are procedural Web Audio API — no file assets.
-
-| Sound | Trigger | Style |
-|-------|---------|-------|
-| UI Click | Menu navigation | Short sine blip |
-| Menu Open | Open pause menu | Rising triangle chord |
-| Dialog Advance | Next dialog line | Soft sine blip |
-| Dialog End | Dialog tree closes | Two-note chime |
-| Footstep | Player movement | Short noise burst |
-| Battle Start | Encounter triggers | Rising sawtooth fanfare |
-| Sword Swing | Physical attack | Sawtooth sweep + noise |
-| Magic Cast | Spell use | Sine sweep + triangle |
-| Heal | Heal ability | Rising triangle chord |
-| Hit | Damage received | Square sweep + noise |
-| Death | Entity dies | Sawtooth fall + noise |
-| Victory | Battle won | Ascending sine fanfare |
-| Item Pickup | Item received | Double sine blip |
-| Quest Complete | Quest finished | Ascending triangle fanfare |
-| Level Up | Level gained | Rising sine fanfare |
-| Game Over | Party wiped | Sawtooth fall + noise |
-
----
-
-## Phases
-
-### Phase 1 — Foundation ✅ (2026-06-27)
-- [x] Scaffold: index.html, config, events, state, sounds, main
-- [x] SplashScene with lore blurb and star field
-- [x] MapScene: tile rendering, player movement, NPC detection, random encounters, map exits, event tiles, condition checks
-- [x] BattleScene: turn-order by SPD, ability system, player menus, enemy AI, damage calc, loot/XP/gold rewards
-- [x] DialogScene: typewriter text, speaker portraits, choice menus, action handlers (quests, items, flags, rest, shop hooks)
-- [x] MenuScene: Party / Items / Quests / Map tabs
-- [x] UIScene: gold, chapter, XP bar, toast notifications
-- [x] characters.js: 4 party members + 6 enemy types with abilities and loot tables
-- [x] items.js: 16 items across consumable/weapon/armor/key categories
-- [x] quests.js: 8 quests across 4 chapters
-- [x] dialog.js: 7 NPCs + 7 dialog trees
-- [x] maps.js: 3 tile-based maps (thornhaven, thornwood, map_ruins)
-
-### Phase 2 — Content & Systems ✅ (2026-06-27)
-- [x] Per-character HP/MP persistence across battles (state._partyHp/Mp maps, written back on battle end)
-- [x] Status effects: poison (6% maxHP/turn for 3 turns), stun (skip 1 turn) — applied by abilities, shown as ☠/💫 icons; enemies can inflict too
-- [x] Item use in battle — new `item` phase in action menu; heals lowest-HP ally, restores MP, revives fallen
-- [x] Inn rest: full HP/MP restore for 30 gold, "not enough gold" message if broke (DialogScene `rest` action)
-- [x] Party member recruitment: Orin dialog tree in Thornhaven (Ch2+), Sera in Thornwood (Ch2+), Thane in Ruins (Ch3+); NPCs removed from map after joining
-- [x] Character-level stat scaling: maxHP +8%/level, maxMP +6%/level, ATK/DEF/SPD +5%/level; HP healed for gained portion on level-up
-- [x] MapScene blocked exit message: floating tooltip shows chapter requirement when player hits a gated exit
-- [x] MenuScene Party tab: shows live HP/MP from state with color-coded bars (red <30%, yellow <60%, green), scaled stats
-
-### Phase 3 — Maps & Story ✅ (2026-07-11)
-- [x] Chapters 3 and 4 full story flow (chapter advancement gating via NPC dialog actions)
-- [x] map_ruins enemy encounters and final boss trigger (flag_seal_broken → boss event at tx:10, ty:18)
-- [x] Ending screen (victory cutscene text after defeating Aethermoor Lich)
-- [x] Shop system (blacksmith_stock, general_stock) — dialog `shop` action now opens a real buy UI
-- [x] Save/load via localStorage
-
-### Phase 4 — Map Overhaul ✅ (2026-07-12)
-- [x] Replaced narrated story-compromises with real, walkable locations: `academy_ruins` (Lyra's past), `world_tree_grove` (Sylvara + 3 anchor points), `korvas_chapel` (Orin vs. Korvas mini-boss), split `map_ruins` into `aethermoor_ruins` (outer, Scholar Aneth) + `aethermoor_sanctum` (true final dungeon)
-- [x] Real interiors for Marta (`blacksmith_interior`) and Aldric (`inn_interior`) — no more NPCs standing on village grass
-- [x] Generic boss-win side-effect system (`onWin`/`onTrigger`: setFlag/giveItem/completeQuest/setChapter) shared by boss events and lore events, replacing one-off `isFinalBoss` special-casing
-- [x] Fixed pre-existing softlock: `once` map events (boss fights) were marked triggered before the battle resolved, permanently blocking retry after a flee/loss
-- [x] Fixed pre-existing bug: fleeing ANY battle (not just bosses) sent the player to the SplashScene as if defeated
-- [x] Unified condition checking between MapScene and DialogScene (`quest_done_`, `has_item_`, `has_qty:`, `not_flag_`, `party_has_`, new `all_flags:`)
-- [x] Every quest now has a real, reachable completion path — fixed two quests (`lyras_past`, `slime_infestation`) that were defined in data but never actually completable
-- [x] Build-time map validator: dimensions match, every NPC/exit/event tile is walkable, every exit lands on a walkable destination tile, every dialog node reference resolves, every quest is both given and completed somewhere
-
-### Phase 5 — Polish
-- [ ] Map tile art (colored shapes → sprite frames or emoji tiles)
-- [ ] Battle background art (map-specific)
-- [ ] Party member portrait frames per character
-- [ ] Map parallax or atmospheric effects
-- [ ] Menu sound feedback tuning
-- [ ] Mobile / touch input
-
----
-
-## Event Catalog
-
-| Event | Payload | Emitted by | Consumed by |
-|-------|---------|-----------|-------------|
-| `scoreChanged` | newScore | state | ui |
-| `goldChanged` | newGold | state | UIScene |
-| `xpChanged` | newXP | state | UIScene |
-| `levelUp` | newLevel | state | UIScene (toast) |
-| `hpChanged` | { member, hp } | battle | UIScene |
-| `partyChanged` | party[] | state | MenuScene |
-| `questAccepted` | questId | state | UIScene (toast) |
-| `questCompleted` | questId | state | UIScene (toast) |
-| `itemAdded` | item | state | UIScene (toast) |
-| `battleStart` | enemyGroup | MapScene | BattleScene |
-| `battleEnd` | { won, fled, xpGained, goldGained, loot, isFinalBoss } | BattleScene | MapScene, UIScene |
-| `dialogStart` | npcId | MapScene | DialogScene |
-| `dialogEnd` | npcId | DialogScene | MapScene |
-| `partyRestored` | — | state.restorePartyFull() | (UIScene future toast) |
-| `gameOver` | — | state | MapScene |
-| `anchorCleansed` | anchorId | MapScene (world_tree_grove anchor event) | (available for future UIScene toast) |
-
----
-
-## Module Overview
-
-| File | Responsibility |
-|------|---------------|
-| `main.js` | Phaser.Game init, scene boot |
-| `config.js` | Constants and definitions |
-| `events.js` | EventBus singleton |
-| `state.js` | GameState singleton (score, gold, XP, party, inventory, quests, flags) |
-| `sounds.js` | Web Audio API sound effects |
-| `save.js` | localStorage save/load helpers (serialize/deserialize state) |
-| `characters.js` | Party member and enemy definitions, encounter groups |
-| `items.js` | Item definitions and loot roll helper |
-| `quests.js` | Quest definitions |
-| `dialog.js` | NPC definitions, dialog trees, shop stocks |
-| `maps.js` | Tile map definitions, walkability |
-| `SplashScene.js` | Title screen (Continue from save / New Game) |
-| `MapScene.js` | Tile-based overworld exploration |
-| `BattleScene.js` | Turn-based combat |
-| `DialogScene.js` | Visual novel dialogue overlay, conditional routing, shop UI |
-| `MenuScene.js` | Party / inventory / quest / map menu, save game |
-| `UIScene.js` | HUD overlay (gold, chapter, XP bar, toasts) |
-| `EndingScene.js` | Victory cutscene after defeating the Aethermoor Lich |
-
----
-
-## Open Questions
-
-- [x] **Chapter progression**: Linear — talk to the right NPC to advance (decided: no quest-completion gating)
-- [x] **Battle party size**: All recruited members fight, max 4 (decided)
-- [x] **Permadeath vs. retry**: Retry-from-inn system — defeat returns to SplashScene; inn rest restores full HP/MP (decided)
-- [ ] **Tile visual style**: Colored rectangles + emoji icons (current); sprite art deferred to Phase 5
-- [x] **Dialog choices**: Affect quest unlocks, party recruitment, and story flags; ending variations planned for Chapter 4
-
----
+- Only tested in headless Chromium; check on real phones.
+- A New Game+ or harder mode would use the existing balance knobs.
 
 ## Changelog
 
-### Phase 1 — Scaffold (2026-06-27)
-- Initial scaffold: index.html, config, events, state, sounds, main
-- SplashScene with atmospheric star field and lore intro
-- MapScene: tile renderer, player movement, NPC interaction, random encounters, map transitions, event tiles
-- BattleScene: SPD-sorted turns, ability menu, enemy AI, damage formula, loot/XP/gold on victory
-- DialogScene: typewriter effect, choice menus, 7 NPCs, 7 dialog trees
-- MenuScene: 4-tab pause menu (Party, Items, Quests, Map)
-- UIScene: HUD with gold, chapter label, XP bar, toast notifications
-- characters.js: Lyra, Orin, Sera, Thane + 6 enemy types
-- items.js: 16 items (consumables, weapons, armor, key items)
-- quests.js: 8 quests across 4 chapters
-- dialog.js: Elder Varec, Farmer Holt, Borin, Blacksmith, Innkeeper, Sylvara, Scholar Aneth
-- maps.js: thornhaven (village), thornwood (forest), map_ruins (Aethermoor ruins)
+### v2.0.0 (2026-11-20)
+- Rebuilt without Phaser in the sim/view layout; every mechanic in "What v2 fixed" above; fal art, ElevenLabs music,
+  effects and a fully voiced script; the guide, two endings; sim and browser tests; balance by bot.
 
-### Phase 2 — Content & Systems (2026-06-27)
-- state.js: per-character HP/MP maps (_partyHp/_partyMp); getMaxHp/Mp (level-scaled), getScaledStat, restorePartyFull, _applyLevelUpStats
-- BattleScene: reads persisted HP/MP + scaled stats on entry; writes back on exit; item menu phase (heal/MP/revive); poison + stun status effects applied from abilities and shown as icons; lifesteal and MP drain effects for enemy abilities; enemy attacks use correct sound (magic vs physical)
-- DialogScene: inn rest calls state.restorePartyFull(); "not enough gold" fallback message
-- dialog.js: added orin, sera, thane NPC defs; orin_recruit, sera_recruit, thane_recruit dialog trees with branching join/refuse choices
-- maps.js: Orin placed in Thornhaven (Ch2+, tx:9 ty:6), Sera in Thornwood (Ch2+, tx:3 ty:8), Thane in Ruins (Ch3+, tx:5 ty:10)
-- MapScene: recruited party members no longer appear as NPCs on map; _showBlockedMessage() displays chapter requirement tooltip on gated exits
-- MenuScene: Party tab shows live HP/MP from state with color-coded bars and level-scaled ATK/DEF/SPD values
-
-### Phase 3 — Maps & Story (2026-07-11)
-- DialogScene: nodes now support `routes` (silent conditional jump, first matching condition wins) and choice-level `condition`; added `_checkCondition` (chapter_/quest_done_/quest_active_/has_item_/has_qty:id:n/flag_/not_flag_/party_has_) so trees can branch on live game state instead of being purely linear
-- DialogScene: new action types `setChapter`, `turnInItems` (consume N of an item + complete a quest), `multi` (run several actions off one node), and `shop` (opens a real buy UI instead of the old stub)
-- New shop UI in DialogScene: `_openShop`/`_drawShop`/`_buyItem`/`_closeShop` — lists SHOP_STOCKS items with buy price, gold-gated purchase, item description; wired to Marta (blacksmith_stock) and Aldric (general_stock, new "traveling goods" choice)
-- dialog.js: Elder Varec, Sylvara, and Scholar Aneth now route on revisit — turning in quest proof (Borin found / 3 soul gems / 2 soul gems) completes the relevant quest and advances the chapter (1→2→3→4) as part of the conversation; Orin's `broken_oath` resolves narratively through Sylvara once he's in the party; Scholar Aneth's turn-in sets `flag_seal_broken` and starts `echoes_end`
-- characters.js: added `lich_shard` to the `thornwood_hard` encounter group so `soul_gem` (needed for Sylvara's and Aneth's turn-ins) is actually farmable before the ruins are reachable
-- state.js: added `getItemQty(id)` and `serialize()`/`deserialize()` for save/load
-- save.js (new): `hasSave()`, `saveGame()`, `loadGame()` — JSON snapshot of state in localStorage under `echoes_of_aethermoor_save`
-- SplashScene: shows "Continue" vs "New Game" prompt when a save exists; continuing calls `loadGame()` before entering MapScene
-- MenuScene: Map tab shows a "Press S to save" hint and a save confirmation toast
-- BattleScene/MapScene: boss encounters can be tagged `isFinalBoss`; on victory the flag flows through `battleEnd` so MapScene routes to the new EndingScene instead of resuming exploration; defeating the final boss also completes `echoes_end`
-- EndingScene.js (new): victory cutscene with closing narration and run stats (level/gold/party size), returns to a fresh SplashScene on input
-- maps.js: map_ruins final boss event now passes `isFinalBoss: true`
-
-### Phase 4 — Map Overhaul (2026-07-12)
-Phase 3 resolved several story beats through narration instead of real locations (Korvas's chapel, the World Tree, a distinct Academy for Lyra's scroll, the final sanctum) because those maps didn't exist yet. This phase builds them properly and rewires every dependent quest/dialog flow onto real places.
-
-- maps.js: renamed `map_ruins` → `aethermoor_ruins` (outer ring, unchanged content) and split off `aethermoor_sanctum` (new, the true final dungeon — short crawl + the Lich of Aethermoor boss event, reachable only after `flag_seal_broken`)
-- maps.js: added `academy_ruins` (Lyra's Academy — distinct from Aethermoor; `lyras_past` quest lives here: lore beats + elder_scroll treasure event + completion lore event), `world_tree_grove` (Sylvara's actual home, with 3 real "anchor point" event tiles that consume a soul gem each), `korvas_chapel` (Orin vs. Korvas mini-boss), `blacksmith_interior` and `inn_interior` (real rooms for Marta/Aldric instead of NPCs standing on village grass)
-- characters.js: new enemies `academy_wisp`, `corrupted_knight`, and mini-boss `korvas`; new encounter groups `academy_easy`, `grove_easy`, `chapel_hard`, `sanctum_hard`, `boss_korvas`; `lich_shard` added to `thornwood_hard` (unchanged from Phase 3, still needed for soul gem farming)
-- MapScene: new `anchor` event type — consumes a soul gem and sets a per-anchor flag (`flag_grove_anchor_N`) when stepped on with a gem in inventory, otherwise shows a non-consuming hint
-- MapScene/maps.js: boss and lore events now carry a generic `onWin`/`onTrigger` payload (`{ setFlag, giveItem, completeQuest, setChapter }`) applied by a shared `_applyOnTrigger` helper — replaces the old `isFinalBoss`-only special case, used by Korvas's fight (sets `flag_korvas_confronted`, completes `broken_oath`, grants chain_mail, advances to chapter 3) and by Lyra's scroll-discovery lore beat (completes `lyras_past`)
-- **Fixed softlock**: `once` map events were marked `_triggered = true` before the battle even started — fleeing or losing a boss fight (Korvas, the final boss) permanently blocked retrying it. Boss events now only mark triggered on an actual win.
-- **Fixed bug**: fleeing any battle (not just bosses) sent the player to the SplashScene as if the party had been wiped. `MapScene._setupEvents` now only routes to SplashScene on a genuine loss (`!won && !fled`).
-- MapScene: `_checkCondition` unified with DialogScene's (`quest_done_`, `has_item_`, `has_qty:id:n`, `not_flag_`, `party_has_`, new `all_flags:name1,name2,...`); `_showBlockedMessage` accepts a custom `blockedMsg` per exit instead of only a generic chapter-gate message
-- dialog.js: Sylvara's tree reworked around the 3 real anchor flags instead of directly handing her 3 gems; her Korvas-thread routing now checks `party_has_orin` on every visit (via a `flag_broken_oath_offered` guard) so the quest is still offered even if Orin joins after the grove is already cleansed — closing a real ordering bug in the original design
-- dialog.js: Farmer Holt's `slime_infestation` and the auto-active `lyras_past` quest were defined in quests.js but had **no completion path anywhere** in the original build; Farmer Holt now has a full revisit/turn-in flow, and `lyras_past` completes via the new Academy Ruins lore event
-- state.js: `lyras_past` is now active from `reset()` — Lyra already knows about her own past, so there's no NPC to "give" her the quest
-- quests.js: rewrote `broken_oath` (giver is now Sylvara, objective is defeating Korvas directly — the old "defeat a golem guardian" objective never matched any actual encounter), `spirit_of_the_wood` (references the real grove + anchor points), `the_third_shard` (fixed a text mismatch where the description said "destroy 5 shards" but the actual mechanic was always "turn in 2 soul gems"), `lyras_past` (points at `academy_ruins`, not the final dungeon)
-- MenuScene: Map tab now shows the map's display name (`getMap(id).name`) instead of the raw map id string
-- Build-time validation (not shipped code, used to verify this phase): every map's `tiles.length` matches `width*height`; every NPC/exit/event tile is walkable and in-bounds; every exit's destination tile is walkable and in-bounds; every dialog node reference (`next`/`choices[].next`/`routes[].next`) resolves to a real node or `'end'`; every quest in quests.js is both given and completed by some reachable action. Caught and fixed 2 out-of-bounds NPC/exit placements and 2 unreachable quests before they shipped.
+### v1.4.2 and earlier
+- The Phaser 4 build: phases 1–4 (scaffold, systems, story, map overhaul), then the iOS audio fix.
