@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Pocket Garden Messages**: Fray (Fray & the Spiral Isle, game-131) is blind, but her avatar was painted with eyes: the shared style asks for "big shiny eyes". She is repainted with her eyes fully under her bandage, and her `avatar.json` keeps its own `portrait.style` so a repaint stays that way ([dev/make-avatars.py](dev/make-avatars.py) honours it, [docs/generic/avatars.md](docs/generic/avatars.md)).
+
 ### Added
 - **Pocket Garden Messages** (console v1.5.0): a meta game inside the handheld, where the characters of the games you play text you ([console/js/messages.js](console/js/messages.js), [docs/generic/avatars.md](docs/generic/avatars.md)).
   - **A character for every game**: 143 characters plus the Garden's dragonfly, each in its game's own folder as [`game-NNN/avatar/avatar.json`](game-001/avatar/avatar.json): name, role, bio, the fal portrait prompt, and a message bank in their voice (about 3,000 lines: a friend request, hellos, real controls, real tips, chatter, nudges, idle lines, save-aware progress lines, questions with answer chips, update news, goodbyes) and the game's save keys. All 144 avatars painted with fal (`fal-ai/nano-banana-2`) in one shared chibi style ([dev/avatar-style.json](dev/avatar-style.json)) as `avatar.webp` (256) and `avatar-tiny.webp` (64).
