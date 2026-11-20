@@ -1,5 +1,6 @@
 # process.py RAW — encode the ElevenLabs downloads into game-012/audio/.
-#   RAW/music-*.mp3  -> audio/music-*.mp3   80 kbps stereo, 1.5 s fades so the loop seam is soft, -18 LUFS
+#   RAW/music-*.mp3  -> audio/music-*.mp3   80 kbps stereo, 1.5 s fades so the loop seam is soft, -18 LUFS, low-passed
+#                       (LOWPASS) to strip the beat-locked high ticks eleven_music left in the takes
 #   RAW/sfx-*.mp3    -> audio/sfx-*.mp3     96 kbps mono, -16 LUFS, then leading silence trimmed, at most 2.4 s (3 s for stings)
 #   RAW/take-*.mp3   -> audio/vo-<line>.mp3 64 kbps mono, one file per line (names from voices.json)
 # A take holds all of one speaker's lines separated by [long pause]. The cuts are at the middles of silences
@@ -60,10 +61,15 @@ def align(gaps, chars, total):
     return sorted(cuts)
 
 
+# The takes are dark (99.9% of their energy under 1.3-6.2 kHz) but carried short broadband ticks above 4 kHz: on every beat
+# of the parlour (76 BPM), now and then in the others. Three stacked 2-pole low-passes (36 dB/octave) remove them.
+LOWPASS = {'parlour': 4000, 'reading': 5000, 'battle': 7000, 'boss': 8000}
+
 for f in sorted(glob.glob(os.path.join(RAW, 'music-*.mp3'))):
     d = dur(f)
     out = os.path.join(OUT, os.path.basename(f))
-    run(['-i', f, '-af', f'afade=t=in:d=1.5,afade=t=out:st={d - 1.5:.2f}:d=1.5,loudnorm=I=-18:TP=-2', '-ac', '2', '-b:a', '80k', '-ar', '44100', out])
+    lp = LOWPASS.get(os.path.basename(f)[6:-4], 8000)
+    run(['-i', f, '-af', f'lowpass=f={lp},lowpass=f={lp},lowpass=f={lp},afade=t=in:d=1.5,afade=t=out:st={d - 1.5:.2f}:d=1.5,loudnorm=I=-18:TP=-2', '-ac', '2', '-b:a', '80k', '-ar', '44100', out])
     print(os.path.basename(f), f'{d:.1f}s', os.path.getsize(out) // 1024, 'KB')
 
 for f in sorted(glob.glob(os.path.join(RAW, 'sfx-*.mp3'))):
