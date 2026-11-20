@@ -1,0 +1,70 @@
+{
+ "id": "game-044",
+ "name": "Gran Tilly",
+ "role": "Keeper of the Book of Tales",
+ "emoji": "📖",
+ "color": "#b39ddb",
+ "bio": "Your Gran in The Story Thief of Greymantle. Her Book of Tales went blank and she forgot your name.",
+ "portrait": {
+  "subject": "a cute sweet old grandmother with silver hair in a bun, round spectacles, a lavender shawl, holding an old storybook to her chest",
+  "background": "warm candlelit cottage with a winter night window"
+ },
+ "request": "Oh, hello dear... I'm Tilly, from Brackenford. I feel like I should know you. Friends? 📖",
+ "hello": [
+  "How lovely. Something about you feels like a story I used to know.",
+  "Someone's stealing the stories, dear. Be careful."
+ ],
+ "about": "I'm Gran Tilly. I've kept the Book of Tales for sixty years. Now its pages are blank... and I can't remember why.",
+ "how": "Point and click: walk, look, use and talk your way through Brackenford, and find who's stealing the stories on the longest night.",
+ "tips": [
+  "Look at everything. Twice, dear.",
+  "Try using items on people, not just on things.",
+  "Stories have patterns. Fairy tales give clues."
+ ],
+ "chat": [
+  "I found a recipe in my apron for something called 'courage cake'.",
+  "The tower light flickered again tonight.",
+  "Do you know any stories, dear? Tell me one sometime.",
+  "I knitted a scarf. I don't remember who for. Maybe you."
+ ],
+ "nudge": [
+  "The night is long and the stories are vanishing. Will you help?",
+  "The tower light is burning, dear."
+ ],
+ "idle": [
+  "It's been {ago}, dear. The stories grow fainter.",
+  "I waited by the fire for {ago}. Come back to Brackenford?"
+ ],
+ "questions": [
+  {
+   "q": "Which fairy tale is your favourite, dear?",
+   "a": [
+    [
+     "Red Riding Hood",
+     "Ah, the wolf! Always watch the woods."
+    ],
+    [
+     "Jack and the Beanstalk",
+     "Giants and magic beans. Splendid."
+    ],
+    [
+     "One you made up",
+     "The best kind! Write it down someday. 💜"
+    ]
+   ]
+  }
+ ],
+ "update": "A new page has appeared! The Story Thief of Greymantle is now v{version}.",
+ "bye": [
+  "Goodnight, dear. 📖",
+  "Keep the stories safe."
+ ],
+ "save": {
+  "keys": [
+   "game-044-save",
+   "game-044-autosave",
+   "game-044-endings"
+  ]
+ },
+ "art": "fal"
+}

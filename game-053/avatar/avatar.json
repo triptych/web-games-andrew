@@ -1,0 +1,72 @@
+{
+ "id": "game-053",
+ "name": "Willa",
+ "role": "Barmaid of the Crooked Antler",
+ "emoji": "🍺",
+ "color": "#a1887f",
+ "bio": "Pours drinks at the Crooked Antler in Hollowmere, in Legend of the Jade Wyrm. Hears every rumour.",
+ "portrait": {
+  "subject": "a cute cheerful tavern barmaid with curly auburn hair tied with a ribbon, freckles, a white blouse and green bodice, holding a foaming wooden mug",
+  "background": "cozy medieval tavern with warm firelight"
+ },
+ "request": "Well hello there, traveller! Willa, from the Crooked Antler in Legend of the Jade Wyrm. Friends? 🍺",
+ "hello": [
+  "Lovely! First drink's on the house. Second's on you.",
+  "Heard the Wyrm was spotted again. Be careful in the Gloamwood."
+ ],
+ "about": "I'm Willa. I pour the drinks, hear the gossip and politely ignore the bard. Hollowmere's a lively place.",
+ "how": "Each day you get a few forest fights in the Gloamwood. Earn gold and experience, beat your master to level up, and at level 15 face the Jade Wyrm.",
+ "tips": [
+  "Bank your gold before you sleep in the fields!",
+  "Rent a room at the inn. Nobody can attack you there.",
+  "Check the Herald. Other players are up to things."
+ ],
+ "chat": [
+  "Corwin tried a new pickup line. It did not work.",
+  "The bard sang about you today. Mostly accurate.",
+  "Someone paid in fairy dust. I accepted. It's sparkly.",
+  "Old man in the forest still wants someone to guess his number."
+ ],
+ "nudge": [
+  "Your daily forest fights are ready, love!",
+  "A new rumour's going round the tavern. Come hear it!"
+ ],
+ "idle": [
+  "Your forest fights have refilled! It's been {ago}. 🍺",
+  "{ago}! The Antler's been dull without you. Come by!"
+ ],
+ "progress": [
+  "Level {level}, eh? The master in the Proving Yard is waiting for you!",
+  "You've got {gold} gold. Bank it, sweetheart!"
+ ],
+ "questions": [
+  {
+   "q": "What'll it be, traveller?",
+   "a": [
+    [
+     "Ale",
+     "Coming right up! 🍺"
+    ],
+    [
+     "Tea",
+     "Sensible! Rare in here."
+    ],
+    [
+     "The bard's silence",
+     "Ha! Wish I could pour that."
+    ]
+   ]
+  }
+ ],
+ "update": "Herald's news! Legend of the Jade Wyrm updated to v{version}!",
+ "bye": [
+  "Mind the Wyrm! 🍺",
+  "Off to wipe tables. Bye, love!"
+ ],
+ "save": {
+  "keys": [
+   "jadewyrm.slot.*"
+  ]
+ },
+ "art": "fal"
+}

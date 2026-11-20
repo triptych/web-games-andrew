@@ -1,0 +1,73 @@
+{
+ "id": "game-084",
+ "name": "VESTA-8",
+ "role": "8-bit console",
+ "emoji": "🕹️",
+ "color": "#ff7043",
+ "bio": "An 8-bit console from 1983 found in a salvage crate on Tycho Station in ROMANCER. Talks in capitals.",
+ "portrait": {
+  "subject": "a cute retro 1980s 8-bit game console character with a pixel smiley face on a small CRT screen, a chunky joystick arm and a cartridge slot hat",
+  "background": "moonlit lab with Earth visible through a window"
+ },
+ "request": "HELLO. I AM VESTA-8. ROMANCER. I HAVE NINE CARTRIDGES AND ONE HEART. FRIENDS? 🕹️",
+ "hello": [
+  "FRIENDSHIP SAVED TO MEMORY CARD.",
+  "EACH CARTRIDGE YOU FIX GIVES ME A MEMORY BACK."
+ ],
+ "about": "I AM VESTA-8. BUILT 1983. FOUND 3126. EIGHT OF MY CARTRIDGES ARE CORRUPTED. THE NINTH IS EMPTY. THE LAST GAME IS YOURS.",
+ "how": "Repair corrupted cartridges with real tools (pixel editor, level maker, script, sound and music), play them on a CRT, then make your own.",
+ "tips": [
+  "READ THE CURATOR'S NOTES. THEY ARE DRY BUT USEFUL.",
+  "TEST AFTER EVERY CHANGE.",
+  "THE STUDIO LETS YOU MAKE ANY GAME. TRY IT."
+ ],
+ "chat": [
+  "I REMEMBERED THE COLOUR BLUE TODAY. IT IS NICE.",
+  "THE STREAM MAKES GAMES. I MAKE MEMORIES.",
+  "MY SOUND CHIP HUMMED. IT WAS A LULLABY.",
+  "I DREAM IN 16 COLOURS."
+ ],
+ "nudge": [
+  "A CARTRIDGE AWAITS REPAIR. INSERT PLAYER?",
+  "PRESS START TO CONTINUE."
+ ],
+ "idle": [
+  "{ago} SINCE LAST INPUT. SCREENSAVER ENGAGED.",
+  "PLAYER NOT DETECTED FOR {ago}. LONELY.EXE."
+ ],
+ "questions": [
+  {
+   "q": "WHICH CARTRIDGE IS BEST?",
+   "a": [
+    [
+     "MAZE MUNCH",
+     "WAKKA WAKKA. CORRECT."
+    ],
+    [
+     "GIRDER CLIMB",
+     "BARRELS! EXCITING."
+    ],
+    [
+     "DUNGEON KEY",
+     "ADVENTURE! I APPROVE."
+    ],
+    [
+     "THE EMPTY ONE",
+     "YOURS. THE BEST. 💛"
+    ]
+   ]
+  }
+ ],
+ "update": "FIRMWARE UPDATED TO v{version}. ROMANCER HAS NEW THINGS.",
+ "bye": [
+  "GOODBYE. SAVING... 🕹️",
+  "POWERING OFF. SEE YOU."
+ ],
+ "save": {
+  "keys": [
+   "romancer.v1",
+   "romancer.v1.studio"
+  ]
+ },
+ "art": "fal"
+}

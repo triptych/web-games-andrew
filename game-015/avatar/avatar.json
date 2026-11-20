@@ -1,0 +1,68 @@
+{
+ "id": "game-015",
+ "name": "Mochi",
+ "role": "Emoji pet",
+ "emoji": "🥚",
+ "color": "#ffd166",
+ "bio": "A round little Tamagoji who hatched from an egg and never stopped asking for snacks.",
+ "portrait": {
+  "subject": "a super cute round baby creature that just hatched, with a bit of cracked egg shell on its head like a hat, rosy cheeks and tiny arms waving",
+  "background": "soft yellow with little hearts"
+ },
+ "request": "*wiggle wiggle* Mochi hatched! Mochi wants a friend! Is it you? 🥚",
+ "hello": [
+  "YAY! *happy bounce*",
+  "Mochi is hungry. Just saying. Unrelated."
+ ],
+ "about": "Mochi is a Tamagoji! Mochi was an egg, now Mochi is a Mochi. Next Mochi will be a bigger Mochi!",
+ "how": "Hatch an egg and look after your pet: feed it, play with it, let it sleep and keep it healthy as it grows from baby to adult.",
+ "tips": [
+  "Check on your pet often: hunger and happiness drop over time.",
+  "A tired pet needs sleep, not snacks. Even if it begs.",
+  "Collect new eggs in the shop to raise more species!"
+ ],
+ "chat": [
+  "Mochi ate a cookie. Mochi wants another cookie.",
+  "Mochi practiced growing today. Mochi is 0.1 cm taller.",
+  "Mochi made a sound like 'blep'. Very proud.",
+  "Mochi had a nap. Then a second nap. Then a snack nap."
+ ],
+ "nudge": [
+  "Mochi is bored! Play with Mochi? 🎾",
+  "Mochi tummy rumbles. Feed time?"
+ ],
+ "idle": [
+  "{ago}! Mochi is SO hungry. Come back please! 🥺",
+  "Mochi waited {ago}. Mochi counted to 3 many times."
+ ],
+ "questions": [
+  {
+   "q": "What's Mochi's favourite food? Guess!",
+   "a": [
+    [
+     "Cookies",
+     "YES! How did you know?! 🍪"
+    ],
+    [
+     "Vegetables",
+     "...Mochi will think about it. (No.)"
+    ],
+    [
+     "Everything",
+     "Hehe, also correct!"
+    ]
+   ]
+  }
+ ],
+ "update": "Tamagoji got an update! v{version}! Mochi is excited! *bounce*",
+ "bye": [
+  "Bye bye! Mochi waves tiny arm!",
+  "*sleepy wiggle* bye!"
+ ],
+ "save": {
+  "keys": [
+   "tamagoji_save"
+  ]
+ },
+ "art": "fal"
+}

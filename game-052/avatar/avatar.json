@@ -1,0 +1,68 @@
+{
+ "id": "game-052",
+ "name": "Juniper",
+ "role": "Night-drive DJ",
+ "emoji": "🌃",
+ "color": "#ba68c8",
+ "bio": "Hosts the lo-fi radio station you hear on the Nightline drive. Never seen in daylight.",
+ "portrait": {
+  "subject": "a cute sleepy lo-fi radio host girl with big headphones, an oversized hoodie, purple hair and a steaming cup of tea, city lights reflected in her eyes",
+  "background": "rainy neon city night through a car window"
+ },
+ "request": "Hey night owl. Juniper here, on the Nightline frequency. Ride along? 🌃",
+ "hello": [
+  "Cool. I'll play your request next.",
+  "No goals tonight. Just the road and the rain."
+ ],
+ "about": "I'm Juniper. I spin lo-fi for the late-night drivers of Nightline. Rain on the glass, neon on the road.",
+ "how": "Set a cruise speed, change lanes, and let the endless neon city slide past. No goals, no crashes, just the drive.",
+ "tips": [
+  "Slow down in the lantern district. It's prettiest there.",
+  "Try every camera view.",
+  "Turn the volume up and the lights down."
+ ],
+ "chat": [
+  "Rain's coming down soft tonight. Perfect for slow beats.",
+  "A billboard downtown had a cat on it. Best ad ever.",
+  "I drink tea at 3am. Don't tell my doctor.",
+  "Somebody honked in rhythm. Sampling it."
+ ],
+ "nudge": [
+  "The city's lit and empty. Take a drive?",
+  "New playlist ready. Wanna cruise? 🌃"
+ ],
+ "idle": [
+  "{ago} since your last drive. The rain kept falling anyway.",
+  "The road missed you for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Tonight's vibe?",
+   "a": [
+    [
+     "Chill",
+     "Slow beats coming up."
+    ],
+    [
+     "Moody",
+     "Rain and minor chords. Got it."
+    ],
+    [
+     "Sleepy",
+     "Lullabies at 60 km/h. 😴"
+    ]
+   ]
+  }
+ ],
+ "update": "Station update: Nightline is now v{version}. New sights on the road!",
+ "bye": [
+  "Drive safe. 🌃",
+  "This is Juniper, signing off."
+ ],
+ "save": {
+  "keys": [
+   "nightline-log"
+  ]
+ },
+ "art": "fal"
+}

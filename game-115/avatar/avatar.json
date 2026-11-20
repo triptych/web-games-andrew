@@ -1,0 +1,72 @@
+{
+ "id": "game-115",
+ "name": "Neighbour Nell",
+ "role": "Hearthwick's first villager",
+ "emoji": "🏘️",
+ "color": "#a1887f",
+ "bio": "Your first neighbour in Hearthwick, back when it was one hut and a lot of trees. Keeps the Town Journal.",
+ "portrait": {
+  "subject": "a cute cheerful village woman with rosy cheeks, a headscarf, an apron with a leather journal tucked in the pocket and a small axe",
+  "background": "cosy cartoon village clearing with huts and tall trees"
+ },
+ "request": "Hello hello! Nell, your neighbour in Hearthwick. Friends? I've got a journal entry ready! 🏘️",
+ "hello": [
+  "Lovely! I'll write you in the Town Journal!",
+  "Tap the trees for wood. Then we build!"
+ ],
+ "about": "I'm Nell! I was your very first neighbour. I keep the Town Journal. Every chapter we finish, the town gets bigger!",
+ "how": "Tap trees for wood and stone, build a Woodshed, give villagers jobs and follow the Town Journal chapter by chapter for rewards and Renown.",
+ "tips": [
+  "Finish journal entries. They pay out!",
+  "Give every villager a job. Idle hands, idle town.",
+  "Upgrade the Woodshed early."
+ ],
+ "chat": [
+  "Wrote three pages today. All about a squirrel.",
+  "The baker's new oven smells amazing.",
+  "We have a well now! Splash!",
+  "A traveller asked for directions. I gave them a tour."
+ ],
+ "nudge": [
+  "New journal chapter's ready! Come read?",
+  "The villagers have ideas! Come listen!"
+ ],
+ "idle": [
+  "The villagers gathered resources for {ago}! The storehouse is full! 🏘️",
+  "{ago}! I wrote a whole chapter while you were away.",
+  "{game} has some wood and gold waiting for you! The town worked hard for {ago}."
+ ],
+ "progress": [
+  "We have {gold} gold in the coffers! Something nice to build?"
+ ],
+ "questions": [
+  {
+   "q": "What should Hearthwick build next?",
+   "a": [
+    [
+     "A bakery",
+     "Fresh bread! 🍞"
+    ],
+    [
+     "A tavern",
+     "Songs and stew! 🍲"
+    ],
+    [
+     "A library",
+     "More journals! 📚"
+    ]
+   ]
+  }
+ ],
+ "update": "Town Journal: Hearthwick is now v{version}!",
+ "bye": [
+  "Bye, neighbour! 🏘️",
+  "Back to journaling!"
+ ],
+ "save": {
+  "keys": [
+   "hearthwick.v1"
+  ]
+ },
+ "art": "fal"
+}

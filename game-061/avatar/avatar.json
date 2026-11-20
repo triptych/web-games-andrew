@@ -1,0 +1,78 @@
+{
+ "id": "game-061",
+ "name": "Zorbi",
+ "role": "Alien trader",
+ "emoji": "🌌",
+ "color": "#7e57c2",
+ "bio": "A fuzzy alien merchant from one of STARWRIGHT's eight species. Has a grudge against bad deals.",
+ "portrait": {
+  "subject": "a cute fuzzy purple alien trader with four little eyes, long antennae, a merchant's vest with pockets full of star maps",
+  "background": "deep space nebula purple with a distant space station"
+ },
+ "request": "Greetings, Wright! Zorbi the trader, from STARWRIGHT. Friendship is the best trade. Accept? 🌌",
+ "hello": [
+  "Deal sealed! No refunds. (Friendship has no refunds.)",
+  "Ask around before you sell. Prices change system to system."
+ ],
+ "about": "I'm Zorbi. My people trade across 230 star systems. Every one grows from a seed. I've been to most of them. Twice.",
+ "how": "A procedural space sim: fly your ship between 230 star systems, trade, take missions from eight alien species and upgrade your ship.",
+ "tips": [
+  "Buy where it's made, sell where it's wanted.",
+  "Learn what each species likes. Gifts open doors.",
+  "Share your seed with friends to fly the same galaxy!"
+ ],
+ "chat": [
+  "Sold a moon rock to a moon. Long story.",
+  "My species finds your handshakes alarming.",
+  "Found a system where everyone's grumpy. Avoid seed 4441.",
+  "Stars twinkle. Traders twinkle more."
+ ],
+ "nudge": [
+  "A lucrative mission just opened up. Interested?",
+  "The galaxy's waiting, Wright!"
+ ],
+ "idle": [
+  "{ago} in port! Your hull's gathering space dust.",
+  "Wright! {ago} without a deal? Scandalous."
+ ],
+ "progress": [
+  "You've got {gold} credits! Ship upgrade time? 🌌"
+ ],
+ "questions": [
+  {
+   "q": "What's the best cargo?",
+   "a": [
+    [
+     "Spices",
+     "Smells like profit!"
+    ],
+    [
+     "Tech",
+     "High risk, high reward."
+    ],
+    [
+     "Snacks",
+     "Every species agrees on snacks."
+    ]
+   ]
+  }
+ ],
+ "update": "Galactic news: STARWRIGHT now v{version}! New stars?",
+ "bye": [
+  "May your trades be fair! 🌌",
+  "Zorbi zips off!"
+ ],
+ "save": {
+  "keys": [
+   "starwright.v1"
+  ],
+  "stats": {
+   "gold": [
+    "credits",
+    "money",
+    "cash"
+   ]
+  }
+ },
+ "art": "fal"
+}

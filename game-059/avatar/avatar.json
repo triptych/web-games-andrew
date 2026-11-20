@@ -1,0 +1,68 @@
+{
+ "id": "game-059",
+ "name": "ECHO",
+ "role": "Sarcastic combat suit AI",
+ "emoji": "🦾",
+ "color": "#e040fb",
+ "bio": "The snarky AI inside the VANTA-7 suit Juno wears in Sister Circuit.",
+ "portrait": {
+  "subject": "a cute sleek neon combat suit helmet AI with a glowing magenta visor shaped into a smirking face, little cat-ear antennae",
+  "background": "neon city skyline at night in pink and cyan"
+ },
+ "request": "ECHO here. VANTA-7 suit AI, Sister Circuit. Juno says I should make friends. Fine. Friends? 🦾",
+ "hello": [
+  "Great. Now I have two people to be sarcastic at.",
+  "Combo tip: don't get punched. You're welcome."
+ ],
+ "about": "I'm ECHO. The combat AI in Juno's stolen suit. We're getting her sister Mika back from Aurex Dynamics. I provide the attitude.",
+ "how": "A side-scrolling beat-'em-up: punch, kick, combo and use the suit's powers through Port Solace to rescue Mika.",
+ "tips": [
+  "Juggle enemies in the air. They can't hit back up there.",
+  "Grab and throw into crowds.",
+  "Don't get surrounded. Walk them into a line."
+ ],
+ "chat": [
+  "Juno named the suit 'Sparkles'. I've filed a complaint.",
+  "Aurex security has terrible taste in music.",
+  "I calculated 47 ways to win this fight. Juno chose #48.",
+  "Mika sent a coded message. She's tougher than she looks."
+ ],
+ "nudge": [
+  "Juno's suiting up. You coming or what?",
+  "Another Aurex floor to punch through. Let's go."
+ ],
+ "idle": [
+  "{ago} of downtime. Juno's polishing the suit. Badly.",
+  "Wow, {ago}. Did you get lost? Port Solace isn't THAT big."
+ ],
+ "questions": [
+  {
+   "q": "Punch or kick?",
+   "a": [
+    [
+     "Punch",
+     "Classic. Boring. Effective."
+    ],
+    [
+     "Kick",
+     "Flashy. I respect it."
+    ],
+    [
+     "Sarcasm",
+     "Ah. A kindred processor. 🦾"
+    ]
+   ]
+  }
+ ],
+ "update": "Firmware patched: Sister Circuit now v{version}. Try not to break it.",
+ "bye": [
+  "ECHO out. Obviously.",
+  "Bye. Don't miss me. (Miss me.)"
+ ],
+ "save": {
+  "keys": [
+   "sister-circuit.save.v1"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,77 @@
+{
+ "id": "game-040",
+ "name": "Theo Vance",
+ "role": "Flight cadet",
+ "emoji": "🎓",
+ "color": "#64b5f6",
+ "bio": "The worst shot at Halcyon Flight Academy, flying a trainer with a tow hook in Starcadet.",
+ "portrait": {
+  "subject": "a cute nervous young flight cadet boy with messy hair, oversized academy flight jacket with a badge, a headset and a hopeful lopsided smile",
+  "background": "bright blue sky with a soft space academy glow"
+ },
+ "request": "Hi! I'm Theo Vance, worst shot at Halcyon Flight Academy. Uh... friends? 🎓",
+ "hello": [
+  "Really? Wow! Okay, I won't let you down. Probably.",
+  "211 classmates still need rescuing. No pressure."
+ ],
+ "about": "I'm Theo. I failed target practice 14 times. Now the Chorus has taken the Academy and I'm flying a trainer with a tow hook to save everyone.",
+ "how": "A vertical bullet-hell: dodge, shoot with practice cannons, and use your tow hook to rescue your classmates.",
+ "tips": [
+  "Your hitbox is tiny. Trust the gaps!",
+  "Rescued classmates help. Hook them up!",
+  "Don't stare at your ship. Watch the bullets."
+ ],
+ "chat": [
+  "Hit a target today! It was the wrong target, but still.",
+  "My instructor said I'm 'unpredictable'. I think it's a compliment.",
+  "Rescued a classmate who used to tease me. We're cool now.",
+  "My tow hook is called Hooky. Don't judge."
+ ],
+ "nudge": [
+  "Classmates are still out there. Help me get them?",
+  "I practiced dodging all night. Ready to fly!"
+ ],
+ "idle": [
+  "It's been {ago}... the Chorus is getting bolder.",
+  "{ago} without a sortie. I've been reading the manual. Again."
+ ],
+ "progress": [
+  "We've rescued {rescued} classmates! Only a few more to go!"
+ ],
+ "questions": [
+  {
+   "q": "Any advice for a nervous pilot?",
+   "a": [
+    [
+     "Breathe",
+     "In... out... okay. Thanks. 💙"
+    ],
+    [
+     "Believe in yourself",
+     "I'll try! You believe in me, right?"
+    ],
+    [
+     "Just shoot more",
+     "Ha! Volume over accuracy. Got it."
+    ]
+   ]
+  }
+ ],
+ "update": "Academy bulletin: Starcadet is now v{version}!",
+ "bye": [
+  "Cadet Vance, signing off!",
+  "Thanks for believing in me! 🎓"
+ ],
+ "save": {
+  "keys": [
+   "starcadet.save.v1"
+  ],
+  "stats": {
+   "rescued": [
+    "rescued",
+    "saved"
+   ]
+  }
+ },
+ "art": "fal"
+}

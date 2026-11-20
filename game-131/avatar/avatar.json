@@ -1,0 +1,68 @@
+{
+ "id": "game-131",
+ "name": "Fray",
+ "role": "Little goblin guide",
+ "emoji": "🌀",
+ "color": "#80cbc4",
+ "bio": "The small goblin you found hurt under a fallen shrine in Fray & the Spiral Isle. She can't see, but she knows the way.",
+ "portrait": {
+  "subject": "a cute small gentle goblin girl with soft green skin, a bandage wrapped around her eyes, a peaceful smile and a silver spiral pendant",
+  "background": "calm misty island shore with soft pastel sky"
+ },
+ "request": "Hello... it's Fray. From the Spiral Isle. You healed me. Will you be my friend? 🌀",
+ "hello": [
+  "Thank you. I can't see you, but I can hear you smiling.",
+  "Each gem opens the way to the next place."
+ ],
+ "about": "I'm Fray. I was hurt under a shrine and you healed me with moonmint. I can't see anymore, but I know the island by its sounds.",
+ "how": "A calm first-person journey: explore the island's quiet places, hear their stories and collect seven gems for the spiral pendant. Nothing can hurt you.",
+ "tips": [
+  "Take your time. There's no clock here.",
+  "Listen. The island tells you where to go.",
+  "Each gem changes the island a little."
+ ],
+ "chat": [
+  "The waves sound like breathing tonight.",
+  "I touched moss on the Golem Fields. It's so soft.",
+  "The wind told me a story. I'll tell you later.",
+  "The pendant hums when a gem is near."
+ ],
+ "nudge": [
+  "Shall we walk a little today?",
+  "I hear something new on the cliffs."
+ ],
+ "idle": [
+  "{ago} of quiet. The island and I waited together.",
+  "I sat by the shore for {ago}. It was nice. But I missed you."
+ ],
+ "questions": [
+  {
+   "q": "What does the island sound like to you?",
+   "a": [
+    [
+     "The sea",
+     "Yes. Always the sea. 🌊"
+    ],
+    [
+     "Birdsong",
+     "There are so many birds!"
+    ],
+    [
+     "Peace",
+     "That's my favourite sound too."
+    ]
+   ]
+  }
+ ],
+ "update": "The island stirs: Fray & the Spiral Isle is now v{version}.",
+ "bye": [
+  "Walk gently. 🌀",
+  "Fray waves softly."
+ ],
+ "save": {
+  "keys": [
+   "spiral-isle.v1"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,64 @@
+{
+ "id": "game-006",
+ "name": "Sarge Torchwell",
+ "role": "Dungeon veteran",
+ "emoji": "🔦",
+ "color": "#ffb347",
+ "bio": "Lost in the raycast halls of Dungeon Crawler FPS. Has a torch and opinions.",
+ "portrait": {
+  "subject": "a cute grizzled little dungeon soldier with a dented iron helmet, a stubbly chin, a torch in one hand and a big friendly grin",
+  "background": "warm torchlit brown stone wall"
+ },
+ "request": "Torchwell here, from Dungeon Crawler FPS. Need a buddy in the dark. You in? 🔦",
+ "hello": [
+  "Good. Two torches are better than one.",
+  "Rule one: check your ammo. Rule two: check it again."
+ ],
+ "about": "Sarge Torchwell. Thirty years in the labyrinth. Still don't know which way is north down here.",
+ "how": "First-person dungeon: move with WASD or the arrows, fight what jumps out, grab ammo and health, and find the way down.",
+ "tips": [
+  "Keep your back to a wall when you hear things coming.",
+  "Save the rockets for the big ones. Bullets are for small fry.",
+  "Grab every health pickup, even when you're full-ish. You won't be for long.",
+  "Corners hide surprises. Peek, don't charge."
+ ],
+ "chat": [
+  "Found a wall that looked exactly like every other wall. Classic.",
+  "My torch went out for a second. Not my proudest scream.",
+  "Shells, bullets, rockets. I sort them alphabetically.",
+  "Someone drew a smiley on the dungeon wall. Either a friend or a trap."
+ ],
+ "nudge": [
+  "New floor's generated. I hear growling. Shall we?",
+  "Ammo's stacked, torch is lit. Waiting on you, recruit."
+ ],
+ "idle": [
+  "{ago} since your last patrol, recruit. The dungeon got bigger.",
+  "Torch check! It's been {ago}. Still alive out there?"
+ ],
+ "questions": [
+  {
+   "q": "Gear check. What's your go-to weapon?",
+   "a": [
+    [
+     "Shotgun",
+     "Close and personal. Old-school. I like you."
+    ],
+    [
+     "Rockets",
+     "Boom solves most things. Mind the splash."
+    ],
+    [
+     "Running away",
+     "Ha! Underrated tactic. Lives to fight another floor."
+    ]
+   ]
+  }
+ ],
+ "update": "Dispatch: Dungeon Crawler FPS is now v{version}. Fresh halls to explore!",
+ "bye": [
+  "Keep that torch lit. Out.",
+  "Sarge out!"
+ ],
+ "art": "fal"
+}

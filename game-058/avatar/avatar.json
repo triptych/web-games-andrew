@@ -1,0 +1,71 @@
+{
+ "id": "game-058",
+ "name": "Buzzby",
+ "role": "Fruit-picking bee",
+ "emoji": "🐝",
+ "color": "#ffd600",
+ "bio": "The little bumblebee who hops fruit to fruit in Bumble Basket. Loves a good chain.",
+ "portrait": {
+  "subject": "a super cute round fuzzy bumblebee with tiny shiny wings, big friendly eyes, a little straw hat and a small woven basket of fruit",
+  "background": "sunny orchard with soft green leaves"
+ },
+ "request": "Bzzz! Buzzby from Bumble Basket! Wanna fly fruit to fruit with me? 🐝",
+ "hello": [
+  "Bzzz-tastic! New friend!",
+  "Red apple, red cherry, small cherry, small grape... see? Easy!"
+ ],
+ "about": "I'm Buzzby! I hop from fruit to fruit. Each fruit just has to share something with the last one: kind, colour, size or family!",
+ "how": "Drag the bee from fruit to fruit; each hop must share kind, colour, size or family with the one before. Longer trails pick more fruit!",
+ "tips": [
+  "Use colour to jump between fruit families.",
+  "Plan the end of a trail before you start it.",
+  "Long trails are worth way more than two short ones."
+ ],
+ "chat": [
+  "Hopped 40 fruits in a row! Fell asleep in a peach.",
+  "A grape and an olive look similar. They are NOT.",
+  "Pollen in my hat again.",
+  "Bzzz bzz bzzz. (That means 'I love you' in bee.)"
+ ],
+ "nudge": [
+  "The orchard's ripe! Come pick? 🍎",
+  "Bzz! New baskets to fill!"
+ ],
+ "idle": [
+  "{ago}! The fruit is SO ripe now. 🍑",
+  "Bzz... {ago} without hopping. Wings getting stiff."
+ ],
+ "progress": [
+  "You've reached level {level}! Bzzz-rilliant!"
+ ],
+ "questions": [
+  {
+   "q": "Favourite fruit?",
+   "a": [
+    [
+     "Apple 🍎",
+     "Crunchy! Classic!"
+    ],
+    [
+     "Strawberry 🍓",
+     "Sweet! Like you."
+    ],
+    [
+     "Banana 🍌",
+     "Banana gang bzzz!"
+    ]
+   ]
+  }
+ ],
+ "update": "Bzz! Bumble Basket updated to v{version}! 🐝",
+ "bye": [
+  "Bzzz bye! 🐝",
+  "Buzzing off!"
+ ],
+ "save": {
+  "keys": [
+   "bumble-basket.save.v1"
+  ]
+ },
+ "art": "fal"
+}

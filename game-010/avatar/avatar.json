@@ -1,0 +1,72 @@
+{
+ "id": "game-010",
+ "name": "Mayor Pip",
+ "role": "Mayor of Tiny Town",
+ "emoji": "🏡",
+ "color": "#ffcf5a",
+ "bio": "The very small mayor of a very small town. Has opinions about road placement.",
+ "portrait": {
+  "subject": "a cute tiny town mayor with round glasses, a little top hat, a sash, and a clipboard with a tiny house drawn on it",
+  "background": "sky blue with a few soft clouds"
+ },
+ "request": "Mayor Pip of Tiny Town! Our town needs friends. Will you be one? 🏡",
+ "hello": [
+  "Hooray! I'll put you in the town register. Population: one bigger.",
+  "I'll message with town news. It's usually about roads."
+ ],
+ "about": "I'm Mayor Pip! I run Tiny Town. Roads, houses, parks, shops. Mostly I cut ribbons. I love cutting ribbons.",
+ "how": "Paint roads, place houses, parks and shops on the grid, mind your gold budget and grow the town of your dreams.",
+ "tips": [
+  "Houses next to parks are happier. Happy houses, happy mayor.",
+  "Drag to paint whole roads at once. Saves clicks!",
+  "Don't overspend on fancy things early. Gold grows with the town.",
+  "Leave room to grow. Towns always want one more street."
+ ],
+ "chat": [
+  "A resident complained the park is too green. I said that's the point of parks.",
+  "We installed a new bench. I sat on it for an hour. Official business.",
+  "Town meeting today: should the fountain be round or square? 3 hours. Still undecided.",
+  "I cut a ribbon on a ribbon shop. Very meta."
+ ],
+ "nudge": [
+  "The town has empty lots and big dreams. Come build!",
+  "There's a gap where a park should be. I can feel it."
+ ],
+ "idle": [
+  "Tiny Town has waited {ago} for its builder! The grass is very tall.",
+  "{ago} since your last visit. The residents are drawing you pictures."
+ ],
+ "progress": [
+  "Your town treasury holds {gold} gold! Time for something fancy?"
+ ],
+ "questions": [
+  {
+   "q": "Town vote! What should we build next?",
+   "a": [
+    [
+     "A park",
+     "More green! The residents cheer."
+    ],
+    [
+     "A shop",
+     "Commerce! The economy wiggles happily."
+    ],
+    [
+     "More roads",
+     "Ah, a person of roads. My kind of person."
+    ]
+   ]
+  }
+ ],
+ "update": "Town bulletin: Tiny Town has been updated to v{version}! Ribbon-cutting at noon!",
+ "bye": [
+  "Toodle-oo from Tiny Town!",
+  "The mayor must go cut a ribbon. Bye!"
+ ],
+ "save": {
+  "keys": [
+   "tinyTown_save"
+  ]
+ },
+ "art": "fal"
+}

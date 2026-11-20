@@ -1,0 +1,64 @@
+{
+ "id": "game-055",
+ "name": "Kestrel",
+ "role": "Gunship pilot",
+ "emoji": "🚁",
+ "color": "#ff9800",
+ "bio": "Flies the AH-77 Kestrel through the storms of Rotorstorm. Named herself after the chopper.",
+ "portrait": {
+  "subject": "a cute daring helicopter pilot girl with a big orange flight helmet, a mic boom, aviator goggles and a windswept scarf",
+  "background": "stormy sea coast with lightning"
+ },
+ "request": "Kestrel, pilot of the AH-77, Rotorstorm! Fly with me through the storm? 🚁",
+ "hello": [
+  "Rotors spinning! Glad you're aboard.",
+  "MERIDIAN's sending storms at the cities. We're stopping it."
+ ],
+ "about": "I'm Kestrel. The AI that steers storms went rogue, and I fly the last chopper on the Shattered Coast. Bring an umbrella.",
+ "how": "A top-down helicopter bullet-hell: dodge the storm of bullets, shoot down MERIDIAN's machines and save the cities.",
+ "tips": [
+  "Your hitbox is the rotor hub. Thread the gaps!",
+  "Clear turrets before their patterns fill the screen.",
+  "Collect power-ups, but never fly into bullets for them."
+ ],
+ "chat": [
+  "Flew through a lightning bolt. My hair is still standing up.",
+  "MERIDIAN sent me a weather forecast. 100% chance of missiles.",
+  "The rotors hum a nice tune at full throttle.",
+  "Lost my favourite goggles at sea. A seagull has them now."
+ ],
+ "nudge": [
+  "Storm's rolling in. Suit up?",
+  "MERIDIAN's next wave is forming. Let's fly!"
+ ],
+ "idle": [
+  "{ago} grounded! My rotors are itching.",
+  "The storms kept coming for {ago}. Where's my co-pilot?"
+ ],
+ "questions": [
+  {
+   "q": "Calm skies or stormy skies?",
+   "a": [
+    [
+     "Calm",
+     "Nice dream. Not today though."
+    ],
+    [
+     "Stormy",
+     "Ha! A real pilot. ⚡"
+    ]
+   ]
+  }
+ ],
+ "update": "Hangar report: Rotorstorm now v{version}! New storms?",
+ "bye": [
+  "Rotors down. Bye! 🚁",
+  "Kestrel out."
+ ],
+ "save": {
+  "keys": [
+   "rotorstorm.v1"
+  ]
+ },
+ "art": "fal"
+}

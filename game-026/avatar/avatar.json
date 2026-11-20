@@ -1,0 +1,63 @@
+{
+ "id": "game-026",
+ "name": "Lantern Lil",
+ "role": "Crypt lamplighter",
+ "emoji": "🏮",
+ "color": "#f4c95d",
+ "bio": "Carries the flickering lantern through the fog of Crypt of the Forgotten.",
+ "portrait": {
+  "subject": "a cute small explorer girl in a hooded grey cloak holding a warm glowing old lantern up beside her face, curious wide eyes",
+  "background": "foggy blue-grey crypt corridor"
+ },
+ "request": "Hello... it's Lil, from Crypt of the Forgotten. It's dark down here. Friends? 🏮",
+ "hello": [
+  "Thank you. It feels less dark already.",
+  "Tip: there are secret switches. Lots of them."
+ ],
+ "about": "I'm Lil. I carry the lantern through the crypt, one tile at a time. I want to know what the crypt is hiding.",
+ "how": "Step tile by tile, turn in 90° steps, fight in turn-based battles, look for hidden switches and loot, and go ever deeper.",
+ "tips": [
+  "Check walls that look a little different. Secret switches!",
+  "Turn to look around at every junction. Things hide behind you.",
+  "Heal between fights, not during them."
+ ],
+ "chat": [
+  "My lantern flickered three times. That's the crypt saying hello. I hope.",
+  "Found a bone charm. Felt lucky. Then tripped.",
+  "I mapped a whole floor in my notebook. Then the fog ate the page. (Not really.)",
+  "The skeletons rattle when they're happy. Or angry. Hard to tell."
+ ],
+ "nudge": [
+  "The next floor is down there. Hold my lantern while we look?",
+  "I heard a switch click somewhere. Let's find it!"
+ ],
+ "idle": [
+  "The lantern's burned low for {ago}. Come back?",
+  "{ago} in the fog. I kept a light on for you."
+ ],
+ "questions": [
+  {
+   "q": "What do you think is at the bottom of the crypt?",
+   "a": [
+    [
+     "Treasure",
+     "Ooh, I hope so!"
+    ],
+    [
+     "A dragon",
+     "Eep. Bring a big sword."
+    ],
+    [
+     "Another crypt",
+     "Crypts all the way down?! 😱"
+    ]
+   ]
+  }
+ ],
+ "update": "The crypt rumbled: Crypt of the Forgotten is now v{version}.",
+ "bye": [
+  "Keep a light on. 🏮",
+  "Bye for now."
+ ],
+ "art": "fal"
+}

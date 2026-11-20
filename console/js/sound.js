@@ -137,6 +137,22 @@ export const sfx = {
         tone(880, 0, 0.12, { type: 'triangle', vol: 0.04, to: 660 });
         tone(660, 0.12, 0.18, { type: 'triangle', vol: 0.035, to: 440 });
     },
+    // Messages: a two-note ding for a new message, a soft pop when one lands in an open chat,
+    // a swish when you send, and an old-phone trill for an incoming friend request
+    msg() {
+        tone(1568, 0, 0.09, { type: 'sine', vol: 0.06 });
+        tone(2093, 0.09, 0.16, { type: 'sine', vol: 0.05 });
+    },
+    pop() {
+        tone(880, 0, 0.06, { type: 'sine', vol: 0.045, to: 1320 });
+    },
+    send() {
+        tone(660, 0, 0.08, { type: 'triangle', vol: 0.035, to: 1320 });
+    },
+    ring() {
+        for (let i = 0; i < 8; i++) tone(i % 2 ? 1175 : 1480, i * 0.055, 0.05, { type: 'square', vol: 0.028 });
+        for (let i = 0; i < 8; i++) tone(i % 2 ? 1175 : 1480, 0.55 + i * 0.055, 0.05, { type: 'square', vol: 0.028 });
+    },
     whoosh() {
         tone(320, 0, 0.35, { type: 'sine', vol: 0.06, to: 1400 });
         click(0.05, { freq: 2600, vol: 0.2, dur: 0.25 });

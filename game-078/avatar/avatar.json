@@ -1,0 +1,71 @@
+{
+ "id": "game-078",
+ "name": "Pepper",
+ "role": "Candy-jar elf",
+ "emoji": "🍬",
+ "color": "#ff7096",
+ "bio": "A Christmas elf who watches the candy jar in Sugarplum Drop and squeals at every merge.",
+ "portrait": {
+  "subject": "a cute Christmas elf girl with pointy ears, a red and green striped hat with a bell, rosy cheeks, holding a peppermint candy",
+  "background": "snowy night with a glowing glass candy jar"
+ },
+ "request": "Jingle jingle! Pepper the elf from Sugarplum Drop! Be my sweet friend? 🍬",
+ "hello": [
+  "Yippee! You're on the nice list. Obviously!",
+  "When two treats touch, they merge! Cascades are my favourite!"
+ ],
+ "about": "I'm Pepper! I watch the candy jar on snowy nights. Drop treats, match them, merge them up into bigger treats. Delicious physics!",
+ "how": "Drop candies into the jar; two of the same merge into the next one up, which can merge again for big cascades. Don't overfill!",
+ "tips": [
+  "Keep big treats in one corner.",
+  "Drop small ones where they can roll into matches.",
+  "Watch the top line! Overflow ends the game."
+ ],
+ "chat": [
+  "Merged a gingerbread into a sugarplum! Squealed so loud.",
+  "Ate a peppermint. Breath of a snowman now.",
+  "Santa says I spend too much time at the jar. Santa's not wrong.",
+  "It snowed 6 inches! On the jar! Very pretty."
+ ],
+ "nudge": [
+  "The jar's empty and sparkling! Fill it? 🍬",
+  "Snowy night, sweet treats. Perfect, right?"
+ ],
+ "idle": [
+  "{ago} since a drop! The candy's getting lonely.",
+  "The jar's been quiet for {ago}. Jingle?"
+ ],
+ "progress": [
+  "Best score {best}! Sweet! Let's hit {best^}! 🍭"
+ ],
+ "questions": [
+  {
+   "q": "Favourite Christmas treat?",
+   "a": [
+    [
+     "Candy cane",
+     "Classic! 🍬"
+    ],
+    [
+     "Gingerbread",
+     "Cosy! 🍪"
+    ],
+    [
+     "Sugarplum",
+     "The fanciest! ✨"
+    ]
+   ]
+  }
+ ],
+ "update": "Ho ho! Sugarplum Drop is now v{version}! 🎄",
+ "bye": [
+  "Jingle jingle bye! 🍬",
+  "Stay sweet!"
+ ],
+ "save": {
+  "keys": [
+   "sugarplum-drop.v1"
+  ]
+ },
+ "art": "fal"
+}

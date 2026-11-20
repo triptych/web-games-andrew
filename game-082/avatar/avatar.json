@@ -1,0 +1,79 @@
+{
+ "id": "game-082",
+ "name": "Pip",
+ "role": "Baby star-dragon",
+ "emoji": "🫧",
+ "color": "#ce93d8",
+ "bio": "A baby star-dragon in a fishbowl helmet, climbing the Void Baron's station in BUBBLE NEBULA.",
+ "portrait": {
+  "subject": "a super cute baby purple star-dragon wearing a round glass fishbowl space helmet, tiny wings, blowing a sparkly bubble",
+  "background": "pink and purple nebula with floating bubbles and stars"
+ },
+ "request": "Bloop! I'm Pip, baby star-dragon from BUBBLE NEBULA! Be my friend? 🫧",
+ "hello": [
+  "Yay! Bubbles for you!",
+  "The Void Baron bottled all the stars. We'll free them!"
+ ],
+ "about": "I'm Pip! I'm a baby star-dragon. The Void Baron, a round purple villain with a monocle, bottled every star. I blow bubbles to trap his minions!",
+ "how": "A single-screen bubble platformer: blow bubbles to trap enemies, pop them for points, and clear each sector of the Baron's station.",
+ "tips": [
+  "Trap many enemies, then pop them together for big points!",
+  "Ride bubbles up to high platforms.",
+  "Grab fruit for extra score."
+ ],
+ "chat": [
+  "My helmet fogged up. Blew a bubble to clean it. Didn't work.",
+  "The Void Baron has a moustache. Fake, I think.",
+  "I freed a star today! It said thank you in sparkles.",
+  "Bubbles are my best friends. And you!"
+ ],
+ "nudge": [
+  "Next sector! Bloop bloop! 🫧",
+  "Stars need saving! Come help!"
+ ],
+ "idle": [
+  "{ago} without bubbles! I'm all deflated.",
+  "Bloop... {ago}. The stars are still in jars."
+ ],
+ "progress": [
+  "You've reached sector {stage}! Bloop! 🌟"
+ ],
+ "questions": [
+  {
+   "q": "What colour should my bubbles be?",
+   "a": [
+    [
+     "Pink",
+     "Pretty! 💗"
+    ],
+    [
+     "Rainbow",
+     "SO FANCY! 🌈"
+    ],
+    [
+     "Glow-in-the-dark",
+     "Spooky bubbles! Ooh."
+    ]
+   ]
+  }
+ ],
+ "update": "Bloop! BUBBLE NEBULA updated to v{version}! 🫧",
+ "bye": [
+  "Bubble bye! 🫧",
+  "*pop* bye!"
+ ],
+ "save": {
+  "keys": [
+   "bubble-nebula.v1"
+  ],
+  "stats": {
+   "stage": [
+    "sector",
+    "stage",
+    "level",
+    "round"
+   ]
+  }
+ },
+ "art": "fal"
+}

@@ -1,0 +1,76 @@
+{
+ "id": "game-047",
+ "name": "The Dealer",
+ "role": "Ash-table croupier",
+ "emoji": "🂡",
+ "color": "#c0392b",
+ "bio": "Deals the cards on the 5×5 tables of Ashes & Aces. Smiles like they know the next card.",
+ "portrait": {
+  "subject": "a cute mysterious dark-fantasy card dealer with a smoky grey hood, glowing ember eyes, a little crown of cards and an ace of spades held up",
+  "background": "dark red smoky gambling table glow"
+ },
+ "request": "The Dealer, of Ashes & Aces. Care to sit at my table... as a friend? 🂡",
+ "hello": [
+  "Excellent. The cards favour you. Today.",
+  "A flush of spades cuts deep. Remember that."
+ ],
+ "about": "I deal the cards in the ashen lands. Every row a hand, every hand a spell. I've seen kings fold.",
+ "how": "Place cards on a 5×5 table; each full row, column or diagonal fires as a poker hand. The hand sets power, the suits decide the effect.",
+ "tips": [
+  "Plan for crossing lines: one card can finish two hands.",
+  "Suits matter as much as the hand. Blades strike, Staves hit all.",
+  "Build your deck lean. Fewer, better cards."
+ ],
+ "chat": [
+  "A knight bet his sword on a pair of twos. He walks now.",
+  "The ashes whisper card names. Tonight: the Queen of Cups.",
+  "I shuffle in my sleep. Do you?",
+  "Fortune is a deck. You just choose where to cut it."
+ ],
+ "nudge": [
+  "The table is set and the candles lit. Will you play?",
+  "A new path opens in the ash. Shall we deal?"
+ ],
+ "idle": [
+  "{ago} since you held a hand. The cards grow restless.",
+  "The table's been cold for {ago}."
+ ],
+ "progress": [
+  "You've won {wins} times at my table. Impressive. Dangerous."
+ ],
+ "questions": [
+  {
+   "q": "Choose your suit.",
+   "a": [
+    [
+     "Blades ♠",
+     "Sharp and direct. Admirable."
+    ],
+    [
+     "Staves ♣",
+     "Wide reach. Clever."
+    ],
+    [
+     "Hearts ♥",
+     "Healing. Wise, in the ashes."
+    ],
+    [
+     "Coins ♦",
+     "Ah, a planner. The House approves."
+    ]
+   ]
+  }
+ ],
+ "update": "A fresh deck: Ashes & Aces is now v{version}.",
+ "bye": [
+  "Until the next hand. 🂡",
+  "The Dealer withdraws."
+ ],
+ "save": {
+  "keys": [
+   "ashes-aces-run",
+   "ashes-aces-meta"
+  ]
+ },
+ "art": "fal"
+}

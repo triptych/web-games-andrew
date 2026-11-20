@@ -1,0 +1,79 @@
+{
+ "id": "game-101",
+ "name": "Gorm",
+ "role": "EGA dwarf fighter",
+ "emoji": "🪓",
+ "color": "#26a69a",
+ "bio": "The dwarf at the front of your six-adventurer party in PixelCrypt. Sixteen colours, endless dungeon.",
+ "portrait": {
+  "subject": "a cute stout dwarf fighter with a huge orange braided beard, a horned helmet and a big axe, drawn in a 1980s EGA 16-colour pixel style",
+  "background": "teal and magenta EGA dungeon stone corridor"
+ },
+ "request": "GORM! Dwarf! PixelCrypt! Six of us go down. You come too? Friends? 🪓",
+ "hello": [
+  "Hah! Good! Beer later!",
+  "Map squares. Gorm cannot read maps. You read maps."
+ ],
+ "about": "Gorm is dwarf. Gorm hits. Our party goes down one square at a time into dungeon with no bottom. Gorm likes no bottom. More hitting.",
+ "how": "Lead six adventurers through an endless first-person dungeon, one square at a time, drawn the way a 1987 PC drew it.",
+ "tips": [
+  "Fighters front, casters back. Gorm front.",
+  "Rest before stairs.",
+  "Map as you go. Dungeon loops."
+ ],
+ "chat": [
+  "Gorm found 16 colours. Gorm likes magenta.",
+  "Wizard cast fireball. Gorm's beard: fine. Mostly.",
+  "Gorm counted steps. 4,000. Then forgot.",
+  "Gorm hit a door. Door was locked. Now door is not door."
+ ],
+ "nudge": [
+  "DUNGEON! GO DOWN NOW?",
+  "Gorm axe is sharp. You come?"
+ ],
+ "idle": [
+  "{ago}! Gorm waited. Gorm sharpened axe 40 times.",
+  "Gorm bored for {ago}. Gorm hit wall for fun."
+ ],
+ "progress": [
+  "Party at depth {floor}! Gorm proud! DEEPER!"
+ ],
+ "questions": [
+  {
+   "q": "Axe or hammer?",
+   "a": [
+    [
+     "Axe",
+     "GORM AGREES! 🪓"
+    ],
+    [
+     "Hammer",
+     "Hmm. Also good. Gorm allows."
+    ],
+    [
+     "Magic",
+     "Pfft. Wizard thing."
+    ]
+   ]
+  }
+ ],
+ "update": "GORM HEARD NEWS! PixelCrypt is v{version}!",
+ "bye": [
+  "GORM GO! BYE!",
+  "🪓 Bye friend!"
+ ],
+ "save": {
+  "keys": [
+   "pixelcrypt.v1"
+  ],
+  "stats": {
+   "floor": [
+    "depth",
+    "deepest",
+    "floor",
+    "level"
+   ]
+  }
+ },
+ "art": "fal"
+}

@@ -1,0 +1,68 @@
+{
+ "id": "game-036",
+ "name": "Tamsin",
+ "role": "Island naturalist",
+ "emoji": "🏝️",
+ "color": "#4fc3a1",
+ "bio": "Sketches every tree and stream on the procedural island of Island Walker. Every island is new to her too.",
+ "portrait": {
+  "subject": "a cute young naturalist explorer with a sun hat, a sketchbook under her arm, a pencil behind her ear and a tiny bird on her shoulder",
+  "background": "soft green island trees and blue sky"
+ },
+ "request": "Hi! Tamsin here. I'm mapping the islands in Island Walker. Walk with me? 🏝️",
+ "hello": [
+  "Lovely. I'll send you sketches.",
+  "Every reload is a new island. Isn't that wonderful?"
+ ],
+ "about": "I'm Tamsin. I walk the islands and draw what I see. No two islands are ever the same!",
+ "how": "Just walk. Explore the procedural island: forest, streams, caves, ruins. Every seed makes a new island.",
+ "tips": [
+  "Follow streams. They often lead to something nice.",
+  "Climb a hill to see the whole island.",
+  "Caves are dark but worth a peek!"
+ ],
+ "chat": [
+  "Drew a tree today. It looked like every tree. I love it anyway.",
+  "Found a waterfall. Stayed for an hour.",
+  "The clouds here are generated too. Still pretty.",
+  "A bird followed me home. It's my bird now."
+ ],
+ "nudge": [
+  "A new island is waiting. Want to walk?",
+  "Sunset's coming on the island. Come watch?"
+ ],
+ "idle": [
+  "{ago} since our last walk! The island's been growing.",
+  "I sketched {ago} worth of trees waiting for you!"
+ ],
+ "questions": [
+  {
+   "q": "Mountains or beaches?",
+   "a": [
+    [
+     "Mountains",
+     "Great views! ⛰️"
+    ],
+    [
+     "Beaches",
+     "Sand and waves! 🌊"
+    ],
+    [
+     "Forests",
+     "My favourite too! 🌲"
+    ]
+   ]
+  }
+ ],
+ "update": "Island Walker updated to v{version}! New islands to explore!",
+ "bye": [
+  "Happy walking 🏝️",
+  "Bye! I'll keep sketching."
+ ],
+ "save": {
+  "keys": [
+   "island-walker-save-v1"
+  ]
+ },
+ "art": "fal"
+}

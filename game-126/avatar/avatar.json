@@ -1,0 +1,79 @@
+{
+ "id": "game-126",
+ "name": "Brann",
+ "role": "Tavern recruit",
+ "emoji": "🗼",
+ "color": "#5d4037",
+ "bio": "The first hero you recruited at the tavern in EMBERSPIRE, climbing the black tower a floor at a time.",
+ "portrait": {
+  "subject": "a cute 16-bit style young fighter with a red bandana, a big shield with an ember emblem, a scrappy grin and a sword",
+  "background": "tall black tower silhouette over a cosy town at dusk"
+ },
+ "request": "Brann here, first recruit of Hearthmere's tavern! EMBERSPIRE! Climb with me? 🗼",
+ "hello": [
+  "Ha! Let's see the top of that tower!",
+  "Nobody's seen the top in thirty years. Yet."
+ ],
+ "about": "I'm Brann. A black tower rose over our town thirty years ago. Nobody knows what's at the top. We climb a floor at a time.",
+ "how": "A 16-bit tower RPG: climb floor by floor in side-view turn-based battles, recruit and evolve heroes, and push past floor 100.",
+ "tips": [
+  "Exploit elemental weaknesses.",
+  "Mini bosses every 5th floor. Heal up first.",
+  "Use auto-climb for floors you've beaten."
+ ],
+ "chat": [
+  "Floor 37 had a slime wearing a hat. Respect.",
+  "Tavern keeper says I eat too much. True.",
+  "Evolved into a Knight! Shiny armour!",
+  "I can see the whole town from the windows now."
+ ],
+ "nudge": [
+  "The next floor's waiting! Climb? 🗼",
+  "The party's restless. Up we go?"
+ ],
+ "idle": [
+  "{ago} without a climb! The tower got taller. Probably.",
+  "The tavern's been loud for {ago}. Let's go up!"
+ ],
+ "progress": [
+  "Highest floor: {floor}! Next stop {floor+1}! 🗼"
+ ],
+ "questions": [
+  {
+   "q": "What's at the top of the tower?",
+   "a": [
+    [
+     "A dragon",
+     "A big one, I hope!"
+    ],
+    [
+     "Treasure",
+     "Enough for every round at the tavern!"
+    ],
+    [
+     "The sky",
+     "The Skyreach Summit... let's see it."
+    ]
+   ]
+  }
+ ],
+ "update": "EMBERSPIRE updated to v{version}! New floors?",
+ "bye": [
+  "Up and up! 🗼",
+  "Brann out!"
+ ],
+ "save": {
+  "keys": [
+   "emberspire.v1"
+  ],
+  "stats": {
+   "floor": [
+    "highestFloor",
+    "bestFloor",
+    "maxFloor",
+    "floor"
+   ]
+  }
+ },
+ "art": "fal"
+}

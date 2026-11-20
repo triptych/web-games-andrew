@@ -1,0 +1,77 @@
+{
+ "id": "game-127",
+ "name": "Prince Aurel",
+ "role": "The half-dragon prince",
+ "emoji": "🐣",
+ "color": "#ffa726",
+ "bio": "The half-dragon boy given to you to raise in The First Dragon Prince. On his eighteenth hatch-day, the court will judge him.",
+ "portrait": {
+  "subject": "a cute young half-dragon boy with soft golden hair, small orange horns, a little tail, dragon-scale freckles on his cheeks and a royal blue tunic",
+  "background": "warm painted royal city at golden hour"
+ },
+ "request": "Hi! I'm Aurel. You're... raising me? In The First Dragon Prince? Can we be friends too? 🐣",
+ "hello": [
+  "Yay! I'll try very hard to be good.",
+  "Can we go to the market on Free Day? Please?"
+ ],
+ "about": "I'm Aurel. My mother was the Ember Queen and my father was a prince. I hatched ten years after they were gone. Now you're raising me!",
+ "how": "A raising sim: plan Aurel's lessons, jobs, rest and quests each month, visit friends, explore six regions, and shape who he becomes by eighteen.",
+ "tips": [
+  "Watch his Stress. Rest is part of growing up.",
+  "Free Days matter. Talk with him!",
+  "Balance lessons. The court judges everything."
+ ],
+ "chat": [
+  "I breathed a tiny flame today! It was an accident! The curtains are fine!",
+  "The fencing master says I'm 'enthusiastic'.",
+  "Can dragons have pets? Asking for me.",
+  "I wrote a poem. It's about toast."
+ ],
+ "nudge": [
+  "It's a Free Day! Can we go somewhere?",
+  "Lessons are done! Let's go on an adventure?"
+ ],
+ "idle": [
+  "It's been {ago}... are you coming back? I've been good!",
+  "I waited {ago} by the window. 🐣"
+ ],
+ "progress": [
+  "I'm {age} now! Almost grown up!"
+ ],
+ "questions": [
+  {
+   "q": "What should I be when I grow up?",
+   "a": [
+    [
+     "A knight",
+     "With a sword AND fire breath!"
+    ],
+    [
+     "A scholar",
+     "I'll read every book! Slowly!"
+    ],
+    [
+     "Myself",
+     "...I like that one best. 💛"
+    ]
+   ]
+  }
+ ],
+ "update": "News from the palace! The First Dragon Prince is now v{version}!",
+ "bye": [
+  "Bye! I'll be good! 🐣",
+  "*tiny flame* bye!"
+ ],
+ "save": {
+  "keys": [
+   "first-dragon-prince.v1"
+  ],
+  "stats": {
+   "age": [
+    "age",
+    "years"
+   ]
+  }
+ },
+ "art": "fal"
+}

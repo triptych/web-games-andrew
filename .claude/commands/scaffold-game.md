@@ -4724,6 +4724,13 @@ built but never listed; game-038 shipped without its card style).
    ```
    **Open the picture and look at it.** The generic tool clicks past the title and photographs whatever follows; a game with a menu or story before its first scene just gets its title screen (fine as a floor, but a real scene is better). For those, write a `GAME_FOLDER/dev/preview.mjs` that sets a moment up through the debug hooks, as game-098, game-100 and game-101 do, and copy the best frame to `garden/img/games/`. Commit the jpg, the icons, the `manifest.webmanifest` and the `index.html` meta and `pwa` blocks together with the game (that is what makes it installable).
 
+8. **`GAME_FOLDER/avatar/`**: the game's **Messages character** for the Pocket Garden handheld (required for every game; see [docs/generic/avatars.md](../../docs/generic/avatars.md)). Every game has one: the hero, a sidekick, the narrator or a shopkeeper, or, for a game with no character, one you invent who belongs there. Write `GAME_FOLDER/avatar/avatar.json` in the character's own voice and about *this* game: `name`, `role`, `emoji`, `color`, `bio`, `portrait` (`subject` and `background` for the fal prompt), `request` (the friend request), `hello`, `about`, `how` (the real controls), `tips` (real strategy, 3+), `chat` (4+), `nudge`, `idle` (with `{ago}`), `progress` (save-aware lines such as `You're on level {level}! Level {level+1} is close!`), 1–2 `questions` with answer chips, `update` (with `{version}`), `bye`, and `save.keys` (the game's localStorage keys, so the character can read the player's progress; add `save.stats` for the game's own words, e.g. `"gems": ["stardust"]`). Then paint the avatar with fal (`fal-ai/nano-banana-2`, 1:1, 0.5K, with the style in [dev/avatar-style.json](../../dev/avatar-style.json) and the `portrait` filled in), save it as `GAME_FOLDER.png` in a folder, and run:
+   ```bash
+   ONLY=GAME_FOLDER python3 dev/make-avatars.py --src that-folder   # avatar/avatar.webp (256) + avatar-tiny.webp (64)
+   ONLY=GAME_FOLDER node dev/check-avatars.mjs                       # fields, placeholders, save keys, pictures
+   ```
+   Nothing else is needed: the next time a player opens Pocket Garden it notices the new game and its character **calls** with a friend request (the handheld shakes), and once they play it the character texts them. Commit the `avatar/` folder with the game.
+
 ---
 
 ## Step 4: Confirm
@@ -4857,4 +4864,5 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - Bump `version` in `js/gamedata.js` (and `VERSION` in the game's `config.js`, if it has one): the minor for new features, the patch for fixes.
 - Add the version to the game's `game-plan.md` changelog and a `### Fixed` or `### Added` entry to the root `CHANGELOG.md` that leads with the symptom a player saw ("cars sit flat on banked turns"), then the cause.
 - Add a test that fails without the fix, in `simtest.mjs` or `browsertest.mjs`.
+- The version bump makes the game's Messages character text every friend the news with a ▶ link (the `update` line in `avatar/avatar.json`). To say what changed in the character's own voice, add `"updates": { "1.3.0": "..." }`. If the game gains new mechanics, give the character new `tips`, `chat` or `progress` lines (and new `save.keys` if the save changed), then run `ONLY=GAME_FOLDER node dev/check-avatars.mjs`.
 - If the cause is a trap the next game could fall into, add it to the docs and, if it belongs on the Step 5 list, here.

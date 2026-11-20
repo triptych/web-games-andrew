@@ -1,0 +1,67 @@
+{
+ "id": "game-072",
+ "name": "Sir Flingsworth",
+ "role": "Snowman",
+ "emoji": "⛄",
+ "color": "#90caf9",
+ "bio": "A procedurally built snowman in Frosty Fling who loves being launched. Loves it.",
+ "portrait": {
+  "subject": "a super cute round snowman with a carrot nose, a red knitted scarf, a little top hat and coal button eyes full of excitement",
+  "background": "snowy toy-box winter village with candy canes"
+ },
+ "request": "Sir Flingsworth the snowman, Frosty Fling! FLING ME! I mean... friends? ⛄",
+ "hello": [
+  "Hooray! Now fling me into a gift box!",
+  "Timing the power needle is everything!"
+ ],
+ "about": "I'm Sir Flingsworth! I'm built from snow and joy. My favourite thing is being launched across the toy village. Wheee!",
+ "how": "Pull back the slingshot, time the power needle, fling your snowman, slam mid-air and bounce through gifts for distance.",
+ "tips": [
+  "Stop the needle right at the top for a perfect launch.",
+  "Slam just before a gift to bounce higher!",
+  "Candy canes give big boosts!"
+ ],
+ "chat": [
+  "Flung 400 metres today! Lost a button. Worth it.",
+  "Melted a little by the fireplace. Ooops.",
+  "My carrot is a family heirloom.",
+  "Wheeeee! Sorry. I was remembering."
+ ],
+ "nudge": [
+  "FLING ME! Please? ⛄",
+  "The slingshot's ready and I'm SO round today!"
+ ],
+ "idle": [
+  "{ago} without a fling! I've just been standing here. Like a snowman.",
+  "Haven't flown in {ago}! I'm getting slushy."
+ ],
+ "progress": [
+  "Best fling: {best}! Let's go for {best^}! ⛄"
+ ],
+ "questions": [
+  {
+   "q": "Should I wear a top hat or a beanie?",
+   "a": [
+    [
+     "Top hat",
+     "Classic and dashing!"
+    ],
+    [
+     "Beanie",
+     "Cosy! Aerodynamic!"
+    ]
+   ]
+  }
+ ],
+ "update": "Snow news! Frosty Fling is now v{version}! ⛄",
+ "bye": [
+  "Stay frosty! ⛄",
+  "Wheee-bye!"
+ ],
+ "save": {
+  "keys": [
+   "frosty-fling-v1"
+  ]
+ },
+ "art": "fal"
+}

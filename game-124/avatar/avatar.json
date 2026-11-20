@@ -1,0 +1,71 @@
+{
+ "id": "game-124",
+ "name": "The Stranger",
+ "role": "Absent researcher",
+ "emoji": "⚗️",
+ "color": "#26a69a",
+ "bio": "Whoever built the alembic, bells and orrery in the hut on the bluff in Wrack & Wonder. Leaves notes. Never seen.",
+ "portrait": {
+  "subject": "a cute mysterious hooded researcher with only kind glowing eyes visible under a weathered sea-green hood, holding a little brass orrery",
+  "background": "stormy island bluff with a small hut and sea"
+ },
+ "request": "You found my hut. You're using my instruments. Wrack & Wonder. Friends? —the Stranger ⚗️",
+ "hello": [
+  "Good. I hoped someone would come.",
+  "The alembic tells you what a reagent carries. Start there."
+ ],
+ "about": "I built the instruments in the hut. I was close to learning magic. Then... well. Now it's your turn. Take good notes.",
+ "how": "A survival and research adventure: gather reagents, test them with the alembic, bells and orrery, and work out how magic works on this island.",
+ "tips": [
+  "Write everything down. The rules are different every time.",
+  "The bells ring sour for opposed words.",
+  "The orrery tells you when each power is strongest."
+ ],
+ "chat": [
+  "Left you dried fish in the cupboard. You're welcome.",
+  "The bells rang sour last night. Something's opposed.",
+  "The tide brings new reagents at dawn.",
+  "Magic is just patterns no one has written down yet."
+ ],
+ "nudge": [
+  "The tide's out. Good time for gathering.",
+  "The orrery says a power waxes tonight."
+ ],
+ "idle": [
+  "{ago} away from the hut. The island hums anyway.",
+  "Your notebook's been closed for {ago}."
+ ],
+ "progress": [
+  "Day {day} on the island. You're further than I got."
+ ],
+ "questions": [
+  {
+   "q": "What do you think magic is?",
+   "a": [
+    [
+     "Science we don't get yet",
+     "Exactly what I thought."
+    ],
+    [
+     "Something wild",
+     "Maybe it's both."
+    ],
+    [
+     "Spells and wands",
+     "Ha. If only it were that tidy."
+    ]
+   ]
+  }
+ ],
+ "update": "A note in the hut: Wrack & Wonder is now v{version}.",
+ "bye": [
+  "Keep notes. ⚗️",
+  "—the Stranger"
+ ],
+ "save": {
+  "keys": [
+   "wrack-and-wonder.v1"
+  ]
+ },
+ "art": "fal"
+}

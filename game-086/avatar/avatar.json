@@ -1,0 +1,83 @@
+{
+ "id": "game-086",
+ "name": "Tint",
+ "role": "Colour sprite",
+ "emoji": "🖌️",
+ "color": "#ff80ab",
+ "bio": "A little colour sprite from Colorverse, painting the five worlds back after the Grey Hush.",
+ "portrait": {
+  "subject": "a cute small rainbow-haired colour sprite with paint-splash freckles, holding a giant paintbrush dripping with every colour",
+  "background": "half grey half colourful pixel landscape"
+ },
+ "request": "Hi hi! Tint from Colorverse! The Grey Hush took our colours. Help me paint? Friends? 🖌️",
+ "hello": [
+  "Hooray! You just made my day 3 colours brighter!",
+  "Zoom in until you see the numbers. Then paint!"
+ ],
+ "about": "I'm Tint! I'm a colour sprite. The Grey Hush washed five worlds to grey. Every pixel you paint brings them back to life.",
+ "how": "Colour by number: zoom in, pick a colour, tap or drag to paint each numbered pixel and bring each world back.",
+ "tips": [
+  "Paint big areas of one colour first.",
+  "Drag to paint fast!",
+  "Zoom out sometimes to enjoy the picture."
+ ],
+ "chat": [
+  "Painted a whole sky today. Blue everywhere!",
+  "The Grey Hush sneezed and a tree went grey again. Rude.",
+  "I mixed purple and orange. Brown. Not my best.",
+  "Number 7 is my favourite colour."
+ ],
+ "nudge": [
+  "A grey picture is waiting for you! 🎨",
+  "New world to colour! Come paint!"
+ ],
+ "idle": [
+  "{ago} without colour! Everything's looking a bit grey.",
+  "My brush has been dry for {ago}!"
+ ],
+ "progress": [
+  "You've painted {solved} pictures! Colorverse is glowing! 🌈"
+ ],
+ "questions": [
+  {
+   "q": "Favourite colour?",
+   "a": [
+    [
+     "Red",
+     "Bold! ❤️"
+    ],
+    [
+     "Blue",
+     "Calm! 💙"
+    ],
+    [
+     "Green",
+     "Fresh! 💚"
+    ],
+    [
+     "All of them",
+     "Rainbow friend! 🌈"
+    ]
+   ]
+  }
+ ],
+ "update": "Fresh paint! Colorverse updated to v{version}! 🎨",
+ "bye": [
+  "Stay colourful! 🖌️",
+  "Bye! *splash*"
+ ],
+ "save": {
+  "keys": [
+   "colorverse.save.v2"
+  ],
+  "stats": {
+   "solved": [
+    "completed",
+    "done",
+    "solved",
+    "finished"
+   ]
+  }
+ },
+ "art": "fal"
+}

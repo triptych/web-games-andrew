@@ -12,10 +12,11 @@ import { attachWheel } from './wheel.js';
 import { ICONS } from './icons.js';
 import { ListView, DetailView, CoverFlowView, SearchView, TextView, gameArt, gameIconHTML } from './views.js';
 import { PetView, petGlyph, petCaption, currentMem } from './pet.js';
+import { Messenger, MessagesView, NameView, FREQ, openThread } from './messages.js';
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.4.0';
+export const CONSOLE_VERSION = '1.5.0';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -69,12 +70,25 @@ class App {
         this.bindScreen();
         this.bindChrome();
         this.initBattery();
+        // Messages: the characters of the games you've played, texting you (./messages.js)
+        this.messenger = new Messenger(this, { all: ALL, byId, store: this.store });
+        this.messenger.on(() => this.messagesChanged());
         this.loadUpdates();
 
         const deep = decodeURIComponent(location.hash.slice(1));
         history.replaceState({ d: 1 }, '', this.base);
         this.push(this.homeView(), { animate: false });
         this.boot(!this.route(deep, { animate: false }));
+        this.messenger.start();
+        this.messagesChanged();
+        $('notif').addEventListener('click', () => {
+            const id = $('notif').dataset.id;
+            this.hideNotif();
+            if (!id || this.launching || this.busy) return;
+            this.wake();
+            this.feedback();
+            openThread(this, this.messenger, id);
+        });
 
         addEventListener('popstate', (e) => this.onPop(e));
         // a #game-NNN (or #search…) link followed while the console is already open
@@ -113,7 +127,7 @@ class App {
     /**
      * Open what a link asks for: a game's cartridge (#game-135), or one of
      * the app's home-screen shortcuts (#search, #favorites, #shuffle, #new,
-     * #updated, #genres, #cover, #dragonfly). Returns whether it opened anything.
+     * #updated, #genres, #cover, #dragonfly, #messages). Returns whether it opened anything.
      */
     route(hash, { animate = true } = {}) {
         const g = byId.get(hash);
@@ -130,6 +144,7 @@ class App {
             genres: () => this.push(this.genresView(), { animate }),
             cover: () => this.push(new CoverFlowView(this, { list: ALPHA, index: 0 }), { animate }),
             dragonfly: () => this.openPet({ animate }),
+            messages: () => this.openMessages({ animate }),
             shuffle: () => this.shuffle(),
         }[hash];
         if (!go) return false;
@@ -179,6 +194,10 @@ class App {
             'js/icons.js',
             'js/pet.js',
             'js/pixel-dragonfly.js',
+            'js/messages.js',
+            '../garden/avatar/avatar.json',
+            '../garden/avatar/avatar.webp',
+            '../garden/avatar/avatar-tiny.webp',
             'manifest.webmanifest',
             'icons/icon.svg',
             'icons/icon-192.png',
@@ -284,6 +303,10 @@ class App {
         $('st-title').textContent = t.statusTitle();
         $('st-back').hidden = this.stack.length <= 1;
         $('st-fav').textContent = `★${this.store.favs.length}`;
+        const un = this.messenger?.unreadTotal() || 0;
+        $('st-msg').hidden = !un;
+        $('st-msg').textContent = `✉${un > 99 ? '99+' : un}`;
+        $('st-msg').setAttribute('aria-label', `${un} unread messages`);
         $('st-fav').setAttribute('aria-label', `${this.store.favs.length} favorites`);
         $('st-play').classList.toggle('on', t.type === 'detail');
         this.lcd.dataset.view = t.type;
@@ -439,7 +462,8 @@ class App {
                 default:
                     if (/^[a-z0-9]$/i.test(k) && !this.launching && !this.busy) {
                         this.wake();
-                        this.openSearch(k);
+                        if (this.top.acceptsTyping) this.top.typeChar(k);
+                        else this.openSearch(k);
                     } else handled = false;
             }
             if (handled) e.preventDefault();
@@ -579,6 +603,53 @@ class App {
         this.push(new PetView(this, { genreGroups: GENRE_GROUPS, byId }), { animate });
     }
 
+    /** Messages: friend requests, the address book and every conversation. */
+    openMessages({ animate = true } = {}) {
+        if (this.top instanceof MessagesView) return;
+        this.push(new MessagesView(this, { m: this.messenger }), { animate });
+    }
+
+    /** Something changed in Messages: the unread count in the status bar and on the home menu. */
+    messagesChanged() {
+        this.updateStatus();
+        const home = this.stack[0];
+        if (!home?.items) return;
+        const i = home.items.findIndex((x) => x.label === 'Messages');
+        const meta = home.row?.(i)?.querySelector('.r-meta');
+        const un = this.messenger.unreadTotal();
+        if (meta) meta.textContent = un ? `${un} new` : '';
+        else if (home.row?.(i) && un) home.refresh();
+        home.row?.(i)?.classList.toggle('has-unread', !!un);
+    }
+
+    /** A banner slides down from the status bar: who it's from and what they said. Tap it to reply. */
+    notify({ id, name, text, img, px }) {
+        if (this.launching) return;
+        const N = $('notif');
+        N.dataset.id = id;
+        N.innerHTML = `<i class="av${px ? ' px' : ''}" style="background-image:url('${img}')" aria-hidden="true"></i><span class="nt-body"><b>${esc(name)}</b><span>${esc(text)}</span></span><span class="nt-time">now</span>`;
+        N.hidden = false;
+        N.classList.remove('on');
+        void N.offsetWidth;
+        N.classList.add('on');
+        sfx.msg();
+        this.buzz([12, 60, 12]);
+        const led = $('led');
+        led.classList.remove('msg');
+        void led.offsetWidth;
+        led.classList.add('msg');
+        this.say(`New message from ${name}: ${text}`);
+        clearTimeout(this.notifT);
+        this.notifT = setTimeout(() => this.hideNotif(), 4600);
+    }
+
+    hideNotif() {
+        const N = $('notif');
+        N.classList.remove('on');
+        clearTimeout(this.notifT);
+        setTimeout(() => !N.classList.contains('on') && (N.hidden = true), 320);
+    }
+
     openSearch(initial = '') {
         if (this.top.type === 'search') {
             if (initial) this.top.typeChar(initial);
@@ -613,6 +684,7 @@ class App {
     play(g) {
         if (this.launching) return;
         this.store.played(g.id);
+        this.messenger?.onPlay(g);
         const url = playUrl(g);
         if (this.store.settings.newTab) {
             const w = window.open(url, '_blank');
@@ -775,6 +847,7 @@ class App {
             .then((games) => {
                 this.updates = games ?? {};
                 for (const v of this.stack) if (v.updatesDriven) v.refresh();
+                this.messenger.gotUpdates(this.updates);
             });
     }
 
@@ -811,6 +884,23 @@ class App {
                         hero: { pool: () => shuffled(ALL).slice(0, 14), caption: `${ALL.length} games, A to Z` },
                         action: () => this.push(this.gamesList('All Games', ALPHA, { az: true })),
                     },
+                    (() => {
+                        const m = this.messenger;
+                        const un = m.unreadTotal();
+                        const reqs = m.state.requests.length;
+                        const latest = m.friendIds().sort((a, b) => (m.friend(b).last || 0) - (m.friend(a).last || 0))[0];
+                        return {
+                            label: 'Messages',
+                            icon: ICONS.chat,
+                            meta: un ? `${un} new` : '',
+                            say: `Messages${un ? `, ${un} unread` : ''}${reqs ? `, ${reqs} friend request${reqs === 1 ? '' : 's'}` : ''}`,
+                            hero: {
+                                glyph: latest ? m.avatarHTML(latest, { tiny: false, cls: 'big' }) : ICONS.chat,
+                                caption: reqs ? `📳 ${reqs} friend request${reqs === 1 ? '' : 's'}` : un ? `${un} unread · ${m.friendIds().length} friends` : `${m.friendIds().length} friend${m.friendIds().length === 1 ? '' : 's'} · play games to meet more`,
+                            },
+                            action: () => this.openMessages(),
+                        };
+                    })(),
                     {
                         label: 'New Arrivals',
                         icon: ICONS.new,
@@ -965,6 +1055,20 @@ class App {
                     { label: 'Screen', icon: ICONS.screen, meta: GLOWS.find((x) => x[0] === s.glow)?.[1] ?? 'Mint glow', cycle: cycle('glow', GLOWS) },
                     { label: 'Open games', icon: ICONS.tab, meta: s.newTab ? 'New tab' : 'This tab', cycle: flip('newTab', 'Open games in a new tab') },
                     {
+                        label: 'Messages',
+                        icon: ICONS.chat,
+                        meta: this.messenger.frequency()[1],
+                        cycle: (dir) => {
+                            const i = FREQ.findIndex((f) => f[0] === this.messenger.state.freq);
+                            const f = FREQ[(Math.max(0, i) + dir + FREQ.length) % FREQ.length];
+                            this.messenger.setFreq(f[0]);
+                            sfx.toggle();
+                            view.refresh();
+                            this.say(`Messages: ${f[1]}`);
+                        },
+                    },
+                    { label: 'Your name', icon: ICONS.person, meta: this.messenger.state.me || 'friend', action: () => this.push(new NameView(this, { m: this.messenger })) },
+                    {
                         label: 'Install as an app',
                         icon: ICONS.install,
                         meta: standalone() ? 'Installed' : this.canInstall() ? 'Ready' : 'How?',
@@ -1052,10 +1156,12 @@ class App {
                 <ul>
                     <li><kbd>↑</kbd> <kbd>↓</kbd> scroll · <kbd>Enter</kbd> or <kbd>→</kbd> select · <kbd>Esc</kbd> or <kbd>←</kbd> back</li>
                     <li><kbd>Space</kbd> play · <kbd>F</kbd> star · <kbd>PgUp</kbd> <kbd>PgDn</kbd> page</li>
-                    <li>Start typing anywhere to search titles and descriptions; <kbd>/</kbd> opens search.</li>
+                    <li>Start typing anywhere to search titles and descriptions (in a chat, typing writes a message); <kbd>/</kbd> opens search.</li>
                 </ul>
                 <h3>Favorites</h3>
                 <p>Your stars are the same ones the Garden of Games uses, so a game starred on the island is starred here too.</p>
+                <h3>Messages</h3>
+                <p>Every game you play adds its character to your address book, and they text you: tips, chatter, how your save is doing, and news when their game is updated. Pick a quick reply with the wheel and <b>●</b>, or type. Hold <b>●</b> in a chat to send a heart. When a new game arrives, its character calls with a friend request and the handheld shakes. <b>Settings → Messages</b> sets how chatty they are.</p>
                 <h3>Dragonfly</h3>
                 <p>Once you have met the dragonfly on the Garden's dock, it lives here too (the dragonfly pressed into the shell opens it). Feed it, play with it and pet it (hold <b>●</b>, or tap it); it remembers on the island. <b>Places</b> lists where you have been together: pick one and it flies you there.</p>`,
         });

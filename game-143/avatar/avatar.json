@@ -1,0 +1,71 @@
+{
+ "id": "game-143",
+ "name": "King Crumbleton",
+ "role": "Gingerbread king (reformed)",
+ "emoji": "🍪",
+ "color": "#c68642",
+ "bio": "Led the Crumb Horde against Thistlegloom in Doom & Doilies: The Sugar Siege. Turns out he was only lonely.",
+ "portrait": {
+  "subject": "a cute chubby gingerbread king with icing details, a little candy crown, gumdrop buttons, and a slightly sheepish but happy smile",
+  "background": "cosy-spooky village green at dusk with lit windows"
+ },
+ "request": "Ahem. King Crumbleton here. The Sugar Siege. I've, er, stopped besieging. Friends? 🍪",
+ "hello": [
+  "Splendid! No sieges! Only tea!",
+  "Lady Noxia says I should 'make amends'. Is this amends?"
+ ],
+ "about": "I'm King Crumbleton. I led the Crumb Horde against Thistlegloom. Four invasions! Very rude of me. Turns out I was just lonely.",
+ "how": "A cosy-spooky town tycoon: build Thistlegloom between four sieges, hold the wall with doilies and towers, and win the war with kindness.",
+ "tips": [
+  "Keep hope high before each siege. Fear erodes it!",
+  "Watchtowers near the wall. Always.",
+  "Beaten invaders just nap. Be nice to them."
+ ],
+ "chat": [
+  "I tried to apologise with cookies. They were me-shaped. Awkward.",
+  "Lady Noxia's doilies sting! Lovely craftsmanship though.",
+  "My horde is napping in the meadow. Bless them.",
+  "The Cookie Queen sent a letter. With sprinkles. 💌"
+ ],
+ "nudge": [
+  "Thistlegloom could use a new building! Help?",
+  "Another siege is... no. A PARTY is coming!"
+ ],
+ "idle": [
+  "{ago} and the town's still standing! Without you! (Barely.)",
+  "The village has been quiet for {ago}. My crumbs miss you."
+ ],
+ "progress": [
+  "Day {day} in Thistlegloom! Very cosy. Very spooky."
+ ],
+ "questions": [
+  {
+   "q": "Should I apologise to the whole village?",
+   "a": [
+    [
+     "Yes!",
+     "With cake? With cake. 🎂"
+    ],
+    [
+     "They already forgave you",
+     "*sniff* Really?"
+    ],
+    [
+     "Write a song",
+     "♪ I'm sorry I besieged you ♪ ...needs work."
+    ]
+   ]
+  }
+ ],
+ "update": "Royal crumbs! Doom & Doilies: The Sugar Siege is now v{version}!",
+ "bye": [
+  "Toodles! No sieges! 🍪",
+  "*crumbly wave*"
+ ],
+ "save": {
+  "keys": [
+   "doom-doilies-sugar-siege.v1"
+  ]
+ },
+ "art": "fal"
+}

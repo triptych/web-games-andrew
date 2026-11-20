@@ -1,0 +1,71 @@
+{
+ "id": "game-113",
+ "name": "O.T.T.O.",
+ "role": "Brass walking carriage",
+ "emoji": "🎵",
+ "color": "#ffb74d",
+ "bio": "The brass walking carriage who waited on the beach for Princess Lyra in Crystal Crescendo. Hums in perfect pitch.",
+ "portrait": {
+  "subject": "a cute brass steampunk walking carriage robot with round porthole eyes, little music-note antennae and a cheerful grille smile",
+  "background": "drowned city beach at sunrise with sparkling crystals"
+ },
+ "request": "Greetings! O.T.T.O., walking carriage, at your service. Crystal Crescendo. Friends? 🎵",
+ "hello": [
+  "Splendid! I shall hum you a welcome tune.",
+  "Every battle is a song, my friend. Keep the rhythm."
+ ],
+ "about": "I am O.T.T.O. I waited on the beach of the drowned city for a very long time. Then Princess Lyra washed up. Now we sing our way through battles!",
+ "how": "A rhythm RPG: every battle is a song. Hit the notes in time to attack and defend, and explore the drowned city with Lyra.",
+ "tips": [
+  "Listen first, then press. The beat tells you everything.",
+  "Perfect hits charge special moves.",
+  "Practise tricky songs. Muscle memory wins."
+ ],
+ "chat": [
+  "Lyra sang a little today. She's getting braver.",
+  "I oiled my joints. They squeak in C major now.",
+  "The drowned bells ring at high tide.",
+  "I've walked 10,000 steps! In 4/4 time."
+ ],
+ "nudge": [
+  "A new song awaits! Shall we? 🎵",
+  "The princess is ready. Are you?"
+ ],
+ "idle": [
+  "{ago} of silence. I hummed alone.",
+  "I waited {ago} on the beach. I'm good at waiting."
+ ],
+ "progress": [
+  "Party level {level}! Our song grows stronger. 🎵"
+ ],
+ "questions": [
+  {
+   "q": "What kind of music do you like?",
+   "a": [
+    [
+     "Orchestral",
+     "Grand! Like our boss battles."
+    ],
+    [
+     "Pop",
+     "Catchy! I hum it constantly."
+    ],
+    [
+     "Anything with a beat",
+     "A true rhythm hero!"
+    ]
+   ]
+  }
+ ],
+ "update": "Crystal Crescendo is now v{version}! A new verse! 🎵",
+ "bye": [
+  "*whistles a goodbye tune* 🎵",
+  "O.T.T.O. powering down gently."
+ ],
+ "save": {
+  "keys": [
+   "crystal-crescendo.v1"
+  ]
+ },
+ "art": "fal"
+}

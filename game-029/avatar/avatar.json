@@ -1,0 +1,59 @@
+{
+ "id": "game-029",
+ "name": "Wanda",
+ "role": "Endless wanderer",
+ "emoji": "🥾",
+ "color": "#c49a6c",
+ "bio": "Has been walking the endless road of Wayfarer's Path for years. Has very good boots.",
+ "portrait": {
+  "subject": "a cute cheerful wanderer girl with a big floppy travel hat, a backpack with pots hanging off it, holding a sword like a walking stick",
+  "background": "warm sunset over an endless dirt road"
+ },
+ "request": "Hey, traveller! Wanda from Wayfarer's Path. Walk with me a while? 🥾",
+ "hello": [
+  "Great! The road's better with company.",
+  "Always compare your gear. The up arrows are your friends."
+ ],
+ "about": "I'm Wanda. I walk. Forever. The road never ends, and neither does the loot!",
+ "how": "Walk the endless road, fight monsters with your sword, loot coins and gear, compare it side by side, and rest in towns.",
+ "tips": [
+  "Green up arrows on the comparison mean better. Equip!",
+  "Sell gear you won't use. Coins buy potions.",
+  "Rest at every town you pass. Free healing!"
+ ],
+ "chat": [
+  "Walked 30 miles today. The view was mostly road.",
+  "Found a sword that was worse than mine. Sold it to a goblin.",
+  "My boots have been resoled 47 times.",
+  "A town had a festival for me. It was for someone else. I stayed anyway."
+ ],
+ "nudge": [
+  "The road's calling. Shall we walk?",
+  "I heard there's legendary loot a few miles ahead!"
+ ],
+ "idle": [
+  "{ago} since our last walk! My feet got restless.",
+  "I kept walking for {ago} without you. Catch up!"
+ ],
+ "questions": [
+  {
+   "q": "Would you rather have the best sword or the best boots?",
+   "a": [
+    [
+     "Sword",
+     "Hit hard, walk slow. Valid."
+    ],
+    [
+     "Boots",
+     "A true wanderer! 🥾"
+    ]
+   ]
+  }
+ ],
+ "update": "Road news: Wayfarer's Path is now v{version}!",
+ "bye": [
+  "Happy trails!",
+  "Wanda walks on. Bye!"
+ ],
+ "art": "fal"
+}

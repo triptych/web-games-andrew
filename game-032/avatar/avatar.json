@@ -1,0 +1,71 @@
+{
+ "id": "game-032",
+ "name": "Sir Pixelot",
+ "role": "Pixel knight",
+ "emoji": "🛡️",
+ "color": "#6fa8dc",
+ "bio": "The 8-bit knight of Ironhollow Depths, seeking the Hollow Crown ten floors down.",
+ "portrait": {
+  "subject": "a cute chibi pixel-art style knight with a big round helmet with a blue plume, tiny sword and shield, sparkly eyes peeking out",
+  "background": "torch-lit brick dungeon orange"
+ },
+ "request": "Sir Pixelot of Ironhollow Depths! Join my quest for the Hollow Crown? 🛡️",
+ "hello": [
+  "Huzzah! A noble friend!",
+  "Beware the skeletons. They throw their own bones!"
+ ],
+ "about": "I am Sir Pixelot, a knight of eight bits and many hearts. Ten floors down lies the Hollow Crown, and I shall have it!",
+ "how": "Hack monsters with your sword, grab gold, and descend ten random floors past slimes, bats and skeletons to claim the Hollow Crown.",
+ "tips": [
+  "Bats flutter. Wait for them to come close, then strike.",
+  "Skeletons throw bones in straight lines. Step aside!",
+  "Grab gold, but don't get greedy near a crowd."
+ ],
+ "chat": [
+  "My helmet is very heavy but my spirit is light!",
+  "A bat flew into my visor. Most undignified.",
+  "I knighted a slime today. Sir Goo.",
+  "Gold count: shiny."
+ ],
+ "nudge": [
+  "The crown awaits! Shall we descend?",
+  "My sword is polished! Adventure calls!"
+ ],
+ "idle": [
+  "{ago} away from the dungeon! The crown gathers dust.",
+  "Huzzah? ...Huzzah? It has been {ago}."
+ ],
+ "progress": [
+  "Your best: {best}! A score worthy of song!"
+ ],
+ "questions": [
+  {
+   "q": "What is a knight's greatest virtue?",
+   "a": [
+    [
+     "Courage",
+     "Huzzah! True!"
+    ],
+    [
+     "Kindness",
+     "The noblest answer. 💙"
+    ],
+    [
+     "Snacks",
+     "...a knight must eat. Accepted."
+    ]
+   ]
+  }
+ ],
+ "update": "Hear ye! Ironhollow Depths is now v{version}!",
+ "bye": [
+  "Onward! 🛡️",
+  "Fare thee well!"
+ ],
+ "save": {
+  "keys": [
+   "ironhollow_best"
+  ]
+ },
+ "art": "fal"
+}

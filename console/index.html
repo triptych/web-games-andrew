@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#141719">
     <title>Pocket Garden — Andrew Wooldridge's Games</title>
-    <meta name="description" content="Andrew Wooldridge's browser games on a retro handheld: a glowing library screen, a working click wheel, cartridges for every game, genres, search and favorites shared with the Garden.">
+    <meta name="description" content="Andrew Wooldridge's browser games on a retro handheld: a glowing library screen, a working click wheel, cartridges for every game, genres, search, favorites shared with the Garden, and Messages from the characters of the games you play.">
     <link rel="canonical" href="https://triptych.github.io/web-games-andrew/console/">
 
     <meta property="og:type" content="website">
@@ -50,6 +50,7 @@
                 <li><span class="lk">MENU</span> Back</li>
                 <li><span class="lk">PLAY</span> Play the highlighted game</li>
                 <li><span class="lk">◂◂ ▸▸</span> Page · flip cartridges</li>
+                <li><span class="lk">✉</span> Messages from your games' characters</li>
             </ul>
             <ul class="legend-keys">
                 <li><kbd>↑</kbd><kbd>↓</kbd> scroll</li>
@@ -78,6 +79,7 @@
                             <span class="st-play" id="st-play" aria-hidden="true">▶</span>
                             <span class="st-title" id="st-title">Pocket Garden</span>
                             <span class="st-right">
+                                <span class="st-msg" id="st-msg" hidden>✉0</span>
                                 <span class="st-fav" id="st-fav">★0</span>
                                 <span class="battery" id="battery" aria-hidden="true"><i></i></span>
                             </span>
@@ -86,6 +88,7 @@
 
                         <div class="az" id="az" aria-hidden="true"></div>
                         <div class="toast" id="toast" aria-hidden="true"></div>
+                        <button type="button" class="notif" id="notif" hidden aria-label="New message: open it"></button>
                         <div class="reel" id="reel" hidden aria-hidden="true"></div>
 
                         <div class="load" id="load" hidden role="status">

@@ -1,0 +1,67 @@
+{
+ "id": "game-002",
+ "name": "Jewel",
+ "role": "Gem fairy",
+ "emoji": "💎",
+ "color": "#b24cff",
+ "bio": "A tiny sparkle fairy who lives inside the gem board of Match-3 Puzzle. Loves things in threes.",
+ "portrait": {
+  "subject": "a tiny cute gem fairy girl with purple crystal hair, sparkling translucent wings and a glowing red, blue and green gem necklace",
+  "background": "royal purple radial glow with sparkles"
+ },
+ "request": "Sparkle sparkle! I'm Jewel from Match-3 Puzzle. Be my friend? Three's company! 💎",
+ "hello": [
+  "Yay! Now we're two. We just need one more to make a match! 😄",
+  "I'll send you sparkly thoughts. Matching ones."
+ ],
+ "about": "I'm Jewel, the gem fairy. I live between the rubies and sapphires and I polish every gem you match!",
+ "how": "Swap two neighbouring gems to make a line of three or more of the same colour. You get 30 moves, so make each one count!",
+ "tips": [
+  "Look near the bottom first: matches there make gems fall and can cascade for free!",
+  "A line of four or five is worth way more than two threes.",
+  "Before you swap, check if the new gem makes a second match too.",
+  "Save your last moves for the biggest match on the board."
+ ],
+ "chat": [
+  "I polished 300 rubies today. My arms are tired but they're SO shiny.",
+  "The emeralds and sapphires had an argument. I made them match. Problem solved.",
+  "Do you think gems dream? I think they dream of falling into place.",
+  "Cascades are my favourite thing. It's like the board is clapping for you!",
+  "I found a gem that was two colours. I'm not allowed to talk about it.",
+  "Everything is better in threes. Like... cookies. Or naps."
+ ],
+ "nudge": [
+  "The gems are all lined up and waiting for you! 💎",
+  "30 fresh moves, just for you. Want them?",
+  "I set up a juicy board. Come see!"
+ ],
+ "idle": [
+  "It's been {ago}! The gems are getting dusty. I can't polish them alone!",
+  "{ago} without a match... I'm practicing my sparkles in the dark."
+ ],
+ "questions": [
+  {
+   "q": "Which gem is your favourite? Be honest, they're listening.",
+   "a": [
+    [
+     "Red ruby",
+     "Ruby just blushed. Even redder now."
+    ],
+    [
+     "Blue sapphire",
+     "Sapphire is calm and cool. Good choice!"
+    ],
+    [
+     "Green emerald",
+     "Emerald is doing a little happy wiggle."
+    ]
+   ]
+  }
+ ],
+ "update": "Ooh! Match-3 Puzzle just got updated to v{version}! New sparkle to see! ✨",
+ "bye": [
+  "Sparkle on! 💎",
+  "Bye bye! Match you later!"
+ ],
+ "art": "fal"
+}

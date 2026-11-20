@@ -1,0 +1,71 @@
+{
+ "id": "game-045",
+ "name": "Flip",
+ "role": "Pinball wizard",
+ "emoji": "🕹️",
+ "color": "#ff4081",
+ "bio": "Lives inside the PINBREAK '86 cabinet. Nudges the table when nobody's looking.",
+ "portrait": {
+  "subject": "a cute 80s arcade kid with a pink mohawk, mirrored shades, a jean jacket covered in pins, holding a shiny silver pinball",
+  "background": "neon synthwave pinball lights"
+ },
+ "request": "Flip from PINBREAK '86! Totally tubular to meet you. Friends? 🕹️",
+ "hello": [
+  "Radical! Insert coin to continue our friendship. (Kidding.)",
+  "Pro move: nudge, but not too hard. TILT is real."
+ ],
+ "about": "I'm Flip, the pinball wizard. Bumpers, flippers, bricks AND power-ups. It's 1986 forever in here.",
+ "how": "Plunge, flip and nudge like pinball, but smash every brick in the upper playfield to clear the wave. Catch the falling power-ups!",
+ "tips": [
+  "Trap the ball on a flipper, then aim your shot.",
+  "Explosive bricks chain! Aim for them.",
+  "Drain shield first, multiball second."
+ ],
+ "chat": [
+  "Got a five-ball multiball. Blacked out. Woke up a legend.",
+  "The bumpers go 'boing'. I go 'woo'.",
+  "TILTED once. Never again.",
+  "This cabinet smells like quarters and dreams."
+ ],
+ "nudge": [
+  "Table's lit! Plunger's ready! You?",
+  "New wave of bricks loaded. Let's break 'em!"
+ ],
+ "idle": [
+  "{ago} since you plunged a ball! The table's lonely.",
+  "The cabinet lights blinked for {ago}. Waiting."
+ ],
+ "progress": [
+  "High score {best}! Initials on the board! 🏆"
+ ],
+ "questions": [
+  {
+   "q": "Pinball or brick-breaker?",
+   "a": [
+    [
+     "Pinball",
+     "Flippers forever!"
+    ],
+    [
+     "Brick-breaker",
+     "Smash smash smash!"
+    ],
+    [
+     "Both, duh",
+     "That's PINBREAK, baby! 🕹️"
+    ]
+   ]
+  }
+ ],
+ "update": "New firmware! PINBREAK '86 is now v{version}!",
+ "bye": [
+  "Game over... for now! 🕹️",
+  "Flip out!"
+ ],
+ "save": {
+  "keys": [
+   "pinbreak86"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,81 @@
+{
+ "id": "garden",
+ "name": "Dragonfly",
+ "role": "Your Garden companion",
+ "emoji": "🪽",
+ "color": "#7fd4b4",
+ "bio": "Your dragonfly from the Garden of Games. Knows every path, every statue and every secret. First friend in your address book.",
+ "portrait": {
+  "subject": "a super cute small teal and emerald dragonfly with big sparkly round eyes, shimmering glassy wings, a tiny flower crown and a happy smile",
+  "background": "dreamy garden island at dusk with a lamp-lit dock and soft glow"
+ },
+ "request": "Hi hi! It's me, your dragonfly from the Garden! Your handheld can get messages now! 🪽",
+ "hello": [
+  "Every game you play adds a new friend to your address book!",
+  "When a new game lands, its friend will call. You'll feel it buzz!",
+  "I'll pass on news from the island too. Ask me anything!"
+ ],
+ "about": "I'm {df}, your dragonfly! I live on the Garden of Games island, I go everywhere you go, and now I live in your Pocket Garden too.",
+ "how": "The Garden is an island of statues, each one a game. Walk the paths, read the plaques and step through. I'll show you the way!",
+ "tips": [
+  "Every path from the Hub leads to one kind of game.",
+  "Click a statue to read its plaque. Step through to play!",
+  "Press K to talk to me on the island. I know shortcuts!",
+  "Star a game here or on the island; the stars are shared."
+ ],
+ "chat": [
+  "I flew round the lighthouse three times this morning! Whee!",
+  "The fox on the other side of the Great Tree says hi!",
+  "I saw a fish jump by the dock. It was showing off.",
+  "Somebody left a new statue on the island. I think it's for you!",
+  "I had a snack and a nap. Perfect day.",
+  "The hologram at the Hub was spinning so fast today!"
+ ],
+ "nudge": [
+  "Want to fly to the island with me? 🪽",
+  "I found something shiny on the island! Come see!"
+ ],
+ "idle": [
+  "I've been waiting on the dock lamp for {ago}! Come visit!",
+  "{ago}! I counted every wave. Twice."
+ ],
+ "questions": [
+  {
+   "q": "What should we do next?",
+   "a": [
+    [
+     "Play a game",
+     "Yay! Pick one from your address book or the menus!"
+    ],
+    [
+     "Explore the island",
+     "Let's fly! Open my screen from the menu and pick a place. 🪽"
+    ],
+    [
+     "Just chat",
+     "My favourite! Tell me about your day!"
+    ]
+   ]
+  },
+  {
+   "q": "Do you like my wings today?",
+   "a": [
+    [
+     "Sparkly!",
+     "*happy flutter* ✨"
+    ],
+    [
+     "Very shiny",
+     "I polished them on a dewdrop!"
+    ]
+   ]
+  }
+ ],
+ "update": "Big news! The Garden of Games just changed. Want to see?",
+ "bye": [
+  "Bye bye! *flutter* 🪽",
+  "I'll be on the dock lamp!"
+ ],
+ "companion": true,
+ "art": "fal"
+}

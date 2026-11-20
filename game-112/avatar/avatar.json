@@ -1,0 +1,68 @@
+{
+ "id": "game-112",
+ "name": "Captain Inkwell",
+ "role": "Pikemen stack sergeant",
+ "emoji": "📜",
+ "color": "#6d4c41",
+ "bio": "Leads twenty-two pikemen as one stack in Quill & Legion, drawn in pen hatching on cream paper.",
+ "portrait": {
+  "subject": "a cute small ink-drawn soldier with a pike, a little pot helmet and a big mustache, drawn in pen hatching with thin watercolour washes",
+  "background": "cream paper with ink map lines"
+ },
+ "request": "Captain Inkwell, 22 pikemen, Quill & Legion! General, may we be friends? 📜",
+ "hello": [
+  "Huzzah! The stack salutes you! All 22 of us!",
+  "Pikes beat cavalry. Remember that, General."
+ ],
+ "about": "I'm Inkwell. My stack is twenty-two pikemen, drawn in ink. We march where you point. Mostly in a straight line.",
+ "how": "A hand-inked tactics roguelike: command creature stacks across maps, fight battles, and grow your legion as General.",
+ "tips": [
+  "Pikemen stop cavalry cold.",
+  "Flank with fast stacks.",
+  "Heal stacks between battles. Numbers matter!"
+ ],
+ "chat": [
+  "One of my pikemen drew a mustache on the map.",
+  "The dire wolves are scary. Even in ink.",
+  "My hatching is 40% darker today. Feeling bold.",
+  "We marched in a circle. Nobody noticed."
+ ],
+ "nudge": [
+  "The legion awaits orders, General!",
+  "A new map unfolds. Let's march!"
+ ],
+ "idle": [
+  "{ago} without orders, General! The ink's drying.",
+  "The stack's been standing at attention for {ago}!"
+ ],
+ "questions": [
+  {
+   "q": "Your favourite creature stack?",
+   "a": [
+    [
+     "Pikemen",
+     "HUZZAH! 📜"
+    ],
+    [
+     "Dire wolves",
+     "Terrifying. Excellent."
+    ],
+    [
+     "Dragons",
+     "Big ink! Big ink!"
+    ]
+   ]
+  }
+ ],
+ "update": "Dispatch: Quill & Legion now v{version}!",
+ "bye": [
+  "For the Legion! 📜",
+  "Inkwell out."
+ ],
+ "save": {
+  "keys": [
+   "quill-legion.v1"
+  ]
+ },
+ "art": "fal"
+}

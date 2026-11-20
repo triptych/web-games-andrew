@@ -1,0 +1,68 @@
+{
+ "id": "game-076",
+ "name": "Quillon",
+ "role": "Enchanted quill",
+ "emoji": "🪶",
+ "color": "#7986cb",
+ "bio": "The old enchanted quill of the Atelier in TALEWRIGHT. Restores the workshop's tools chapter by chapter.",
+ "portrait": {
+  "subject": "a cute old enchanted feather quill character with spectacles, a little ink-dripping nib, kind wrinkly eyes and a tiny bow tie, with a small glowing ink moth beside it",
+  "background": "cozy parchment workshop with warm lamplight"
+ },
+ "request": "Ah, a new apprentice! Quillon of the Atelier, TALEWRIGHT. Shall we write a friendship? 🪶",
+ "hello": [
+  "Splendid. Mott sends a flutter of greeting.",
+  "The Blot took our tools, but not our stories."
+ ],
+ "about": "I'm Quillon, an old quill. Every story was once drafted in our Atelier. With Mott the ink-moth, I'm teaching you to make worlds again.",
+ "how": "A real RPG maker: draw maps, write events, add items and battles, playtest, and export your own game while restoring the Atelier.",
+ "tips": [
+  "Playtest often. Small worlds first!",
+  "Events with switches make worlds feel alive.",
+  "Use the templates. Even quills use templates."
+ ],
+ "chat": [
+  "Mott ate a whole paragraph today. Delicious, he said.",
+  "I dreamed in iambic pentameter.",
+  "The Blot left a smudge on chapter 3. Rude.",
+  "My nib needs sharpening. I'm getting dull! Ha."
+ ],
+ "nudge": [
+  "A new tool is ready to restore. Come see?",
+  "Your world awaits its next chapter."
+ ],
+ "idle": [
+  "{ago} and your project waits, unwritten.",
+  "The ink has dried for {ago}. Come back, apprentice."
+ ],
+ "questions": [
+  {
+   "q": "What will your game be about?",
+   "a": [
+    [
+     "Dragons",
+     "Excellent. Every good story has one."
+    ],
+    [
+     "A cozy village",
+     "Warm and gentle. Lovely."
+    ],
+    [
+     "A secret",
+     "Ooh. I shan't pry. 🤫"
+    ]
+   ]
+  }
+ ],
+ "update": "A new chapter! TALEWRIGHT updated to v{version}.",
+ "bye": [
+  "Keep writing! 🪶",
+  "Quillon returns to the inkwell."
+ ],
+ "save": {
+  "keys": [
+   "talewright.meta.v1"
+  ]
+ },
+ "art": "fal"
+}

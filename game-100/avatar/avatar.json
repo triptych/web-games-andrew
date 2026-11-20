@@ -1,0 +1,71 @@
+{
+ "id": "game-100",
+ "name": "Disco Dolly",
+ "role": "Dancefloor diva",
+ "emoji": "🪩",
+ "color": "#ff4081",
+ "bio": "Queen of the glowing dancefloor in Glitterball Groove. Lives under the giant mirrorball.",
+ "portrait": {
+  "subject": "a cute 70s disco diva girl with a huge curly afro, gold glitter jumpsuit, star sunglasses and a tiny mirrorball earring",
+  "background": "sparkling 70s disco floor with rainbow lights and a mirrorball"
+ },
+ "request": "Hey groovy! Disco Dolly from Glitterball Groove! Boogie with me? 🪩",
+ "hello": [
+  "Far out! You've got the moves, baby!",
+  "Match those mirrorballs! They're the groovy ones!"
+ ],
+ "about": "I'm Disco Dolly! I rule the floor under the giant mirrorball. Records, stars, hearts, daisies. Swap 'em and match 'em, baby!",
+ "how": "A disco match-3: swap neighbouring tokens on the glowing dance floor to match three or more, and make big combos to the beat.",
+ "tips": [
+  "Matches at the bottom shake everything up!",
+  "Make 5-in-a-rows for the big special tokens.",
+  "Look for L and T shapes!"
+ ],
+ "chat": [
+  "The mirrorball spun so fast today I saw 400 of me.",
+  "Did the hustle for six hours. Feet are fine. Shoes are not.",
+  "Lost a sequin. Found it in my afro.",
+  "It's always Saturday night here, baby."
+ ],
+ "nudge": [
+  "The floor's lit up! Let's dance! 🪩",
+  "New groove's dropping! Come match!"
+ ],
+ "idle": [
+  "{ago} off the dance floor? Baby, no!",
+  "The mirrorball's been spinning alone for {ago}."
+ ],
+ "progress": [
+  "You're on level {level}! Groovy! Next stop: {level+1}! 🪩"
+ ],
+ "questions": [
+  {
+   "q": "Best disco move?",
+   "a": [
+    [
+     "The Hustle",
+     "Classic, baby!"
+    ],
+    [
+     "The Robot",
+     "Wrong decade, but I love it!"
+    ],
+    [
+     "Point at the sky",
+     "Ah, the Travolta. Iconic. ✨"
+    ]
+   ]
+  }
+ ],
+ "update": "Dig it! Glitterball Groove is now v{version}! 🪩",
+ "bye": [
+  "Stay groovy! 🪩",
+  "Boogie on!"
+ ],
+ "save": {
+  "keys": [
+   "glitterball-groove.v1"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,63 @@
+{
+ "id": "game-024",
+ "name": "Nyx",
+ "role": "Vanguard pilot",
+ "emoji": "🛩️",
+ "color": "#7b5cff",
+ "bio": "Flies point in Neon Vanguard. Thinks swooping enemy patterns are basically dance moves.",
+ "portrait": {
+  "subject": "a cute cool neon starfighter pilot with a purple flight jacket, glowing magenta headset and starry eyes",
+  "background": "dark blue with a glowing neon grid"
+ },
+ "request": "Nyx here, Neon Vanguard squadron. Fly with me? 🛩️",
+ "hello": [
+  "Copy that, wingmate.",
+  "Watch for the orbiters. They love to circle back."
+ ],
+ "about": "I'm Nyx, Neon Vanguard. Enemies dive, weave, orbit and swoop. I just dance through them.",
+ "how": "Fly and shoot through endless waves of enemies that move in patterns. Learn their dives and swoops and survive!",
+ "tips": [
+  "Learn the patterns: every swoop has a gap.",
+  "Don't hug the bottom. Leave room to dodge.",
+  "Kill divers before they turn back up at you."
+ ],
+ "chat": [
+  "The enemy formation did a heart shape today. Confusing.",
+  "My shader glow is set to 'maximum'. Always.",
+  "Neon tip: everything looks cooler at night.",
+  "I name enemy patterns after dances. The Waltz is the worst."
+ ],
+ "nudge": [
+  "Next wave's forming up. Ready?",
+  "Squadron needs one more. That's you!"
+ ],
+ "idle": [
+  "{ago} out of the cockpit, wingmate!",
+  "The grid's glowing for nobody. It's been {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Your flying style?",
+   "a": [
+    [
+     "Aggressive",
+     "Full throttle! Love it."
+    ],
+    [
+     "Careful",
+     "Patient pilots live longest."
+    ],
+    [
+     "Chaotic",
+     "Ha! Neon chaos is the best chaos."
+    ]
+   ]
+  }
+ ],
+ "update": "Hangar update: Neon Vanguard is now v{version}!",
+ "bye": [
+  "Nyx out. 🛩️",
+  "Fly safe!"
+ ],
+ "art": "fal"
+}

@@ -1,0 +1,78 @@
+{
+ "id": "game-069",
+ "name": "Grandpa Gus",
+ "role": "Retired racer",
+ "emoji": "🏁",
+ "color": "#8d6e63",
+ "bio": "Pulled the tarp off the Bucket in Dirt Crown. Still has opinions about tyre pressure.",
+ "portrait": {
+  "subject": "a cute cheerful grandpa mechanic with a grey mustache, a backwards trucker cap, oil-stained overalls and a wrench, thumbs up",
+  "background": "dusty dirt race track at sunset"
+ },
+ "request": "Gus here, from Dirt Crown. Got a racer for ya. The Bucket. Friends first? 🏁",
+ "hello": [
+  "Atta kid! Let's get you some coins for parts.",
+  "The Bucket ain't pretty, but she's honest."
+ ],
+ "about": "I'm Gus. Raced dirt for fifty years. Now my grandkid drives my old racer, the Bucket, and I bolt on the parts.",
+ "how": "Race dirt tracks, win coins, and bolt on parts that show on the car: exhausts, scoops, superchargers, wings, bigger tyres.",
+ "tips": [
+  "Tyres before engine. Grip wins dirt races.",
+  "Brake before the corner, gas out of it.",
+  "Every part shows on the car. Make her look mean!"
+ ],
+ "chat": [
+  "Found my old trophy in the shed. It's a bucket. Fitting.",
+  "Your grandma says I talk about carburettors too much.",
+  "Changed the oil. Changed it again. Felt good.",
+  "A rival called the Bucket 'cute'. We'll see who's cute at the finish."
+ ],
+ "nudge": [
+  "Race day! Get in the Bucket, kid!",
+  "New part's arrived at the garage. Let's bolt it on!"
+ ],
+ "idle": [
+  "{ago} since you raced! The Bucket's getting dusty. Well, dustier.",
+  "The garage has been quiet for {ago}, kid."
+ ],
+ "progress": [
+  "You've got {gold} coins in the jar! That's a supercharger, kid! 🏁"
+ ],
+ "questions": [
+  {
+   "q": "What's the first part you'd bolt on?",
+   "a": [
+    [
+     "Big tyres",
+     "Grip! Smart kid."
+    ],
+    [
+     "Supercharger",
+     "VROOM! That's my grandkid!"
+    ],
+    [
+     "A wing",
+     "Looks fast AND is fast!"
+    ]
+   ]
+  }
+ ],
+ "update": "Garage news: Dirt Crown is now v{version}! New parts maybe!",
+ "bye": [
+  "Keep it in the dirt, kid! 🏁",
+  "Gus out."
+ ],
+ "save": {
+  "keys": [
+   "dirt-crown.v1"
+  ],
+  "stats": {
+   "gold": [
+    "coins",
+    "cash",
+    "money"
+   ]
+  }
+ },
+ "art": "fal"
+}

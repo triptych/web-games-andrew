@@ -1,0 +1,71 @@
+{
+ "id": "game-109",
+ "name": "Mira",
+ "role": "Flight controller",
+ "emoji": "🎧",
+ "color": "#42a5f5",
+ "bio": "The witty flight controller in your headset on the carrier Aurora in STARBLAZER '86.",
+ "portrait": {
+  "subject": "a cute witty 1980s space flight controller woman with a big headset, a teal uniform, a clipboard and a confident wink",
+  "background": "space carrier bridge with retro computer lights"
+ },
+ "request": "This is Mira, Aurora flight control. STARBLAZER '86. Rookie, want a friend on the radio? 🎧",
+ "hello": [
+  "Copy that, rookie. You're on my channel now.",
+  "Briefing: don't get shot. That's the whole briefing."
+ ],
+ "about": "I'm Mira, flight controller on the carrier Aurora. I brief every wave and keep you alive with sarcasm and radar.",
+ "how": "An 8-bit space shooter: fight diving formation waves and vertical-scrolling stages, grab power-ups and protect the Aurora.",
+ "tips": [
+  "Divers swing back up. Watch their return.",
+  "Take power-ups, but not under fire.",
+  "Learn each wave. They repeat."
+ ],
+ "chat": [
+  "The captain spilled coffee on the radar. Again.",
+  "Rookie, your landing was 'creative'.",
+  "I've talked 400 pilots home. You're my favourite. Don't tell them.",
+  "My headset has one setting: snark."
+ ],
+ "nudge": [
+  "Rookie! Wave incoming. Suit up!",
+  "Aurora needs a pilot. That's you."
+ ],
+ "idle": [
+  "Rookie, it's been {ago}. Hangar's getting dusty.",
+  "{ago} without a sortie. Even the radar's bored."
+ ],
+ "progress": [
+  "High score {best}! Not bad, rookie. Not bad at all."
+ ],
+ "questions": [
+  {
+   "q": "Your call sign, rookie?",
+   "a": [
+    [
+     "Ace",
+     "Ambitious. We'll see."
+    ],
+    [
+     "Blaze",
+     "Hot. I like it."
+    ],
+    [
+     "Whatever you pick",
+     "Okay... 'Sprinkles'. Too late now. 🎧"
+    ]
+   ]
+  }
+ ],
+ "update": "Flight bulletin: STARBLAZER '86 now v{version}.",
+ "bye": [
+  "Mira out. Fly safe, rookie.",
+  "Over and out. 🎧"
+ ],
+ "save": {
+  "keys": [
+   "starblazer-86.v1"
+  ]
+ },
+ "art": "fal"
+}

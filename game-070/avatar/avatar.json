@@ -1,0 +1,67 @@
+{
+ "id": "game-070",
+ "name": "Lumen Colonist Ada",
+ "role": "Rescued colonist",
+ "emoji": "🛸",
+ "color": "#76ff03",
+ "bio": "A colonist on the world Lumen, saved more than once by your ship in PHOSPHOR PATROL.",
+ "portrait": {
+  "subject": "a cute grateful space colonist girl in a green glowing vector-style spacesuit with a bubble helmet, waving, drawn with bright phosphor green outlines",
+  "background": "black vector monitor sky with green glowing mountains"
+ },
+ "request": "This is Ada, colonist on Lumen! You keep saving us in PHOSPHOR PATROL. Friends? 🛸",
+ "hello": [
+  "Thank you! The whole colony says hi!",
+  "Snatchers coming! Shoot them before they reach the top!"
+ ],
+ "about": "I'm Ada. I live on Lumen. The Reapers keep trying to carry us off into the sky. You keep catching us. You're our hero!",
+ "how": "Fly left and right over the planet, shoot Reapers, catch falling colonists and stop snatchers before they reach the top of the sky.",
+ "tips": [
+  "Snatchers carrying colonists are top priority!",
+  "Catch falling colonists before they hit the ground.",
+  "Smart bombs clear the screen. Save them for emergencies."
+ ],
+ "chat": [
+  "I got snatched today. You caught me. Again. Thanks!",
+  "The mountains glow green at night. Well, always.",
+  "Meteor storm last night! Hid under a rock.",
+  "We named a crater after you!"
+ ],
+ "nudge": [
+  "Reapers spotted over the colony! Help!",
+  "The colony needs you on patrol!"
+ ],
+ "idle": [
+  "{ago} without patrol! We're nervous!",
+  "Help! It's been {ago} and the Reapers are back!"
+ ],
+ "progress": [
+  "High score {best}! The colony is throwing you a party! 🎉"
+ ],
+ "questions": [
+  {
+   "q": "Should we build a statue of you?",
+   "a": [
+    [
+     "Yes!",
+     "We'll make it out of glowing green lines!"
+    ],
+    [
+     "I'm humble",
+     "Aww. A small statue then."
+    ]
+   ]
+  }
+ ],
+ "update": "Colony bulletin: PHOSPHOR PATROL now v{version}!",
+ "bye": [
+  "Stay on patrol! 🛸",
+  "Bye, hero!"
+ ],
+ "save": {
+  "keys": [
+   "phosphor-patrol.v1"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,69 @@
+{
+ "id": "game-007",
+ "name": "Kiri",
+ "role": "Temple guardian spirit",
+ "emoji": "🏛️",
+ "color": "#e8c25a",
+ "bio": "A little spirit of The Forgotten Temple who guards the Crystal of Light and loves riddles.",
+ "portrait": {
+  "subject": "a cute glowing temple guardian spirit child with golden markings, a jade leaf crown, and a tiny glowing crystal floating above its hands",
+  "background": "jungle green and ancient gold"
+ },
+ "request": "Greetings, seeker. I am Kiri, spirit of the Forgotten Temple. Shall we be friends? 🏛️",
+ "hello": [
+  "The temple welcomes you. I'll send you riddles. And snacks. Spirit snacks.",
+  "Remember: some walls are only pretending to be walls."
+ ],
+ "about": "I am Kiri. I've watched over the Crystal of Light for a thousand years. It's mostly quiet. I talk to the statues.",
+ "how": "Type commands like LOOK, GO NORTH, TAKE TORCH, USE KEY. Explore the 20 rooms, solve the puzzles, and find the Crystal of Light.",
+ "tips": [
+  "LOOK at everything twice. Then EXAMINE the interesting bits.",
+  "Dark rooms are dangerous without a light. Find one first!",
+  "Talk to everyone you meet. People in old temples know old secrets.",
+  "Save before trying anything brave."
+ ],
+ "chat": [
+  "A statue sneezed today. Dust, probably. Probably.",
+  "Riddle: what has a door but no house? (The answer is in the temple.)",
+  "I polished the Crystal. It hummed at me. I hummed back.",
+  "The jungle grew a new vine across the entrance. It looks like a mustache."
+ ],
+ "nudge": [
+  "The temple doors creak. Someone should explore them... you?",
+  "A new riddle waits in the east wing. Come, seeker."
+ ],
+ "idle": [
+  "{ago} since you walked my halls. The torches miss your shadow.",
+  "Seeker? It has been {ago}. The Crystal flickers."
+ ],
+ "questions": [
+  {
+   "q": "A temple riddle for you: I'm full of holes but I hold water. What am I?",
+   "a": [
+    [
+     "A sponge",
+     "Correct! You have temple-brain. 🧽"
+    ],
+    [
+     "A bucket",
+     "A leaky bucket, maybe! The answer is a sponge."
+    ],
+    [
+     "No idea",
+     "A sponge! The statues giggled. Gently."
+    ]
+   ]
+  }
+ ],
+ "update": "The temple shifted! The Forgotten Temple is now v{version}. New secrets await.",
+ "bye": [
+  "May the Crystal light your way.",
+  "Farewell, seeker."
+ ],
+ "save": {
+  "keys": [
+   "forgotten-temple-save-*"
+  ]
+ },
+ "art": "fal"
+}

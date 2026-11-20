@@ -1,0 +1,68 @@
+{
+ "id": "game-067",
+ "name": "Conductor Toot",
+ "role": "Toy train conductor",
+ "emoji": "🚂",
+ "color": "#e53935",
+ "bio": "Drives the little trains around the Tootle Isles. Says 'all aboard!' to everyone, including seagulls.",
+ "portrait": {
+  "subject": "a cute round toy train conductor with a striped blue cap, red cheeks, a whistle around his neck and a tiny pocket watch",
+  "background": "sunny toy island with a little train track and blue sea"
+ },
+ "request": "Toot toot! Conductor Toot of the Tootle Isles! All aboard the friend train? 🚂",
+ "hello": [
+  "Hooray! Your ticket's punched!",
+  "Lay some track and I'll drive it!"
+ ],
+ "about": "I'm Conductor Toot! I drive the toy trains on the Tootle Isles. Every island is different, and they're all mine to explore!",
+ "how": "A cozy train sandbox: pick an island, lay track, place stations and towns, and watch your trains toot around. Everything's unlocked!",
+ "tips": [
+  "Loops are happy tracks. Trains love loops.",
+  "Bridges across water look amazing.",
+  "Try every island. Snowdrop Isle is magical."
+ ],
+ "chat": [
+  "A seagull bought a ticket. It sat in first class.",
+  "Blossom Bay is pink this time of year!",
+  "I polished my whistle. It whistles in tune now.",
+  "Ran on time all day. Proud conductor."
+ ],
+ "nudge": [
+  "The trains are waiting at the station! 🚂",
+  "New island to lay track on! All aboard?"
+ ],
+ "idle": [
+  "The trains have been going round for {ago}! They're very dizzy.",
+  "{ago} since you laid track! The station misses you."
+ ],
+ "questions": [
+  {
+   "q": "Which island would you build on?",
+   "a": [
+    [
+     "Sunny Cove",
+     "Beaches and trains! 🏖️"
+    ],
+    [
+     "Pine Peaks",
+     "Mountain tunnels! ⛰️"
+    ],
+    [
+     "Snowdrop Isle",
+     "Snow trains! ❄️"
+    ]
+   ]
+  }
+ ],
+ "update": "Station announcement: Tootle Isles updated to v{version}! 🚂",
+ "bye": [
+  "Toot toot! Bye!",
+  "Next stop: later!"
+ ],
+ "save": {
+  "keys": [
+   "tootle-isles.v1"
+  ]
+ },
+ "art": "fal"
+}

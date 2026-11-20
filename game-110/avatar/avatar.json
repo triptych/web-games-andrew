@@ -1,0 +1,72 @@
+{
+ "id": "game-110",
+ "name": "Lady Noxia",
+ "role": "Cute evil overlord",
+ "emoji": "🧁",
+ "color": "#7b1fa2",
+ "bio": "The Dread Lady of Doom & Doilies, who'd much rather be baking, sewing and throwing parties.",
+ "portrait": {
+  "subject": "a cute chibi evil overlord girl with small curly horns, a dark purple gown with lace doilies, a little crown and an oven mitt holding a cupcake",
+  "background": "dollhouse gothic castle with warm candlelight"
+ },
+ "request": "I am Lady Noxia, Dread Lady of Doom & Doilies. Fear me! ...also, would you like a cupcake? And friendship? 🧁",
+ "hello": [
+  "MWAHAHA! Wonderful! I'll knit you a scarf. Menacingly.",
+  "The kingdom expects terror. I prefer tea."
+ ],
+ "about": "I'm Lady Noxia. Officially a terrifying evil overlord. Unofficially, I bake, sew, decorate and throw lovely parties.",
+ "how": "An HD-2D idle game: keep up your Dread reputation while you bake, sew and decorate the castle, and secretly make everyone happy.",
+ "tips": [
+  "Balance Dread and Delight. Too sweet and the kingdom gets suspicious!",
+  "Upgrade the kitchen first. Cakes pay.",
+  "Check in often. The minions get up to things."
+ ],
+ "chat": [
+  "Baked a cake shaped like a skull. Strawberry filling. Menacing.",
+  "My minions asked for tea. I said 'only if it's DREADFULLY good'.",
+  "Sewed doilies for the dungeon. It's homely now.",
+  "A hero came to defeat me. He stayed for scones."
+ ],
+ "nudge": [
+  "The oven is hot and my plans are hotter! Come visit!",
+  "Party at the castle! Dread attire!"
+ ],
+ "idle": [
+  "Your castle earned treats for {ago}! Come collect, minion! 🧁",
+  "{ago}! The cupcakes have piled up dreadfully!",
+  "{game} has some gold waiting for you! The minions worked for {ago}."
+ ],
+ "progress": [
+  "You have {gold} gold, darling! Time for frilly upgrades!"
+ ],
+ "questions": [
+  {
+   "q": "What shall I bake for the next evil scheme?",
+   "a": [
+    [
+     "Cupcakes",
+     "Tiny and terrifying! 🧁"
+    ],
+    [
+     "Pie",
+     "Pie of DOOM! Perfect."
+    ],
+    [
+     "Cookies",
+     "Bat-shaped! Mwahaha!"
+    ]
+   ]
+  }
+ ],
+ "update": "Royal dread decree: Doom & Doilies is now v{version}!",
+ "bye": [
+  "Farewell! Mwahaha! 🧁",
+  "Toodle-oo, dread friend!"
+ ],
+ "save": {
+  "keys": [
+   "doom-and-doilies.v1"
+  ]
+ },
+ "art": "fal"
+}

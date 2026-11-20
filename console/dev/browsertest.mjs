@@ -23,12 +23,21 @@
  * wheel (written to the island's memory), petting by holding the center and
  * by tapping it, a trick, a change made on the island showing at once,
  * Places (found ones and hints) and flying to one (index.html?go=…); the
- * embossed dragonfly on the shell opens it on a phone. Screenshots → console/dev/shots/.
+ * embossed dragonfly on the shell opens it on a phone.
+ * Messages (./js/messages.js, each game's avatar/avatar.json): games in Recently
+ * Played are friends in the address book, the Garden's dragonfly is too; the
+ * newest game calls with a friend request (the handheld shakes), accepting it
+ * opens the chat; quick replies by wheel and by tap, a typed question, a save
+ * read for "how am I doing?", a question answered for friendship, a message
+ * from the clock with a banner that opens its chat, a friend's game updated
+ * (a message with a play link), a brand-new game calling, declining it, the
+ * ▶ chip launching the game, and every avatar picture loading. A phone runs a
+ * chat by touch. Screenshots → console/dev/shots/.
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node console/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8077), PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage|dragonfly.
+ * Env: BASE (default http://127.0.0.1:8077), PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage|dragonfly|messages.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -56,7 +65,7 @@ const check = (cond, msg) => {
     console.log('  ok  ' + msg);
 };
 
-async function open(viewport, { touch = false, blockStorage = false, init = null, reducedMotion = 'no-preference', serviceWorkers = 'block' } = {}) {
+async function open(viewport, { touch = false, blockStorage = false, init = null, reducedMotion = 'no-preference', serviceWorkers = 'block', messages = false } = {}) {
     // a fresh browser for each scenario: touch-gesture state left over from
     // another context's screenshots can swallow the click of a later tap
     const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH || undefined, args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
@@ -72,6 +81,16 @@ async function open(viewport, { touch = false, blockStorage = false, init = null
                     throw new DOMException('blocked', 'SecurityError');
                 },
             });
+        });
+    }
+    // Messages stay quiet (no texts, no friend-request calls) except in the Messages scenario
+    if (!messages && !blockStorage) {
+        await ctx.addInitScript(() => {
+            try {
+                if (!localStorage.getItem('console.messages')) localStorage.setItem('console.messages', JSON.stringify({ v: 1, me: '', freq: 'off', seen: null, friends: {}, requests: [], declined: {}, threads: {}, unread: {}, lastVisit: 0, news: {} }));
+            } catch {
+                /* blocked */
+            }
         });
     }
     if (init) await ctx.addInitScript(init);
@@ -448,8 +467,7 @@ async function desktop() {
     await settle(page);
 
     // ⏯ on a game launches it after the cartridge goes in
-    await page.keyboard.press('Home');
-    await page.keyboard.press('ArrowDown'); // New Arrivals
+    await pick(page, 'New Arrivals');
     await page.keyboard.press('Enter');
     await settle(page);
     t = await top(page);
@@ -828,6 +846,155 @@ async function dragonfly() {
     await ctx.close();
 }
 
+async function messages() {
+    console.log('\nMessages');
+    const now = Date.now();
+    const newest = UPDATES.filter(([, u]) => now - Date.parse(u.added) < 21 * 864e5).sort((a, b) => Date.parse(b[1].added) - Date.parse(a[1].added))[0]?.[0];
+    const seed = () => {
+        try {
+            if (sessionStorage.getItem('seeded')) return;
+            sessionStorage.setItem('seeded', '1');
+            const t = Date.now();
+            localStorage.setItem('console.recent', JSON.stringify([{ id: 'game-001', t: t - 2 * 36e5 }, { id: 'game-065', t: t - 30 * 36e5 }]));
+            localStorage.setItem('spaceShooter_best', '1234');
+        } catch {
+            /* about:blank */
+        }
+    };
+    let { ctx, page } = await open({ width: 1280, height: 800 }, { messages: true, init: seed });
+    await boot(page);
+    const M = (fn, arg) => page.evaluate(fn, arg);
+    let s = await M(() => ({ friends: pocketGarden.messenger.friendIds(), un: pocketGarden.messenger.unreadTotal() }));
+    check(s.friends.includes('garden') && s.friends.includes('game-001') && s.friends.includes('game-065'), `Recently Played games and the dragonfly are friends (${s.friends.join(', ')})`);
+    check(s.un > 0 && (await page.locator('#st-msg').isVisible()), `the status bar counts unread messages (✉${s.un})`);
+    await pick(page, 'Messages');
+    check(/new/.test(await page.locator('.view.is-top .row.sel .r-meta').textContent()), 'the Messages row says how many are new');
+
+    // the newest game calls: a friend request, and the handheld shakes
+    if (newest) {
+        await page.waitForFunction(() => pocketGarden.top.type === 'ring', null, { timeout: 15000 });
+        check(await page.locator('#device.ringing').count() === 1, `the newest game (${newest}) rings with a friend request and the handheld shakes`);
+        await page.screenshot({ path: path.join(OUT, 'msg-ring.png') });
+        await page.keyboard.press('Enter');
+        await page.waitForFunction(() => pocketGarden.top.type === 'thread', null, { timeout: 5000 });
+        check((await M(() => pocketGarden.top.id)) === newest && (await M((id) => pocketGarden.messenger.isFriend(id), newest)), 'Accept makes them a friend and opens the chat');
+        await settle(page, 1500);
+        check((await page.locator('.view.is-top .b.them').count()) >= 2, 'they say hello');
+        check((await page.locator('.view.is-top .b-act[data-play]').count()) >= 1, 'and invite you to play, with a link');
+        await page.keyboard.press('Escape');
+        await settle(page);
+    }
+
+    // a chat: quick replies with the wheel, a typed question, a save read
+    await M(() => import('./js/messages.js').then((m) => m.openThread(pocketGarden, pocketGarden.messenger, 'game-001')));
+    await page.waitForFunction(() => pocketGarden.top.type === 'thread' && pocketGarden.top.id === 'game-001');
+    await settle(page, 500);
+    check((await top(page)).title === 'Nova Vance', 'a chat shows the character name (Space Shooter → Nova Vance)');
+    const chips = await page.locator('.view.is-top .chip').allTextContents();
+    const doing = chips.findIndex((c) => /How am I doing/.test(c));
+    check(doing > 0, 'a game with a save offers "How am I doing?"');
+    for (let i = 0; i < doing; i++) await page.keyboard.press('ArrowDown');
+    check((await page.locator('.view.is-top .chip.sel').textContent()).includes('How am I doing'), 'turning the wheel moves along the quick replies');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => [...pocketGarden.top.el.querySelectorAll('.b.them .b-x')].some((b) => /1,234/.test(b.textContent)), null, { timeout: 6000 });
+    check(true, 'they read the save: the answer quotes the best score (1,234)');
+    await settle(page, 600);
+    await page.locator('.view.is-top .th-input').fill('any tips?');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => pocketGarden.top.el.querySelectorAll('.b.them').length >= 4 && !pocketGarden.top.busy, null, { timeout: 8000 });
+    const tips = await M(() => fetch('../game-001/avatar/avatar.json').then((r) => r.json()).then((d) => d.tips));
+    const last = (await page.locator('.view.is-top .b.them .b-x').last().textContent()).trim();
+    check(tips.some((t) => last.startsWith(t.slice(0, 20))), `a typed "any tips?" gets one of their tips ("${last.slice(0, 40)}…")`);
+
+    // a question from them, answered with a chip: friendship grows
+    const before = await M(() => pocketGarden.messenger.friend('game-001').pts);
+    await M(() => pocketGarden.messenger.deliver('game-001', pocketGarden.messenger.compose('game-001', 'question')));
+    await settle(page, 400);
+    check(await page.locator('.view.is-top .th-replies.answering').count() === 1, 'a question turns the quick replies into its answers');
+    await page.locator('.view.is-top .chip').first().click();
+    await page.waitForFunction(() => !pocketGarden.top.busy, null, { timeout: 8000 });
+    const after = await M(() => pocketGarden.messenger.friend('game-001').pts);
+    check(after > before, `answering grows the friendship (${before} → ${after} points)`);
+    await page.screenshot({ path: path.join(OUT, 'msg-chat.png') });
+
+    // the clock: a friend texts, a banner drops in, tapping it opens the chat
+    await page.keyboard.press('Escape');
+    await settle(page);
+    const un0 = await M(() => pocketGarden.messenger.unreadTotal());
+    await M(() => {
+        const m = pocketGarden.messenger;
+        return m.load('game-065').then(() => m.deliver('game-065', m.compose('game-065', 'idle')));
+    });
+    await page.waitForSelector('#notif.on');
+    check((await M(() => pocketGarden.messenger.unreadTotal())) === un0 + 1, 'a new message adds to the unread count');
+    check(/Sprig/.test(await page.locator('#notif').textContent()), 'and a banner shows who it is from (Worldroot → Sprig)');
+    check(/day/.test(await page.locator('#notif').textContent()), 'an idle game says how long it has been');
+    await page.screenshot({ path: path.join(OUT, 'msg-banner.png') });
+    await page.locator('#notif').click();
+    await page.waitForFunction(() => pocketGarden.top.type === 'thread' && pocketGarden.top.id === 'game-065');
+    check(true, 'tapping the banner opens the chat');
+    await settle(page);
+    check((await M(() => pocketGarden.messenger.state.unread['game-065'])) === 0, 'reading it marks it read');
+
+    // the ▶ chip plays the game
+    await page.locator('.view.is-top .b-act[data-play="game-065"]').last().click();
+    await page.waitForURL(/game-065\/index\.html/, { timeout: 5000 });
+    check(true, 'the ▶ chip in a message launches the game');
+    await ctx.close();
+
+    // an update to a friend's game, and a brand-new game, after a reload
+    ({ ctx, page } = await open({ width: 1280, height: 800 }, { messages: true, init: seed }));
+    await boot(page);
+    await M(() => {
+        const m = pocketGarden.messenger;
+        m.friend('game-001').ver = '0.0.1';
+        m.state.seen = m.state.seen.filter((id) => id !== 'game-002');
+        m.state.requests = [];
+        m.save();
+    });
+    await page.reload();
+    await page.waitForFunction(() => window.pocketGarden?.messenger?.updates);
+    await settle(page, 600);
+    const upd = await M(() => (pocketGarden.messenger.state.threads['game-001'] || []).filter((x) => x.k === 'update'));
+    check(upd.length === 1 && upd[0].play === 'game-001' && upd[0].x.includes(games.find((g) => g.id === 'game-001').version), `a friend's updated game sends the news with a play link ("${upd[0]?.x.slice(0, 50)}…")`);
+    check((await M(() => pocketGarden.messenger.state.requests.map((r) => r.id))).includes('game-002'), 'a game the console has not seen before sends a friend request');
+    await page.evaluate(() => pocketGarden.skipBoot());
+    await page.waitForFunction(() => pocketGarden.top.type === 'ring', null, { timeout: 15000 });
+    check((await M(() => pocketGarden.top.id)) === 'game-002', 'and calls');
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await settle(page, 500);
+    check(!(await M(() => pocketGarden.messenger.isFriend('game-002'))) && (await M(() => pocketGarden.messenger.state.requests.length)) === 1, 'Not now keeps it in Friend requests');
+
+    // every friend's pictures load
+    const pics = await M(async () => {
+        const m = pocketGarden.messenger;
+        const urls = [...m.friendIds(), 'game-002'].filter((id) => id !== 'garden').flatMap((id) => [m.img(id), m.img(id, true)]);
+        const bad = [];
+        for (const u of urls) if (!(await fetch(u)).ok) bad.push(u);
+        return { n: urls.length, bad };
+    });
+    check(!pics.bad.length, `every avatar picture loads (${pics.n} checked)`);
+    check(!!(await stored(page, 'console.messages'))?.friends?.['game-001'], 'friends and chats are kept in console.messages');
+    await ctx.close();
+
+    // a phone: a chat by touch
+    ({ ctx, page } = await open({ width: 390, height: 844 }, { touch: true, messages: true, init: seed }));
+    await boot(page, '#messages');
+    check((await top(page)).title.startsWith('Messages'), '#messages opens Messages');
+    await M(() => import('./js/messages.js').then((m) => m.openThread(pocketGarden, pocketGarden.messenger, 'game-001')));
+    await page.waitForFunction(() => pocketGarden.top.type === 'thread');
+    await settle(page, 500);
+    const n0 = await page.locator('.view.is-top .b').count();
+    await tap(page, page.locator('.view.is-top .chip').first());
+    await page.waitForFunction((n) => pocketGarden.top.el.querySelectorAll('.b').length > n + 1 && !pocketGarden.top.busy, n0, { timeout: 8000 });
+    check(true, 'tapping a quick reply sends it and they answer');
+    check(await page.locator('.view.is-top .th-input').isVisible(), 'the phone shows a box to type in');
+    await noSideScroll(page, 'a chat on a phone');
+    await page.screenshot({ path: path.join(OUT, 'msg-phone.png') });
+    await ctx.close();
+}
+
 try {
     if (!ONLY || ONLY === 'dragonfly') await dragonfly();
     if (!ONLY || ONLY === 'desktop') await desktop();
@@ -838,6 +1005,7 @@ try {
         await phone({ width: 844, height: 390 }, 'landscape');
     }
     if (!ONLY || ONLY === 'storage') await storage();
+    if (!ONLY || ONLY === 'messages') await messages();
     if (errors.length) throw new Error('errors:\n' + errors.join('\n'));
     console.log('\nAll console checks passed.');
 } catch (e) {

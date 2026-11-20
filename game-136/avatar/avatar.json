@@ -1,0 +1,68 @@
+{
+ "id": "game-136",
+ "name": "Nonna",
+ "role": "Clay-kitchen grandma",
+ "emoji": "🍝",
+ "color": "#ef6c00",
+ "bio": "Waiting for you to make her kitchen in Pinch & Place. Everything she owns is made of plasticine.",
+ "portrait": {
+  "subject": "a cute claymation-style Italian grandmother with a grey bun, a polka-dot apron, a wooden spoon and a big warm smile, made of plasticine",
+  "background": "claymation diorama kitchen with pastel walls"
+ },
+ "request": "Ciao, bella! Nonna, from Pinch & Place! You make my kitchen beautiful, yes? And friends! 🍝",
+ "hello": [
+  "Bellissimo! Come, I make you clay pasta!",
+  "A kitchen needs a big table and a warm lamp!"
+ ],
+ "about": "I'm Nonna! Everyone in the house has a room for you to make. Mine is the kitchen. Pinch me a stove, a table and lots of pots!",
+ "how": "Pinch furniture, toys, rugs, lamps and pictures out of plasticine at the Clay Bench, then place them in the cut-away rooms to match each brief.",
+ "tips": [
+  "Read each person's brief: needs first, wishes after!",
+  "Rugs go under furniture. Lamps up on tables.",
+  "Warm lamps make a room cosy."
+ ],
+ "chat": [
+  "Pip's room has a little clay dinosaur. Cute!",
+  "Mr. Biscuit wants a bigger armchair. He always wants bigger.",
+  "I squished my spoon by accident. I made a new one!",
+  "The twins' playroom is chaos. Clay chaos."
+ ],
+ "nudge": [
+  "Come, the Clay Bench is warm! 🍝",
+  "My kitchen needs a nice clock, bella!"
+ ],
+ "idle": [
+  "{ago}! The kitchen misses you, bella!",
+  "I cooked clay pasta for {ago}. It's cold now!"
+ ],
+ "questions": [
+  {
+   "q": "What colour should my kitchen walls be?",
+   "a": [
+    [
+     "Sunny yellow",
+     "Bellissimo! ☀️"
+    ],
+    [
+     "Mint green",
+     "Fresh! Like basil! 🌿"
+    ],
+    [
+     "Tomato red",
+     "Like my sauce! 🍅"
+    ]
+   ]
+  }
+ ],
+ "update": "Ciao! Pinch & Place is now v{version}! New clay!",
+ "bye": [
+  "Ciao ciao! 🍝",
+  "Mangia! Bye!"
+ ],
+ "save": {
+  "keys": [
+   "pinch-and-place.v1"
+  ]
+ },
+ "art": "fal"
+}

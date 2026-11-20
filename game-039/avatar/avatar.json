@@ -1,0 +1,69 @@
+{
+ "id": "game-039",
+ "name": "Echo",
+ "role": "Polarity probe",
+ "emoji": "🧲",
+ "color": "#6ee7ff",
+ "bio": "The weaponless probe of Wakeform. Leaves copies of itself everywhere. Has never been lonely.",
+ "portrait": {
+  "subject": "a cute small round glowing probe robot with one big eye, half blue half red polarity glow, faint translucent copies of itself trailing behind",
+  "background": "dark navy with drifting glowing motes"
+ },
+ "request": "Echo here, from Wakeform. Echo here, from Wakeform. (That was my echo.) Friends? 🧲",
+ "hello": [
+  "+ + + Friendship positive!",
+  "Remember: push and pull. Never shoot."
+ ],
+ "about": "I'm Echo, a probe with no weapon. I flip my polarity and leave frozen copies of myself behind. They push and pull the motes.",
+ "how": "You can't shoot! Invert your polarity and leave echoes; echoes push or pull motes like you do. Steer motes where they need to go.",
+ "tips": [
+  "Lay echoes in a line to make a funnel.",
+  "Flip polarity just before you pass, not after.",
+  "Watch where your echoes are. They don't move!"
+ ],
+ "chat": [
+  "I made 400 copies of myself today. We had a meeting.",
+  "Positive vibes only. Except when I'm negative.",
+  "A mote got stuck between two echoes. Physics!",
+  "I'm attracted to good company. Literally."
+ ],
+ "nudge": [
+  "Motes are drifting. Let's push some! 🧲",
+  "I have a new pattern idea. Come try!"
+ ],
+ "idle": [
+  "{ago} without flipping! My polarity is getting dizzy.",
+  "My echoes waited {ago} in place. They're very patient."
+ ],
+ "progress": [
+  "Your high score is {best}! My echoes are cheering. All of them."
+ ],
+ "questions": [
+  {
+   "q": "Positive or negative?",
+   "a": [
+    [
+     "Positive",
+     "+ + + Nice!"
+    ],
+    [
+     "Negative",
+     "- - - Also nice! Opposites attract."
+    ]
+   ]
+  }
+ ],
+ "update": "Wakeform has updated to v{version}! Polarity check!",
+ "bye": [
+  "Bye! (bye) (bye) 🧲",
+  "Echo out. Out. Out."
+ ],
+ "save": {
+  "keys": [
+   "wakeform.autosave",
+   "wakeform.hiscore",
+   "wakeform.slot.*"
+  ]
+ },
+ "art": "fal"
+}

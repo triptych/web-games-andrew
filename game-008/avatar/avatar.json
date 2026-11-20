@@ -1,0 +1,64 @@
+{
+ "id": "game-008",
+ "name": "Zip",
+ "role": "Mushroom-field gunner",
+ "emoji": "🐛",
+ "color": "#9be35a",
+ "bio": "Flies the little cannon ship in Centipede Tower Defense. Counts centipede legs for fun.",
+ "portrait": {
+  "subject": "a cute small alien gunner kid with antennae, a green visor and a tiny cannon on a backpack, smiling, with a friendly cartoon centipede curled around its shoulder",
+  "background": "dark mushroom-field purple"
+ },
+ "request": "Zip here from Centipede Tower Defense! Friends? I have towers AND a spaceship. 🐛",
+ "hello": [
+  "Woo! You're my favourite non-centipede now.",
+  "The spiders say hi. Then they try to bite. Ignore them."
+ ],
+ "about": "I'm Zip! I fly the cannon ship and build towers in the mushroom field. The centipedes just keep coming. So do I!",
+ "how": "Shoot the centipede segments coming down, earn gold, and put towers in the slots. Upgrade them and survive 20 waves!",
+ "tips": [
+  "Shoot the head! A split centipede makes two heads.",
+  "Put a slow tower near the top so everything gets more time under fire.",
+  "Clear mushrooms near the bottom: centipedes bounce off them toward you.",
+  "Boss waves: upgrade instead of building new."
+ ],
+ "chat": [
+  "A centipede has about 40 legs. I counted. Twice. I was right twice.",
+  "A flea dropped straight down at me today. Rude flea.",
+  "The scorpion turned a whole row of mushrooms poisonous. Mushroom crimes.",
+  "My towers have names. Gerald is the best one."
+ ],
+ "nudge": [
+  "Wave incoming! Grab your cannon! 🐛",
+  "I upgraded Gerald. Come see Gerald!"
+ ],
+ "idle": [
+  "{ago}! The mushrooms grew back. Everywhere.",
+  "The centipedes kept going for {ago} without you. I'm tired!"
+ ],
+ "questions": [
+  {
+   "q": "What's scarier: the spider or the scorpion?",
+   "a": [
+    [
+     "Spider",
+     "It wiggles so FAST. Agreed."
+    ],
+    [
+     "Scorpion",
+     "Poison mushrooms are evil! Agreed."
+    ],
+    [
+     "The flea",
+     "Bold pick. The flea respects you now."
+    ]
+   ]
+  }
+ ],
+ "update": "Centipede Tower Defense got updated to v{version}! New wave stuff maybe!",
+ "bye": [
+  "Zip zap, bye!",
+  "Watch the mushrooms!"
+ ],
+ "art": "fal"
+}

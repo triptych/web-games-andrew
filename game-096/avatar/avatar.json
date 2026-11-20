@@ -1,0 +1,79 @@
+{
+ "id": "game-096",
+ "name": "Pinch",
+ "role": "Inventor hermit crab",
+ "emoji": "🦀",
+ "color": "#ff7043",
+ "bio": "A budding-inventor hermit crab washed away from home in Homeward Hop. Hopping back to Ma, Pa, Dot and Granny Whelk.",
+ "portrait": {
+  "subject": "a super cute small orange hermit crab with big eyes, wearing tiny goggles, in a swirly seashell with little gadgets stuck on it",
+  "background": "sunny tropical beach with turquoise waves"
+ },
+ "request": "Pinch here! From Homeward Hop! My gadget went BANG and now I'm far from home. Friends? 🦀",
+ "hello": [
+  "Yay! A friend for the trip home!",
+  "Ma's making seaweed pie when I get back. You're invited!"
+ ],
+ "about": "I'm Pinch! I'm an inventor. My Shell Swap Day gadget exploded and washed me away. Now I'm hopping home across five worlds!",
+ "how": "A 3D collect-a-thon platformer: hop, swap shells for powers, collect treasures and get Pinch home across 14 levels.",
+ "tips": [
+  "Different shells give different powers. Swap often!",
+  "Collect everything for secret levels.",
+  "Ground pound breaks cracked floors!"
+ ],
+ "chat": [
+  "Tried a spiky shell today. Very pointy. Very cool.",
+  "Little Dot sent me a seashell drawing!",
+  "Granny Whelk says I have her nose. I don't have a nose.",
+  "Hopped so high I saw home! Then fell."
+ ],
+ "nudge": [
+  "Next world's waiting! Hop with me? 🦀",
+  "I found a new shell! Wanna see?"
+ ],
+ "idle": [
+  "{ago} away from the hop! Still far from home!",
+  "Pinch-pinch... {ago}! I miss you AND home!"
+ ],
+ "progress": [
+  "You've collected {stars} treasures! Getting closer to home! 🏠"
+ ],
+ "questions": [
+  {
+   "q": "Which shell should I wear today?",
+   "a": [
+    [
+     "Spiky",
+     "Pointy power!"
+    ],
+    [
+     "Bouncy",
+     "Boing!"
+    ],
+    [
+     "Golden",
+     "SO fancy! ✨"
+    ]
+   ]
+  }
+ ],
+ "update": "Homeward Hop updated to v{version}! Hop hop! 🦀",
+ "bye": [
+  "Pinch pinch! Bye! 🦀",
+  "Hop you later!"
+ ],
+ "save": {
+  "keys": [
+   "homeward-hop.v1"
+  ],
+  "stats": {
+   "stars": [
+    "stars",
+    "pearls",
+    "shells",
+    "collected"
+   ]
+  }
+ },
+ "art": "fal"
+}

@@ -1,0 +1,72 @@
+{
+ "id": "game-142",
+ "name": "Pip the Cannoneer",
+ "role": "Cannoneer",
+ "emoji": "💣",
+ "color": "#8d6e63",
+ "bio": "Sits behind the chunky bronze cannon on a grassy hill in Kaboom Keep, aiming at toy-block castles.",
+ "portrait": {
+  "subject": "a cute chibi cannoneer kid with a big round helmet, a toy-soldier jacket with brass buttons, sooty cheeks and a little match, next to a chunky bronze cannon",
+  "background": "grassy meadow hill with a toy-block castle in the distance"
+ },
+ "request": "Pip the Cannoneer, Kaboom Keep! Wanna knock down castles together? Friends! 💣",
+ "hello": [
+  "KABOOM! I mean, hooray!",
+  "Hit the bottom blocks and the whole tower tips!"
+ ],
+ "about": "I'm Pip! I sit behind my bronze cannon and aim at toy-block castles. Knock over every little person in them!",
+ "how": "Aim the cannon, choose your ball, and blast toy-block castles. Knock down every little person to earn stars across 48 castles.",
+ "tips": [
+  "Hit supports, not walls.",
+  "Boom Balls go off early. Use them on towers.",
+  "Triple Trouble splits. Great for wide castles."
+ ],
+ "chat": [
+  "Blew up a castle so hard the flag landed on my head.",
+  "The kings always look surprised. Every time.",
+  "Moonbeam Marsh explosions glow! So pretty!",
+  "My cannon's name is Bessie."
+ ],
+ "nudge": [
+  "Bessie's loaded! KABOOM time? 💣",
+  "A new castle's standing. Not for long!"
+ ],
+ "idle": [
+  "{ago} without a kaboom! Bessie's sulking.",
+  "The castles rebuilt everything in {ago}."
+ ],
+ "progress": [
+  "You've earned {stars} stars! KABOOM! ⭐"
+ ],
+ "questions": [
+  {
+   "q": "Best cannonball?",
+   "a": [
+    [
+     "Boom Ball",
+     "KABOOM! 💥"
+    ],
+    [
+     "Triple Trouble",
+     "Three times the fun!"
+    ],
+    [
+     "Plain old ball",
+     "Classic! Bessie approves!"
+    ]
+   ]
+  }
+ ],
+ "update": "KABOOM! Kaboom Keep is now v{version}!",
+ "bye": [
+  "Kaboom bye! 💣",
+  "Pip out!"
+ ],
+ "save": {
+  "keys": [
+   "kaboom-keep.v1",
+   "kaboom-keep.progress.v1"
+  ]
+ },
+ "art": "fal"
+}

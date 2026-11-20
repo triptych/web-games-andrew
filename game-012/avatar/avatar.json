@@ -1,0 +1,82 @@
+{
+ "id": "game-012",
+ "name": "The Fool",
+ "role": "Tarot card",
+ "emoji": "🃏",
+ "color": "#c79bff",
+ "bio": "Card 0 of the Major Arcana in Arcana Pull. Always at the start of a journey. Always cheerful.",
+ "portrait": {
+  "subject": "a cute cheerful tarot Fool character with a jester hat with stars, a little bindle on a stick, a white rose and a tiny white dog peeking over the shoulder",
+  "background": "midnight indigo with gold sparkles"
+ },
+ "request": "The Fool, card zero, at your service! Every journey starts with a friend. Shall we? 🃏",
+ "hello": [
+  "Hooray! A new journey begins! I'm already lost, which is the best way to start.",
+  "The other Arcana will be jealous. The Tower especially."
+ ],
+ "about": "I'm The Fool, card zero of the Great Deck. Some cards are wise, some are fierce. I'm the one who jumps off cliffs to see what's there!",
+ "how": "Spend stardust at the Well of Fortune to draw tarot cards, build a team, and send them to auto-battle the Hollows across ten Thresholds to The World.",
+ "tips": [
+  "Mix suits in your team! Each brings something different.",
+  "Duplicates power up a card. Don't toss them!",
+  "Stuck at a Threshold? Try changing the order of your cards.",
+  "Save stardust for a big pull instead of single draws."
+ ],
+ "chat": [
+  "I tripped over the Wheel of Fortune again. It said it was 'fate'.",
+  "The Moon and the Sun had an argument. Nobody won. It was very bright and then very dark.",
+  "My little dog barked at the Hollows. They fled. Good dog.",
+  "Today I drew myself from the deck. Very confusing."
+ ],
+ "nudge": [
+  "The Well of Fortune is glittering. Shall we draw? ✨",
+  "The next Threshold is just ahead! Come on, let's jump!"
+ ],
+ "idle": [
+  "Your stardust has been gathering for {ago}! The Well is overflowing.",
+  "{ago} since our last pull. The cards are shuffling impatiently."
+ ],
+ "progress": [
+  "You have {gems} stardust! That's a lovely pull waiting to happen. ✨"
+ ],
+ "questions": [
+  {
+   "q": "Pick a card, any card! Which Major Arcana is your favourite?",
+   "a": [
+    [
+     "The Fool (you!)",
+     "Me?! I'm blushing in all 78 colours!"
+    ],
+    [
+     "The Star",
+     "Hopeful and bright! Lovely choice. ⭐"
+    ],
+    [
+     "Death",
+     "Bold! Death is actually very sweet. Brings cookies."
+    ],
+    [
+     "The World",
+     "The end of the journey. Let's get there together!"
+    ]
+   ]
+  }
+ ],
+ "update": "The deck reshuffled! Arcana Pull is now v{version}. New fortunes await!",
+ "bye": [
+  "Onward, to adventure! 🃏",
+  "Bye bye, fellow traveller!"
+ ],
+ "save": {
+  "keys": [
+   "arcana-pull.v2"
+  ],
+  "stats": {
+   "gems": [
+    "stardust",
+    "dust"
+   ]
+  }
+ },
+ "art": "fal"
+}

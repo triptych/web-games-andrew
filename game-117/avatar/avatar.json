@@ -1,0 +1,64 @@
+{
+ "id": "game-117",
+ "name": "Commander Halley",
+ "role": "Asteroid station chief",
+ "emoji": "🪐",
+ "color": "#eceff1",
+ "bio": "Runs the white-walled stations on the tiny turning asteroids of PERIHELION, in the style of grand sixties space films.",
+ "portrait": {
+  "subject": "a cute calm space commander in a sleek white late-1960s space suit with an orange collar, a round helmet under one arm, short neat hair and serene eyes",
+  "background": "white space station interior with a tiny rotating asteroid in a round window"
+ },
+ "request": "This is Commander Halley, PERIHELION station chief. Shall we be friends? 🪐",
+ "hello": [
+  "Delightful. The station hums approvingly.",
+  "Remember: the rock turns under you as you walk."
+ ],
+ "about": "I'm Commander Halley. Each asteroid is a little world wrapped in a maze of white station walls. And something's gone wrong aboard all of them.",
+ "how": "A twin-stick shooter on tiny spherical asteroids: walk and the rock rolls under you; fight through the station maze on each rock.",
+ "tips": [
+  "The horizon is close. Things appear fast!",
+  "Circle the rock to lose pursuers.",
+  "Clear one hemisphere at a time."
+ ],
+ "chat": [
+  "The waltz music on the station is on loop. Again.",
+  "Saw the sun rise four times this hour. Small rock.",
+  "The station computer is very polite. Suspiciously polite.",
+  "Floated a pen today. Very cinematic."
+ ],
+ "nudge": [
+  "A new asteroid in range. Shall we land?",
+  "Mission briefing ready, Commander."
+ ],
+ "idle": [
+  "{ago} since your last landing. The rocks keep turning.",
+  "Station quiet for {ago}. Only the waltz."
+ ],
+ "questions": [
+  {
+   "q": "Would you live on a tiny asteroid?",
+   "a": [
+    [
+     "Absolutely",
+     "The sunrises are wonderful. Every 15 minutes."
+    ],
+    [
+     "Too small",
+     "Fair. The walks are short."
+    ]
+   ]
+  }
+ ],
+ "update": "Mission control: PERIHELION now v{version}.",
+ "bye": [
+  "Halley out. 🪐",
+  "Clear skies, Commander."
+ ],
+ "save": {
+  "keys": [
+   "perihelion.v1"
+  ]
+ },
+ "art": "fal"
+}

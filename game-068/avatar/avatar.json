@@ -1,0 +1,71 @@
+{
+ "id": "game-068",
+ "name": "Nurse Calla",
+ "role": "Haven Road medic",
+ "emoji": "⛑️",
+ "color": "#ef9a9a",
+ "bio": "Runs the Medic Tent on Haven Road, bandaging everyone who walks out of the valley.",
+ "portrait": {
+  "subject": "a cute kind young field nurse with a white headscarf with a red cross, rolled sleeves, a satchel of bandages and a gentle smile",
+  "background": "soft dawn sky over a winding road and green hills"
+ },
+ "request": "Hello, I'm Calla, a medic on Haven Road. Every helping hand matters. Friends? ⛑️",
+ "hello": [
+  "Thank you. Together we'll get them all to the Haven.",
+  "Every person who makes it is a win."
+ ],
+ "about": "I'm Calla. The dead took the valley and the living walk out, hurt. I build aid stations by the road and keep them going.",
+ "how": "A reversed tower defense: build Medic Tents, Remedy Labs and more beside the road to heal the people walking to safety.",
+ "tips": [
+  "Put Medic Tents where people collapse most.",
+  "Remedy Labs cure what bandages can't.",
+  "Spread stations out. Bunched healing wastes time."
+ ],
+ "chat": [
+  "A little boy gave me a drawing of a sun. I pinned it on the tent.",
+  "Ran out of bandages. Used my scarf.",
+  "An old man made it to the Haven today. He danced.",
+  "Tea, then work. Always tea first."
+ ],
+ "nudge": [
+  "More people on the road today. Can you help?",
+  "The Haven's gates are open. Let's get everyone there."
+ ],
+ "idle": [
+  "It's been {ago}. The road is still busy.",
+  "{ago}... we've missed your help on the road."
+ ],
+ "progress": [
+  "You've reached day {day}! So many saved. ⛑️"
+ ],
+ "questions": [
+  {
+   "q": "What helps most on a hard day?",
+   "a": [
+    [
+     "Tea",
+     "Always tea. ☕"
+    ],
+    [
+     "Friends",
+     "Yes. Like you."
+    ],
+    [
+     "A good nap",
+     "Medically approved!"
+    ]
+   ]
+  }
+ ],
+ "update": "Haven Road updated to v{version}. New ways to help!",
+ "bye": [
+  "Take care of yourself too. ⛑️",
+  "Back to the tent. Bye!"
+ ],
+ "save": {
+  "keys": [
+   "haven-road.v1"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,75 @@
+{
+ "id": "game-028",
+ "name": "Seren",
+ "role": "Mage of Aethermoor",
+ "emoji": "📜",
+ "color": "#5e8cff",
+ "bio": "The party's mage in Echoes of Aethermoor. Reads ancient seals for fun.",
+ "portrait": {
+  "subject": "a cute young fantasy mage with long blue hair, a starry blue cloak, holding an old glowing spellbook",
+  "background": "deep blue misty fantasy ruins"
+ },
+ "request": "Greetings. I am Seren, mage of Aethermoor. The seals are weakening... I could use a friend. 📜",
+ "hello": [
+  "Thank you. The knight sends his regards. The warlock sends a frown.",
+  "Every choice matters in Aethermoor. Remember that."
+ ],
+ "about": "I'm Seren, mage of our party of four. Knight, ranger, warlock and me. Together we must stop the Lich before the seals break.",
+ "how": "A visual novel RPG: talk, choose, explore tile maps, take quests and fight turn-based battles across four chapters.",
+ "tips": [
+  "Talk to everyone twice. People remember things.",
+  "The warlock hits hard but needs protecting.",
+  "Side quests make the final chapter much easier."
+ ],
+ "chat": [
+  "The ranger caught a fish with an arrow. Showoff.",
+  "I read the seal inscription again. It's a warning. Also a poem.",
+  "The warlock laughed today. We were all concerned.",
+  "Aethermoor's sunsets are purple. I'll never get used to it."
+ ],
+ "nudge": [
+  "The next chapter awaits, and the party is waiting for you.",
+  "A new quest appeared on the board. Shall we?"
+ ],
+ "idle": [
+  "{ago}... the seals grow weaker without you.",
+  "The party has been at camp for {ago}. The knight is polishing everything."
+ ],
+ "progress": [
+  "Our party is level {level}. The Lich should fear us soon."
+ ],
+ "questions": [
+  {
+   "q": "Who in our party do you trust most?",
+   "a": [
+    [
+     "The knight",
+     "Steady and true. Good choice."
+    ],
+    [
+     "The ranger",
+     "Quiet, but never misses."
+    ],
+    [
+     "The warlock",
+     "Risky... but interesting."
+    ],
+    [
+     "You, Seren",
+     "Oh! Thank you. I'll try to deserve it."
+    ]
+   ]
+  }
+ ],
+ "update": "The echoes stir: Echoes of Aethermoor is now v{version}.",
+ "bye": [
+  "May the seals hold. 📜",
+  "Farewell, friend."
+ ],
+ "save": {
+  "keys": [
+   "echoes_of_aethermoor_save"
+  ]
+ },
+ "art": "fal"
+}

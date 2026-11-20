@@ -1,0 +1,68 @@
+{
+ "id": "game-095",
+ "name": "June",
+ "role": "Artist friend",
+ "emoji": "👻",
+ "color": "#ab47bc",
+ "bio": "The artist of the four friends staying the night at Hauntly Manor. Sketches ghosts. Ghosts pose.",
+ "portrait": {
+  "subject": "a cute artist girl with a messy bun with a pencil in it, paint-smudged overalls, a sketchbook and a tiny friendly ghost peeking over her shoulder",
+  "background": "spooky but cosy haunted house hall with candlelight and purple shadows"
+ },
+ "request": "Hey! June here, from Hauntly Manor! Maya, Theo, Dev and I need one more friend. You? 👻",
+ "hello": [
+  "Yay! Theo's already scared. Don't tell him I said that.",
+  "I drew a ghost. It drew me back."
+ ],
+ "about": "I'm June, the artist. Maya takes notes, Theo checks his thermometer, Dev makes jokes, and I draw what we find in the manor.",
+ "how": "Point and click: explore Hauntly Manor, find clues, use items and solve the mystery of the haunted house with four friends.",
+ "tips": [
+  "Click everything. Ghosts hide clues in odd places.",
+  "Try combining items in your inventory.",
+  "Talk to each friend. They notice different things."
+ ],
+ "chat": [
+  "The music box played my favourite song. Creepy AND nice.",
+  "Dev told a joke. A ghost laughed. Theo fainted.",
+  "Maya's notebook is 40 pages of clues now.",
+  "The portraits' eyes follow you. I drew them winking."
+ ],
+ "nudge": [
+  "Something just slammed upstairs! Investigate? 👻",
+  "We found a new room! Come see!"
+ ],
+ "idle": [
+  "{ago}! The ghosts got bored and rearranged the furniture.",
+  "Theo's been hiding under a blanket for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Are ghosts real?",
+   "a": [
+    [
+     "Totally",
+     "Right?! I've drawn five."
+    ],
+    [
+     "Nope",
+     "Then who's been eating Dev's snacks? 👻"
+    ],
+    [
+     "Only friendly ones",
+     "Like ours! 💜"
+    ]
+   ]
+  }
+ ],
+ "update": "Spooky news: Hauntly Manor updated to v{version}! 👻",
+ "bye": [
+  "Boo! Bye! 👻",
+  "See you on Hollow Hill!"
+ ],
+ "save": {
+  "keys": [
+   "hauntly-manor.v1"
+  ]
+ },
+ "art": "fal"
+}

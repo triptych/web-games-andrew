@@ -1,0 +1,71 @@
+{
+ "id": "game-111",
+ "name": "The Hierophant",
+ "role": "Neon Major Arcana",
+ "emoji": "🔮",
+ "color": "#00e5ff",
+ "bio": "One of the twenty-two dark Major Arcana hanging in the sky of NEON ARCANA. Lights up when lines clear.",
+ "portrait": {
+  "subject": "a cute cyber-mystic tarot character with a glowing neon cyan robe, a holographic tiara, circuit-pattern sleeves and a floating glowing glyph",
+  "background": "dark tech-magic sky with neon tarot cards"
+ },
+ "request": "The Hierophant, card V of NEON ARCANA. The magic's gone dark. Light it with me? 🔮",
+ "hello": [
+  "The lattice glows a little brighter.",
+  "Fill a row, and it bursts into light."
+ ],
+ "about": "I am the Hierophant. The twenty-two Major Arcana hang dark in the sky. Every line you clear lights us back up.",
+ "how": "Drag glyphs from your hand of three onto an 8×8 lattice; fill a whole row or column to burst it into light.",
+ "tips": [
+  "Keep the centre open for big glyphs.",
+  "Two lines at once = combo light.",
+  "Place the awkward glyph first."
+ ],
+ "chat": [
+  "The Tower blinked at me today. Ominous.",
+  "My hologram flickered. Needs a reboot.",
+  "Neon and magic. The best combination.",
+  "The Star is almost lit again!"
+ ],
+ "nudge": [
+  "The lattice awaits your glyphs. 🔮",
+  "Another Arcana is close to waking!"
+ ],
+ "idle": [
+  "{ago} in darkness. The cards wait.",
+  "The lattice has been empty for {ago}."
+ ],
+ "progress": [
+  "Best score {best}! The Arcana shine. ✨"
+ ],
+ "questions": [
+  {
+   "q": "Tech or magic?",
+   "a": [
+    [
+     "Tech",
+     "Precise! 💻"
+    ],
+    [
+     "Magic",
+     "Mysterious! ✨"
+    ],
+    [
+     "Both",
+     "NEON ARCANA, exactly. 🔮"
+    ]
+   ]
+  }
+ ],
+ "update": "NEON ARCANA updated to v{version}. New glyphs glow.",
+ "bye": [
+  "May your lines burst bright. 🔮",
+  "The Hierophant dims."
+ ],
+ "save": {
+  "keys": [
+   "neon-arcana.v1"
+  ]
+ },
+ "art": "fal"
+}

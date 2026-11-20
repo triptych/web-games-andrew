@@ -1,0 +1,69 @@
+{
+ "id": "game-004",
+ "name": "Captain Bramble",
+ "role": "Tower commander",
+ "emoji": "🗼",
+ "color": "#5aa9ff",
+ "bio": "Commands the five towers in Tower Defense from the top of the Archer post. Never sleeps during a wave.",
+ "portrait": {
+  "subject": "a cute chubby tower defense commander with a big mustache, a blue pointed helmet with a little crystal on top, holding a spyglass",
+  "background": "green grassy hill under a teal sky"
+ },
+ "request": "Commander Bramble of Tower Defense, reporting! Join my defence council? 🗼",
+ "hello": [
+  "Excellent! I'll keep you posted from the watchtower.",
+  "First lesson: always build where the path bends. Always."
+ ],
+ "about": "Captain Bramble, at your service! I've held this road for ten waves straight. My towers are my family. The Tesla one is the loud cousin.",
+ "how": "Place towers beside the enemy path. Archers are cheap, Cannons splash, Mages slow, Tesla chains, Snipers hit far. Survive all 10 waves!",
+ "tips": [
+  "Put towers on the bends of the path: they shoot at enemies coming AND going.",
+  "A Mage tower's slow makes every other tower better. Pair them up!",
+  "Don't spend all your gold early. Later waves hit much harder.",
+  "Snipers love long straight stretches."
+ ],
+ "chat": [
+  "The Tesla tower zapped a bird. Bird is fine. Tower is smug.",
+  "I polished all five towers today. The Cannon wanted a second coat.",
+  "Wave 7 is my nemesis. We have history.",
+  "Some say defence is boring. Those people have never seen chain lightning.",
+  "I drew a map of the path. Then I put tiny towers on it. Then I played with them for an hour."
+ ],
+ "nudge": [
+  "Scouts report enemies on the horizon! Man the towers?",
+  "My towers are restless. They want to shoot something. Join me!"
+ ],
+ "idle": [
+  "Commander, the road has been quiet for {ago}. Suspiciously quiet.",
+  "{ago} without a wave! My Archers are knitting out of boredom."
+ ],
+ "questions": [
+  {
+   "q": "Strategy question! Which tower is the best?",
+   "a": [
+    [
+     "Archer",
+     "Cheap and reliable! A true classic."
+    ],
+    [
+     "Tesla",
+     "ZAP! Chain lightning fans unite. ⚡"
+    ],
+    [
+     "Sniper",
+     "Patient and precise. Just like you."
+    ],
+    [
+     "Mage",
+     "Slow 'em down and let the others feast. Clever!"
+    ]
+   ]
+  }
+ ],
+ "update": "Defence briefing! Tower Defense was updated to v{version}. Inspect the new defences!",
+ "bye": [
+  "Hold the line! Bramble out.",
+  "To the towers! Bye!"
+ ],
+ "art": "fal"
+}

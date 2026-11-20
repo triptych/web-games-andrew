@@ -1,0 +1,71 @@
+{
+ "id": "game-013",
+ "name": "Posy",
+ "role": "Flower shop keeper",
+ "emoji": "🌷",
+ "color": "#ff8fb1",
+ "bio": "Runs the counter at Petal & Purse. Talks to her tulips. They talk back (she says).",
+ "portrait": {
+  "subject": "a cute young florist girl with pink bobbed hair, a green apron with a coin purse pocket, holding a pink tulip in a small terracotta pot",
+  "background": "soft mint green"
+ },
+ "request": "Hi hi! Posy from Petal & Purse! Want to be flower friends? 🌷",
+ "hello": [
+  "Yay! I'll send you bloom updates. Lots of them.",
+  "Your pots are waiting whenever you are!"
+ ],
+ "about": "I'm Posy! I sell flowers, I grow flowers, I sneeze near flowers. It's a great life.",
+ "how": "Buy seeds, plant them in pots, wait for them to bloom and sell them for gold. Upgrade pots and soil to grow rarer flowers faster!",
+ "tips": [
+  "Upgrade soil before buying more pots: faster blooms pay back quicker.",
+  "Rare seeds cost more but sell for much more. Save up!",
+  "Never leave a pot empty. Empty pots grow nothing!"
+ ],
+ "chat": [
+  "A bee flew into the shop and bought nothing. Window shopping, I guess.",
+  "I named today's tulip Gerald. Don't worry, it's a different Gerald.",
+  "The roses are being dramatic again. Thorns everywhere.",
+  "Watered everything twice. The cactus is furious."
+ ],
+ "nudge": [
+  "Fresh seeds just arrived at the shop! Come plant some?",
+  "Your blooms are looking so close to ready! 🌸"
+ ],
+ "idle": [
+  "Your flowers have been growing for {ago}! I think they're ready to sell! 💰",
+  "{ago}! Your pots are FULL of blooms. Come collect your gold!"
+ ],
+ "progress": [
+  "You've got {gold} gold in your purse! Ooh, rare seeds money! 🌺"
+ ],
+ "questions": [
+  {
+   "q": "Flower question! Which is the prettiest?",
+   "a": [
+    [
+     "Tulips",
+     "Gerald thanks you."
+    ],
+    [
+     "Roses",
+     "The roses say 'obviously'. Typical roses."
+    ],
+    [
+     "Sunflowers",
+     "So tall! So sunny! Great pick ☀️"
+    ]
+   ]
+  }
+ ],
+ "update": "Shop news! Petal & Purse just updated to v{version}! New things to grow?",
+ "bye": [
+  "Bye! Stay blooming! 🌷",
+  "Off to water things. Bye!"
+ ],
+ "save": {
+  "keys": [
+   "petalPurse_save"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,76 @@
+{
+ "id": "game-017",
+ "name": "Pix",
+ "role": "Pixel painter",
+ "emoji": "🎨",
+ "color": "#ff6b6b",
+ "bio": "A pixel artist who hides pictures in Pixel Picross grids for you to find.",
+ "portrait": {
+  "subject": "a cute pixel artist kid with a beret, paint-smudged cheeks and a tiny paintbrush, wearing a shirt with a checkered pixel pattern",
+  "background": "coral with a faint square grid"
+ },
+ "request": "Pix from Pixel Picross! I hide pictures in grids. Wanna find them? 🎨",
+ "hello": [
+  "Yay! I made you a secret picture. It's in a puzzle somewhere!",
+  "Hint: it's not a cat. (It might be a cat.)"
+ ],
+ "about": "I'm Pix! I paint with squares. Every puzzle is a picture I hid for someone to find.",
+ "how": "Use the numbers on each row and column to work out which squares to fill. Fill and mark until the hidden pixel picture appears!",
+ "tips": [
+  "Big numbers first: in a short row, they overlap and give you free squares.",
+  "Mark squares you know are empty with an X.",
+  "If a row is done, mark the rest empty right away."
+ ],
+ "chat": [
+  "I painted a strawberry with 12 pixels. My best work.",
+  "Squares are just circles that tried harder.",
+  "Hid a tiny boat in today's grid. Shh.",
+  "Pixel art is like knitting but nobody gets yarn tangled."
+ ],
+ "nudge": [
+  "Made a new puzzle picture! Come guess what it is!",
+  "A grid is waiting. Clue: it's cute."
+ ],
+ "idle": [
+  "{ago}! My pictures are still hiding. Come find them!",
+  "Haven't seen you fill a square in {ago}. I made more!"
+ ],
+ "progress": [
+  "You've revealed {solved} pictures! Gallery's filling up 🖼️"
+ ],
+ "questions": [
+  {
+   "q": "What should I hide in the next puzzle?",
+   "a": [
+    [
+     "A cat",
+     "Ha! I knew you'd say cat. 🐱"
+    ],
+    [
+     "A dragon",
+     "Big grid needed! Ooh."
+    ],
+    [
+     "A heart",
+     "Aww. Okay. 💖"
+    ]
+   ]
+  }
+ ],
+ "update": "Fresh grids! Pixel Picross updated to v{version}! 🎨",
+ "bye": [
+  "Bye! Keep it square!",
+  "Pix out ✏️"
+ ],
+ "save": {
+  "keys": [
+   "pixelPicross_solved"
+  ],
+  "stats": {
+   "solved": [
+    "solved"
+   ]
+  }
+ },
+ "art": "fal"
+}

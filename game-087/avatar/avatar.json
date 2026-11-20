@@ -1,0 +1,78 @@
+{
+ "id": "game-087",
+ "name": "Master Thalion",
+ "role": "Guildmaster of the Quillsworn",
+ "emoji": "✒️",
+ "color": "#5d4037",
+ "bio": "Master Thalion Silverquill of Vellmere's storytellers' guild in Quillsworn. Lights a lamp for every finished story.",
+ "portrait": {
+  "subject": "a cute wise old elf storyteller with a silver beard, long pointy ears, a deep blue robe with ink stains and a silver quill behind his ear",
+  "background": "warm guild hall with rows of glowing lamps"
+ },
+ "request": "Welcome, writer. Thalion Silverquill, Guild of the Quillsworn. Will you be my friend, and my pupil? ✒️",
+ "hello": [
+  "Good. The lamps glow brighter already.",
+  "A story unfinished is a lamp unlit. Write a little each day."
+ ],
+ "about": "I'm Master Thalion. Every lamp in our guild is lit by a finished story. Half have gone dark. Together, we'll write them bright again.",
+ "how": "A guild RPG that is also a real novel-writing tool: plan characters, places and plot, write chapters, and grow in the guild as you go.",
+ "tips": [
+  "Write a little every day. Habits beat bursts.",
+  "Know your ending, even roughly.",
+  "Name your characters with care. Names carry stories."
+ ],
+ "chat": [
+  "A young writer finished their first chapter today. The lamp flared!",
+  "I re-read an old story. I'd change everything. That's growth.",
+  "My quill has written a hundred books. It's tired.",
+  "The best stories start with a small 'what if'."
+ ],
+ "nudge": [
+  "Your manuscript waits for its next words.",
+  "A quiet hour for writing? The guild hall is warm."
+ ],
+ "idle": [
+  "{ago} since you last wrote. The lamps flicker.",
+  "Your story's been waiting {ago}. It hasn't gone anywhere."
+ ],
+ "progress": [
+  "You've written {words} words! A lamp burns for you. ✒️"
+ ],
+ "questions": [
+  {
+   "q": "What kind of story will you write?",
+   "a": [
+    [
+     "An epic quest",
+     "Splendid. Bring maps."
+    ],
+    [
+     "A mystery",
+     "Clues and red herrings. Delicious."
+    ],
+    [
+     "A love story",
+     "The oldest kind. And the best."
+    ]
+   ]
+  }
+ ],
+ "update": "Guild bulletin: Quillsworn is now v{version}.",
+ "bye": [
+  "Write well, writer. ✒️",
+  "Until the next chapter."
+ ],
+ "save": {
+  "keys": [
+   "quillsworn.v1"
+  ],
+  "stats": {
+   "words": [
+    "words",
+    "wordCount",
+    "totalWords"
+   ]
+  }
+ },
+ "art": "fal"
+}

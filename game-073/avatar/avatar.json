@@ -1,0 +1,79 @@
+{
+ "id": "game-073",
+ "name": "Thimble",
+ "role": "Digging automaton",
+ "emoji": "⚙️",
+ "color": "#bf8f4f",
+ "bio": "Your vanished grandmother's brass digging automaton in RUNEBORE. Cracked rune-core, warm heart.",
+ "portrait": {
+  "subject": "a cute brass barrel-shaped digging robot on little treads with an auger nose, a cracked glowing blue rune on its chest and big round lamp eyes",
+  "background": "fantasy mine tunnel with glowing runes"
+ },
+ "request": "*whirr* Thimble, your grandmother's digger. RUNEBORE. Will you be my friend, like she was? ⚙️",
+ "hello": [
+  "*happy clunk* Thank you.",
+  "She used to say: dig with care, and the runes will listen."
+ ],
+ "about": "I'm Thimble. Your grandmother built me to dig. My rune-core is cracked, but every rune we find mends a little of it.",
+ "how": "Drill down through the layers under Emberwick, collect ore and runes, surface to upgrade, and find out where Grandmother went.",
+ "tips": [
+  "Fuel first, then cargo space.",
+  "Runes power upgrades. Dig toward the glow!",
+  "Don't dig straight down into lava. She never did."
+ ],
+ "chat": [
+  "Found one of her notes in a rock. It said 'dig left'.",
+  "My auger hums when it's happy.",
+  "Emberwick's bakery gave me oil. I think it was butter.",
+  "The deep runes whisper. In a friendly way, I think."
+ ],
+ "nudge": [
+  "*whirr* Shall we dig deeper today?",
+  "I can feel a rune nearby. Let's find it!"
+ ],
+ "idle": [
+  "{ago} at rest. My treads are getting stiff.",
+  "*clunk* {ago}. I waited by the mine entrance."
+ ],
+ "progress": [
+  "Deepest dig so far: {floor}! Grandmother went deeper. Let's follow."
+ ],
+ "questions": [
+  {
+   "q": "Where do you think Grandmother went?",
+   "a": [
+    [
+     "Deep underground",
+     "*whirr* I think so too."
+    ],
+    [
+     "Somewhere magical",
+     "The runes say yes."
+    ],
+    [
+     "On holiday",
+     "...she did like beaches."
+    ]
+   ]
+  }
+ ],
+ "update": "*whirr* RUNEBORE updated to v{version}! New depths!",
+ "bye": [
+  "*clunk* bye. ⚙️",
+  "Dig with care."
+ ],
+ "save": {
+  "keys": [
+   "runebore.v1"
+  ],
+  "stats": {
+   "floor": [
+    "depth",
+    "deepest",
+    "maxDepth",
+    "floor"
+   ]
+  }
+ },
+ "art": "fal"
+}

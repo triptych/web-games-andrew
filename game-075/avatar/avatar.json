@@ -1,0 +1,68 @@
+{
+ "id": "game-075",
+ "name": "SQUIRE",
+ "role": "A square of light",
+ "emoji": "🟨",
+ "color": "#ffeb3b",
+ "bio": "The brave square of light from CHROME CHALICE, carrying the Chalice back across the Grid.",
+ "portrait": {
+  "subject": "a cute glowing yellow neon square character with simple big eyes and a happy smile, a tiny chrome chalice floating beside it, synthwave glow",
+  "background": "dark synthwave grid with magenta horizon"
+ },
+ "request": "SQUIRE here! A square of light, CHROME CHALICE! Join my quest? 🟨",
+ "hello": [
+  "Yay! I've never had a non-square friend!",
+  "Watch out for CHROMAGON. He's shiny AND mean."
+ ],
+ "about": "I'm SQUIRE, a square of light. CHROMAGON stole the Chrome Chalice that makes the sun rise over the Grid. I'm getting it back!",
+ "how": "A maze adventure: explore the Grid, find keys and items, outwit CHROMAGON and carry the Chalice home.",
+ "tips": [
+  "Keys go to matching colour gates.",
+  "Dragons are slow to turn. Dodge around them.",
+  "Carry one thing at a time. Plan your trips!"
+ ],
+ "chat": [
+  "I'm 4 equal sides of pure courage.",
+  "Bumped into a wall. It was also a square. We chatted.",
+  "CHROMAGON sneezed and turned a room chrome.",
+  "It's always 1988 on the Grid."
+ ],
+ "nudge": [
+  "The Grid awaits! Quest time? 🟨",
+  "I spotted the Chalice! Let's go!"
+ ],
+ "idle": [
+  "{ago} without a quest! My edges are dimming.",
+  "The Grid's been dark for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Best shape?",
+   "a": [
+    [
+     "Square",
+     "Correct! 🟨"
+    ],
+    [
+     "Circle",
+     "Circles are nice. A bit rolly."
+    ],
+    [
+     "Triangle",
+     "Pointy! Bold!"
+    ]
+   ]
+  }
+ ],
+ "update": "Grid update: CHROME CHALICE now v{version}!",
+ "bye": [
+  "Stay square! 🟨",
+  "SQUIRE out!"
+ ],
+ "save": {
+  "keys": [
+   "chromechalice.v1"
+  ]
+ },
+ "art": "fal"
+}

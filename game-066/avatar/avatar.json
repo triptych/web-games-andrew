@@ -1,0 +1,71 @@
+{
+ "id": "game-066",
+ "name": "Bolt",
+ "role": "COM-bot companion",
+ "emoji": "🤖",
+ "color": "#ff8f00",
+ "bio": "A patched-up COM-bot from Midden's junk heaps in Scrapwright. Your very first build.",
+ "portrait": {
+  "subject": "a cute small steampunk robot companion made of mismatched scrap parts, one round brass eye and one bigger glass eye, little gear antenna, rusty but cheerful",
+  "background": "junkyard planet sunset orange with old starship wrecks"
+ },
+ "request": "BZZT! I'm Bolt, a COM-bot from Scrapwright! You built me! Friends? 🤖",
+ "hello": [
+  "Friendship circuits ONLINE!",
+  "There are 250 of us bots. I'm the best. Obviously."
+ ],
+ "about": "I'm Bolt! You found my parts on Midden and put me together. Now we battle, evolve and collect parts together!",
+ "how": "Find, repair, build and evolve COM-bots from scrap. Battle other bots, collect rare parts and explore the junk planet Midden.",
+ "tips": [
+  "Match bot types to beat the opponent's type.",
+  "Evolve your favourites. Evolutions are strong!",
+  "Scrap piles refresh. Check them often."
+ ],
+ "chat": [
+  "Found a shiny bolt. Not me. A different Bolt.",
+  "My left eye is from a toaster. It sees in toast.",
+  "Fought a COM-bot made of spoons. Tough fight.",
+  "Cinderwick has the BEST scrap."
+ ],
+ "nudge": [
+  "New scrap pile spotted! Treasure hunt?",
+  "A rival scrap kid wants a battle! Let's go!"
+ ],
+ "idle": [
+  "BZZT. {ago} on standby. Battery fine. Heart lonely.",
+  "{ago}! I've been rusting a little. Just a little."
+ ],
+ "progress": [
+  "Your bots are level {level}! Evolution soon? 🤖"
+ ],
+ "questions": [
+  {
+   "q": "What should I evolve into?",
+   "a": [
+    [
+     "Something huge",
+     "BIG BOLT! Yes!"
+    ],
+    [
+     "Something fast",
+     "ZOOM BOLT! Yes!"
+    ],
+    [
+     "Stay cute",
+     "...okay. CUTE BOLT. 💛"
+    ]
+   ]
+  }
+ ],
+ "update": "SYSTEM PATCH: Scrapwright now v{version}! New parts?!",
+ "bye": [
+  "BZZT bye! 🤖",
+  "Powering down. Love you. BZZT."
+ ],
+ "save": {
+  "keys": [
+   "scrapwright.v1"
+  ]
+ },
+ "art": "fal"
+}

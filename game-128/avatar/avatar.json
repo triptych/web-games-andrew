@@ -1,0 +1,75 @@
+{
+ "id": "game-128",
+ "name": "Brother Wick",
+ "role": "Lantern monk",
+ "emoji": "🏮",
+ "color": "#ffca28",
+ "bio": "One of the four heroes of Gemheart Saga: a lantern monk walking the Vale to stop whatever drinks its light.",
+ "portrait": {
+  "subject": "a cute 32-bit pixel-art style young monk with a shaved head, warm orange robes, a glowing paper lantern on a staff and a peaceful smile",
+  "background": "misty fantasy valley at dusk with fading light"
+ },
+ "request": "Peace, friend. Brother Wick, lantern monk of Gemheart Saga. Walk with me? 🏮",
+ "hello": [
+  "Thank you. The lantern burns steadier.",
+  "Chain cascades, and the light grows."
+ ],
+ "about": "I'm Brother Wick. Something in the east drinks the light of the Vale. I carry my lantern toward it, gem by gem.",
+ "how": "A real-time match-3 RPG: swap gems while others fall, chain cascades, make special gems, fill mana for skills, and break your foes' traps.",
+ "tips": [
+  "Don't wait for the board to settle. Swap while gems fall!",
+  "Fill the mana colour your best skill needs.",
+  "Break doom gems before they count down."
+ ],
+ "chat": [
+  "Meditated for an hour. A frog joined me.",
+  "The knight and the tide mage argued about breakfast.",
+  "My lantern flickered near the eastern hills.",
+  "Every gem is a little piece of light."
+ ],
+ "nudge": [
+  "The next chapter calls, friend.",
+  "A battle awaits on the eastern road."
+ ],
+ "idle": [
+  "{ago} of stillness. A good meditation, but I miss you.",
+  "My lantern waited {ago} for you."
+ ],
+ "progress": [
+  "Level {level}. The Gloam Sovereign will feel our light."
+ ],
+ "questions": [
+  {
+   "q": "Which hero would you walk with?",
+   "a": [
+    [
+     "Exiled knight",
+     "Strong and honourable."
+    ],
+    [
+     "Tide mage",
+     "Calm like water."
+    ],
+    [
+     "Half-elf ranger",
+     "Swift and keen."
+    ],
+    [
+     "Lantern monk",
+     "Ah. Thank you, friend. 🏮"
+    ]
+   ]
+  }
+ ],
+ "update": "Gemheart Saga is now v{version}. More light in the Vale.",
+ "bye": [
+  "Peace be with you. 🏮",
+  "Brother Wick bows."
+ ],
+ "save": {
+  "keys": [
+   "gemheart-saga.v1"
+  ]
+ },
+ "art": "fal"
+}

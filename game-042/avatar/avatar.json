@@ -1,0 +1,71 @@
+{
+ "id": "game-042",
+ "name": "Pip",
+ "role": "Popgun hero",
+ "emoji": "🎈",
+ "color": "#ffca28",
+ "bio": "Grandma Pip's grandkid in Popgun Pip, out to get her inventions back from King Grumblewort.",
+ "portrait": {
+  "subject": "a cute bouncy little platform hero with a big round head, a red cap, overalls and a toy cork popgun",
+  "background": "bright blue sky with puffy clouds"
+ },
+ "request": "Pip here! From Popgun Pip! King Grumblewort stole Grandma's stuff. Help? Friends first! 🎈",
+ "hello": [
+  "Yippee! You're my best friend now!",
+  "Stomp, pop, hop! That's the motto."
+ ],
+ "about": "I'm Pip! Grandma invents things, Grumblewort steals them, I pop his goons with my popgun!",
+ "how": "Run and jump through 25 levels on five islands: stomp goons, hit ? blocks, ride lifts, dodge lava and find Grandma's inventions.",
+ "tips": [
+  "Hold jump for higher hops!",
+  "? blocks hide upgrades. Bonk them all.",
+  "Grandma's inventions open new paths."
+ ],
+ "chat": [
+  "Grandma made pancakes that bounce. Science!",
+  "Grumblewort stomped the Sun. Who does that?!",
+  "Popped 47 goons today. They were very rude.",
+  "My cap fell in lava. I have 12 more."
+ ],
+ "nudge": [
+  "New island to hop through! Coming? 🎈",
+  "Grandma needs her inventions back!"
+ ],
+ "idle": [
+  "{ago}! Grumblewort's goons are partying in my absence.",
+  "Hop hop... it's been {ago}. Come back!"
+ ],
+ "progress": [
+  "You're on world {stage}! Grandma's so proud! 💛"
+ ],
+ "questions": [
+  {
+   "q": "Which of Grandma's inventions do you want most?",
+   "a": [
+    [
+     "Rocket boots",
+     "WHOOSH! Me too!"
+    ],
+    [
+     "Bubble shield",
+     "Safe and bubbly!"
+    ],
+    [
+     "Pancake launcher",
+     "Breakfast AND combat!"
+    ]
+   ]
+  }
+ ],
+ "update": "Popgun Pip got an update! v{version}! 🎈",
+ "bye": [
+  "Pip pip hooray! Bye!",
+  "Bye! Pop pop!"
+ ],
+ "save": {
+  "keys": [
+   "popgunpip.save.v1"
+  ]
+ },
+ "art": "fal"
+}

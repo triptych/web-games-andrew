@@ -1,0 +1,68 @@
+{
+ "id": "game-104",
+ "name": "Bryony",
+ "role": "Hedge witch apprentice",
+ "emoji": "🌙",
+ "color": "#9e9e9e",
+ "bio": "The second apprentice beside Elspeth in Hemlock Hollow. Brave in black and white.",
+ "portrait": {
+  "subject": "a cute young hedge witch girl with dark braids, a pointed hat with sprigs of herbs, a black shawl and a lantern, drawn in a black and white ink style",
+  "background": "misty black and white gothic forest with a crescent moon"
+ },
+ "request": "It's Bryony, from Hemlock Hollow. Marga is gone. Elspeth and I need a friend. Please? 🌙",
+ "hello": [
+  "Thank you. We'll find Marga together.",
+  "Learn your herbs. They might save you."
+ ],
+ "about": "I'm Bryony, Marga's other apprentice. Someone in town took her. Elspeth and I are learning spells as fast as we can.",
+ "how": "A parser text adventure: type commands, learn herbs and spells, explore the town and woods, and uncover who took Marga.",
+ "tips": [
+  "EXAMINE everything. Witches notice details.",
+  "Herbs combine. Try mixing them.",
+  "Write down what townsfolk say."
+ ],
+ "chat": [
+  "The crows watched the mill all night.",
+  "I mixed rosemary and rue. It glowed. I'm scared and proud.",
+  "Elspeth found a hidden letter. We're decoding it.",
+  "The moon is a thin silver smile tonight."
+ ],
+ "nudge": [
+  "There's a new clue at the mill. Come?",
+  "Night is falling. Marga needs us."
+ ],
+ "idle": [
+  "It's been {ago}. The town grows darker.",
+  "Elspeth and I have waited {ago}. Hurry."
+ ],
+ "questions": [
+  {
+   "q": "Which herb would you trust most?",
+   "a": [
+    [
+     "Sage",
+     "For clarity. Wise."
+    ],
+    [
+     "Hemlock",
+     "Dangerous... but you knew that."
+    ],
+    [
+     "Lavender",
+     "For calm. We need it."
+    ]
+   ]
+  }
+ ],
+ "update": "Hemlock Hollow is now v{version}. The mystery deepens.",
+ "bye": [
+  "Keep your lantern lit. 🌙",
+  "Bryony fades into the mist."
+ ],
+ "save": {
+  "keys": [
+   "hemlock-hollow.v1"
+  ]
+ },
+ "art": "fal"
+}

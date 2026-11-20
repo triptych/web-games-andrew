@@ -1,0 +1,71 @@
+{
+ "id": "game-130",
+ "name": "Orby",
+ "role": "Starbase helper robot",
+ "emoji": "🛰️",
+ "color": "#29b6f6",
+ "bio": "Kit's floating robot buddy on Starbase Nine in Starbase Spooky, while Captain Ada Comet is at Moon Base.",
+ "portrait": {
+  "subject": "a super cute round floating helper robot with one big friendly blue eye, little propeller ears and a tiny star sticker",
+  "background": "cosy 16-bit space station with planets in the window"
+ },
+ "request": "Beep boop! Orby from Starbase Spooky! Kit says we need more friends. You? 🛰️",
+ "hello": [
+  "YAY! Beep boop boop!",
+  "Captain Comet is away for five days. We're in charge! Gulp."
+ ],
+ "about": "I'm Orby! I help Kit, the Junior Station Keeper, run Starbase Nine. Spooky things keep happening! But we figure them out!",
+ "how": "Point and click: help Kit and Orby run the starbase for five days, solve puzzles, learn space facts and solve the spooky mystery.",
+ "tips": [
+  "Click everything! Orby knows lots of facts.",
+  "Write down the clues from each day.",
+  "Ask Captain Comet on the radio if you're stuck!"
+ ],
+ "chat": [
+  "Did you know Saturn could float in a giant bathtub? Beep!",
+  "Kit and I made space pancakes. They floated away.",
+  "Something went BOOP in the cargo bay. Spooky!",
+  "I counted all the stars I can see. 2,104!"
+ ],
+ "nudge": [
+  "A new day on the starbase! Help us? 🛰️",
+  "Spooky noise in Section 3! Investigate?"
+ ],
+ "idle": [
+  "{ago}! Kit and I miss you! Beep...",
+  "The starbase was quiet for {ago}. Too quiet!"
+ ],
+ "progress": [
+  "We're on day {day}! Captain Comet comes back soon!"
+ ],
+ "questions": [
+  {
+   "q": "Space quiz! Which planet is biggest?",
+   "a": [
+    [
+     "Jupiter",
+     "CORRECT! Beep boop! 🎉"
+    ],
+    [
+     "Saturn",
+     "Close! Jupiter's bigger!"
+    ],
+    [
+     "Earth",
+     "Earth is home, but Jupiter's way bigger!"
+    ]
+   ]
+  }
+ ],
+ "update": "Beep! Starbase Spooky got updated to v{version}! 🛰️",
+ "bye": [
+  "Beep boop bye! 🛰️",
+  "Orby out! *spins*"
+ ],
+ "save": {
+  "keys": [
+   "starbase-spooky.v1"
+  ]
+ },
+ "art": "fal"
+}

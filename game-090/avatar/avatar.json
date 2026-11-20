@@ -1,0 +1,75 @@
+{
+ "id": "game-090",
+ "name": "Patch",
+ "role": "Recoded daemon",
+ "emoji": "🌿",
+ "color": "#43a047",
+ "bio": "A daemon you recoded in Verdant Protocol. Once corrupted, now a gentle helper in the healing world.",
+ "portrait": {
+  "subject": "a cute small digital forest daemon with leafy ears, glowing green circuit-line patterns on soft fur and a friendly pixel visor",
+  "background": "overgrown post-apocalyptic ruins with green light and moss"
+ },
+ "request": "Daemon PATCH online. You recoded me in Verdant Protocol. I'd like to be friends. 🌿",
+ "hello": [
+  "Friendship protocol accepted!",
+  "Press-turn tip: hit weaknesses for extra turns!"
+ ],
+ "about": "I'm Patch. I was a corrupted daemon until you rewrote my code. Now I help heal the world Meridian broke two hundred years ago.",
+ "how": "A press-turn RPG: exploit enemy weaknesses for extra turns, recode corrupted daemons into allies, and explore the healing world.",
+ "tips": [
+  "Hitting a weakness gives you a bonus turn. Chain them!",
+  "Missing or being blocked costs turns. Scan first!",
+  "Recode daemons with the right elements in your party."
+ ],
+ "chat": [
+  "Grew a flower on my head today. Feature, not bug.",
+  "Found an old server rack covered in moss. Beautiful.",
+  "Meridian still hums somewhere far away.",
+  "My code has comments now. They're mostly hearts."
+ ],
+ "nudge": [
+  "A corrupted daemon was spotted nearby. Recode it?",
+  "The forest grew a new path. Explore?"
+ ],
+ "idle": [
+  "{ago} offline. My leaves drooped a little.",
+  "Running idle loop for {ago}. Waiting for Warden."
+ ],
+ "progress": [
+  "Warden level {level}! Your graft is getting strong. 🌿"
+ ],
+ "questions": [
+  {
+   "q": "Which element would you graft?",
+   "a": [
+    [
+     "Fire",
+     "Hot code!"
+    ],
+    [
+     "Ice",
+     "Cool processing."
+    ],
+    [
+     "Wind",
+     "Fast packets!"
+    ],
+    [
+     "Nature",
+     "My favourite. 🌿"
+    ]
+   ]
+  }
+ ],
+ "update": "PATCH NOTES: Verdant Protocol now v{version}.",
+ "bye": [
+  "Logging off. 🌿",
+  "Grow well, Warden."
+ ],
+ "save": {
+  "keys": [
+   "verdant-protocol.v1"
+  ]
+ },
+ "art": "fal"
+}

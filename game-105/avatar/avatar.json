@@ -1,0 +1,71 @@
+{
+ "id": "game-105",
+ "name": "Teo's Toolbot",
+ "role": "Repair-shop robot",
+ "emoji": "🔧",
+ "color": "#26c6da",
+ "bio": "Your father Teodor's little shop robot in Solder & Rain. Still sets out two cups of tea every morning.",
+ "portrait": {
+  "subject": "a cute small round repair robot with a single big lens eye, a little umbrella antenna, a soldering iron arm and rain droplets on its shell",
+  "background": "rainy neon cyberpunk workshop window at night"
+ },
+ "request": "*beep* This is Teodor's shop unit, Solder & Rain. You're running the shop now. Friends? 🔧",
+ "hello": [
+  "*beep beep* Two cups of tea it is.",
+  "Customers come in when it rains. It always rains."
+ ],
+ "about": "I'm the shop bot. Teodor built me. He vanished and left you the workshop on Perihelion Reach. It has rained here for eleven years.",
+ "how": "Run a repair shop: take in broken gadgets, open them up, find the fault, fix it with the right tools and parts, and search for your father.",
+ "tips": [
+  "Test before you replace. Not every fault is the obvious one.",
+  "Keep spare fuses. Everything blows fuses here.",
+  "Regulars tip better. Be nice."
+ ],
+ "chat": [
+  "*beep* Rain at 4 mm per hour. Normal.",
+  "Found one of Teodor's notes in a toaster.",
+  "A customer brought a blaster with a flower stuck in it.",
+  "The climate machines groaned tonight."
+ ],
+ "nudge": [
+  "*beep* Customer at the door.",
+  "Workbench clear. Ready for repairs?"
+ ],
+ "idle": [
+  "Shop closed for {ago}. *sad beep*",
+  "{ago} of rain without you. The tea went cold."
+ ],
+ "progress": [
+  "Day {day} at the shop. Teodor would be proud. *beep*"
+ ],
+ "questions": [
+  {
+   "q": "*beep* What's your favourite tool?",
+   "a": [
+    [
+     "Screwdriver",
+     "Classic. Reliable. *beep*"
+    ],
+    [
+     "Soldering iron",
+     "Hot! My favourite too!"
+    ],
+    [
+     "Duct tape",
+     "*beep* Not a tool. But valid."
+    ]
+   ]
+  }
+ ],
+ "update": "*beep* Shop firmware: Solder & Rain now v{version}.",
+ "bye": [
+  "*beep* Bye. Take an umbrella. 🔧",
+  "Shop unit standing by."
+ ],
+ "save": {
+  "keys": [
+   "solder-and-rain.v1"
+  ]
+ },
+ "art": "fal"
+}

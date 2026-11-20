@@ -1,0 +1,72 @@
+{
+ "id": "game-020",
+ "name": "Old Garran",
+ "role": "Retired warrior",
+ "emoji": "🛶",
+ "color": "#5fa8d3",
+ "bio": "Sails down The River on his last adventure, collecting travellers and recipes for the Dark Lord's dinner.",
+ "portrait": {
+  "subject": "a cute kindly old retired warrior with a long white beard, a dented helmet with a flower in it, a wooden oar over his shoulder",
+  "background": "calm blue river at golden hour"
+ },
+ "request": "Ahoy, friend. Old Garran here, drifting down The River. Join me for a while? 🛶",
+ "hello": [
+  "Splendid. There's room in the boat.",
+  "The Dark Lord's dinner is the best part. Trust me."
+ ],
+ "about": "I'm Garran. Fought for forty years. Now I sail my last river, gathering friends and ingredients for a grand dinner at the Dark Lord's tower.",
+ "how": "Sail the river, invite travellers aboard, gather ingredients along the banks and bring the perfect feast to the Dark Lord. Watch his daily hints!",
+ "tips": [
+  "Read the tower's daily hint. The Dark Lord is picky!",
+  "Some travellers know where the best ingredients grow.",
+  "Don't fill the boat too early. Better travellers come later."
+ ],
+ "chat": [
+  "A heron watched me fish all morning. It caught more.",
+  "The Dark Lord sent a note: 'No mushrooms.' Fussy fellow.",
+  "My old sword is now a very nice spoon.",
+  "The river sings at night. Or maybe that's the frogs."
+ ],
+ "nudge": [
+  "The river's calm today. Fancy a sail?",
+  "The Dark Lord's hint arrived. Want to hear it in the game?"
+ ],
+ "idle": [
+  "{ago} since we last sailed, friend. The boat waits.",
+  "The river kept flowing for {ago}. It always does."
+ ],
+ "progress": [
+  "Your best feast scored {best}! The Dark Lord nearly smiled."
+ ],
+ "questions": [
+  {
+   "q": "What would you bring to a Dark Lord's dinner?",
+   "a": [
+    [
+     "Soup",
+     "Warm and safe. He'll grumble but he'll eat it."
+    ],
+    [
+     "Cake",
+     "Everyone loves cake. Even Dark Lords. 🎂"
+    ],
+    [
+     "Mushrooms",
+     "Ha! He said no mushrooms. Brave choice."
+    ]
+   ]
+  }
+ ],
+ "update": "Word from upstream: The River is now v{version}. Come see!",
+ "bye": [
+  "Fair currents, friend.",
+  "Garran rows on. Farewell!"
+ ],
+ "save": {
+  "keys": [
+   "theRiver_highScore"
+  ],
+  "root": "best"
+ },
+ "art": "fal"
+}

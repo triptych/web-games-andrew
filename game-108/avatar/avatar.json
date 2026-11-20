@@ -1,0 +1,71 @@
+{
+ "id": "game-108",
+ "name": "Oath-keeper Senna",
+ "role": "Stone whisperer",
+ "emoji": "🔷",
+ "color": "#5c6bc0",
+ "bio": "Reads the oaths of the stones in Oathstones. Knows which ones swear Kinship, Form or Prism.",
+ "portrait": {
+  "subject": "a cute young fantasy stone-whisperer with short teal hair, a robe embroidered with gem symbols and several glowing coloured stones orbiting her hands",
+  "background": "ancient stone circle at dusk with glowing runes"
+ },
+ "request": "Senna, oath-keeper of Oathstones. The stones whisper your name. Friends? 🔷",
+ "hello": [
+  "The stones approve. They hum when they're happy.",
+  "Every stone keeps its own oath. Listen to them."
+ ],
+ "about": "I'm Senna. I read the oaths of stones. Kinship stones match by colour, Form stones by shape, Prism stones only when every colour differs.",
+ "how": "A match-3 RPG where each token keeps its own oath (rule for matching). Learn the oaths and use them to win battles.",
+ "tips": [
+  "Read each stone's oath before you swap.",
+  "Prism lines are rare but powerful.",
+  "Form stones ignore colour. Look for shapes!"
+ ],
+ "chat": [
+  "A Motley stone told me a joke. I didn't get it.",
+  "The stones dislike being rushed.",
+  "I sorted stones by oath. Took all night.",
+  "A Kinship stone cried when its family matched."
+ ],
+ "nudge": [
+  "The stones have a new challenge for you.",
+  "A battle stirs at the circle. Come?"
+ ],
+ "idle": [
+  "{ago}... the stones grew quiet.",
+  "The circle waited {ago} for its oath-taker."
+ ],
+ "progress": [
+  "Level {level}! The stones listen to you now. 🔷"
+ ],
+ "questions": [
+  {
+   "q": "Which oath would you swear?",
+   "a": [
+    [
+     "Kinship",
+     "Family above all. Warm."
+    ],
+    [
+     "Form",
+     "Shape over colour. Clever."
+    ],
+    [
+     "Prism",
+     "Everyone different. Beautiful."
+    ]
+   ]
+  }
+ ],
+ "update": "Oathstones updated to v{version}. New oaths whisper.",
+ "bye": [
+  "Keep your oaths. 🔷",
+  "Senna returns to the circle."
+ ],
+ "save": {
+  "keys": [
+   "oathstones.v1"
+  ]
+ },
+ "art": "fal"
+}

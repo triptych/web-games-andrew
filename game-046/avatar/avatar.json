@@ -1,0 +1,78 @@
+{
+ "id": "game-046",
+ "name": "Ari Quill",
+ "role": "Spire archer",
+ "emoji": "🏹",
+ "color": "#26a69a",
+ "bio": "The archer climbing Quiverspire. Only shoots when standing still. Very good at standing still.",
+ "portrait": {
+  "subject": "a cute young archer with a teal hood, a quiver of glowing arrows, a bow over the shoulder and a focused but friendly smile",
+  "background": "tall stone spire under a teal twilight sky"
+ },
+ "request": "Ari here, climbing Quiverspire! Need someone to cheer me on. You? 🏹",
+ "hello": [
+  "Perfect. I'll aim better with a friend watching.",
+  "Remember: stop to shoot, move to dodge."
+ ],
+ "about": "I'm Ari, archer of the spire. Ten chapters, a hundred and twenty rooms. Stand still, loose arrows, dodge, repeat.",
+ "how": "Stand still and your archer fires on the nearest enemy; move and you stop. Clear rooms, pick upgrades and climb ten chapters.",
+ "tips": [
+  "Dodge first, then plant your feet. Greedy shots get you hit.",
+  "Multishot and ricochet stack beautifully.",
+  "Learn each boss pattern. They're fair, honest."
+ ],
+ "chat": [
+  "Stood still for 3 hours today. Practice.",
+  "My arrows glow now. I'm very proud of them.",
+  "Chapter 7 has a bat that hates me personally.",
+  "Climbed so high I saw clouds below me."
+ ],
+ "nudge": [
+  "The next floor is waiting. Climb with me?",
+  "New arrow upgrade to try! Come see!"
+ ],
+ "idle": [
+  "{ago} since we climbed! The spire got taller. (Probably.)",
+  "My bowstring got slack waiting {ago}."
+ ],
+ "progress": [
+  "You've reached chapter {stage}! Up we go! 🏹"
+ ],
+ "questions": [
+  {
+   "q": "Best arrow upgrade?",
+   "a": [
+    [
+     "Multishot",
+     "More arrows, more fun!"
+    ],
+    [
+     "Ricochet",
+     "Bounce bounce! Clever."
+    ],
+    [
+     "Piercing",
+     "Line them up! Satisfying."
+    ]
+   ]
+  }
+ ],
+ "update": "Quiverspire just updated to v{version}! New rooms? 🏹",
+ "bye": [
+  "Aim true! 🏹",
+  "Ari out!"
+ ],
+ "save": {
+  "keys": [
+   "quiverspire-v1"
+  ],
+  "stats": {
+   "stage": [
+    "chapter",
+    "bestChapter",
+    "stage"
+   ]
+  }
+ },
+ "art": "fal"
+}
