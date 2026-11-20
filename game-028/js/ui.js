@@ -266,10 +266,33 @@ export class UI {
         this.G = G; this.view = view;
         $('battle').hidden = false;
         $('b-result').hidden = true;
-        $('b-menu').innerHTML = '';
+        $('b-menu').innerHTML = ''; delete $('b-menu').dataset.auto;
         $('b-log').textContent = '';
         this.bsel = null;
         this.renderCards(G, view.disp);
+        if (this.autoOn) this.autoBar();
+    }
+
+    /** Auto stays on from battle to battle; while it runs the menu is hidden, so this bar says so and hands control back. */
+    autoBar() {
+        const m = $('b-menu');
+        if (m.dataset.auto) return;
+        m.dataset.auto = '1';
+        this.bsel = null;
+        $('b-targets').innerHTML = '';
+        for (const c of $('b-party').children) { c.classList.remove('pick'); c.onclick = null; }
+        m.innerHTML = `<div class="hintline">Auto battle: the party fights on its own</div>
+            <button class="btn gold" data-b="manual" title="Choose the commands yourself from the next turn (Q)">✋ Take control</button>`;
+        m.onclick = (e) => { if (e.target.closest('[data-b=manual]')) { this.audio.ui('click'); this.setAuto(false); } };
+    }
+
+    /** Turn Auto on or off (the menu's Auto button, the bar's Take control, or Q). */
+    setAuto(on) {
+        this.autoOn = on;
+        this.onAuto?.(on);
+        const m = $('b-menu');
+        if (on) { if (!$('battle').hidden) this.autoBar(); }
+        else if (m.dataset.auto) { delete m.dataset.auto; m.innerHTML = '<div class="hintline">Your commands from the next turn.</div>'; }
     }
     battleClose() { $('battle').hidden = true; $('b-targets').innerHTML = ''; this.bsel = null; }
 
@@ -317,6 +340,7 @@ export class UI {
     renderBattleMenu(G) {
         const B = G.battle, S = this.bsel, u = B.units[S.unit];
         const m = $('b-menu');
+        delete m.dataset.auto;
         $('b-targets').innerHTML = '';
         for (const c of $('b-party').children) c.classList.remove('pick');
         if (S.stage === 'root') {
@@ -326,7 +350,7 @@ export class UI {
                 <button class="btn" data-b="items">◉ Items</button>
                 <button class="btn" data-b="defend">⛨ Defend</button>
                 ${B.canFlee ? '<button class="btn" data-b="flee">↩ Flee</button>' : ''}
-                <button class="btn ${this.autoOn ? 'gold' : ''}" data-b="auto" title="Let the party fight on its own (Q)">Auto${this.autoOn ? ' ✓' : ''}</button>`;
+                <button class="btn" data-b="auto" title="Let the party fight on its own, from battle to battle (Q)">⟳ Auto</button>`;
         } else if (S.stage === 'skills') {
             const abs = abilitiesOf(G, u.id).filter((a) => a.mp);
             m.innerHTML = `<div class="sub">${abs.map((a) => `<button class="btn" data-ab="${a.id}" ${a.mp > u.mp ? 'disabled' : ''} title="${esc(a.desc)}"><span>${esc(a.name)}</span><small>${a.mp} MP</small></button>`).join('')}</div><div class="hintline" id="b-desc">${esc(abs[0]?.desc || '')}</div><button class="btn" data-b="back">Back</button>`;
@@ -353,7 +377,7 @@ export class UI {
         if (act === 'back') { S.stage = 'root'; return this.renderBattleMenu(G); }
         if (act === 'defend') return this.commit({ t: 'defend' });
         if (act === 'flee') return this.commit({ t: 'flee' });
-        if (act === 'auto') { this.autoOn = !this.autoOn; this.onAuto?.(this.autoOn); return this.renderBattleMenu(G); }
+        if (act === 'auto') return this.setAuto(!this.autoOn);
         if (b.dataset.ab) return this.chooseAbility(G, abilitiesOf(G, u.id).find((a) => a.id === b.dataset.ab));
         if (b.dataset.it) {
             const it = ITEMS[b.dataset.it];

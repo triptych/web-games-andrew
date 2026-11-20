@@ -2,7 +2,7 @@
 
 **Genre:** Visual novel / fantasy RPG
 **Layout:** sim/view, plain HTML, CSS and JavaScript (Canvas 2D for the map and battles, DOM for everything else)
-**Version:** 2.0.0
+**Version:** 2.0.1
 **Status:** Complete: four chapters, two endings, every line voiced
 
 ---
@@ -39,7 +39,7 @@ big fight. The test bot follows the same guide, so a hint can never point at som
 
 ### Battles
 Everyone acts in order of speed each round (shown at the top). Commands: Attack, Skills (MP), Items (on a chosen ally),
-Defend (half damage until your next turn, +8% MP), Flee (not from bosses), Auto. Bosses act twice a round.
+Defend (half damage until your next turn, +8% MP), Flee (not from bosses), Auto (stays on from battle to battle; a Take control bar or Q hands the commands back). Bosses act twice a round.
 Statuses: Poison (7% max HP a turn), Stun (lose a turn; bosses resist), Slow (half speed), Weak (−30% attack),
 ATK Up (+30%), Taunt (foes must attack the taunter), Guard (half damage), Evade (the next attack misses),
 Marked (+30% damage taken). Damage is attack × power − defence × 0.6 (physical) or × 0.3 (magic), ±10%, 6% crits on
@@ -158,6 +158,9 @@ about 85%; one level lower drops the Lich to under 50%.
 - A New Game+ or harder mode would use the existing balance knobs.
 
 ## Changelog
+
+### v2.0.1 (2026-11-20)
+- Auto battle shows a Take control bar while it runs (it carries on from battle to battle, and the menu with its Auto button stayed hidden).
 
 ### v2.0.0 (2026-11-20)
 - Rebuilt without Phaser in the sim/view layout; every mechanic in "What v2 fixed" above; fal art, ElevenLabs music,

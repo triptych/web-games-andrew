@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Echoes of Aethermoor** (game-028) v2.0.1: auto battle carries on into the next battle, but while it ran the command menu (and its Auto button) never appeared, so on a phone there was no way back. A **Take control** bar now shows whenever auto is on, from the first moment of each battle, and hands the commands back on the next turn (Q still works).
+
 ### Changed
 - **Echoes of Aethermoor** (game-028) v2.0.0: rebuilt from scratch with no framework, every broken mechanic fixed, and painted and voiced, as planned in [TODO.md](TODO.md) ([game-plan.md](game-028/game-plan.md)).
   - **No framework**: Phaser 4 is gone. A pure seeded sim driven by `act(G, cmd)` ([js/sim/](game-028/js/sim/)): the game and dialogue runner ([game.js](game-028/js/sim/game.js)), battles ([battle.js](game-028/js/sim/battle.js)), rules and quests ([rules.js](game-028/js/sim/rules.js)), maps and paths ([world.js](game-028/js/sim/world.js)), the guide ([guide.js](game-028/js/sim/guide.js)) and a bot that plays the whole game ([bot.js](game-028/js/sim/bot.js)). The view is a Canvas 2D map and battle stage ([js/view/](game-028/js/view/)) and DOM screens; the game saves on every change of place, rest and battle.
