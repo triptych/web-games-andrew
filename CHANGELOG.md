@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Tests**: `simtest` follows the tips through the first phase on three seeds (never stuck more than 25 s, story quests done, checklist met) and checks the bubbles; `browsertest` clicks Show me, collects bubbles by click, `C` and touch, and opens What next?. The bot collects bubbles, and no longer fills every plot with bakeries.
 
 ### Fixed
+- **Arcana Pull** (game-012) v2.0.1: a steady clicking under the music, most of all in the parlour where you draw cards. It wasn't a game sound: the ElevenLabs takes carried a short high tick on every beat of the parlour theme (76 BPM) and now and then in the Reading and battle themes. All four themes are low-passed (4–8 kHz, 36 dB/octave), which drops the parlour's ticks about 20 dB under where they were and leaves the music, which has almost nothing up there, unchanged; [process.py](game-012/dev/audio/process.py) does the same on a rebuild.
 - **Pocket Garden Messages**: Fray (Fray & the Spiral Isle, game-131) is blind, but her avatar was painted with eyes: the shared style asks for "big shiny eyes". She is repainted with her eyes fully under her bandage, and her `avatar.json` keeps its own `portrait.style` so a repaint stays that way ([dev/make-avatars.py](dev/make-avatars.py) honours it, [docs/generic/avatars.md](docs/generic/avatars.md)).
 
 ### Added
