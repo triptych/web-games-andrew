@@ -30,7 +30,7 @@ export function newGame(seed = 1) {
         quests: { active: [], done: {}, paid: {} },
         battle: null, retries: 0, ended: false,
         epi: { waves: 0, best: 0 },
-        stats: { built: 0, calmed: 0, wavesWon: 0, wavesLost: 0, quests: 0 },
+        stats: { built: 0, calmed: 0, wavesWon: 0, wavesLost: 0, quests: 0, collected: 0 },
         flags: { intro: false },
         speed: 1,
         events: [],

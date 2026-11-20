@@ -2,7 +2,7 @@
 
 import {
     DAY_LEN, PLOTS_OPEN, LVL_MULT, UPGRADE_COST, BUILD_DAYS, UPGRADE_DAYS, HALL_HOUSING, HALL_COST, HOPE, POP,
-    STAFF_BONUS, BAKE, WALL_COST, WALL_DAYS,
+    STAFF_BONUS, BAKE, WALL_COST, WALL_DAYS, HARVEST,
 } from '../config.js';
 import { BUILDINGS, RES, STAFF, ADVENTURERS, ADV_MAX } from './data.js';
 
@@ -98,7 +98,31 @@ export function rates(G) {
 export const bakeCap = (G) => 25 * G.bake.ings.length;
 
 // ------------------------------------------------------------------ one step of town life
+/** Every building but the oven grows a harvest bubble: producers give a burst of what they make, the rest a few coins
+ *  (rent, tips at the tavern, a sold cozy, a purse found on the lookout). */
+export const HARVESTS = Object.keys(BUILDINGS).filter((k) => k !== 'oven');
+
+/** What a tap on this building's ripe bubble would give right now. */
+export function harvestValue(G, i) {
+    const b = G.plots[i].b, out = {};
+    if (!b) return out;
+    const r = buildingRate(G, i);
+    for (const k in r.make) out[k] = Math.max(HARVEST.min, Math.round(r.make[k] * HARVEST.bonus));
+    if (!Object.keys(out).length) out.gold = HARVEST.coins * b.lvl;
+    return out;
+}
+export const isRipe = (b) => !!b && (b.ripe || 0) >= HARVEST.ripe && !(b.build > 0 && !b.up);
+
 export function stepTown(G, dt) {
+    // harvest bubbles fill on every working building
+    for (let i = 0; i < G.plots.length; i++) {
+        const b = G.plots[i].b;
+        if (!b || (b.build > 0 && !b.up) || !HARVESTS.includes(b.kind)) continue;
+        if ((b.ripe || 0) < HARVEST.ripe) {
+            b.ripe = (b.ripe || 0) + dt;
+            if (b.ripe >= HARVEST.ripe) { b.ripe = HARVEST.ripe; G.events.push({ type: 'ripe', plot: i }); }
+        }
+    }
     // construction
     for (let i = 0; i < G.plots.length; i++) {
         const b = G.plots[i].b;
@@ -197,6 +221,21 @@ export function townAct(G, c) {
             b.up = true; b.build = UPGRADE_DAYS * DAY_LEN;
             G.events.push({ type: 'build', plot: c.plot, kind: b.kind, up: true });
             return true;
+        }
+        case 'collect': {
+            const b = G.plots[c.plot]?.b;
+            if (!isRipe(b)) return fail('not ripe');
+            const got = harvestValue(G, c.plot);
+            gain(G, got);
+            b.ripe = 0;
+            G.stats.collected = (G.stats.collected || 0) + 1;
+            G.events.push({ type: 'collect', plot: c.plot, got });
+            return true;
+        }
+        case 'collectAll': {
+            let n = 0;
+            for (let i = 0; i < G.plots.length; i++) if (isRipe(G.plots[i].b)) { townAct(G, { t: 'collect', plot: i }); n++; }
+            return n > 0;
         }
         case 'demolish': {
             const b = G.plots[c.plot]?.b;

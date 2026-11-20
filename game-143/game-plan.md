@@ -2,7 +2,7 @@
 
 **Genre:** Town-building tycoon with castle-defence sieges, and a story
 **Engine:** Vanilla JS, Canvas 2D. Generated art (fal) and audio (ElevenLabs), with code fallbacks
-**Status:** v1.0.0
+**Status:** v1.1.0
 
 ---
 
@@ -55,7 +55,7 @@ never as a lecture:
 ## State (`G`, all plain data; ids, never references)
 
 `mode` (town | battle), `phase` (0–3, 4 epilogue), `day`, `dayT`, `daysLeft`, `today` (the day's happening),
-`res` {gold, flour, sugar, stone}, `pop`, `hope`, `hopeBonus`, `plots[12]` ({b: {kind, lvl, build, up}} or empty),
+`res` {gold, flour, sugar, stone}, `pop`, `hope`, `hopeBonus`, `plots[12]` ({b: {kind, lvl, build, up, ripe}} or empty),
 `hall`, `wall` {lvl, build, hp, max}, `oven` {lit, starved}, `bake` {pct, ings[], honey}, `unlocks`, `staff`
 {id: {joined, at: plot}}, `advs` {id: {hired, lvl}}, `quests` {active[], done{}, paid{}}, `battle` (below),
 `retries`, `ended`, `epi` {waves, best}, `stats`, `flags`, `speed`, `rngState`.
@@ -67,14 +67,14 @@ hp, max, atk, nap, sit, block, push}], `shots` [{kind, target, tx, ty, dmg, t, d
 ## Commands and input
 
 `act(G, cmd)`: `build {plot, kind}`, `upgrade {plot}`, `demolish {plot}`, `assign {staff, plot}`, `hall`, `wall`,
-`hire {adv}`, `train {adv}`, `oven {on}`, `deliver {id}`, `nextDay`, `speed {v}`, and in a siege `ability {id}` and
+`hire {adv}`, `train {adv}`, `oven {on}`, `deliver {id}`, `collect {plot}`, `collectAll`, `nextDay`, `speed {v}`, and in a siege `ability {id}` and
 `queen`. `step(G, {ax, aim, fire}, dt)`: the siege reads the aim (drift with keys, absolute from a pointer) and
 whether a doily is being thrown.
 
 ## Events
 
 `scene`, `questNew`, `questDone`, `delivered`, `day`, `build`, `built`, `demolish`, `assign`, `hired`, `trained`,
-`oven`, `ovenStarved`, `bakeMilestone`, `refused`, `invasion`, `throw`, `hit`, `calm`, `splash`, `arrow`, `wallHit`,
+`oven`, `ovenStarved`, `bakeMilestone`, `ripe`, `collect`, `refused`, `invasion`, `throw`, `hit`, `calm`, `splash`, `arrow`, `wallHit`,
 `ability`, `knightDown`, `knightUp`, `kingArrives`, `kingLooms`, `queen`, `kiss`, `battleOver`, `battleEnd`.
 
 ## Mechanics
@@ -86,7 +86,11 @@ whether a doily is being thrown.
   Bakery (flour + sugar → gold and hope), Market (gold per villager), Knitting Circle (hope, wall armour 8%/level),
   The Grinning Gourd (adventurer rooms 2/4/5), Watchtower (a crossbow in a siege), Belfry (hope, siege morale),
   Witch's Kitchen (doily damage +30%/level), The Great Oven (unique), Gingerfolk Cottage (epilogue; housing 8).
-  New buildings take a quarter day, upgrades 0.4 day; levels ×1, ×1.8, ×2.8; each level costs 2.4× the last.
+  New buildings take 0.15 day (six seconds), upgrades 0.4 day; levels ×1, ×1.8, ×2.8; each level costs 2.4× the last.
+- **Harvest bubbles:** every building but the oven fills a bubble over 10 s. A tap (or `C` for all) collects 8 s of
+  what it makes (at least 4 of each), or 6 gold per level from a building that makes nothing (rent, tavern tips, a
+  sold cozy). The town always has something to tap, and the attentive player earns about twice the idle rate early on.
+  The view also floats a small "+N" over each building every 2.2 s for what it actually made (taxes rise from the hall).
 - **Workers:** every building needs villagers (more per level); with too few, everything runs at `pop / needed`.
 - **Hope** drifts toward a target: base 38, plus building hope, quest rewards and the day's happening, minus fear over
   the last four days before a siege. Output × (0.6 + 0.8 × hope/100). Villagers arrive when hope ≥ 30 and there is room,
@@ -179,6 +183,7 @@ character work. Voiced lines (ElevenLabs) are marked with `[speaker, n]`.
 | `js/sim/town.js` | Buildings, workers, hope, production, the oven, town commands |
 | `js/sim/battle.js` | Readiness, waves, enemies, shots, the knight, abilities, the King and the Queen |
 | `js/sim/data.js` | Every table: buildings, staff, abilities, adventurers, enemies, waves, quests, cast, scenes, gossip |
+| `js/sim/advice.js` | `nextGoals(G)`: Lord Vellum's ranked suggestions (what to build and why, what's short, where "Show me" goes) for the tip card and the What next? window |
 | `js/sim/bot.js` | Whole-game bot with a skill dial (town planning and siege aim) |
 | `js/view/view.js`, `assets.js` | Canvas 2D town and siege, particles; image loading |
 | `js/ui.js` | DOM HUD, panels, dialogue, siege HUD, result and ending sheets |
@@ -186,11 +191,30 @@ character work. Voiced lines (ElevenLabs) are marked with `[speaker, n]`.
 
 ## Testing
 
-See [dev/README.md](dev/README.md). `simtest.mjs` (≈300 checks): purity, every rule, content cross-references (every
+See [dev/README.md](dev/README.md). `simtest.mjs` (≈340 checks): purity, every rule, harvest bubbles and the advisor (following the tips through the first phase), content cross-references (every
 portrait, sprite and voice clip the data names exists), determinism and a save round trip in the middle of a siege,
 siege calibration bands, and the bot finishing the story at skill 1 and 0.3. `browsertest.mjs` drives the real game on
 desktop, two touch-only phones and with storage blocked, through building, panels, a siege, Save & Quit, the King,
 the Queen, the ending and the epilogue.
+
+## The helper (v1.1.0)
+
+A first player didn't know what to do and sat waiting for money. Now:
+- **Tutorial:** after the intro, Lord Vellum explains building, bubbles, his tip card and speeding time up; before the
+  first siege, how the wall works.
+- **Tip card** (bottom left, above the dock): the advisor's top goal with **Show me**, which scrolls the town to the
+  plot, drops a bouncing arrow on it and opens it with the suggested building first and outlined (or opens the right
+  panel). ✕ hides it until the next story step; the 💡 **Next** dock button (or `T`) opens **What next?**: the top six
+  goals, each with Show me, and a short guide to how the town works.
+- **The advisor** ranks: a first lesson in bubbles; quests ready to hand in; homes when jobs outnumber villagers; the
+  bakery as soon as there's flour and sugar; the story quests' buildings and the producers every town needs; lighting the
+  oven; the siege checklist (jumping the queue four days out); idle staff; side quests; the cheapest useful upgrade;
+  and finally "speed up time". A goal short of a resource nobody makes yet points at the maker first, and one that
+  can't be afforded says how much is missing and to tap bubbles.
+- **Locked buildings** show in the build list with the quest that unlocks them.
+- **A faster start:** 300 gold, 100 stone, 40 flour, 30 sugar; quarry 0.5 stone/s; watchtower 50 stone; bigger
+  rewards on the first side quests. `simtest` follows the tips through the first phase on three seeds: never more than
+  25 s with nothing doable, the story quests done and the first checklist met.
 
 ## Balance notes
 
@@ -204,6 +228,12 @@ From `dev/balance.mjs` (whole games) and `dev/siege.mjs` (one siege against a to
 
 Whole games: every bot finishes in 38–50 minutes. The Sugar Storm is the hard wave: the bot's towns are usually under the
 checklist and lose it once or twice before winning; the King is usually resolved on his first or second visit.
+
+v1.1.0 (bubbles and the faster start): the per-siege bands above are unchanged (they use a town that exactly meets the
+checklist), but whole-game towns are richer and usually beat the checklist, so every bot now finishes in 34–35 minutes,
+the King meets the Queen on his first visit, and the Sugar Storm is won first time with 44–100% of the wall left at
+skill 0.3 and 60–100% at 0.6. The bot found one more trap: with plenty of flour it filled every plot with bakeries and
+never built a tower or an oven; extra bakeries now wait until the story's buildings are in.
 
 What the bot found along the way:
 - Bun Barrage was 256 damage every 22 s (more than a tower) and Pip joins on day one: the first two sieges were won by
@@ -222,6 +252,14 @@ What the bot found along the way:
 - More quests and town events for the epilogue; seasonal decorations.
 
 ## Changelog
+
+### v1.1.0 (2026-11-20)
+- Lord Vellum's helper: a tutorial after the intro and before the first siege, a tip card with Show me, a What next?
+  window (💡 Next, `T`), and locked buildings in the build list with how to unlock them.
+- Harvest bubbles on every building (tap, or `C` for all, or the ✨ button) and rising "+N" numbers for what each
+  building makes.
+- A faster, richer start: more starting gold and stone, six-second builds, more stone from the quarry, cheaper
+  watchtowers, bigger early quest rewards. The town view sits above the tip row so no plot hides behind it.
 
 ### v1.0.0 (2026-11-19)
 - First release: Thistlegloom's town (13 buildings, workers, hope, staff), four sieges and an endless epilogue, 18 quests

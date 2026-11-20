@@ -58,6 +58,9 @@
   }
  ],
  "update": "Royal crumbs! Doom & Doilies: The Sugar Siege is now v{version}!",
+ "updates": {
+  "1.1.0": "Royal crumbs! Thistlegloom got a helper: Lord Vellum now leaves tips at the bottom of the screen with a Show me button, and every building blows a little bubble you can pop for a bonus. Even I could run that town now."
+ },
  "bye": [
   "Toodles! No sieges! 🍪",
   "*crumbly wave*"

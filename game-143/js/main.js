@@ -42,7 +42,29 @@ const ui = new UI({
     audio, settings, send,
     onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music, s.voice); updateTouch(); },
     onDeleteSave: () => { clearSave(); refreshTitle(); },
+    onShow: (g) => showGoal(g),
 });
+
+/** "Show me": scroll the town to the goal and point at it, then open what it needs. */
+function showGoal(g) {
+    if (mode !== 'play' || G.mode !== 'town') return;
+    const s = g.show;
+    if (!s) {
+        // nothing to point at: nudge time along
+        if (G.speed < 2) send({ t: 'speed', v: 2 });
+        for (const b of document.querySelectorAll('[data-speed="2"], [data-speed="3"], #btn-sleep')) { b.classList.remove('pulse-on'); void b.offsetWidth; b.classList.add('pulse-on'); }
+        ui.toast('⏩ Time is running at 2×. Try 3× or ☾ to sleep until morning.');
+        return;
+    }
+    if (s.panel) { ui.openPanel(s.panel); return; }
+    if (s.plot == null || s.plot < 0) return;
+    view.centreOn(s.plot);
+    view.point(s.plot);
+    if (g.id === 'collect') return;           // the bubble is right there: the arrow is enough
+    view.selPlot = s.plot;
+    ui.hintBuild = s.build || null;
+    ui.openPanel('plot:' + s.plot);
+}
 ui.G = G;
 
 loadAssets().then(() => { document.body.classList.add('art-ready'); });
@@ -154,8 +176,9 @@ canvas.addEventListener('pointermove', (e) => {
         drag.x = e.clientX; drag.y = e.clientY;
         if (drag.moved > 10) view.panBy(dx);
     } else if (e.pointerType === 'mouse' && !ui.anyScreen()) {
-        view.hoverPlot = view.pickTown(G, e.clientX, e.clientY);
-        canvas.style.cursor = view.hoverPlot !== -1 ? 'pointer' : '';
+        const bub = view.pickBubble(e.clientX, e.clientY);
+        view.hoverPlot = bub >= 0 ? -1 : view.pickTown(G, e.clientX, e.clientY);
+        canvas.style.cursor = bub >= 0 || view.hoverPlot !== -1 ? 'pointer' : '';
     }
 });
 const endPtr = (e) => {
@@ -163,6 +186,9 @@ const endPtr = (e) => {
     if (!drag || drag.id !== e.pointerId) return;
     const d = drag; drag = null;
     if (e.type !== 'pointerup' || d.moved > 10 || mode !== 'play' || ui.anyScreen()) return;
+    // a bubble first: they float over the buildings, so a tap on one never opens the panel underneath
+    const bub = view.pickBubble(e.clientX, e.clientY);
+    if (bub >= 0) { send({ t: 'collect', plot: bub }); return; }
     const hit = view.pickTown(G, e.clientX, e.clientY);
     if (hit === -1) return;
     audio.ui('open');
@@ -196,7 +222,8 @@ function handlePresses() {
         if (ab != null) { const ids = Object.keys(G.battle.abil); const order = ['web', 'flare', 'stomp', 'buns'].filter((i) => ids.includes(i)); if (order[ab]) send({ t: 'ability', id: order[ab] }); }
         if (key === 'KeyQ') send({ t: 'queen' });
     } else {
-        const panels = { KeyQ: 'quests', KeyS: 'staff', KeyH: 'heroes', KeyG: 'defence', KeyB: 'bake' };
+        const panels = { KeyQ: 'quests', KeyS: 'staff', KeyH: 'heroes', KeyG: 'defence', KeyB: 'bake', KeyT: 'whatnext' };
+        if (key === 'KeyC') send({ t: 'collectAll' });
         if (panels[key]) { audio.ui('open'); ui.openPanel(panels[key]); }
         if (key === 'KeyN') send({ t: 'nextDay' });
         if (key === 'Digit0' || key === 'Digit1' || key === 'Digit2' || key === 'Digit3') send({ t: 'speed', v: +key.slice(5) });
@@ -215,7 +242,8 @@ function flushEvents() {
     audio.onEvents(G, ev);
     for (const e of ev) {
         switch (e.type) {
-            case 'scene': scene(e.id); break;
+            // after the intro (and the first quests), Lord Vellum explains the basics
+            case 'scene': scene(e.id, e.id === 'intro' ? () => scene('tutorial') : undefined); break;
             case 'questNew': { const q = questDef(e.id); say([q.intro]); break; }
             case 'questDone': { const q = questDef(e.id); say([q.outro, q.outro2]); ui.toast(`✅ ${q.title}: ${ui.rewardText(q.reward)}`); break; }
             case 'day': {
@@ -239,6 +267,8 @@ function flushEvents() {
                 view.selPlot = -1;
                 syncMode();
                 ui.toast(e.readyAll ? '🛡️ Everything on the checklist is ready: the wall is stronger!' : '🔔 The Crumb Horde is here! To the wall!');
+                // the first siege ever: how the wall works
+                if (e.wave === 0 && !e.epi && !G.stats.wavesLost && !G.retries) scene('siege1');
                 saveGame(G);
                 break;
             }
@@ -274,8 +304,9 @@ function frame(now) {
     if (running) {
         const speed = G.mode === 'battle' ? 1 : G.speed;
         acc += dt * FAST * speed;
-        let n = 0;
+        let n = 0, townT = 0;
         while (acc >= STEP && n < 12 * FAST * 3) {
+            if (G.mode === 'town') townT += STEP;
             const inp = bot ? botInput(G, bot, STEP) : input.state();
             const ev0 = G.events.length;
             step(G, inp, STEP);
@@ -285,6 +316,7 @@ function frame(now) {
             if (G.events.length && G.events.some((e) => e.type === 'questNew' || e.type === 'questDone' || e.type === 'scene' || e.type === 'kingArrives' || e.type === 'queen' || e.type === 'battleEnd' || e.type === 'invasion')) break;
         }
         if (n >= 12 * FAST * 3) acc = 0;
+        view.tickTown(G, townT);
         saveT += dt;
         if (saveT > 20 && G.mode === 'town') { saveT = 0; saveGame(G); }
     } else acc = 0;

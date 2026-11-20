@@ -67,7 +67,22 @@
         <button id="btn-pause" class="ibtn" aria-label="Menu">❚❚</button>
     </div>
     <div id="ticker" hidden><span id="ticker-text"></span></div>
+    <div id="tiprow" hidden>
+        <div id="tip" role="status" aria-live="polite">
+            <img id="tip-por" src="art/por/vellum.png" alt="">
+            <div class="tipbody">
+                <b id="tip-title"></b>
+                <p id="tip-text"></p>
+            </div>
+            <div class="tipacts">
+                <button class="btn small primary" id="tip-show">Show me</button>
+                <button class="ibtn" id="tip-close" aria-label="Hide the tip">✕</button>
+            </div>
+        </div>
+        <button id="btn-collect" class="btn" hidden aria-label="Collect every bubble (C)">✨ <b>0</b></button>
+    </div>
     <nav id="dock" hidden>
+        <button class="dbtn" data-sheet="whatnext"><span>💡</span>Next</button>
         <button class="dbtn" data-sheet="quests"><span>📜</span>Quests<em id="badge-quests" hidden></em></button>
         <button class="dbtn" data-sheet="staff"><span>👻</span>Staff</button>
         <button class="dbtn" data-sheet="heroes"><span>🗡️</span>Heroes</button>
@@ -127,11 +142,16 @@
     <div id="howto" class="screen" hidden>
         <div class="sheet">
             <h2>How to Play</h2>
+            <p><b>Lost?</b> Lord Vellum's tip card at the bottom says what to do next, and <b>Show me</b> points at it. The 💡 <b>Next</b> button lists every good idea at once.</p>
+            <p><b>Bubbles.</b> Every few seconds a glowing bubble floats over a busy building. Tap it (or press C) to collect a bonus. The little rising numbers show what each building is making.</p>
             <p><b>The town.</b> Tap an empty plot to build: cottages for villagers, a windmill and a sugarbeet patch for flour and sugar, a bakery to turn them into gold and hope, a quarry for stone. Buildings need villagers to work them, and villagers come when there is room and hope. Assign your staff to buildings to speed them up.</p>
             <p><b>The countdown.</b> Each phase gives you a few days before the next invasion. The 🛡️ Siege panel lists what the town should have ready: wall, watchtowers, adventurers, the bake. Meet it all and the wall gets a bonus.</p>
             <p><b>The siege.</b> You command the wall on the left. Tap or drag on the field (or ← → and Space) to throw doilies. Towers and adventurers fight on their own; your staff's abilities are the round buttons. Beaten enemies curl up and nap. Hold out and you win more days; lose and the wave comes back in three, a little weaker.</p>
             <p><b>The Grand Bake.</b> Build the Great Oven and keep it lit. Each ingredient from a quest lets it bake another quarter. Finish it before the King arrives…</p>
             <table>
+                <tr><td>C</td><td>Collect every bubble in town</td></tr>
+                <tr><td>T</td><td>What next? (the tips)</td></tr>
+                <tr><td>Q S H G B</td><td>Quests, Staff, Heroes, Siege, Bake</td></tr>
                 <tr><td>Space / tap</td><td>Throw a doily (hold to keep throwing)</td></tr>
                 <tr><td>← → / A D</td><td>Aim</td></tr>
                 <tr><td>1 – 4</td><td>Staff abilities</td></tr>

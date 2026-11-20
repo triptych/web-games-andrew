@@ -8,8 +8,9 @@ import {
 } from './sim/data.js';
 import {
     costOf, canAfford, canBuild, rates, buildingRate, housing, workersNeeded, staffing, advSlots, advsHired, trainCost, wallArmor,
-    countOf, bakeCap, hasAny, plotsOpen, daysUntil,
+    countOf, bakeCap, hasAny, plotsOpen, daysUntil, isRipe, harvestValue,
 } from './sim/town.js';
+import { nextGoals } from './sim/advice.js';
 import { questDef, needsDeliver, deliverCost, objectiveMet } from './sim/game.js';
 import { readiness } from './sim/battle.js';
 import { artUrl } from './view/assets.js';
@@ -19,11 +20,14 @@ const fmt = (n) => (n >= 10000 ? (n / 1000).toFixed(1) + 'k' : String(Math.floor
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const costHtml = (G, cost) => Object.entries(cost).filter(([, v]) => v).map(([r, v]) => `<span class="${(G.res[r] || 0) < v ? 'short' : ''}">${RES_ICON[r]}${fmt(v)}</span>`).join(' ');
 const por = (id) => artUrl('por/' + (CAST[id]?.por || id));
-const PANEL_TITLES = { quests: 'Quests', staff: 'The Household', heroes: 'Adventurers', defence: 'The Siege', bake: 'The Grand Bake' };
+const PANEL_TITLES = { whatnext: 'What next?', quests: 'Quests', staff: 'The Household', heroes: 'Adventurers', defence: 'The Siege', bake: 'The Grand Bake' };
 
 export class UI {
-    constructor({ audio, settings, onSettings, onDeleteSave, send }) {
+    constructor({ audio, settings, onSettings, onDeleteSave, send, onShow }) {
         this.audio = audio;
+        this.onShow = onShow;       // "Show me": main.js points the view at a goal
+        this.hintBuild = null;      // the building a "Show me" asked the plot panel to highlight
+        this.tipId = null; this.tipOff = null; this.tipT = 0; this.tipGoal = null;
         this.settings = settings;
         this.send = send;
         this.stack = [];
@@ -63,6 +67,12 @@ export class UI {
             const cmd = JSON.parse(b.dataset.cmd);
             audio.ui('click');
             if (cmd.t === 'openPlot') { this.openPanel('plot:' + cmd.plot); return; }
+            if (cmd.t === 'show') {
+                const g = nextGoals(this.G).find((x) => x.id === cmd.id);
+                this.closeScreen('panel');
+                if (g) this.onShow?.(g);
+                return;
+            }
             const ok = this.send(cmd);
             if (ok && (cmd.t === 'build' || cmd.t === 'demolish')) { this.closeScreen('panel'); this.panel = null; return; }
             this.renderPanel(true);
@@ -82,6 +92,15 @@ export class UI {
             this.renderPanel(true);
         });
 
+        // the helper's tip card and the collect-all button
+        $('tip-show').addEventListener('click', () => {
+            audio.ui('open');
+            this.tipT = 0; this.tips(this.G, 0);     // act on the town as it is now, not half a second ago
+            if (this.tipGoal) this.onShow?.(this.tipGoal);
+        });
+        $('tip-close').addEventListener('click', () => { audio.ui('close'); this.tipOff = this.tipId; $('tip').hidden = true; });
+        $('btn-collect').addEventListener('click', () => this.send({ t: 'collectAll' }));
+
         // dialogue
         const advance = () => this.nextLine();
         $('talkbox').addEventListener('click', (e) => { if (!e.target.closest('#talk-skip')) advance(); });
@@ -100,7 +119,7 @@ export class UI {
     closeScreen(id) {
         $(id).hidden = true;
         this.stack = this.stack.filter((s) => s !== id);
-        if (id === 'panel') this.panel = null;
+        if (id === 'panel') { this.panel = null; this.hintBuild = null; }
         if (id === 'talk') this.audio.hush();
         if (this.top()) this.focusFirst(this.top());
     }
@@ -123,7 +142,7 @@ export class UI {
     }
 
     // ------------------------------------------------------------------ modes
-    showTown(on) { $('topbar').hidden = !on; $('dock').hidden = !on; $('ticker').hidden = !on; }
+    showTown(on) { $('topbar').hidden = !on; $('dock').hidden = !on; $('ticker').hidden = !on; $('tiprow').hidden = !on; if (on) this.tipT = 0; }
     showBattle(on, G) {
         $('bhud').hidden = !on;
         if (on) this.buildAbilities(G);
@@ -172,8 +191,57 @@ export class UI {
         badge.hidden = !G.quests.active.length;
         badge.textContent = ready ? '!' : G.quests.active.length;
         this.gossip(G, dt);
+        this.tips(G, dt);
         this.renderT -= dt;
         if (this.panel && this.renderT <= 0) this.renderPanel();
+    }
+
+    // ------------------------------------------------------------------ the helper
+    /** Lord Vellum's card: the best next step, refreshed a couple of times a second. */
+    tips(G, dt) {
+        const ripe = G.plots.filter((p) => isRipe(p.b)).length;
+        const cb = $('btn-collect');
+        cb.hidden = ripe < 1;
+        cb.querySelector('b').textContent = ripe;
+        this.tipT -= dt;
+        if (this.tipT > 0) return;
+        this.tipT = 0.5;
+        const goals = nextGoals(G), g = goals[0];
+        const tip = $('tip');
+        if (!g) { tip.hidden = true; return; }
+        this.tipGoal = g;
+        // a hidden card comes back for the next story step (or when the player asks via 💡)
+        if (this.tipOff && g.id !== this.tipOff && g.pri <= 3) this.tipOff = null;
+        tip.hidden = !!this.tipOff;
+        $('tiprow').classList.toggle('tipoff', !!this.tipOff);
+        $('ticker').style.visibility = tip.hidden ? '' : 'hidden';
+        if (g.id === this.tipId && tip.dataset.text === g.text) return;
+        if (g.id !== this.tipId) { tip.classList.remove('fresh'); void tip.offsetWidth; tip.classList.add('fresh'); }
+        this.tipId = g.id;
+        tip.dataset.text = g.text;
+        $('tip-title').textContent = `${g.icon} ${g.title}`;
+        $('tip-text').textContent = g.text;
+        $('tip-show').hidden = !g.show && g.id !== 'wait';
+        $('tip-show').textContent = g.id === 'wait' ? 'Speed up' : 'Show me';
+    }
+
+    whatnextHtml(G) {
+        this.tipOff = null;   // asking for tips brings the card back
+        const goals = nextGoals(G).slice(0, 6);
+        let html = '<p>Lord Vellum\'s clipboard, best idea first. Greyed ones need saving up for: tap the bubbles over your buildings to get there faster.</p>';
+        for (const g of goals) {
+            html += `<div class="card goal${g.can ? '' : ' off'}"><div class="gicon">${g.icon}</div><div class="body"><h3>${esc(g.title)}</h3><p>${esc(g.text)}</p>
+                <div class="acts">${this.cmdBtn(g.id === 'wait' ? 'Speed up' : 'Show me', { t: 'show', id: g.id }, { primary: g.can })}</div></div></div>`;
+        }
+        html += `<h3>How Thistlegloom works</h3><ul class="guide">
+            <li>✨ <b>Bubbles</b> float over busy buildings every few seconds. Tap one (or press C) for a bonus.</li>
+            <li>🌾 🍬 The <b>Windmill</b> and <b>Sugarbeet Patch</b> make flour and sugar. The 🥐 <b>Bakery</b> turns them into gold.</li>
+            <li>🪨 The <b>Quarry</b> makes stone for the wall and the bigger buildings.</li>
+            <li>🏡 <b>Cottages</b> house villagers, and every workshop needs villagers to run (👥 in the top bar: villagers / homes).</li>
+            <li>📜 <b>Quests</b> bring new staff, heroes and the ingredients for the Grand Bake.</li>
+            <li>🛡️ The <b>Siege</b> panel lists what the wall needs before the countdown runs out.</li>
+            <li>⏩ Waiting for gold? Speed up time (2×, 3×) or ☾ sleep until morning.</li></ul>`;
+        return html;
     }
 
     // ------------------------------------------------------------------ panels
@@ -207,15 +275,24 @@ export class UI {
         const p = G.plots[i];
         if (i >= plotsOpen(G)) return ['Locked plot', `<p>Upgrade the Town Hall to build here.</p>`];
         if (!p.b) {
-            let html = '<p>What should we build here?</p>';
-            for (const k of BUILD_ORDER) {
+            let html = '<p>What should we build here?</p>', locked = '';
+            const order = this.hintBuild ? [this.hintBuild, ...BUILD_ORDER.filter((k) => k !== this.hintBuild)] : BUILD_ORDER;
+            for (const k of order) {
                 const def = BUILDINGS[k], why = canBuild(G, i, k);
-                if (why === 'locked' || why === 'only one') continue;
+                if (why === 'only one') continue;
+                if (why === 'locked') {
+                    // show what's coming, and how to get it
+                    const q = QUESTS.find((x) => x.obj.what === k);
+                    const how = k === 'gingerhome' ? 'Comes after the war is won.' : q ? `Unlocks with the quest “${q.title}”${q.phase > G.phase ? ` (after siege ${q.phase})` : ''}.` : 'Not yet.';
+                    locked += `<div class="card off"><img src="${artUrl('bld/' + k)}" alt=""><div class="body"><h3>🔒 ${def.icon} ${def.name}</h3><p>${esc(def.desc)}</p><div class="lock">${esc(how)}</div></div></div>`;
+                    continue;
+                }
                 const cost = costOf(k);
-                html += `<div class="card${why ? ' off' : ''}"><img src="${artUrl('bld/' + k)}" alt=""><div class="body"><h3>${def.icon} ${def.name}</h3><p>${esc(def.desc)}</p>
+                const hint = k === this.hintBuild ? ' hint' : '';
+                html += `<div class="card${why ? ' off' : ''}${hint}"><img src="${artUrl('bld/' + k)}" alt=""><div class="body"><h3>${def.icon} ${def.name}${hint ? ' <span class="tag2">Lord Vellum suggests</span>' : ''}</h3><p>${esc(def.desc)}</p>
                     <div class="acts"><span class="cost">${costHtml(G, cost)}</span>${def.workers ? `<span class="tag2">👷 ${def.workers}</span>` : ''}${this.cmdBtn('Build', { t: 'build', plot: i, kind: k }, { disabled: !!why, primary: true })}</div></div></div>`;
             }
-            return ['An empty plot', html];
+            return ['An empty plot', html + locked];
         }
         const b = p.b, def = BUILDINGS[b.kind], r = buildingRate(G, i);
         let html = `<div class="card"><img src="${artUrl('bld/' + b.kind)}" alt=""><div class="body"><h3>${def.icon} ${def.name} ${'★'.repeat(b.lvl)}</h3><p>${esc(def.desc)}</p>`;
@@ -238,7 +315,8 @@ export class UI {
             const cost = costOf(b.kind, b.lvl + 1);
             html += `<span class="cost">${costHtml(G, cost)}</span>${this.cmdBtn('Upgrade ★' + (b.lvl + 1), { t: 'upgrade', plot: i }, { disabled: !canAfford(G, cost), primary: true })}`;
         }
-        if (b.kind === 'oven') html += this.cmdBtn(G.oven.lit ? 'Let the fire die' : '🔥 Light the oven', { t: 'oven', on: !G.oven.lit });
+        if (b.kind === 'oven') html += this.cmdBtn(G.oven.lit ? 'Let the fire die' : '🔥 Light the oven', { t: 'oven', on: !G.oven.lit }, { primary: !G.oven.lit });
+        if (isRipe(b)) html += this.cmdBtn('✨ Collect ' + Object.entries(harvestValue(G, i)).map(([k, v]) => `${RES_ICON[k]}${v}`).join(' '), { t: 'collect', plot: i }, { primary: true });
         if (b.kind !== 'oven') html += this.cmdBtn('Knock down', { t: 'demolish', plot: i });
         html += `</div></div></div>`;
         // who works here
