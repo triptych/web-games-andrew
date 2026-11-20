@@ -374,7 +374,7 @@ export class Messenger {
         return `${this.dir(id)}avatar${tiny ? '-tiny' : ''}.webp`;
     }
 
-    /** The Garden is drawn as your own 8-bit dragonfly once you've met (and until it has a painting). */
+    /** The Garden is drawn as your own 8-bit dragonfly once you've met it on the island (its painting until then). */
     pixel(id) {
         return id === GARDEN && (currentMem()?.met || this.avatars.get(GARDEN)?.art !== 'fal');
     }
