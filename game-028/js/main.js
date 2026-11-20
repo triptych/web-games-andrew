@@ -258,7 +258,7 @@ function handlePress(p) {
         if (p.t === 'dir') { if (!ui.targetKey(p.dir)) moveFocus(p.dir); }
         else if (p.t === 'ok') document.activeElement?.click?.();
         else if (p.t === 'back' && ui.bsel && ui.bsel.stage !== 'root') { ui.bsel.stage = 'root'; ui.renderBattleMenu(G); }
-        else if (p.t === 'auto') { ui.autoOn = !ui.autoOn; autoBattle = ui.autoOn; if (ui.bsel) ui.renderBattleMenu(G); }
+        else if (p.t === 'auto') ui.setAuto(!ui.autoOn);
     }
 }
 
@@ -324,7 +324,7 @@ function update(dt) {
                 const r = pendingResult; pendingResult = null;
                 if ($('b-result').hidden) ui.battleResult(G, r.kind, r.e);
             } else if (!B.over && B.await !== null) {
-                if (autoBattle) { const err = send(autoCommand(G, 1)); if (err) send({ t: 'defend' }); }
+                if (autoBattle) { ui.autoBar(); const err = send(autoCommand(G, 1)); if (err) send({ t: 'defend' }); }
                 else ui.battleMenu(G);
             }
         }
