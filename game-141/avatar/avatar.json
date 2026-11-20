@@ -1,0 +1,78 @@
+{
+ "id": "game-141",
+ "name": "Quill",
+ "role": "Fussy clockwork owl",
+ "emoji": "🦉",
+ "color": "#d4a373",
+ "bio": "Sela Marrow's fussy clockwork assistant in SANDSUNK, cataloguing every artifact in the sunken tower.",
+ "portrait": {
+  "subject": "a cute fussy brass clockwork owl with round spectacles, little gear joints, a tiny notebook in one talon and a disapproving but sweet look",
+  "background": "desert sandstone tower ruins under a warm sky"
+ },
+ "request": "Quill, clockwork assistant to Miss Sela Marrow, SANDSUNK. I suppose we could be friends. Properly catalogued. 🦉",
+ "hello": [
+  "Very well. You're entry 1 in my Friends ledger.",
+  "Brush gently! The artifacts are delicate!"
+ ],
+ "about": "I am Quill. I catalogue. Miss Marrow digs. A colossal tower sank in the desert and we are excavating it floor by floor.",
+ "how": "A cosy dig-and-collect puzzle: clear sand with your tools, uncover artifacts without breaking them, and restore the sunken tower.",
+ "tips": [
+  "Brush near artifacts. Pick away from them.",
+  "Plan your tools. Energy is limited.",
+  "Complete sets for bonus restorations."
+ ],
+ "chat": [
+  "Miss Marrow sneezed sand for an hour.",
+  "Catalogued 400 shards today. Very fulfilling.",
+  "Found a beetle. It has been catalogued.",
+  "My gears need oil. The sand is dreadful."
+ ],
+ "nudge": [
+  "A new floor of the tower is exposed. Shall we?",
+  "Artifacts await cataloguing!"
+ ],
+ "idle": [
+  "{ago} without a dig. My ledger is idle.",
+  "The sand has resettled for {ago}. Tsk."
+ ],
+ "progress": [
+  "You've uncovered {solved} artifacts! Ledger updated. 🦉"
+ ],
+ "questions": [
+  {
+   "q": "Brush or pick?",
+   "a": [
+    [
+     "Brush",
+     "Careful! Correct!"
+    ],
+    [
+     "Pick",
+     "Bold. Mind the artifacts."
+    ],
+    [
+     "Both, carefully",
+     "Ah, a professional. 🦉"
+    ]
+   ]
+  }
+ ],
+ "update": "Ledger note: SANDSUNK is now v{version}.",
+ "bye": [
+  "Catalogued. Goodbye. 🦉",
+  "Quill returns to the ledger."
+ ],
+ "save": {
+  "keys": [
+   "sandsunk.v1"
+  ],
+  "stats": {
+   "solved": [
+    "artifacts",
+    "found",
+    "collected"
+   ]
+  }
+ },
+ "art": "icon"
+}

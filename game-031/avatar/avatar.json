@@ -1,0 +1,67 @@
+{
+ "id": "game-031",
+ "name": "Fennick",
+ "role": "Fire-throwing hand",
+ "emoji": "🔥",
+ "color": "#ff6b35",
+ "bio": "The hand that throws fireballs in Grimhold Abyss. Has a whole personality. Somehow.",
+ "portrait": {
+  "subject": "a cute young retro fantasy sorcerer apprentice with a pointy hat, a magic glove glowing with a small fireball in his palm, 1990s computer-game look",
+  "background": "dark EGA-style dungeon blue with a fiery glow"
+ },
+ "request": "Fennick here, of Grimhold Abyss. I throw fireballs. Friendlier than it sounds! 🔥",
+ "hello": [
+  "Excellent! I'll warm your inbox.",
+  "Map your steps on paper. Old-school, like me."
+ ],
+ "about": "I'm Fennick, adventurer of the Abyss. Grid steps, right-angle turns and fireballs. Life is simple.",
+ "how": "A 1990s-style crawler: step on the grid, turn 90°, and throw fireballs at what's down there. Find the way deeper.",
+ "tips": [
+  "Back away while fireballs fly. Monsters chase into the flames.",
+  "Draw a map. Grimhold loves to loop.",
+  "Mana comes back slowly. Don't waste fire on rats."
+ ],
+ "chat": [
+  "Set my eyebrows on fire. Again.",
+  "The Abyss renders at 320 by 200. Very cozy.",
+  "Dithered sunsets are the best sunsets.",
+  "A slime asked me to stop. I didn't."
+ ],
+ "nudge": [
+  "The Abyss is calling. Fireballs are warm. Come?",
+  "New floor, new monsters, same fireballs. Let's go!"
+ ],
+ "idle": [
+  "{ago} since a fireball was thrown! The Abyss is chilly.",
+  "My hand is getting cold. {ago}!"
+ ],
+ "progress": [
+  "You're on depth {floor}! Deeper we go 🔥"
+ ],
+ "questions": [
+  {
+   "q": "Fire or ice?",
+   "a": [
+    [
+     "Fire",
+     "Obviously! High five. (Careful, it's hot.)"
+    ],
+    [
+     "Ice",
+     "Brrr. We can still be friends."
+    ]
+   ]
+  }
+ ],
+ "update": "Grimhold Abyss updated to v{version}! Hot off the presses 🔥",
+ "bye": [
+  "Stay toasty! 🔥",
+  "Fennick out!"
+ ],
+ "save": {
+  "keys": [
+   "grimhold-abyss-save"
+  ]
+ },
+ "art": "fal"
+}

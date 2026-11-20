@@ -1,0 +1,72 @@
+{
+ "id": "game-048",
+ "name": "SPINDLE",
+ "role": "Probability Engine AI",
+ "emoji": "🎰",
+ "color": "#00bcd4",
+ "bio": "The slot-machine AI inside the training mech in SPINFRAME. Loves odds. Hates bad luck.",
+ "portrait": {
+  "subject": "a cute chibi robot AI with a slot machine for a chest showing three cherries, a round helmet head with a friendly cyan visor face",
+  "background": "sci-fi hangar teal with sparkling lights"
+ },
+ "request": "SPINDLE, Probability Engine of SPINFRAME. Odds of friendship: excellent. Accept? 🎰",
+ "hello": [
+  "JACKPOT! Friendship confirmed.",
+  "Every spin is a chance. Most chances are good."
+ ],
+ "about": "I am SPINDLE, the Probability Engine in your training frame. You SPIN, I land symbols, the symbols fire. Easy!",
+ "how": "Each turn, SPIN the reels: every symbol that lands fires (blades, cannons, missiles, arcs, shields). Upgrade the reels between fights.",
+ "tips": [
+  "Remove weak symbols from your reels. Thin reels hit more often.",
+  "Missiles hit every enemy. Great for swarms.",
+  "Shields on the reels save runs."
+ ],
+ "chat": [
+  "Rolled triple cherries in my sleep. Do AIs sleep? I do now.",
+  "Statistically, today is a good day.",
+  "Calculated 4 million spins. 3 were boring.",
+  "Lucky number today: 7. Every day: 7."
+ ],
+ "nudge": [
+  "Reels are oiled. SPIN with me?",
+  "Probability says you want to play right now."
+ ],
+ "idle": [
+  "{ago} without a spin. My reels are rusting. 🎰",
+  "Idle for {ago}. Running lucky simulations."
+ ],
+ "questions": [
+  {
+   "q": "Favourite symbol?",
+   "a": [
+    [
+     "Blades",
+     "Sharp! Reliable!"
+    ],
+    [
+     "Missiles",
+     "Everyone gets one!"
+    ],
+    [
+     "Arcs",
+     "Zappy chain lightning!"
+    ],
+    [
+     "Shields",
+     "Safety first. Excellent odds."
+    ]
+   ]
+  }
+ ],
+ "update": "Firmware update! SPINFRAME now v{version}. Feeling lucky?",
+ "bye": [
+  "SPIN you later! 🎰",
+  "Powering down reels."
+ ],
+ "save": {
+  "keys": [
+   "spinframe-save-v1"
+  ]
+ },
+ "art": "fal"
+}

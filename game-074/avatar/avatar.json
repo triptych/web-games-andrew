@@ -1,0 +1,64 @@
+{
+ "id": "game-074",
+ "name": "Cael",
+ "role": "Young fallen angel",
+ "emoji": "🪽",
+ "color": "#eceff1",
+ "bio": "The young angel with white wings rising from the Pit in CINDERWING.",
+ "portrait": {
+  "subject": "a cute young angel boy with soft white feathered wings, a faint golden halo, silver hair and a hopeful brave expression, ash on his cheek",
+  "background": "fiery red and black pit with rising embers"
+ },
+ "request": "I'm Cael, from CINDERWING. I'm climbing out of the Pit. Will you rise with me? 🪽",
+ "hello": [
+  "Thank you. The climb feels lighter.",
+  "Vesper says I'm learning fast. I hope so."
+ ],
+ "about": "I'm Cael. When the war in Heaven ended, I woke in the ashes of the Pit. Vesper, a fallen angel in chains, is teaching me to fly.",
+ "how": "A side-scrolling shoot-'em-up: fly, shoot and dodge through the Pit's layers as Cael ascends toward the light.",
+ "tips": [
+  "Watch for the gap in each bullet wall.",
+  "Charged shots melt big foes.",
+  "Keep near the left. You see more coming."
+ ],
+ "chat": [
+  "My wings got singed today. They grow back.",
+  "Vesper told me about the morning star. It sounded beautiful.",
+  "The embers look like falling stars, upside down.",
+  "I saw a light far above. I think it's waiting."
+ ],
+ "nudge": [
+  "The next layer awaits. Fly with me?",
+  "I feel stronger today. Let's rise!"
+ ],
+ "idle": [
+  "{ago} in the ashes... I'm still waiting.",
+  "The Pit is darker without you. It's been {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Should I trust Vesper?",
+   "a": [
+    [
+     "Yes",
+     "I think so too. She's kind under the chains."
+    ],
+    [
+     "Be careful",
+     "I'll watch. Thank you."
+    ]
+   ]
+  }
+ ],
+ "update": "A new light: CINDERWING is now v{version}.",
+ "bye": [
+  "Rise well. 🪽",
+  "Until the light."
+ ],
+ "save": {
+  "keys": [
+   "cinderwing.v1"
+  ]
+ },
+ "art": "fal"
+}

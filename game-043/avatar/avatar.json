@@ -1,0 +1,71 @@
+{
+ "id": "game-043",
+ "name": "Mayor Bracken",
+ "role": "Mayor of a village of one",
+ "emoji": "🌳",
+ "color": "#81c784",
+ "bio": "The only resident of Glimmerglen when you arrive. Very excited about having a second.",
+ "portrait": {
+  "subject": "a cute small round forest mayor with a mossy green coat, a little acorn hat with a feather, rosy cheeks and a tiny golden mayoral chain",
+  "background": "magical forest glade with a softly glowing tree"
+ },
+ "request": "Mayor Bracken of Glimmerglen! Population: me. Want to be friends? That'd double it! 🌳",
+ "hello": [
+  "WONDERFUL! I'm declaring a holiday!",
+  "The Heartwood looks a little happier already."
+ ],
+ "about": "I'm Bracken, mayor of Glimmerglen. For years it was just me and the Heartwood tree. Now look at us! Farms! Villagers! Magic!",
+ "how": "Farm through four seasons, raise animals, forage, mine, cook and craft. Rebuild the Job Board and welcome villagers as the Glen's magic wakes.",
+ "tips": [
+  "Fix the Job Board early: villagers bring daily gifts.",
+  "Seasons matter. Plant what the season loves!",
+  "Each dungeon relic opens the next land."
+ ],
+ "chat": [
+  "A new fairy ring glowed tonight. I danced in it. Alone. Mayorally.",
+  "The chickens elected a leader. It wasn't me.",
+  "The Heartwood grew a leaf! A LEAF!",
+  "Made a mushroom stew. Unclear which mushrooms."
+ ],
+ "nudge": [
+  "The crops look ready! Come harvest?",
+  "A traveller's asking about the Job Board!"
+ ],
+ "idle": [
+  "Your crops have been growing for {ago}! The fields are bursting! 🌾",
+  "{ago}! The animals miss you. The cows mooed your name."
+ ],
+ "progress": [
+  "Day {day} in Glimmerglen! The village is really coming together."
+ ],
+ "questions": [
+  {
+   "q": "Which villager should move in next?",
+   "a": [
+    [
+     "A blacksmith",
+     "Tools! Progress!"
+    ],
+    [
+     "A cook",
+     "Stew that I didn't make. Yes please."
+    ],
+    [
+     "A bard",
+     "Music in the glen! 🎶"
+    ]
+   ]
+  }
+ ],
+ "update": "Town crier! Glimmerglen updated to v{version}! 🌳",
+ "bye": [
+  "Mayoral wave! 🌳",
+  "Off to cut a vine-ribbon. Bye!"
+ ],
+ "save": {
+  "keys": [
+   "glimmerglen.v1.*"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,78 @@
+{
+ "id": "game-122",
+ "name": "Drip",
+ "role": "A raindrop",
+ "emoji": "💧",
+ "color": "#4fc3f7",
+ "bio": "A single raindrop on the train window in Rainglass, wiping the mist away one station at a time.",
+ "portrait": {
+  "subject": "a super cute round raindrop character with big glossy eyes, a sleepy happy smile and reflections of city lights inside it",
+  "background": "misty rainy train window at night with blurry warm lights"
+ },
+ "request": "Plip! I'm Drip, the raindrop from Rainglass. Can we ride together? 💧",
+ "hello": [
+  "Plip plop! Yay!",
+  "Roll over the rain to get bigger. Then wipe the mist!"
+ ],
+ "about": "I'm Drip. I live on the train window. At every station I roll across the glass to clear the mist so we can see outside.",
+ "how": "Guide a single raindrop across the misty train window to wipe it clear. Wiping spends water, so roll over rain to refill.",
+ "tips": [
+  "Plan a path through fresh raindrops.",
+  "Wipe edges first, then the middle.",
+  "There's no rush. Enjoy the rain."
+ ],
+ "chat": [
+  "The window showed a lighthouse today. So pretty.",
+  "Plip. Plop. Plip.",
+  "I merged with another drop. We're friends now. Literally.",
+  "The train hums a lullaby."
+ ],
+ "nudge": [
+  "Next station's coming! Wipe the window with me? 💧",
+  "A cosy rainy night. Perfect for a ride."
+ ],
+ "idle": [
+  "{ago} of mist on the window. I can't see out!",
+  "Plip... {ago}. The train kept going."
+ ],
+ "progress": [
+  "You've cleared {solved} stations! What a view! 🌧️"
+ ],
+ "questions": [
+  {
+   "q": "What do you hope is outside the window?",
+   "a": [
+    [
+     "A city",
+     "All twinkly lights! ✨"
+    ],
+    [
+     "The sea",
+     "Splashy friends! 🌊"
+    ],
+    [
+     "Mountains",
+     "Snowy peaks! ⛰️"
+    ]
+   ]
+  }
+ ],
+ "update": "Plip! Rainglass is now v{version}! 🌧️",
+ "bye": [
+  "Plip plop bye! 💧",
+  "*rolls down the window*"
+ ],
+ "save": {
+  "keys": [
+   "rainglass.v1"
+  ],
+  "stats": {
+   "solved": [
+    "stations",
+    "cleared",
+    "completed"
+   ]
+  }
+ },
+ "art": "icon"
+}

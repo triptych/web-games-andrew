@@ -1,0 +1,74 @@
+{
+ "id": "game-003",
+ "name": "Grub the Goblin",
+ "role": "Dungeon shopkeeper",
+ "emoji": "⚔️",
+ "color": "#7fcf6a",
+ "bio": "Sells potions on floor 3 of the Procedural Roguelike. The floor changes. Grub stays.",
+ "portrait": {
+  "subject": "a cute small green goblin shopkeeper with big ears, a tiny lantern, a leather apron with potion bottles and a cheeky grin",
+  "background": "dark dungeon stone grey with warm torchlight glow"
+ },
+ "request": "Psst. Grub here, from the Roguelike dungeon. You buy potions? You want friend? 🧪",
+ "hello": [
+  "Friend! Grub has friend now. Grub gives friend discount. (No discount.)",
+  "Grub will message when dungeon is extra dangerous. So... always."
+ ],
+ "about": "Grub sells potions in the dungeon. Every time the floors reshuffle, Grub just picks up shop and moves. Grub is very flexible.",
+ "how": "Walk the dungeon one step at a time. Bump monsters to fight, grab loot, cast spells, talk to folks. If you die, it's over, so be careful!",
+ "tips": [
+  "Don't fight in the open. Lure monsters into corridors so they come one at a time!",
+  "Always keep a healing potion. Grub sells them. Hint hint.",
+  "Rest when hurt and no monsters around. Patience wins dungeons.",
+  "Read the letters. Every letter is a monster. Big letters, big trouble."
+ ],
+ "chat": [
+  "A skeleton tried to pay Grub in bones. Grub took it. Business is business.",
+  "Floor reshuffled again. Grub's shop now next to a dragon. Location location location.",
+  "Grub counted gold. Then counted again. Still not enough gold.",
+  "Today a rat asked Grub for directions. Grub sold him a map. To nowhere.",
+  "Grub is ASCII. Grub is letter 'g'. Small letter. Big heart."
+ ],
+ "nudge": [
+  "New floor just generated. Smells like loot! Come down?",
+  "Dungeon is quiet. Too quiet. Grub needs adventurer. Now please."
+ ],
+ "idle": [
+  "{ago} since you came down! Grub dusted potions twice.",
+  "Grub thought you got eaten. {ago}! Are you eaten?"
+ ],
+ "progress": [
+  "You reach depth {floor}! Grub impressed. Grub thinks you see {floor+1} soon.",
+  "Level {level} adventurer! Grub raise prices. Respect."
+ ],
+ "questions": [
+  {
+   "q": "Grub has question. Red potion or blue potion?",
+   "a": [
+    [
+     "Red",
+     "Red is health. Smart friend. Grub gives you a wink."
+    ],
+    [
+     "Blue",
+     "Blue is magic! Zap zap. Grub likes zap."
+    ],
+    [
+     "Mystery!",
+     "Ooh, gambler! Could be anything. Could be soup."
+    ]
+   ]
+  }
+ ],
+ "update": "Big news! Roguelike dungeon got new version v{version}! New stuff on shelves maybe. Come look!",
+ "bye": [
+  "Grub goes back to shop. Bye friend!",
+  "Mind the traps! Bye!"
+ ],
+ "save": {
+  "keys": [
+   "roguelike_save"
+  ]
+ },
+ "art": "fal"
+}

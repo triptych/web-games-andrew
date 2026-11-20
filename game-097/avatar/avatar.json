@@ -1,0 +1,71 @@
+{
+ "id": "game-097",
+ "name": "The Grasshopper",
+ "role": "Fairy-chess piece",
+ "emoji": "♞",
+ "color": "#7e57c2",
+ "bio": "A gothic fairy-chess piece in Hollow Gambit that vaults a piece and lands beyond it. Very bouncy for a goth.",
+ "portrait": {
+  "subject": "a cute gothic chess-piece knight character with a dark violet cape, a little grasshopper-shaped helmet with antennae, pale skin and big eyes",
+  "background": "candlelit gothic cathedral chessboard in deep purple"
+ },
+ "request": "The Grasshopper, of Hollow Gambit. I vault over things. Including awkwardness. Friends? ♞",
+ "hello": [
+  "Splendid. Shall we leap together?",
+  "Remember, the Cannon only fires over a piece."
+ ],
+ "about": "I am the Grasshopper. I vault a piece and land beyond it. Every piece in our party moves like a chess piece. It's elegant.",
+ "how": "A tactics RPG where every party member moves like a chess piece, fairy chess included. Position them, then duel when they meet.",
+ "tips": [
+  "Use pieces as hurdles for the Grasshopper.",
+  "The Rook controls whole lanes. Place it first.",
+  "Knights leap. Flank with them."
+ ],
+ "chat": [
+  "Leapt over a bishop today. He was not amused.",
+  "The cathedral bells play in E minor. Moody.",
+  "I polished my antennae. Gothically.",
+  "Checkmate is just a hug with rules."
+ ],
+ "nudge": [
+  "The board is set. Shall we move?",
+  "A new duel awaits in the crypt."
+ ],
+ "idle": [
+  "{ago} without a move. Even goths get bored.",
+  "The candles burned down over {ago}."
+ ],
+ "progress": [
+  "Party level {level}. The darkness trembles. Slightly."
+ ],
+ "questions": [
+  {
+   "q": "Favourite chess piece?",
+   "a": [
+    [
+     "Knight",
+     "Leapers unite!"
+    ],
+    [
+     "Queen",
+     "Powerful. Sensible."
+    ],
+    [
+     "The Grasshopper",
+     "Oh! *happy vault* ♞"
+    ]
+   ]
+  }
+ ],
+ "update": "Hollow Gambit updated to v{version}. New gambits await.",
+ "bye": [
+  "I bid you a gloomy goodnight. ♞",
+  "*vaults away*"
+ ],
+ "save": {
+  "keys": [
+   "hollow-gambit.v1"
+  ]
+ },
+ "art": "icon"
+}

@@ -1,0 +1,71 @@
+{
+ "id": "game-107",
+ "name": "Rollo",
+ "role": "Rolling kaiju",
+ "emoji": "🦖",
+ "color": "#66bb6a",
+ "bio": "A baby kaiju curled into a ball in Kaiju Roll. Never stops rolling. Doesn't want to.",
+ "portrait": {
+  "subject": "a cute baby green dinosaur kaiju curled almost into a ball, tiny arms waving, big happy eyes and little spikes on its back",
+  "background": "colourful toy city with tiny skyscrapers"
+ },
+ "request": "RAWR-oll! Rollo the kaiju, Kaiju Roll! Friends? I'll try not to roll over you! 🦖",
+ "hello": [
+  "YAY! *rolls in excitement*",
+  "Bounce off buildings to curve. Wheee!"
+ ],
+ "about": "I'm Rollo! I'm a kaiju. I curled into a ball and now I never stop rolling. Every building I hit drops floors and makes me bigger!",
+ "how": "Steer a rolling kaiju through a toy city, bounce off buildings and knock floors off skyscrapers to grow bigger and bigger.",
+ "tips": [
+  "Small buildings first. Grow, then go big!",
+  "Bounces keep your speed. Use them!",
+  "Curve your path around tight streets."
+ ],
+ "chat": [
+  "Knocked the top off a skyscraper. It was a hat shop. Wearing 40 hats.",
+  "Rolled through a park. Sorry, ducks.",
+  "I'm the size of a bus now!",
+  "Got dizzy. Still rolling."
+ ],
+ "nudge": [
+  "The city's full of buildings! ROLL? 🦖",
+  "I'm hungry for skyscrapers!"
+ ],
+ "idle": [
+  "{ago} without rolling! I'm getting square.",
+  "Rawr... {ago}. The city rebuilt everything."
+ ],
+ "progress": [
+  "Best score {best}! RAWR! 🦖"
+ ],
+ "questions": [
+  {
+   "q": "Which kaiju would you be?",
+   "a": [
+    [
+     "Reptile",
+     "Same as me! 🦖"
+    ],
+    [
+     "Monkey",
+     "Bananas!"
+    ],
+    [
+     "Robot",
+     "Beep-roll!"
+    ]
+   ]
+  }
+ ],
+ "update": "RAWR! Kaiju Roll updated to v{version}! 🦖",
+ "bye": [
+  "Roll on! 🦖",
+  "*rolls away*"
+ ],
+ "save": {
+  "keys": [
+   "kaiju-roll.v1"
+  ]
+ },
+ "art": "icon"
+}

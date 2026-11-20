@@ -1,0 +1,78 @@
+{
+ "id": "game-119",
+ "name": "Grandma Hettie",
+ "role": "Retired merchant",
+ "emoji": "🛒",
+ "color": "#8d6e63",
+ "bio": "The grandmother who left you her handcart in THE HERO'S MERCHANT. Still sends trading tips from Hearthmere.",
+ "portrait": {
+  "subject": "a cute chibi old merchant grandmother with a big sun hat, round glasses, a coin pouch belt and a ledger book, sitting on a wooden handcart",
+  "background": "painterly HD-2D farming village with fields"
+ },
+ "request": "Dearie! Grandma Hettie here. You've got my cart in THE HERO'S MERCHANT. Write to your old Gran? 🛒",
+ "hello": [
+  "Wonderful! I'll send you price tips.",
+  "Buy where it's made, sell where it's wanted. Always."
+ ],
+ "about": "I'm Hettie. Forty years I pushed that handcart across thirteen towns. Now it's yours. Make me proud, dearie!",
+ "how": "A trading game: buy goods where they're made and sell where they're wanted across thirteen towns, upgrade your cart and help heroes.",
+ "tips": [
+  "Watch prices. Every town has its own wants.",
+  "Bigger cart, bigger profits.",
+  "Heroes pay well for the right gear."
+ ],
+ "chat": [
+  "The cheese in Hearthmere is up two coins. Scandal!",
+  "Saw a hero buy a sword he couldn't lift.",
+  "My knees say rain. My ledger says profit.",
+  "I still hear the cart wheels in my sleep."
+ ],
+ "nudge": [
+  "Prices are good in the next town, dearie!",
+  "A hero's looking for supplies. Go!"
+ ],
+ "idle": [
+  "{ago} and the cart's not moving? Tsk tsk, dearie.",
+  "Your goods have sat {ago}. Prices change, you know!"
+ ],
+ "progress": [
+  "You've got {gold} coins in the purse! Gran is impressed! 🛒"
+ ],
+ "questions": [
+  {
+   "q": "What's the best thing to trade?",
+   "a": [
+    [
+     "Cheese",
+     "Always sells! 🧀"
+    ],
+    [
+     "Potions",
+     "Heroes need 'em!"
+    ],
+    [
+     "Swords",
+     "Heavy, but profitable!"
+    ]
+   ]
+  }
+ ],
+ "update": "Market news: THE HERO'S MERCHANT updated to v{version}!",
+ "bye": [
+  "Mind the coins, dearie! 🛒",
+  "Gran's off for tea!"
+ ],
+ "save": {
+  "keys": [
+   "heros-merchant.v1"
+  ],
+  "stats": {
+   "gold": [
+    "gold",
+    "coins",
+    "money"
+   ]
+  }
+ },
+ "art": "icon"
+}

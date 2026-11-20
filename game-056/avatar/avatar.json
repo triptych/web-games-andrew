@@ -1,0 +1,71 @@
+{
+ "id": "game-056",
+ "name": "Sergeant Hollis",
+ "role": "Keep archer",
+ "emoji": "🏰",
+ "color": "#8e6e53",
+ "bio": "The single archer who started on the squat tower of Emberhold in Keepfire. Now leads a garrison.",
+ "portrait": {
+  "subject": "a cute determined young archer sergeant with a bowl haircut, a dented helmet, a red tabard with a flame emblem and a longbow",
+  "background": "stone castle tower at sunset with banners"
+ },
+ "request": "Sergeant Hollis of Emberhold, Keepfire! The keep needs allies. Join us? 🏰",
+ "hello": [
+  "Huzzah! The keep stands stronger already.",
+  "Spend gold mid-wave. Waiting costs lives."
+ ],
+ "about": "I'm Hollis. I was the first and only archer on Emberhold's tower. Now we have walls, mages and a whole lot of lanes.",
+ "how": "Monsters march down five lanes. Spend the gold from each kill on defences mid-wave, and grow the keep between waves.",
+ "tips": [
+  "Balance the lanes. One weak lane loses the keep.",
+  "Upgrades between waves stack forever. Invest!",
+  "Spend during the wave, not after it."
+ ],
+ "chat": [
+  "Shot an arrow so far it landed in next week.",
+  "The new mage set his own hat on fire.",
+  "A goblin waved at me before charging. Polite.",
+  "Emberhold has a cat now. She's on the wall. She's our best scout."
+ ],
+ "nudge": [
+  "Monsters on the horizon! Man the walls?",
+  "The keep's ready for a bigger fight. You?"
+ ],
+ "idle": [
+  "Gold's been piling up in the treasury for {ago}, my liege! 💰",
+  "{ago}! The keep held. Barely. Come back!"
+ ],
+ "progress": [
+  "We held to wave {wave}! Next is {wave+1}. Ready the arrows!"
+ ],
+ "questions": [
+  {
+   "q": "Which lane do you defend first?",
+   "a": [
+    [
+     "The middle",
+     "Classic and solid!"
+    ],
+    [
+     "Whichever's on fire",
+     "Practical! 🔥"
+    ],
+    [
+     "All at once",
+     "Ambitious! I like it."
+    ]
+   ]
+  }
+ ],
+ "update": "Keepfire has been updated to v{version}! New defences?",
+ "bye": [
+  "For Emberhold! 🏰",
+  "Hollis out!"
+ ],
+ "save": {
+  "keys": [
+   "keepfire.save.v1"
+  ]
+ },
+ "art": "fal"
+}

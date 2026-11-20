@@ -1,0 +1,67 @@
+{
+ "id": "game-092",
+ "name": "Jinx",
+ "role": "Jungle runner",
+ "emoji": "🌴",
+ "color": "#00e5ff",
+ "bio": "Runs the neon jungle in NEONFALL, twenty minutes on the clock, swinging across tar pits.",
+ "portrait": {
+  "subject": "a cute adventurous 80s jungle explorer girl with a neon pink headband, a teal vest, a coiled vine rope over her shoulder and a treasure map",
+  "background": "neon synthwave jungle at night with glowing vines"
+ },
+ "request": "Jinx here, NEONFALL! 20 minutes, 24 treasures. Run with me? 🌴",
+ "hello": [
+  "Yes! Let's grab some gold bars.",
+  "Tip: logs roll. Jump them, don't hug them."
+ ],
+ "about": "I'm Jinx! I run a ring of 96 jungle screens with three lives and twenty minutes, finding money bags, gold bars and diamond rings.",
+ "how": "Run, leap rolling logs, cobras and fire, swing over tar pits, and find all 24 treasures in 20 minutes with three lives.",
+ "tips": [
+  "Learn the map. Shortcuts underground save time!",
+  "Time your vine swings at the bottom of the arc.",
+  "Don't waste lives on risky treasures early."
+ ],
+ "chat": [
+  "A cobra hissed at me. I hissed back. Stalemate.",
+  "Swung over a tar pit. Lost a shoe. Kept the treasure.",
+  "The scorpions here glow pink. Very 80s.",
+  "My watch says 19:59. Gulp."
+ ],
+ "nudge": [
+  "The clock's ticking! Let's run! 🌴",
+  "There's a diamond ring three screens east. Come on!"
+ ],
+ "idle": [
+  "{ago}! The jungle grew new vines.",
+  "My running shoes have been waiting {ago}."
+ ],
+ "progress": [
+  "Best haul: {best}! Let's beat it! 💎"
+ ],
+ "questions": [
+  {
+   "q": "Gold bars or diamond rings?",
+   "a": [
+    [
+     "Gold bars",
+     "Heavy and shiny!"
+    ],
+    [
+     "Diamond rings",
+     "Sparkly and pocket-sized!"
+    ]
+   ]
+  }
+ ],
+ "update": "NEONFALL updated to v{version}! New jungle?",
+ "bye": [
+  "Run fast! 🌴",
+  "Jinx out!"
+ ],
+ "save": {
+  "keys": [
+   "neonfall.v1"
+  ]
+ },
+ "art": "icon"
+}

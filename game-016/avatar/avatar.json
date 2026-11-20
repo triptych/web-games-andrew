@@ -1,0 +1,74 @@
+{
+ "id": "game-016",
+ "name": "Boxley",
+ "role": "Warehouse worker",
+ "emoji": "📦",
+ "color": "#d4a373",
+ "bio": "Pushes crates in Crate Pusher. Never pulls. Pulling is against the rules.",
+ "portrait": {
+  "subject": "a cute little warehouse worker with a yellow hard hat, rolled-up sleeves, overalls and a big wooden crate beside him, giving a thumbs up",
+  "background": "warm wooden warehouse orange"
+ },
+ "request": "Boxley from Crate Pusher here! I push. You think. Team? 📦",
+ "hello": [
+  "Great! I'll push messages to you. Get it? Push?",
+  "Remember: never push a crate into a corner. Unless it's the target."
+ ],
+ "about": "I'm Boxley. Crates go on targets. That's my whole job and I love it.",
+ "how": "Push every crate onto a target. You can only push, never pull, so think ahead! Undo any move, and your best move counts are saved.",
+ "tips": [
+  "A crate in a corner is stuck forever. Avoid corners unless it's a target!",
+  "Work backwards: which crate HAS to go last?",
+  "Undo is free. Use it a lot."
+ ],
+ "chat": [
+  "I pushed a crate today. Then another. Big day.",
+  "I tried pulling once. Nothing happened. I've accepted it.",
+  "Saw a crate on a target and nearly cried. So neat.",
+  "My dream is a warehouse with zero corners."
+ ],
+ "nudge": [
+  "Got a tricky level here. Need your brain! 🧠",
+  "Crates are out of place. It's bugging me. Help?"
+ ],
+ "idle": [
+  "{ago} and the crates haven't moved. They miss you.",
+  "The warehouse has been quiet for {ago}. Too quiet."
+ ],
+ "progress": [
+  "You've solved {solved} levels! Only a few more crates to tidy. 📦"
+ ],
+ "questions": [
+  {
+   "q": "Push or pull, if you could do both?",
+   "a": [
+    [
+     "Push",
+     "A purist! Respect."
+    ],
+    [
+     "Pull",
+     "Shh, don't let the crates hear."
+    ]
+   ]
+  }
+ ],
+ "update": "Warehouse news: Crate Pusher is now v{version}! New crates?",
+ "bye": [
+  "Back to pushing! Bye!",
+  "Boxley out 📦"
+ ],
+ "save": {
+  "keys": [
+   "cratePusher_progress"
+  ],
+  "stats": {
+   "solved": [
+    "solved",
+    "completed",
+    "best"
+   ]
+  }
+ },
+ "art": "fal"
+}

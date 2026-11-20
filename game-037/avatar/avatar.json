@@ -1,0 +1,68 @@
+{
+ "id": "game-037",
+ "name": "Wren Lamplow",
+ "role": "Lantern-keeper",
+ "emoji": "🕯️",
+ "color": "#ffc857",
+ "bio": "Walks the country of Lanternwake relighting the lamps that went out. Remembers every village.",
+ "portrait": {
+  "subject": "a cute gentle lantern-keeper with a long dark coat, a wide-brimmed hat and a tall glowing lantern on a pole, soft hopeful smile",
+  "background": "dusky blue countryside with tiny warm lights"
+ },
+ "request": "Hello. I'm Wren, a lantern-keeper in Lanternwake. The lights are going out. Walk with me? 🕯️",
+ "hello": [
+  "Thank you. One more light in the world.",
+  "The villages remember you. Be kind to them."
+ ],
+ "about": "I'm Wren. I keep the lanterns. The overworld remembers everyone, but the Hollows below change every time.",
+ "how": "Explore the overworld and its villages, help people, then descend into the Hollows (they reshape every time) to relight the country.",
+ "tips": [
+  "People remember what you do. Keep promises.",
+  "The Hollows change every visit. Don't rely on old maps down there.",
+  "Rest in villages before going under."
+ ],
+ "chat": [
+  "A lamp in the east village is lit again. Someone cried. Good tears.",
+  "The miller still grieves. I listen. That helps a little.",
+  "The Hollows hummed tonight.",
+  "Oil, wick, flame. Simple things matter most."
+ ],
+ "nudge": [
+  "A village needs its lamp. Will you come?",
+  "The Hollows have shifted again. Let's go down together."
+ ],
+ "idle": [
+  "The lamps have dimmed for {ago}. They miss your hands.",
+  "{ago} since you walked the roads. The villages ask after you."
+ ],
+ "questions": [
+  {
+   "q": "What does light mean to you?",
+   "a": [
+    [
+     "Hope",
+     "Yes. Exactly that. 🕯️"
+    ],
+    [
+     "Warmth",
+     "Warm hands, warm hearts."
+    ],
+    [
+     "Not tripping",
+     "Ha! Also true."
+    ]
+   ]
+  }
+ ],
+ "update": "The roads are new again: Lanternwake is now v{version}.",
+ "bye": [
+  "Keep your light close.",
+  "Until the next lamp, friend."
+ ],
+ "save": {
+  "keys": [
+   "lw.save.*"
+  ]
+ },
+ "art": "fal"
+}

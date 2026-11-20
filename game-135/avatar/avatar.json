@@ -1,0 +1,79 @@
+{
+ "id": "game-135",
+ "name": "Mayor Maple",
+ "role": "Harbor mayor",
+ "emoji": "🚧",
+ "color": "#ffca28",
+ "bio": "Hands out the jobs in Hard Hat Harbor's seaside town. Loves a good pothole fix.",
+ "portrait": {
+  "subject": "a cute cheerful town mayor woman with a yellow hard hat over red curls, a mayoral sash, a clipboard and a big friendly smile",
+  "background": "sunny seaside toy town with construction trucks"
+ },
+ "request": "Mayor Maple of Hard Hat Harbor! The town needs fixing, and I need friends! 🚧",
+ "hello": [
+  "Wonderful! I've got a job board just for you.",
+  "Potholes on Main Street first. Always potholes first."
+ ],
+ "about": "I'm Mayor Maple! Our little seaside town needs fixing, and you've got a toy box of trucks: dump truck, bulldozer, excavator, crane and more!",
+ "how": "Pick a vehicle from the toy box and take jobs from the board: patch potholes, bulldoze rockslides, crane roofs, pour concrete and build a bridge.",
+ "tips": [
+  "Read each job card. The right truck makes it easy!",
+  "The cement mixer needs patience.",
+  "Swing the wrecking ball gently at first."
+ ],
+ "chat": [
+  "Farmer Gus found ANOTHER rock in his field.",
+  "The school roof is lovely now! Thanks to you!",
+  "The cannery's coming down soon. Bring the wrecking ball!",
+  "I wore my hard hat to dinner. Old habits."
+ ],
+ "nudge": [
+  "New job on the board! 🚧",
+  "The bridge needs its next span!"
+ ],
+ "idle": [
+  "{ago} without a job done! The potholes are back!",
+  "The trucks have been parked for {ago}. They're bored!"
+ ],
+ "progress": [
+  "You've finished {solved} jobs! The town looks wonderful!"
+ ],
+ "questions": [
+  {
+   "q": "Favourite truck?",
+   "a": [
+    [
+     "Dump truck",
+     "Big and tippy! 🚚"
+    ],
+    [
+     "Crane",
+     "Up up up! 🏗️"
+    ],
+    [
+     "Wrecking ball",
+     "SMASH! Carefully!"
+    ]
+   ]
+  }
+ ],
+ "update": "Town news: Hard Hat Harbor updated to v{version}! 🚧",
+ "bye": [
+  "Hard hats on! Bye! 🚧",
+  "Mayor Maple out!"
+ ],
+ "save": {
+  "keys": [
+   "hard-hat-harbor.v1"
+  ],
+  "stats": {
+   "solved": [
+    "jobsDone",
+    "completed",
+    "done",
+    "jobs"
+   ]
+  }
+ },
+ "art": "icon"
+}

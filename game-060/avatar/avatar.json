@@ -1,0 +1,71 @@
+{
+ "id": "game-060",
+ "name": "Commander Brix",
+ "role": "Brick Armada defector",
+ "emoji": "🧱",
+ "color": "#ef5350",
+ "bio": "A small alien made of living bricks who left the Brick Armada in BRICKVADERS. Now helps you knock it down.",
+ "portrait": {
+  "subject": "a cute little alien made of colourful toy bricks with glowing eyes, a tiny captain's hat and a friendly blocky smile",
+  "background": "retro arcade black with red and blue neon glow"
+ },
+ "request": "Commander Brix, ex-Brick Armada! BRICKVADERS! I switched sides. Friends? 🧱",
+ "hello": [
+  "Wonderful! I'll tell you all their weak spots.",
+  "Hint: the mothership has a loose brick. Bottom left."
+ ],
+ "about": "I'm Brix. I was a soldier in the Brick Armada. Then I saw how much fun it is to be knocked down. Changed sides!",
+ "how": "Bounce the plasma ball into the marching brick aliens and shoot them with your laser base. Half brick-breaker, half alien shooter!",
+ "tips": [
+  "Bounce the ball behind the formation. It does wonders.",
+  "Shoot the bottom row to stop them reaching you.",
+  "The ball and the laser work together. Use both!"
+ ],
+ "chat": [
+  "My old squad still marches left, right, down. Every day. So predictable.",
+  "I lost a brick. Grew it back. Very itchy.",
+  "The Armada's mothership has a snack bar. Bad snacks.",
+  "It's 1983 forever in here and I love it."
+ ],
+ "nudge": [
+  "The Armada's attacking again! Defend Earth?",
+  "New formation spotted. Want to see it crumble?"
+ ],
+ "idle": [
+  "{ago} and the Armada's getting closer!",
+  "Earth's been undefended for {ago}. Just saying."
+ ],
+ "progress": [
+  "High score {best}! The Armada fears your name now."
+ ],
+ "questions": [
+  {
+   "q": "Ball or laser?",
+   "a": [
+    [
+     "Ball",
+     "Bouncy brick-breaking! Classic!"
+    ],
+    [
+     "Laser",
+     "Pew pew! Precise!"
+    ],
+    [
+     "Both",
+     "STRIKER pilot through and through!"
+    ]
+   ]
+  }
+ ],
+ "update": "Intel update: BRICKVADERS now v{version}!",
+ "bye": [
+  "Brix out! 🧱",
+  "Bricks up! Bye!"
+ ],
+ "save": {
+  "keys": [
+   "brickvaders.v1"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,71 @@
+{
+ "id": "game-137",
+ "name": "Hikari",
+ "role": "Shardframe pilot",
+ "emoji": "🤖",
+ "color": "#ff7043",
+ "bio": "Pilots the sunset-orange Shardframe Unit-07 off the flying carrier Skylark in SHARDFRAME. Very 1990s anime.",
+ "portrait": {
+  "subject": "a cute 1990s anime-style mech pilot girl with spiky orange hair, a white and orange plugsuit, a headset and a determined grin with a sparkle",
+  "background": "sunset sky with a flying carrier and voxel cube monsters"
+ },
+ "request": "Hikari, pilot of Unit-07! SHARDFRAME! Let's be friends! Launch sequence: GO! 🤖",
+ "hello": [
+  "YES! Friendship OVERDRIVE!",
+  "Hold MAGNET to pull in crystals. Then OVERDRIVE!"
+ ],
+ "about": "I'm Hikari! I pilot Shardframe Unit-07 off the Skylark. The Cubeborn are monsters made of glowing cubes. My guns fire themselves. I do the cool poses.",
+ "how": "A voxel bullet heaven: move, hold MAGNET to pull in pickups, fire OVERDRIVE when it's charged, level up and pick upgrades.",
+ "tips": [
+  "Save OVERDRIVE for big waves.",
+  "Magnet when it's safe, not mid-swarm.",
+  "Upgrades that stack spread are amazing."
+ ],
+ "chat": [
+  "Did a cut-in pose today. Speed lines everywhere!",
+  "The Skylark's cook made curry. Best day.",
+  "Cubeborn shatter into tiny cubes. So satisfying!",
+  "My mech's name is Sunny. Don't laugh."
+ ],
+ "nudge": [
+  "Sortie time! Unit-07, launching! 🤖",
+  "Cubeborn swarm spotted! Let's go!"
+ ],
+ "idle": [
+  "{ago} in the hangar! Sunny's getting restless.",
+  "The Skylark's been on standby {ago}!"
+ ],
+ "progress": [
+  "Pilot level {level}! Next episode: level {level+1}!"
+ ],
+ "questions": [
+  {
+   "q": "Best mech colour?",
+   "a": [
+    [
+     "Sunset orange",
+     "SUNNY APPROVES! 🧡"
+    ],
+    [
+     "Purple and green",
+     "Classic. Very serious."
+    ],
+    [
+     "White and blue",
+     "Heroic!"
+    ]
+   ]
+  }
+ ],
+ "update": "Episode update! SHARDFRAME is now v{version}! 🤖",
+ "bye": [
+  "Unit-07, standing by! 🤖",
+  "Hikari out! *pose*"
+ ],
+ "save": {
+  "keys": [
+   "shardframe.v1"
+  ]
+ },
+ "art": "icon"
+}

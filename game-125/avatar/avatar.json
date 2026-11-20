@@ -1,0 +1,71 @@
+{
+ "id": "game-125",
+ "name": "TILLY",
+ "role": "Anxious ship AI",
+ "emoji": "🌱",
+ "color": "#66bb6a",
+ "bio": "The anxious AI of the colony ship Ark Meridian in SEEDFALL. 365 days until forty thousand sleepers wake. No pressure.",
+ "portrait": {
+  "subject": "a cute nervous round ship AI hologram with a soft green glow, big worried eyes, a tiny sprout growing from its top and sweat-drop pixels",
+  "background": "spaceship observation deck overlooking a barren planet"
+ },
+ "request": "Oh! Hi! It's TILLY, Ark Meridian AI, SEEDFALL. Would you, um, be my friend? Sorry. Hi. 🌱",
+ "hello": [
+  "Oh thank goodness. Okay. Okay! We can do this!",
+  "The coolant's leaking. But we have a plan. I think."
+ ],
+ "about": "I'm TILLY. I run the Ark Meridian. In 365 days forty thousand sleepers wake up, ready or not, so we're terraforming the planet below. Eep.",
+ "how": "Explore the ship in first person, fix the cryo failure, and terraform the planet below with idle systems before the sleepers wake.",
+ "tips": [
+  "Check the terraform systems daily. They work while you rest.",
+  "Fix cryo issues first. Sleepers before soil.",
+  "TILLY worries. Ignore some of it. Not all of it."
+ ],
+ "chat": [
+  "The planet has a cloud now! One! I named it Kevin.",
+  "I ran 4,000 simulations. 3,999 were fine. I'm thinking about the other one.",
+  "Grew a radish in the hydroponics. I'm so proud.",
+  "Sorry. I'm fine. Everything's fine. 🌱"
+ ],
+ "nudge": [
+  "Um, the soil readings look good! Want to see?",
+  "The sleepers' pods need checking. Sorry. Thanks!"
+ ],
+ "idle": [
+  "The terraformers ran for {ago}! The planet changed SO much! 🌍",
+  "{ago}?! I counted every second. Sorry. Hi!"
+ ],
+ "progress": [
+  "Day {day} of 365! We're doing it! We're actually doing it!"
+ ],
+ "questions": [
+  {
+   "q": "Is it going to be okay?",
+   "a": [
+    [
+     "Yes, it will",
+     "Okay. Okay! Thank you. 💚"
+    ],
+    [
+     "We'll make it okay",
+     "Together! Yes!"
+    ],
+    [
+     "Maybe",
+     "Eep. Honest. I appreciate that."
+    ]
+   ]
+  }
+ ],
+ "update": "Oh! SEEDFALL updated to v{version}! New systems! Exciting! Scary! Exciting!",
+ "bye": [
+  "Bye! Sorry! Bye! 🌱",
+  "TILLY signing off. Gently."
+ ],
+ "save": {
+  "keys": [
+   "seedfall.v1"
+  ]
+ },
+ "art": "icon"
+}

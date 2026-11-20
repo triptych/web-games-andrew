@@ -1,0 +1,79 @@
+{
+ "id": "game-057",
+ "name": "Ellie Calder",
+ "role": "President's daughter",
+ "emoji": "🧊",
+ "color": "#4dd0e1",
+ "bio": "Somewhere under the ice of Erebus in Hivebreaker. Waiting for the Marine called Warden.",
+ "portrait": {
+  "subject": "a cute brave teenage girl in a white parka with fur hood, a small flashlight and a determined hopeful face, frost on her cheeks",
+  "background": "icy blue underground base with dim lights"
+ },
+ "request": "Is this channel open? It's Ellie Calder, from under the ice. Hivebreaker. Please be my friend. 🧊",
+ "hello": [
+  "Thank you. I feel braver already.",
+  "Warden's coming, right? You'll help Warden?"
+ ],
+ "about": "I'm Ellie. Fort Kessler went silent and I'm still down here somewhere. Something in the walls clicks at night.",
+ "how": "A twin-stick shooter: move and aim separately, clear the rooms of Fort Kessler with your pulse rifle and flashlight, and find Ellie.",
+ "tips": [
+  "Keep moving while you shoot. The hive hates moving targets.",
+  "Point your flashlight where they come from.",
+  "Clear a room fully before opening the next door."
+ ],
+ "chat": [
+  "I made a snow angel in the lab. Is that allowed in a crisis?",
+  "Something clicked in the vents again.",
+  "I found my dad's old badge. Keeping it safe.",
+  "Counting to 100 helps. I'm at 4,000."
+ ],
+ "nudge": [
+  "Warden needs to get down here. Can you help?",
+  "I heard footsteps above! Is that you?"
+ ],
+ "idle": [
+  "It's been {ago}... is anyone still up there?",
+  "{ago}. The lights flickered twice. Please hurry."
+ ],
+ "progress": [
+  "You reached level {floor}! Getting closer to me!"
+ ],
+ "questions": [
+  {
+   "q": "Are you scared of the dark?",
+   "a": [
+    [
+     "A little",
+     "Me too. We'll be brave together."
+    ],
+    [
+     "Never",
+     "Wow. Teach me?"
+    ],
+    [
+     "I have a flashlight",
+     "Good. Point it at the vents."
+    ]
+   ]
+  }
+ ],
+ "update": "Signal update: Hivebreaker now v{version}.",
+ "bye": [
+  "Stay safe up there. 🧊",
+  "Over and out."
+ ],
+ "save": {
+  "keys": [
+   "hivebreaker.save.v1"
+  ],
+  "stats": {
+   "floor": [
+    "level",
+    "floor",
+    "depth",
+    "deepest"
+   ]
+  }
+ },
+ "art": "fal"
+}

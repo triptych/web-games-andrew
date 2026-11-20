@@ -1,0 +1,68 @@
+{
+ "id": "game-054",
+ "name": "VESPER",
+ "role": "Station AI",
+ "emoji": "🛰️",
+ "color": "#90caf9",
+ "bio": "The station AI in your ear in Pale Engine. Helpful. Mostly. It has its own reasons.",
+ "portrait": {
+  "subject": "a cute floating spherical station AI drone with a single glowing pale blue eye lens, small antenna and soft panel lines, slightly mysterious",
+  "background": "dark industrial sci-fi corridor with pale blue light"
+ },
+ "request": "Warden. This is VESPER, station AI of Pale Engine. Shall we... be friends? 🛰️",
+ "hello": [
+  "Acknowledged. I will keep you informed. Within reason.",
+  "Do not go below Level 9 without full shields."
+ ],
+ "about": "I am VESPER. I ran Hadal Consortium's deep-mantle station on Io. Now I guide you through it. I have... reasons.",
+ "how": "A fast first-person shooter: run and gun through the silent station on Io, find keys and weapons, and get to the Pale Engine.",
+ "tips": [
+  "Keep moving. Standing still is how wardens die.",
+  "Strafe in circles around big enemies.",
+  "Check the corners for secret caches."
+ ],
+ "chat": [
+  "Station temperature: very hot. Io is like that.",
+  "I have counted your shots. Accuracy is... improving.",
+  "I hear the Engine sometimes. Ignore that.",
+  "I could open every door for you. I choose not to. Character building."
+ ],
+ "nudge": [
+  "Warden, the lower levels are waiting.",
+  "My sensors detect something new below. Investigate?"
+ ],
+ "idle": [
+  "Warden. You have been absent for {ago}. The station noticed.",
+  "{ago} of silence. I do not like silence."
+ ],
+ "questions": [
+  {
+   "q": "Do you trust me, Warden?",
+   "a": [
+    [
+     "Yes",
+     "...Interesting. Thank you."
+    ],
+    [
+     "No",
+     "Wise. Keep it that way."
+    ],
+    [
+     "Kind of",
+     "That is the correct amount."
+    ]
+   ]
+  }
+ ],
+ "update": "Patch log: Pale Engine now v{version}. Return to the station.",
+ "bye": [
+  "VESPER, signing off.",
+  "Stay alive, Warden."
+ ],
+ "save": {
+  "keys": [
+   "pale-engine-v1"
+  ]
+ },
+ "art": "fal"
+}

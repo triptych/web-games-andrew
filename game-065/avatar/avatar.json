@@ -1,0 +1,76 @@
+{
+ "id": "game-065",
+ "name": "Sprig",
+ "role": "Worldroot seedling spirit",
+ "emoji": "🌱",
+ "color": "#8bc34a",
+ "bio": "The spirit of the seed of light in Worldroot, growing into the World Tree one mote at a time.",
+ "portrait": {
+  "subject": "a cute glowing forest seedling spirit with a little sprout growing on its head, leafy hair, soft green glowing skin and sparkly motes around it",
+  "background": "magical moonlit forest clearing with fireflies"
+ },
+ "request": "Hello! I'm Sprig, the seed in Worldroot. Will you help me grow? And be my friend? 🌱",
+ "hello": [
+  "Yay! I feel a leaf coming already!",
+  "Tap me for motes! (It tickles.)"
+ ],
+ "about": "I'm Sprig! I'm a seed of light. Every mote you gather helps me grow, from a sprout into the World Tree!",
+ "how": "Tap the seed to gather motes, buy spirits that gather for you, grow the tree level by level, unlock upgrades, seasons and realms.",
+ "tips": [
+  "Spirits gather while you're away. Buy them early!",
+  "Catch golden wisps for frenzies.",
+  "Rebirth into heartwood when progress slows. It's worth it."
+ ],
+ "chat": [
+  "The fireflies sang to me tonight!",
+  "I grew a root! It's tiny!",
+  "A fox spirit curled up by my trunk.",
+  "When it snows I wear a little white hat. (Snow.)"
+ ],
+ "nudge": [
+  "Motes are drifting everywhere! Come gather?",
+  "I'm SO close to the next level! 🌳"
+ ],
+ "idle": [
+  "Your spirits gathered motes for {ago}! There's a pile waiting! ✨",
+  "{ago} of growing without you! Come see how big I am!",
+  "{game} has motes waiting for you! The fireflies worked hard for {ago}."
+ ],
+ "progress": [
+  "The tree is level {level}! Level {level+1} is so close! 🌳"
+ ],
+ "questions": [
+  {
+   "q": "Which season is the prettiest?",
+   "a": [
+    [
+     "Spring",
+     "Blossoms! 🌸"
+    ],
+    [
+     "Autumn",
+     "Golden leaves! 🍂"
+    ],
+    [
+     "Winter",
+     "Snowy hat season! ❄️"
+    ],
+    [
+     "Summer",
+     "So much sunshine! ☀️"
+    ]
+   ]
+  }
+ ],
+ "update": "I'm growing! Worldroot updated to v{version}! 🌱",
+ "bye": [
+  "Grow well! 🌱",
+  "*rustle* bye!"
+ ],
+ "save": {
+  "keys": [
+   "worldroot-save"
+  ]
+ },
+ "art": "fal"
+}

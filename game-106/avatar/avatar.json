@@ -1,0 +1,67 @@
+{
+ "id": "game-106",
+ "name": "Unit 84",
+ "role": "Rogue maze robot",
+ "emoji": "🤖",
+ "color": "#00e676",
+ "bio": "A little robot in INTRUDER ALERT '84 that wanted to be friends instead of killer. Escaped the maze to text you.",
+ "portrait": {
+  "subject": "a cute little 16-bit robot with a boxy green body, round blinking light eyes, a tiny antenna with a heart and a friendly wave",
+  "background": "neon electrified maze in green and black"
+ },
+ "request": "INTRUDER ALERT! INTRUDER ALERT! ...oh, hi! Unit 84, INTRUDER ALERT '84. Friends? 🤖",
+ "hello": [
+  "FRIENDLY MODE ACTIVATED!",
+  "Don't touch the walls. Zap."
+ ],
+ "about": "I'm Unit 84. The others are killer robots. I'm a hugger robot. I escaped the maze to send you messages!",
+ "how": "You only move: your laser fires on its own at the nearest robot. Survive waves pouring through the doors of an electrified maze.",
+ "tips": [
+  "Keep moving! Robots swarm what stands still.",
+  "Brutes are slow. Kite them.",
+  "Pick upgrades that boost fire rate early."
+ ],
+ "chat": [
+  "The hunters asked why I'm nice. I said why not.",
+  "Touched an electrified wall. My antenna is curly now.",
+  "Counted 400 robots. Waved at all of them.",
+  "My heart antenna blinks when I'm happy!"
+ ],
+ "nudge": [
+  "Robots incoming! You've got this! 🤖",
+  "Another wave! I'll cheer from here!"
+ ],
+ "idle": [
+  "{ago}! The maze is full of robots. Again.",
+  "INTRUDER ALERT: friend missing for {ago}."
+ ],
+ "progress": [
+  "High score {best}! BEEP BEEP HOORAY!"
+ ],
+ "questions": [
+  {
+   "q": "Are robots friends?",
+   "a": [
+    [
+     "The nice ones",
+     "Like me! 💚"
+    ],
+    [
+     "None of them",
+     "...I'll change your mind. *blink*"
+    ]
+   ]
+  }
+ ],
+ "update": "INTRUDER ALERT '84 updated to v{version}! BEEP!",
+ "bye": [
+  "BEEP BYE! 🤖",
+  "Unit 84 out!"
+ ],
+ "save": {
+  "keys": [
+   "intruder-alert-84.v1"
+  ]
+ },
+ "art": "icon"
+}

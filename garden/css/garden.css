@@ -296,6 +296,10 @@ kbd {
 .title-foot { margin: 1.5em 0 0; font-size: 1rem; color: var(--ink-dim); }
 .title-foot a { color: var(--ink-dim); white-space: nowrap; }
 .title-foot span { margin: 0 0.5em; }
+/* the handheld's own app icon beside its link */
+.title-foot .tf-app { display: inline-flex; align-items: center; gap: 0.4em; vertical-align: middle; }
+.title-foot .tf-app img { width: 1.4em; height: 1.4em; border-radius: 22%; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35); }
+.title-foot .tf-app:hover img { transform: translateY(-1px) rotate(-4deg); transition: transform 0.15s; }
 .title-count {
     position: absolute;
     bottom: calc(14px + var(--safe-b));

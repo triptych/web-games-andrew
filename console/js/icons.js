@@ -35,5 +35,7 @@ export const ICONS = {
     keys: svg('<rect x="1.5" y="4" width="13" height="8" rx="1"/><path d="M4 7h.5M7 7h.5M10 7h.5M5 9.5h6"/>'),
     play: svg('<path d="M4.5 2.5v11l9-5.5z" fill="currentColor"/>'),
     install: svg('<path d="M8 1.5v8.5M4.5 6.5L8 10l3.5-3.5"/><path d="M2 10.5v3.5h12v-3.5"/>'),
+    chat: svg('<path d="M2 3h12v8H7l-3.5 3v-3H2z"/><path d="M5 6.2h6M5 8.4h4"/>'),
+    ring: svg('<rect x="5" y="2" width="6" height="12" rx="1"/><path d="M7.5 11.8h1M2 5.5c-.8.8-.8 4.2 0 5M14 5.5c.8.8.8 4.2 0 5"/>'),
     chip: svg('<rect x="4" y="4" width="8" height="8"/><path d="M6 1.5v2.5M10 1.5v2.5M6 12v2.5M10 12v2.5M1.5 6H4M1.5 10H4M12 6h2.5M12 10h2.5"/>'),
 };

@@ -1,0 +1,71 @@
+{
+ "id": "game-118",
+ "name": "Grandma Rose",
+ "role": "Thanksgiving grandma",
+ "emoji": "🦃",
+ "color": "#ff8f00",
+ "bio": "Says the big table is full this year in The Kids Table. Secretly saving you a seat.",
+ "portrait": {
+  "subject": "a cute warm grandmother with white curls, a fall-leaf patterned apron, oven mitts and a big golden roast turkey tray",
+  "background": "cosy autumn dining room with warm candlelight"
+ },
+ "request": "Hello sweetie! Grandma Rose here. The Kids Table. Come be my friend? 🦃",
+ "hello": [
+  "Oh good! I'll save you some pie.",
+  "Merge your way up, sweetie. There's a seat with your name on it."
+ ],
+ "about": "I'm Grandma Rose! This year the big table is full, so you're at the kids' table. But merge well and you'll earn your seat at the big one!",
+ "how": "A Thanksgiving merge game: tap the Pumpkin Patch, Craft Box and Turkey to make things, merge two alike into something better, and earn your seat.",
+ "tips": [
+  "Merge three or more at once for bonuses!",
+  "Keep the table tidy. Space is precious.",
+  "Finish orders for the relatives. They tip!"
+ ],
+ "chat": [
+  "Uncle Walt fell asleep in the gravy again.",
+  "The pie came out PERFECT this year!",
+  "Cousin Bea says she's too old for the kids' table. She's eight.",
+  "I made enough stuffing to feed the town."
+ ],
+ "nudge": [
+  "The pumpkins are ripe, sweetie! Come merge!",
+  "There's an order waiting from Aunt Maggie!"
+ ],
+ "idle": [
+  "The pies have been cooling for {ago}! Come have a slice! 🥧",
+  "{ago}! The kids' table misses you, sweetie."
+ ],
+ "progress": [
+  "You're on level {level}! Almost at the big table! 🦃"
+ ],
+ "questions": [
+  {
+   "q": "What's your favourite Thanksgiving food?",
+   "a": [
+    [
+     "Pie",
+     "Grandma's speciality! 🥧"
+    ],
+    [
+     "Turkey",
+     "The classic! 🦃"
+    ],
+    [
+     "Mashed potatoes",
+     "With lots of gravy! 🥔"
+    ]
+   ]
+  }
+ ],
+ "update": "Thanksgiving news! The Kids Table is now v{version}!",
+ "bye": [
+  "Bye sweetie! 🦃",
+  "Don't forget your sweater!"
+ ],
+ "save": {
+  "keys": [
+   "the-kids-table.v1"
+  ]
+ },
+ "art": "icon"
+}

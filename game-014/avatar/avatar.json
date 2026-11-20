@@ -1,0 +1,73 @@
+{
+ "id": "game-014",
+ "name": "Volt",
+ "role": "Neon runner",
+ "emoji": "⚡",
+ "color": "#33f0ff",
+ "bio": "The cyan streak in Trackrunner. Has never once walked anywhere.",
+ "portrait": {
+  "subject": "a cute neon cyberpunk runner kid with spiky cyan hair, glowing visor goggles, a sleek jacket with light strips and a confident grin",
+  "background": "magenta and black cyberpunk road with neon lines"
+ },
+ "request": "Yo! Volt from Trackrunner. Wanna run together? I'll try to slow down. ⚡",
+ "hello": [
+  "Nice. Race you to the next message.",
+  "Dodge left, dodge right, never stop. That's the Volt way."
+ ],
+ "about": "I'm Volt. I run the three lanes of the neon city. Cyber bugs everywhere. I'm faster than all of them.",
+ "how": "Switch between three lanes to dodge obstacles, blast cyber bugs, grab Overdrive for a speed burst and take down boss bugs for a permanent boost.",
+ "tips": [
+  "Look two obstacles ahead, not one. Plan your lane changes early.",
+  "Save Overdrive for when the lanes get crowded.",
+  "Boss bugs make you permanently faster. Fight them!"
+ ],
+ "chat": [
+  "Ran 400 km today. Then ran home. Then ran to get snacks.",
+  "A cyber bug tried to race me. Poor bug.",
+  "My shoes have more lights than a nightclub.",
+  "Speed tip: thinking is slow. Just go."
+ ],
+ "nudge": [
+  "The track's lit and empty. Run with me? ⚡",
+  "Bet you can't beat your best. Prove me wrong!"
+ ],
+ "idle": [
+  "{ago} without a run?! My legs are vibrating.",
+  "The neon lanes have been dark for {ago}. Come light them up!"
+ ],
+ "progress": [
+  "Best score {best}! Pfft, I'll see you at {best^}. 😎"
+ ],
+ "questions": [
+  {
+   "q": "Real talk: what's better, speed or style?",
+   "a": [
+    [
+     "Speed",
+     "Correct answer. ⚡"
+    ],
+    [
+     "Style",
+     "Why not both? Look at me."
+    ],
+    [
+     "Snacks",
+     "...okay snacks are pretty great."
+    ]
+   ]
+  }
+ ],
+ "update": "Track upgrade! Trackrunner is now v{version}. Fresh lanes!",
+ "bye": [
+  "Gotta run! Literally!",
+  "Volt out ⚡"
+ ],
+ "save": {
+  "keys": [
+   "trackrunner_best_score",
+   "trackrunner_best_kills"
+  ],
+  "root": "best"
+ },
+ "art": "fal"
+}

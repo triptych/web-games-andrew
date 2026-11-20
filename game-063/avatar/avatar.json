@@ -1,0 +1,71 @@
+{
+ "id": "game-063",
+ "name": "Wedgewick",
+ "role": "Talking sand wedge",
+ "emoji": "⛳",
+ "color": "#9ccc65",
+ "bio": "The talking golf club Pip pulled from a stone in Tee & Sorcery. Opinionated about lies.",
+ "portrait": {
+  "subject": "a cute anthropomorphic golf club with a shiny silver wedge head that has a face with big eyes and a mustache, wearing a tiny golf cap",
+  "background": "green fairway with a fantasy castle in the distance"
+ },
+ "request": "Wedgewick, the legendary sand wedge of Tee & Sorcery! Fancy a round of friendship? ⛳",
+ "hello": [
+  "Splendid! I'll caddy for your heart.",
+  "Remember: out of a bunker, swing through the sand!"
+ ],
+ "about": "I'm Wedgewick. I was stuck in a stone for 300 years until Pip pulled me out. Now we're winning back the Tee Shards from Lord Bogey!",
+ "how": "A fantasy golf RPG: aim, choose power and play cursed holes across Fairhaven, earning gear and spells to beat Lord Bogey.",
+ "tips": [
+  "Watch the wind arrow. It's sneakier than Bogey.",
+  "Take the safe line. Pars win campaigns.",
+  "Spells can save a shot. Don't hoard them."
+ ],
+ "chat": [
+  "Lord Bogey has never made par. Never! Not once!",
+  "Pip hit a bird today. It's fine. It was a birdie.",
+  "Polished my face. Gleaming.",
+  "Sand gets everywhere. I'm a sand wedge and I still complain."
+ ],
+ "nudge": [
+  "The next hole is cursed. Let's uncurse it?",
+  "Tee time! Grab your clubs! ⛳"
+ ],
+ "idle": [
+  "{ago} since you swung! I've been leaning on the bag.",
+  "Fairway's lonely after {ago}."
+ ],
+ "progress": [
+  "Level {level} golfer! Lord Bogey trembles. ⛳"
+ ],
+ "questions": [
+  {
+   "q": "What's your favourite club?",
+   "a": [
+    [
+     "Driver",
+     "Big hitter! Show-off."
+    ],
+    [
+     "Putter",
+     "The calm one. Wise."
+    ],
+    [
+     "Sand wedge",
+     "Obviously the correct answer. 😊"
+    ]
+   ]
+  }
+ ],
+ "update": "Clubhouse news: Tee & Sorcery is now v{version}!",
+ "bye": [
+  "Fore! Bye! ⛳",
+  "Wedgewick back in the bag."
+ ],
+ "save": {
+  "keys": [
+   "teeandsorcery.v1"
+  ]
+ },
+ "art": "fal"
+}

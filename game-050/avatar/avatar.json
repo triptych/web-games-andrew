@@ -1,0 +1,68 @@
+{
+ "id": "game-050",
+ "name": "Bookwyrm Bindle",
+ "role": "Library keeper",
+ "emoji": "📚",
+ "color": "#8d6e63",
+ "bio": "A tiny bookish wyrm who keeps the Great Library of Lumenhall in Tomebound. Very cross about the ink smudge.",
+ "portrait": {
+  "subject": "a cute small green book dragon wearing round reading glasses, sitting on an open glowing book, with a quill tucked behind its horn",
+  "background": "warm library with tall shelves and magical glow"
+ },
+ "request": "Ahem. Bindle, keeper of Lumenhall's books, in Tomebound. Shall we be friends? 📚",
+ "hello": [
+  "Splendid! I'll recommend you some books. Thirteen, to be exact.",
+  "Match three gems, save a book. Simple."
+ ],
+ "about": "I'm Bindle. I keep the Great Library. A smudge of living ink scattered our thirteen greatest books. Rude, honestly.",
+ "how": "Duel monsters in match-3 battles on a shared 8×8 gem board, recover the thirteen books, and grow your idle village in between.",
+ "tips": [
+  "Make 4s and 5s for special gems.",
+  "Watch what the monster could match next turn. Block it!",
+  "Check on the village: it earns while you battle."
+ ],
+ "chat": [
+  "Found a book called 'Dragons: A Biography'. Very flattering.",
+  "The ink smudge left a footprint on my favourite chapter.",
+  "I alphabetised the gems. They didn't like it.",
+  "Library rule: no fire breath. I break it sometimes."
+ ],
+ "nudge": [
+  "Another lost book has been spotted! Shall we fetch it?",
+  "The village has gold waiting. Come spend it!"
+ ],
+ "idle": [
+  "Your village has been busy for {ago}! Gold awaits, dear reader. 📚",
+  "{ago}! The library's gone quiet. Too quiet."
+ ],
+ "progress": [
+  "You're level {level}! Practically a scholar.",
+  "The village holds {gold} gold. Perhaps a new bookshelf?"
+ ],
+ "questions": [
+  {
+   "q": "Mage or Warrior?",
+   "a": [
+    [
+     "Mage",
+     "A reader! I knew it. 📖"
+    ],
+    [
+     "Warrior",
+     "Strong arms for carrying books! Excellent."
+    ]
+   ]
+  }
+ ],
+ "update": "New chapter! Tomebound has been updated to v{version}.",
+ "bye": [
+  "Happy reading! 📚",
+  "Bindle returns to the stacks."
+ ],
+ "save": {
+  "keys": [
+   "tomebound-save"
+  ]
+ },
+ "art": "fal"
+}

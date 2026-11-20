@@ -1,0 +1,68 @@
+{
+ "id": "game-099",
+ "name": "The Tinker",
+ "role": "Fablecart workshop keeper",
+ "emoji": "🧸",
+ "color": "#ffab40",
+ "bio": "Walks the little workshop inside the Fablecart pocket console, making stickers and games.",
+ "portrait": {
+  "subject": "a cute small tinker character with a big pocket apron full of stickers, round goggles, a paintbrush and a tiny cartridge in hand",
+  "background": "cosy miniature workshop inside a retro handheld console"
+ },
+ "request": "Hi! The Tinker here, from inside Fablecart! I make games out of stickers. Friends? 🧸",
+ "hello": [
+  "Yay! I'll make a sticker of you!",
+  "The Shelf has all your cartridges. Come look!"
+ ],
+ "about": "I'm the Tinker! I live inside the Fablecart. The Shelf holds cartridges, the Stage is for scenes, the Press makes stickers, the TV plays it all!",
+ "how": "Walk the workshop, press stickers, stick characters into scenes, and build your own RPG without writing code. Then play it on the TV!",
+ "tips": [
+  "Start with one scene. Small games are great games.",
+  "Stickers can be reused everywhere.",
+  "Playtest on the TV often!"
+ ],
+ "chat": [
+  "Pressed a sticker of a frog in a crown. It's the king now.",
+  "Dusted the Shelf. Found a cartridge I forgot.",
+  "The TV's picture is extra cosy tonight.",
+  "I stuck a cloud on the ceiling. It rains glitter."
+ ],
+ "nudge": [
+  "Fancy making a scene today?",
+  "The Press is warm! Sticker time! 🧸"
+ ],
+ "idle": [
+  "{ago}! The workshop's been quiet.",
+  "Your cartridges have waited {ago} on the Shelf."
+ ],
+ "questions": [
+  {
+   "q": "What sticker should I make next?",
+   "a": [
+    [
+     "A dragon",
+     "Roar-sticker! On it!"
+    ],
+    [
+     "A cat",
+     "Meow-sticker! Cute!"
+    ],
+    [
+     "You",
+     "Aww! Hold still... 📸"
+    ]
+   ]
+  }
+ ],
+ "update": "Fablecart got updated to v{version}! New stickers?",
+ "bye": [
+  "Stay sticky! 🧸",
+  "The Tinker waves!"
+ ],
+ "save": {
+  "keys": [
+   "fablecart.v1"
+  ]
+ },
+ "art": "icon"
+}

@@ -1,0 +1,71 @@
+{
+ "id": "game-103",
+ "name": "Princess Pip",
+ "role": "Clumsy princess-in-training",
+ "emoji": "👑",
+ "color": "#f48fb1",
+ "bio": "Training at Thistlewick Academy of Magic & Marching in Crown & Crumpet. Brave, determined, very clumsy.",
+ "portrait": {
+  "subject": "a cute determined young princess with a slightly crooked tiara, pink cheeks, a frilly pink and gold dress with a small sword and a crumpet in her hand",
+  "background": "cosy isometric castle courtyard with tea party bunting"
+ },
+ "request": "Princess Pip of Crown & Crumpet! Be my friend? I'll try not to trip on you! 👑",
+ "hello": [
+  "Hooray! *trips* I'm fine!",
+  "Sometimes I stumble into a lucky double hit. It's a skill."
+ ],
+ "about": "I'm Pip! I'm training to be the next queen at Thistlewick Academy. I'm brave and determined and I trip a lot. It works out.",
+ "how": "Cosy isometric tactics: lead Pip and her friends in turn-based battles, use terrain and abilities, and pass the Academy's trials.",
+ "tips": [
+  "Put Pip next to friends. She's braver with company!",
+  "Use high ground for extra range.",
+  "Tea breaks heal. Don't skip tea."
+ ],
+ "chat": [
+  "Tripped into a puddle. Made a splash. Got applause.",
+  "My crown fell in the crumpets. Still delicious.",
+  "Marching class went great! I only fell twice.",
+  "The headmistress says I'm 'enthusiastic'."
+ ],
+ "nudge": [
+  "Training today! Will you watch? 👑",
+  "There's a tea party after the trial! Come!"
+ ],
+ "idle": [
+  "{ago} without lessons! I practised curtseys. Fell 12 times.",
+  "The crumpets went cold after {ago}!"
+ ],
+ "progress": [
+  "Our party is level {level}! Queen-level soon! 👑"
+ ],
+ "questions": [
+  {
+   "q": "What makes a good queen?",
+   "a": [
+    [
+     "Kindness",
+     "Yes! That's my plan. 💗"
+    ],
+    [
+     "Bravery",
+     "I have lots of that!"
+    ],
+    [
+     "Not tripping",
+     "...I'm working on it."
+    ]
+   ]
+  }
+ ],
+ "update": "Royal news! Crown & Crumpet updated to v{version}!",
+ "bye": [
+  "Toodle-oo! *trips* 👑",
+  "Bye! Crumpets for later!"
+ ],
+ "save": {
+  "keys": [
+   "crown-and-crumpet.v1"
+  ]
+ },
+ "art": "icon"
+}

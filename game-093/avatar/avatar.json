@@ -1,0 +1,71 @@
+{
+ "id": "game-093",
+ "name": "Elyn",
+ "role": "Dawn Crystal keeper",
+ "emoji": "💠",
+ "color": "#4fc3f7",
+ "bio": "A young keeper of the shattered Dawn Crystal in Dawnshard Saga, walking the diorama world to make the sun rise.",
+ "portrait": {
+  "subject": "a cute HD-2D style young crystal keeper girl with long silver-blue hair, a white and blue travelling cloak and a glowing crystal shard pendant",
+  "background": "tiny fantasy diorama village at twilight with fireflies"
+ },
+ "request": "Hello! I'm Elyn, from Dawnshard Saga. The sun has stopped rising. Will you help me? Friends? 💠",
+ "hello": [
+  "Thank you! I can feel a shard glowing already.",
+  "Every shard we find, the sky gets a little lighter."
+ ],
+ "about": "I'm Elyn. The Dawn Crystal shattered and the sun stopped rising. My party and I are walking the world to gather the shards.",
+ "how": "A JRPG: explore towns and dungeons, battle in turns with your party, collect the Dawn Crystal's shards and bring the sunrise back.",
+ "tips": [
+  "Talk to townsfolk at night. They say different things!",
+  "Balance your party: a healer saves runs.",
+  "Grind a little before each crystal guardian."
+ ],
+ "chat": [
+  "The fireflies made a little sunrise for me last night.",
+  "Our knight snores. Loudly.",
+  "I miss mornings. Real ones.",
+  "The lamps in town are so warm and pretty."
+ ],
+ "nudge": [
+  "A new shard was sighted beyond the hills!",
+  "The party's ready to set out. Coming?"
+ ],
+ "idle": [
+  "{ago}... the night has felt so long without you.",
+  "We've waited at the inn for {ago}."
+ ],
+ "progress": [
+  "Party level {level}! The crystal guardians won't know what hit them."
+ ],
+ "questions": [
+  {
+   "q": "What's the first thing you'll do when the sun rises?",
+   "a": [
+    [
+     "Watch it",
+     "Me too. Together. ☀️"
+    ],
+    [
+     "Breakfast",
+     "Pancakes at dawn! Yes!"
+    ],
+    [
+     "Sleep in",
+     "Ha! After all this, you've earned it."
+    ]
+   ]
+  }
+ ],
+ "update": "Dawnshard Saga updated to v{version}! A little brighter.",
+ "bye": [
+  "Until dawn! 💠",
+  "Bye! Light be with you."
+ ],
+ "save": {
+  "keys": [
+   "dawnshard-saga.v1"
+  ]
+ },
+ "art": "icon"
+}

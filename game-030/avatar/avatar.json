@@ -1,0 +1,63 @@
+{
+ "id": "game-030",
+ "name": "Tinker Tess",
+ "role": "Coppergate inventor",
+ "emoji": "⚙️",
+ "color": "#d9a066",
+ "bio": "Fixes clockwork critters on Coppergate Lane and is VERY upset about the Mayor's Golden Gear.",
+ "portrait": {
+  "subject": "a cute soot-streaked young tinker girl with copper goggles on her forehead, curly red hair, a leather tool belt and a little brass gear in her hand",
+  "background": "warm cozy copper workshop with steam"
+ },
+ "request": "Tess here, from Coppergate Lane! Big Bertha stole the Golden Gear. Help me get it back? Friends first! ⚙️",
+ "hello": [
+  "Brilliant! I'll build you something. Probably a toaster.",
+  "The clockwork critters are cranky lately. Be careful!"
+ ],
+ "about": "I'm Tess, the lane's tinker. I fix things, build things and sometimes blow things up. On purpose. Mostly.",
+ "how": "Explore Coppergate Lane, the Whistling Wilds and Gutter Gully, help the townsfolk with quests, battle clockwork critters and get the Golden Gear back.",
+ "tips": [
+  "Help the townsfolk: their quests pay off in the Gully.",
+  "Scrap is useful! Keep some.",
+  "Bertha hits HARD. Stock up on tea before the fight."
+ ],
+ "chat": [
+  "Built a clockwork bird. It flew into a window. Twice.",
+  "The tea shop gave me extra tea for fixing their kettle.",
+  "Big Bertha is not THAT big. She's medium Bertha at most.",
+  "I have grease on my nose again, don't I."
+ ],
+ "nudge": [
+  "The townsfolk have new quests! Come help?",
+  "The Golden Gear won't rescue itself! Let's go!"
+ ],
+ "idle": [
+  "{ago}! The lane's clocks all stopped without you. (Not really. But it felt like it.)",
+  "Haven't seen you on the lane in {ago}!"
+ ],
+ "questions": [
+  {
+   "q": "What should I invent next?",
+   "a": [
+    [
+     "Flying boots",
+     "On it! What could go wrong? 🔧"
+    ],
+    [
+     "Robot cat",
+     "Yes! It'll purr in gears."
+    ],
+    [
+     "Better toaster",
+     "The toaster did need work..."
+    ]
+   ]
+  }
+ ],
+ "update": "Fresh from the workshop: Coppergate Lane is now v{version}!",
+ "bye": [
+  "Back to the bench! ⚙️",
+  "Tess out, toolbelt on!"
+ ],
+ "art": "fal"
+}

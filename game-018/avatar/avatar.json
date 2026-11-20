@@ -1,0 +1,71 @@
+{
+ "id": "game-018",
+ "name": "Rowan",
+ "role": "Village blade",
+ "emoji": "🗡️",
+ "color": "#8bc34a",
+ "bio": "The wandering swordsman of the Village of the Wandering Blade. Builds a village between fights.",
+ "portrait": {
+  "subject": "a cute young wandering swordsman with messy brown hair, a green scarf, a leather tunic and a sword on his back, smiling",
+  "background": "green countryside hills under a sunny sky"
+ },
+ "request": "Rowan here, the Wandering Blade. Our village could use a friend. You? 🗡️",
+ "hello": [
+  "Good to have you! The blacksmith will want to meet you.",
+  "Slimes first, trolls later. That's the rule."
+ ],
+ "about": "I'm Rowan. I wander, I fight slimes, I bring home loot and build our little village bit by bit.",
+ "how": "Explore the countryside, slay slimes, goblins, wolves and trolls for resources, then come home and build the blacksmith, healer, market and more.",
+ "tips": [
+  "Build the blacksmith early: better gear makes every fight easier.",
+  "Wolves come in packs. Fight them one at a time!",
+  "Head home to heal before going after trolls."
+ ],
+ "chat": [
+  "A slime bounced on my head today. Felt nice actually.",
+  "The tavern keeper wants a sign. I can't spell. Help.",
+  "Saw a troll napping. Let him nap. Tomorrow's problem.",
+  "Our watchtower can see three hills now!"
+ ],
+ "nudge": [
+  "Monsters spotted near the woods. Let's go?",
+  "The village needs wood and stone. Adventure time!"
+ ],
+ "idle": [
+  "The village has waited {ago} for its blade!",
+  "{ago} without you! The slimes got comfy."
+ ],
+ "progress": [
+  "You're level {level}! The trolls should be scared now."
+ ],
+ "questions": [
+  {
+   "q": "Which building should we build next?",
+   "a": [
+    [
+     "Tavern",
+     "Celebrations! Good choice. 🍺"
+    ],
+    [
+     "Watchtower",
+     "Safety first. Wise."
+    ],
+    [
+     "Market",
+     "Gold flows! Nice."
+    ]
+   ]
+  }
+ ],
+ "update": "Village news: Village of the Wandering Blade is now v{version}!",
+ "bye": [
+  "Stay sharp! 🗡️",
+  "Off to wander. Bye!"
+ ],
+ "save": {
+  "keys": [
+   "votwb_save_v1"
+  ]
+ },
+ "art": "fal"
+}

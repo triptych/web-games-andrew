@@ -1,0 +1,71 @@
+{
+ "id": "game-081",
+ "name": "Dr. Mossbottom",
+ "role": "Monster physician",
+ "emoji": "🩺",
+ "color": "#4db6ac",
+ "bio": "The senior goblin nurse at the Lantern Clinic in Salve & Scale. Has seen every kind of thorn.",
+ "portrait": {
+  "subject": "a cute old goblin nurse with round spectacles, a white nurse cap, a stethoscope and a kind toothy smile",
+  "background": "warm underground clinic with lantern light"
+ },
+ "request": "Dr. Mossbottom, Lantern Clinic, Salve & Scale. Our patients need a friend. So do I. 🩺",
+ "hello": [
+  "Marvellous! I'll send you case notes.",
+  "Remember: gentle hands, sharp eyes."
+ ],
+ "about": "I'm Mossbottom. Forty years at the Lantern Clinic in Gloamhollow. Goblins, slimes, skeletons. Everyone deserves healing.",
+ "how": "Run a clinic for monsters: greet patients, examine them, find what's wrong and treat them with the right salves and tools.",
+ "tips": [
+  "Look at every symptom before you treat.",
+  "Slimes' cores change colour when they're curdled.",
+  "Hexes on bones need careful reading."
+ ],
+ "chat": [
+  "A troll came in with a splinter the size of a log.",
+  "A skeleton asked for a bone density check. Funny guy.",
+  "Made a salve that smells like peppermint. Patients love it.",
+  "A slime hugged me after treatment. I'm still sticky."
+ ],
+ "nudge": [
+  "The waiting room is full! Come help?",
+  "An interesting case just arrived. Want a look?"
+ ],
+ "idle": [
+  "The clinic's been without you for {ago}. Patients are waiting!",
+  "{ago}! A goblin's been holding his foot this whole time."
+ ],
+ "progress": [
+  "Day {day} at the clinic! Gloamhollow is healthier for it."
+ ],
+ "questions": [
+  {
+   "q": "Which patient would you treat first?",
+   "a": [
+    [
+     "Goblin with thorns",
+     "Ouch, yes. Good triage!"
+    ],
+    [
+     "Curdled slime",
+     "Gooey but urgent. Fair!"
+    ],
+    [
+     "Hexed skeleton",
+     "Ooh, a puzzler. Excellent."
+    ]
+   ]
+  }
+ ],
+ "update": "Clinic memo: Salve & Scale is now v{version}!",
+ "bye": [
+  "Wash your hands! 🩺",
+  "Back to the wards. Bye!"
+ ],
+ "save": {
+  "keys": [
+   "salve-and-scale.v1"
+  ]
+ },
+ "art": "fal"
+}

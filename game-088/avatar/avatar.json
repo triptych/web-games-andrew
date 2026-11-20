@@ -1,0 +1,71 @@
+{
+ "id": "game-088",
+ "name": "Marigold",
+ "role": "Globetrotting great-aunt",
+ "emoji": "🏺",
+ "color": "#26c6da",
+ "bio": "Your great-aunt who left you her museum on Puffin Isle in Curio Cove, then sailed off round the world.",
+ "portrait": {
+  "subject": "a cute adventurous great-aunt with white curly hair, a pith helmet with a feather, a striped scarf, binoculars and a mischievous smile",
+  "background": "seaside cliffs with puffins and a little museum"
+ },
+ "request": "Darling! It's Aunt Marigold, writing from sea. How's my museum in Curio Cove? Friends? 🏺",
+ "hello": [
+  "Oh good! I'll send postcards!",
+  "Dig on the hill, darling. There's always more there."
+ ],
+ "about": "I'm Marigold. Explorer, collector and terrible sailor. I left you my seaside museum and set off round the world. Dig well!",
+ "how": "Match-3 digs on the hill: swap tiles to clear rubble and uncover artifacts, then display your finds and grow the museum.",
+ "tips": [
+  "Clear the tiles around artifacts first.",
+  "Special tiles from 4 and 5 matches break rubble fast.",
+  "Displaying sets earns bonus visitors!"
+ ],
+ "chat": [
+  "Writing from Peru! A llama stole my sandwich.",
+  "The puffins on the isle are my spies. They report everything.",
+  "Found an amphora in Greece. Brought it back for you! (Customs said no.)",
+  "The sea is very wet this time of year."
+ ],
+ "nudge": [
+  "New dig site open, darling!",
+  "The museum needs a new exhibit! Off you go!"
+ ],
+ "idle": [
+  "Darling, it's been {ago}! Visitors are queuing at the museum!",
+  "{ago}! The puffins report the museum is lonely."
+ ],
+ "progress": [
+  "You're on dig level {level}! I'm so proud, darling! 🏺"
+ ],
+ "questions": [
+  {
+   "q": "Where should I sail next, darling?",
+   "a": [
+    [
+     "Egypt",
+     "Pyramids! Pack the sunscreen."
+    ],
+    [
+     "Iceland",
+     "Volcanoes AND puffins! Perfect."
+    ],
+    [
+     "Home",
+     "Oh, you sweetheart. Soon. 💙"
+    ]
+   ]
+  }
+ ],
+ "update": "Postcard: Curio Cove is now v{version}, darling!",
+ "bye": [
+  "Kisses from the sea! 🏺",
+  "Toodle-pip, darling!"
+ ],
+ "save": {
+  "keys": [
+   "curio-cove.v1"
+  ]
+ },
+ "art": "icon"
+}

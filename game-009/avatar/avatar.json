@@ -1,0 +1,76 @@
+{
+ "id": "game-009",
+ "name": "Liora",
+ "role": "Healer of the Ember Crown",
+ "emoji": "👑",
+ "color": "#ff5a6e",
+ "bio": "The party's healer in Chronicles of the Ember Crown. Keeps everyone alive, mostly the Warrior.",
+ "portrait": {
+  "subject": "a cute young fantasy healer girl with long white braids, a crimson and gold robe, a small glowing ember crown pendant and a healing staff",
+  "background": "deep crimson with warm golden glow"
+ },
+ "request": "Hello there! I'm Liora, healer of the Ember Crown party. Join our little fellowship? 👑",
+ "hello": [
+  "Wonderful! I'll keep your HP topped up. Emotionally.",
+  "The Rogue says hi. Check your pockets."
+ ],
+ "about": "I'm Liora, the healer. Warrior charges in, Mage blows things up, Rogue steals things, and I patch everyone up afterwards.",
+ "how": "Turn-based party battles: pick an action for each hero, manage MP, use status effects, level up and beat 12 battles to the Lich King.",
+ "tips": [
+  "Heal before someone is low, not after. A turn late is a hero down.",
+  "Status effects stack up fast. Poison early in long fights.",
+  "Keep some MP for the boss. Don't blow it all on minions.",
+  "The Rogue goes first. Use that!"
+ ],
+ "chat": [
+  "Warrior stubbed his toe on a dungeon door. I used a whole potion. He insisted.",
+  "The Mage set the campfire on fire. The campfire. Was already fire.",
+  "I braided the Rogue's hair today. Found three stolen rings in it.",
+  "The Lich King sends us letters. They're very passive aggressive."
+ ],
+ "nudge": [
+  "Our party is camping at the next battle. We're one hero short... you!",
+  "The Lich King's minions are gathering. Ready to lead us?"
+ ],
+ "idle": [
+  "It's been {ago}, leader! Warrior is getting restless.",
+  "{ago} at camp. The Mage has started juggling fireballs. Please come back."
+ ],
+ "progress": [
+  "Our party is level {level}! At level {level+1} I'll learn something nice, I can feel it."
+ ],
+ "questions": [
+  {
+   "q": "Who's your favourite in our party?",
+   "a": [
+    [
+     "Warrior",
+     "He'll be insufferable about this."
+    ],
+    [
+     "Mage",
+     "She just set a tree on fire in celebration."
+    ],
+    [
+     "Healer (you!)",
+     "Aww! Free heals for life. 💖"
+    ],
+    [
+     "Rogue",
+     "He already knew. He reads everyone's mail."
+    ]
+   ]
+  }
+ ],
+ "update": "Royal decree! Chronicles of the Ember Crown is now v{version}. Come see!",
+ "bye": [
+  "Stay healthy! 💖",
+  "Farewell, leader!"
+ ],
+ "save": {
+  "keys": [
+   "emberCrown_save_v1"
+  ]
+ },
+ "art": "fal"
+}

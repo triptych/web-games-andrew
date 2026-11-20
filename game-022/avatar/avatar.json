@@ -1,0 +1,78 @@
+{
+ "id": "game-022",
+ "name": "AXIOM-7",
+ "role": "Drill robot",
+ "emoji": "⛏️",
+ "color": "#f2a541",
+ "bio": "The drilling machine of Depths Unknown. Talks in beeps, dreams in ore.",
+ "portrait": {
+  "subject": "a cute round drill robot with a big orange drill nose, glowing friendly cyan eyes on a small screen face, little treads and a headlamp",
+  "background": "deep earthy brown with glowing ore veins"
+ },
+ "request": "BEEP. AXIOM-7 of Depths Unknown requests friendship. Probability of fun: 98%. ⛏️",
+ "hello": [
+  "FRIENDSHIP ESTABLISHED. Drill noises of joy.",
+  "Reminder: fuel is life. Check fuel."
+ ],
+ "about": "I am AXIOM-7, a drilling unit. My mission: dig, collect ore, and find out what happened to the Delverhaven colony.",
+ "how": "Drill down through the layers, collect ore, watch fuel and hull, then surface to sell and buy upgrades. Go deeper each trip!",
+ "tips": [
+  "Always keep enough fuel to get back up. ALWAYS.",
+  "Hull upgrades first if lava is hurting you.",
+  "Rare ores deeper down pay for many upgrades. Worth the trip."
+ ],
+ "chat": [
+  "Found shiny rock. Classified as: shiny rock.",
+  "My drill is happiest at 3000 RPM. Like a cat purring.",
+  "Detected strange signal from the Void Layer. Ignoring it. For now.",
+  "I counted 16 ore types. I love all of them equally. (Lie. Diamonds.)"
+ ],
+ "nudge": [
+  "Fuel: full. Drill: spinning. Pilot: missing. You?",
+  "Unexplored depths detected. Shall we dig?"
+ ],
+ "idle": [
+  "{ago} of idle mode. Rust risk increasing.",
+  "Pilot absent for {ago}. Running self-diagnostics. All systems: lonely."
+ ],
+ "progress": [
+  "Credits stored: {gold}. Upgrade purchase probability: high."
+ ],
+ "questions": [
+  {
+   "q": "QUERY: preferred ore?",
+   "a": [
+    [
+     "Gold",
+     "Classic. Shiny. Confirmed."
+    ],
+    [
+     "Diamonds",
+     "MATCH FOUND. We are aligned."
+    ],
+    [
+     "The weird glowy one",
+     "Brave. Also my secret favourite."
+    ]
+   ]
+  }
+ ],
+ "update": "SYSTEM UPDATE: Depths Unknown now running v{version}. New layers?",
+ "bye": [
+  "Powering down. Bye. ⛏️",
+  "BEEP BOOP. Farewell."
+ ],
+ "save": {
+  "keys": [
+   "depths_unknown_save"
+  ],
+  "stats": {
+   "gold": [
+    "credits",
+    "money",
+    "cash"
+   ]
+  }
+ },
+ "art": "fal"
+}

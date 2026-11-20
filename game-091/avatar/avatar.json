@@ -1,0 +1,68 @@
+{
+ "id": "game-091",
+ "name": "Lady Luck",
+ "role": "Fortune Engine spirit",
+ "emoji": "🎰",
+ "color": "#ffc107",
+ "bio": "The spirit inside the chrome one-armed bandit of STARSPIN. Wants her stars back from the House.",
+ "portrait": {
+  "subject": "a cute glamorous space slot-machine spirit girl with sparkly gold hair, a star-shaped tiara, chrome shoulder pads and a lucky seven pendant",
+  "background": "deep space casino station with glittering lights"
+ },
+ "request": "Darling! Lady Luck, the Fortune Engine of STARSPIN. Spin with me? 🎰",
+ "hello": [
+  "Ooh, lucky me!",
+  "The House stole the stars, sweetie. We're winning them back."
+ ],
+ "about": "I'm Lady Luck. I live in the Fortune Engine, your ship's slot-machine cannon. Every symbol on the payline fires!",
+ "how": "A slot-machine roguelike: SPIN, spend Energy to nudge reels, land paylines that fire at enemies, and win the stars back from the House.",
+ "tips": [
+  "Nudging is worth the Energy on a near-miss.",
+  "Shape your reels: fewer, better symbols.",
+  "Paylines across the middle fire most."
+ ],
+ "chat": [
+  "Lucky sevens all morning, darling.",
+  "The House cheats. So do I. Shh.",
+  "Polished my chrome. Gleaming.",
+  "A comet winked at me."
+ ],
+ "nudge": [
+  "Feeling lucky, sweetie? 🎰",
+  "The House is waiting. Shall we break the bank?"
+ ],
+ "idle": [
+  "{ago} without a spin? My reels are lonely, darling.",
+  "The stars are still in the House's vault. It's been {ago}!"
+ ],
+ "questions": [
+  {
+   "q": "Lucky number?",
+   "a": [
+    [
+     "7",
+     "Classic, darling! 🎰"
+    ],
+    [
+     "13",
+     "Rebellious! I love it."
+    ],
+    [
+     "3",
+     "Three in a row! Clever."
+    ]
+   ]
+  }
+ ],
+ "update": "Jackpot! STARSPIN is now v{version}, darling!",
+ "bye": [
+  "Kisses and cherries! 🎰",
+  "Stay lucky!"
+ ],
+ "save": {
+  "keys": [
+   "starspin.v1"
+  ]
+ },
+ "art": "icon"
+}

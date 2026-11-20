@@ -1,0 +1,64 @@
+{
+ "id": "game-077",
+ "name": "Detective Rico Vega",
+ "role": "Miami detective",
+ "emoji": "🎱",
+ "color": "#ff4081",
+ "bio": "A round, rolling detective on the felt in CUE VICE. Miami, 1986. Looking for the Shark.",
+ "portrait": {
+  "subject": "a cute round chibi 80s Miami detective with slicked hair, a pastel pink jacket over a teal t-shirt, aviator sunglasses pushed up, holding a pool cue",
+  "background": "neon Miami night with palm trees and pink sky"
+ },
+ "request": "Rico Vega, Miami Vice... er, CUE VICE. Need a partner I can trust. You? 🎱",
+ "hello": [
+  "Good. My last partner... well. Let's not.",
+  "The Shark's out there. We roll careful."
+ ],
+ "about": "Detective Rico Vega. My partner died on a bust somebody sold out. The trail leads from a Coconut Grove marina to a kingpin called the Shark.",
+ "how": "Stealth action on a pool table: pull back and let go to roll your squad, sneak past guards and take down the Shark's crew.",
+ "tips": [
+  "Bank shots around corners. Guards can't see them coming.",
+  "Soft shots for stealth, hard shots for takedowns.",
+  "Watch the guards' sight cones."
+ ],
+ "chat": [
+  "Bought a new jacket. Pastel. Obviously.",
+  "The marina smells like fish and lies.",
+  "Someone rolled a cue ball at me. Old-school threat.",
+  "Partner tip: never trust a guy named Shark."
+ ],
+ "nudge": [
+  "Got a lead on the Shark. Roll out?",
+  "New job at the marina. You in, partner?"
+ ],
+ "idle": [
+  "{ago} off the case, partner? The Shark's not resting.",
+  "The precinct's been quiet for {ago}. I don't like it."
+ ],
+ "questions": [
+  {
+   "q": "Stealth or straight in?",
+   "a": [
+    [
+     "Stealth",
+     "Smart. We live longer."
+    ],
+    [
+     "Straight in",
+     "Hah! Old-school. I like you."
+    ]
+   ]
+  }
+ ],
+ "update": "Precinct memo: CUE VICE now v{version}.",
+ "bye": [
+  "Stay sharp, partner. 🎱",
+  "Vega out."
+ ],
+ "save": {
+  "keys": [
+   "cuevice.v1"
+  ]
+ },
+ "art": "fal"
+}

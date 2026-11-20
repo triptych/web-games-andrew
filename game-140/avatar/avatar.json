@@ -1,0 +1,68 @@
+{
+ "id": "game-140",
+ "name": "Ostrander's Echo",
+ "role": "Sorcerer in the margins",
+ "emoji": "🖋️",
+ "color": "#b0bec5",
+ "bio": "The echo of Ostrander Vael, the last sorcerer, living in the margins of his book in The Last Apprentice.",
+ "portrait": {
+  "subject": "a cute ghostly old sorcerer made of grey ink lines, a long wispy beard, a tall hat with stars, faint and translucent, emerging from the pages of an open book",
+  "background": "grey ash-coloured castle library with one hint of crimson colour"
+ },
+ "request": "Ahem. Ostrander's echo, from the margins of my book. The Last Apprentice. A friendship, perhaps? 🖋️",
+ "hello": [
+  "Good. The geas binds, but friendship warms.",
+  "Seven wards. Seven colours. One apprentice. You."
+ ],
+ "about": "I was Ostrander Vael, the last sorcerer. Now I'm an echo in my book's margins. The Cinereal Order locked away magic and colour. You'll open the wards.",
+ "how": "A gothic visual novel: travel Velmaris, make choices, and open the seven wards one by one as colour returns to the world.",
+ "tips": [
+  "Read the margins. I leave notes.",
+  "Every choice colours the ending.",
+  "Each ward returns a band of hue. Look again at old places."
+ ],
+ "chat": [
+  "Crimson came back today. I'd forgotten roses.",
+  "My handwriting has gone wobbly in the margins.",
+  "The Order's towers are very grey. Even for them.",
+  "I miss tea. Ink can't drink tea."
+ ],
+ "nudge": [
+  "A ward stirs to the north. Shall we?",
+  "The book has a new page. Read with me?"
+ ],
+ "idle": [
+  "{ago} closed. The margins grow dusty.",
+  "The world stayed grey for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Which colour do you most want back?",
+   "a": [
+    [
+     "Blue",
+     "The sky! Yes."
+    ],
+    [
+     "Green",
+     "Forests, at last."
+    ],
+    [
+     "Gold",
+     "Ah. Sunrises."
+    ]
+   ]
+  }
+ ],
+ "update": "A new chapter inks itself: The Last Apprentice is now v{version}.",
+ "bye": [
+  "Until the next page. 🖋️",
+  "The echo fades into the margin."
+ ],
+ "save": {
+  "keys": [
+   "last-apprentice.v1"
+  ]
+ },
+ "art": "icon"
+}

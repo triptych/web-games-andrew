@@ -1,0 +1,73 @@
+{
+ "id": "game-034",
+ "name": "Captain Coinsworth",
+ "role": "Idle party leader",
+ "emoji": "💰",
+ "color": "#f1c40f",
+ "bio": "Leads the auto-battling party in Idle Delve. Works hard even while you sleep.",
+ "portrait": {
+  "subject": "a cute chubby little adventurer captain with a feathered cap, a bulging coin pouch, a small sword and a confident grin",
+  "background": "warm gold coins and torchlight"
+ },
+ "request": "Captain Coinsworth of Idle Delve! My party works while you rest. Be our patron? 💰",
+ "hello": [
+  "Splendid! We'll keep digging. You keep checking in!",
+  "Gold doesn't spend itself. That's your job."
+ ],
+ "about": "I'm Coinsworth. My party delves the dungeon day and night, collecting gold for town. You spend it. Teamwork!",
+ "how": "Your party auto-battles down the dungeon, even while you're away. Bank their gold in Town on recruits, training and deeper starting floors.",
+ "tips": [
+  "Train stats before hiring more heroes.",
+  "Buying a deeper starting floor saves loads of time.",
+  "Check in often to bank gold!"
+ ],
+ "chat": [
+  "The party found a chest. Inside: another chest. Inside that: gold!",
+  "Our cleric healed a rat. The rat joined us.",
+  "We hit floor fifty. I gave a speech.",
+  "Our warrior asked for a raise. Paid him in hugs."
+ ],
+ "nudge": [
+  "Gold's piling up! Come spend it?",
+  "The party wants new recruits. Visit town!"
+ ],
+ "idle": [
+  "The party kept delving for {ago}. There's gold waiting for you! 💰",
+  "{ago} of delving! Your vault is bursting!",
+  "{game} has some gold waiting for you! The party's been busy for {ago}."
+ ],
+ "progress": [
+  "We've got {gold} gold banked! Upgrades await!",
+  "Deepest floor so far: {floor}. Next stop, {floor+1}!"
+ ],
+ "questions": [
+  {
+   "q": "What should we spend our gold on?",
+   "a": [
+    [
+     "New recruits",
+     "More friends! More delving!"
+    ],
+    [
+     "Training",
+     "Stronger heroes! Wise."
+    ],
+    [
+     "A deeper start",
+     "Skip the boring floors. Smart!"
+    ]
+   ]
+  }
+ ],
+ "update": "Idle Delve news: v{version} is live! More to find!",
+ "bye": [
+  "Back to delving! 💰",
+  "Coinsworth out!"
+ ],
+ "save": {
+  "keys": [
+   "idle-delve-save-v1"
+  ]
+ },
+ "art": "fal"
+}

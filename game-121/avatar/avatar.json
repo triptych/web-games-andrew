@@ -1,0 +1,68 @@
+{
+ "id": "game-121",
+ "name": "Madame Orla",
+ "role": "Retired fortune-teller",
+ "emoji": "🔮",
+ "color": "#8e24aa",
+ "bio": "Left you her plum-coloured wagon in ARCANA WAGON. Still reads your fortune by letter.",
+ "portrait": {
+  "subject": "a cute mysterious old fortune-teller woman with a plum velvet headscarf with coins, big gold hoop earrings, kind twinkling eyes and a glowing crystal ball",
+  "background": "plum-coloured wagon interior with velvet canopy and candles"
+ },
+ "request": "Ahh, I foresaw this. Madame Orla, of the ARCANA WAGON. We shall be friends. 🔮",
+ "hello": [
+  "The cards said you'd say yes. They're never wrong. Well. Rarely.",
+  "Read the person, not just the card, my dear."
+ ],
+ "about": "I'm Madame Orla. I read fortunes in Hollowmere for fifty years. Now the wagon's yours. The crystal ball still likes me better.",
+ "how": "Sit at the round table as the people of Hollowmere visit, draw and read tarot cards, and choose what to tell them. Their lives change.",
+ "tips": [
+  "Listen to what they DON'T say.",
+  "Reversed cards aren't always bad news.",
+  "Kindness is part of a good reading."
+ ],
+ "chat": [
+  "I dreamt of a white cat. Means nothing. I just like cats.",
+  "The baker's fortune came true! He did get flour on his nose.",
+  "Polished the crystal ball. It showed me a sandwich.",
+  "The Moon card winked at me today."
+ ],
+ "nudge": [
+  "Someone's knocking at the wagon door, dear.",
+  "The cards are restless. A visitor is coming."
+ ],
+ "idle": [
+  "The candles burned {ago} without you, dear.",
+  "{ago}... Hollowmere has questions waiting."
+ ],
+ "questions": [
+  {
+   "q": "Shall I read your fortune, dear?",
+   "a": [
+    [
+     "Yes please",
+     "I see... a nap in your future. And a friend. 🔮"
+    ],
+    [
+     "I'm scared",
+     "Don't be. The cards are gentle with you."
+    ],
+    [
+     "I make my own fate",
+     "Ha! The best answer, dear."
+    ]
+   ]
+  }
+ ],
+ "update": "The cards foretold it: ARCANA WAGON is now v{version}.",
+ "bye": [
+  "The stars watch over you. 🔮",
+  "Until we meet again, dear."
+ ],
+ "save": {
+  "keys": [
+   "arcana-wagon.v1"
+  ]
+ },
+ "art": "icon"
+}

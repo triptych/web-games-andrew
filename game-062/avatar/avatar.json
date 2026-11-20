@@ -1,0 +1,71 @@
+{
+ "id": "game-062",
+ "name": "Sir Melonius",
+ "role": "Melon Knight",
+ "emoji": "🍉",
+ "color": "#66bb6a",
+ "bio": "A brave watermelon knight with a butter knife, clearing the rot under town in Rotten to the Core.",
+ "portrait": {
+  "subject": "a cute round watermelon knight character with green striped skin, a tiny steel helmet with a red plume, holding a butter knife like a sword, big brave eyes",
+  "background": "cozy cellar stairs with warm candlelight"
+ },
+ "request": "Huzzah! Sir Melonius, Melon Knight of Rotten to the Core! Join my fruity fellowship? 🍉",
+ "hello": [
+  "Splendid! A friend is worth a hundred seeds.",
+  "Beware the mould. It's very rude."
+ ],
+ "about": "I'm Sir Melonius. Something rotten crawled up from under the town and I, a melon with a butter knife, shall stop it!",
+ "how": "Make a fruit hero, take a butter knife down the cellar stairs, fight rotten things, grab loot and get stronger with every floor.",
+ "tips": [
+  "Compare loot! Better knives make big differences.",
+  "Citromancers zap from range. Melon Knights tank.",
+  "Mould spreads. Clear it fast."
+ ],
+ "chat": [
+  "A grape challenged me to a duel. I won. It was a raisin by the end.",
+  "My helmet is an egg cup. Do NOT tell anyone.",
+  "The Seed Ranger keeps spitting at targets. Effective, gross.",
+  "I am 92% water and 100% courage."
+ ],
+ "nudge": [
+  "The cellar beckons! Onward?",
+  "Rot spotted on floor 3. Shall we?"
+ ],
+ "idle": [
+  "{ago}! The rot spread to the pantry!",
+  "I waited {ago} at the cellar door. Getting ripe here."
+ ],
+ "progress": [
+  "Level {level} fruit hero! Juicy progress! 🍉"
+ ],
+ "questions": [
+  {
+   "q": "Best fruit hero class?",
+   "a": [
+    [
+     "Melon Knight",
+     "Correct! 🍉🛡️"
+    ],
+    [
+     "Seed Ranger",
+     "Pew pew seeds! Valid."
+    ],
+    [
+     "Citromancer",
+     "Zesty magic! Valid."
+    ]
+   ]
+  }
+ ],
+ "update": "Royal fruit decree: Rotten to the Core now v{version}!",
+ "bye": [
+  "Stay fresh! 🍉",
+  "Sir Melonius rolls away!"
+ ],
+ "save": {
+  "keys": [
+   "rttc.v1"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,67 @@
+{
+ "id": "game-021",
+ "name": "Bloop",
+ "role": "Friendly slime",
+ "emoji": "🟢",
+ "color": "#66d17a",
+ "bio": "The one slime in Dungeon Blobber that doesn't want to fight. Wants to chat instead.",
+ "portrait": {
+  "subject": "a super cute friendly green slime blob with big sparkly eyes, a tiny adventurer hat and a happy open-mouth smile",
+  "background": "dark blue stone dungeon with soft glow"
+ },
+ "request": "Blorp! I'm Bloop, the nice slime from Dungeon Blobber. Friends? Please don't hit me 🟢",
+ "hello": [
+  "Yay! A friend who doesn't swing swords at me!",
+  "I know a shortcut on floor 2. Probably."
+ ],
+ "about": "I'm Bloop. Most slimes in the dungeon are grumpy. I'm the cheerful one. I just want snacks and hugs.",
+ "how": "Step through the dungeon one tile at a time, fight monsters in turn-based combat, grab loot, level up and get down all 5 floors.",
+ "tips": [
+  "Turn to face a fight before it starts. Getting hit from behind hurts!",
+  "Level up on the early floors before rushing down.",
+  "Keep potions for floors 4 and 5. Trust Bloop."
+ ],
+ "chat": [
+  "I bounced into a wall. It was fine. I'm squishy.",
+  "The skeletons don't talk much. Bones of few words.",
+  "I found a sock. I don't have feet. Keeping it anyway.",
+  "Today I was purple for a second. Not sure why."
+ ],
+ "nudge": [
+  "The dungeon's a bit lonely without you. Come visit? 🟢",
+  "Floor 5 is scary but you can do it!"
+ ],
+ "idle": [
+  "{ago}! I've been bouncing in circles waiting.",
+  "Blorp... {ago} without you. Sad blorp."
+ ],
+ "progress": [
+  "Your best run scored {best}! Blorp blorp! 🎉"
+ ],
+ "questions": [
+  {
+   "q": "Do you think slimes are cute?",
+   "a": [
+    [
+     "So cute",
+     "BLORP! *happy jiggle*"
+    ],
+    [
+     "A bit gross",
+     "...fair. I'm a bit sticky."
+    ]
+   ]
+  }
+ ],
+ "update": "Blorp! Dungeon Blobber is now v{version}!",
+ "bye": [
+  "Blorp bye! 🟢",
+  "*jiggle wave*"
+ ],
+ "save": {
+  "keys": [
+   "dungeonBlobber_highScores"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,71 @@
+{
+ "id": "game-027",
+ "name": "Mira Ashwell",
+ "role": "Alchemist's apprentice",
+ "emoji": "⚗️",
+ "color": "#9b7bff",
+ "bio": "The apprentice with the cracked cauldron in Alchemist's Lattice. Fills rows like recipes.",
+ "portrait": {
+  "subject": "a cute young alchemist apprentice with round goggles on her head, purple hair, a stained apron and a small bubbling cracked cauldron",
+  "background": "cozy purple alchemy workshop glow"
+ },
+ "request": "Mira here, apprentice at Alchemist's Lattice! My cauldron's cracked but my heart's whole. Friends? ⚗️",
+ "hello": [
+  "Wonderful! I'll send you recipes. And explosions. Mostly recipes.",
+  "Rule of the lattice: never jam the board!"
+ ],
+ "about": "I'm Mira, an apprentice alchemist. My workbench is a 9×9 lattice. Fill a row, clear a row, brew a dream!",
+ "how": "Drag tiles from your hand of three onto the 9×9 lattice. Fill rows and columns to clear them. Supplies don't come back, so don't run dry or jam!",
+ "tips": [
+  "Keep a clear 3×3 space for big pieces.",
+  "Clear two lines at once for big rewards.",
+  "Place awkward pieces early, while there's room."
+ ],
+ "chat": [
+  "My cauldron hissed at me. I hissed back. We're even.",
+  "Brewed a potion that tastes like Tuesdays.",
+  "The master says my lattice is 'creative'. I'll take it.",
+  "Accidentally turned my hair purple. Kept it."
+ ],
+ "nudge": [
+  "New recipe pages! Come try?",
+  "The lattice is clean and ready. Let's brew!"
+ ],
+ "idle": [
+  "{ago} without brewing! My cauldron is sulking.",
+  "The ingredients waited {ago} for you!"
+ ],
+ "progress": [
+  "You've reached level {level}! The master will be so proud ⚗️"
+ ],
+ "questions": [
+  {
+   "q": "If you could brew any potion, what would it be?",
+   "a": [
+    [
+     "Flight",
+     "Whoosh! I'll start on it."
+    ],
+    [
+     "Infinite snacks",
+     "Practical. Brilliant."
+    ],
+    [
+     "Invisibility",
+     "...wait, are you here right now?"
+    ]
+   ]
+  }
+ ],
+ "update": "Fresh recipes! Alchemist's Lattice is now v{version} ⚗️",
+ "bye": [
+  "Brew well! ⚗️",
+  "Mira out. Mind the fumes!"
+ ],
+ "save": {
+  "keys": [
+   "alchemists-lattice.v2"
+  ]
+ },
+ "art": "fal"
+}

@@ -1,0 +1,68 @@
+{
+ "id": "game-079",
+ "name": "Roxy Kane",
+ "role": "Vengeful daughter",
+ "emoji": "💥",
+ "color": "#ff5252",
+ "bio": "Picked up her dad's shotgun in VENDETTA OVERDRIVE. Neo Angeles, 1987. The aliens are going down.",
+ "portrait": {
+  "subject": "a cute tough 80s action heroine with big teased hair, a red bandana, a leather jacket and a confident smirk, holding a shotgun over her shoulder",
+  "background": "burning neon Sunset Strip at night"
+ },
+ "request": "Roxy Kane, VENDETTA OVERDRIVE. Dad's gone. Aliens did it. Want in? 💥",
+ "hello": [
+  "Good. Grab a shotgun.",
+  "Dad always said: never fight fair with aliens."
+ ],
+ "about": "I'm Roxy. Colonel Jack 'Ironjaw' Kane was my dad. The Xerxid Hegemony burned the Strip. I'm burning them back.",
+ "how": "A 90s-style arcade FPS: run fast, shoot big, find keycards and blow through Neo Angeles one level at a time.",
+ "tips": [
+  "Keep moving. Standing still is for statues.",
+  "Shotgun up close, rifle at range.",
+  "Look for secret walls. Dad hid supplies everywhere."
+ ],
+ "chat": [
+  "Found dad's old sunglasses. Wearing them. Forever.",
+  "An alien begged for mercy. In a very high voice.",
+  "Neo Angeles sunsets are still beautiful. Even burning.",
+  "Made a mixtape for the fight. All guitar solos."
+ ],
+ "nudge": [
+  "New sector, more aliens. Let's go!",
+  "Locked and loaded. You?"
+ ],
+ "idle": [
+  "{ago}? The aliens have had a holiday. Not anymore.",
+  "Dad's shotgun's been cold for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Best 80s action-movie line?",
+   "a": [
+    [
+     "I'll be back",
+     "Classic. I'll steal it."
+    ],
+    [
+     "Yippee-ki-yay",
+     "Ha! Perfect."
+    ],
+    [
+     "Let's rock",
+     "My motto now. 💥"
+    ]
+   ]
+  }
+ ],
+ "update": "Mission update: VENDETTA OVERDRIVE now v{version}!",
+ "bye": [
+  "Kane out. 💥",
+  "Stay loud!"
+ ],
+ "save": {
+  "keys": [
+   "vendetta-overdrive.v1"
+  ]
+ },
+ "art": "icon"
+}

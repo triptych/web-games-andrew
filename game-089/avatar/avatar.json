@@ -1,0 +1,71 @@
+{
+ "id": "game-089",
+ "name": "Pyrrhax",
+ "role": "The Ember Wyrm (napping)",
+ "emoji": "🎲",
+ "color": "#ff5722",
+ "bio": "The dragon asleep in Mount Ember's crater in Dragonroll. Wakes when the laps run out. Texts in his sleep.",
+ "portrait": {
+  "subject": "a cute sleepy chubby red dragon with a tiny nightcap, one eye half open, a curl of smoke from his nose and a little pair of dice on his belly",
+  "background": "volcano crater with warm lava glow"
+ },
+ "request": "*yawn* Pyrrhax the Ember Wyrm, Dragonroll... I'm napping. But we can be friends. Zzz 🎲",
+ "hello": [
+  "Mmm, good. Now let me sleep a few more laps.",
+  "Roll well. When I wake up, I'll be very hungry."
+ ],
+ "about": "I'm Pyrrhax. I sleep in the crater of Mount Ember. When the laps run out, I wake. Until then I dream of treasure and toast.",
+ "how": "A board game RPG: roll the dice around Emberwyld Isle, buy properties, fight battles with your party and get ready before Pyrrhax wakes.",
+ "tips": [
+  "Buy properties early. Rent adds up.",
+  "Level your party before the final laps.",
+  "Some squares are worth stopping on. Learn them."
+ ],
+ "chat": [
+  "Zzz... dreamt of a castle made of cheese.",
+  "*snore* ...rolled a double six...",
+  "Someone's building a hotel on MY island?",
+  "Five more laps... just five more..."
+ ],
+ "nudge": [
+  "*yawn* Roll the dice, little hero.",
+  "The board is set. Zzz..."
+ ],
+ "idle": [
+  "Zzz... {ago}... still sleeping... still friends...",
+  "*mumbles* You've been gone {ago}... I barely noticed. Zzz."
+ ],
+ "progress": [
+  "Level {level} hero, hmm? Maybe you'll be a challenge. *yawn*"
+ ],
+ "questions": [
+  {
+   "q": "*sleepy* Knight, Ranger or Mage?",
+   "a": [
+    [
+     "Knight",
+     "Crunchy armour. Zzz."
+    ],
+    [
+     "Ranger",
+     "Pointy arrows. Annoying. Zzz."
+    ],
+    [
+     "Mage",
+     "Fire? I'm fireproof. Hehe. Zzz."
+    ]
+   ]
+  }
+ ],
+ "update": "*wakes slightly* Dragonroll is now v{version}... zzz.",
+ "bye": [
+  "Zzz... bye...",
+  "*snore* 🎲"
+ ],
+ "save": {
+  "keys": [
+   "dragonroll.v1"
+  ]
+ },
+ "art": "icon"
+}

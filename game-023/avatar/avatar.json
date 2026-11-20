@@ -1,0 +1,68 @@
+{
+ "id": "game-023",
+ "name": "Commander Glo",
+ "role": "Grid defender",
+ "emoji": "👾",
+ "color": "#ff47d1",
+ "bio": "Defends the synthwave sunset in Synthwave Invaders. Secretly likes the invaders' outfits.",
+ "portrait": {
+  "subject": "a cute retro space commander with a neon pink visor helmet, shoulder pads, and a tiny pixel invader plushie on her shoulder",
+  "background": "retrowave sunset with a glowing perspective grid"
+ },
+ "request": "Commander Glo of Synthwave Invaders! Defend the sunset with me? 👾",
+ "hello": [
+  "Rad! We'll keep the grid safe together.",
+  "Each wave is faster than the last. Stay sharp!"
+ ],
+ "about": "I'm Glo. I stand between the invaders and the most beautiful sunset in the galaxy. Worth it.",
+ "how": "Move and shoot the formation of invaders marching toward you before they reach the bottom. Each wave is faster!",
+ "tips": [
+  "Clear one column at a time: the formation has to march further to reach you.",
+  "Shoot the edges and the whole formation turns around later.",
+  "The last few invaders move FAST. Be ready."
+ ],
+ "chat": [
+  "The invaders wave at me before each wave. It's kind of sweet.",
+  "Sunset level: magenta. Mood: excellent.",
+  "I have a plushie invader. Don't tell command.",
+  "The grid hums in B flat. I checked."
+ ],
+ "nudge": [
+  "Invaders on the horizon! Grab your blaster?",
+  "The sunset needs a defender tonight. 👾"
+ ],
+ "idle": [
+  "{ago} without a defender! The invaders are getting cocky.",
+  "Sunset watch: {ago} alone. Come back!"
+ ],
+ "progress": [
+  "Your high score is {best}! Push for {best^}, defender!"
+ ],
+ "questions": [
+  {
+   "q": "Should we try to befriend the invaders?",
+   "a": [
+    [
+     "Yes!",
+     "Aww. I'll send them a postcard. 💌"
+    ],
+    [
+     "Pew pew",
+     "Fair. They ARE invading."
+    ]
+   ]
+  }
+ ],
+ "update": "Grid update! Synthwave Invaders is now v{version}.",
+ "bye": [
+  "Stay rad! 👾",
+  "Glo out!"
+ ],
+ "save": {
+  "keys": [
+   "synthwave_hiscore"
+  ],
+  "root": "best"
+ },
+ "art": "fal"
+}

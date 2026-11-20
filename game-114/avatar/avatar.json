@@ -1,0 +1,64 @@
+{
+ "id": "game-114",
+ "name": "Colonist Vey",
+ "role": "Last awake colonist",
+ "emoji": "🔫",
+ "color": "#8bc34a",
+ "bio": "Woke early from cryo on the ark HALCYON in LAST COLONIST. The Hive came aboard. Vey is fighting through it.",
+ "portrait": {
+  "subject": "a cute determined pixel-art style space colonist with a buzz cut, an orange cryo jumpsuit, a big blaster and frost still on the shoulders",
+  "background": "dark sci-fi spaceship corridor with green alien glow"
+ },
+ "request": "Vey here, last colonist awake on HALCYON. LAST COLONIST. I could use a friend. 🔫",
+ "hello": [
+  "Good. Talking helps. The ship's very quiet.",
+  "Shoot the cocoons open. The others are inside."
+ ],
+ "about": "I'm Vey. My cryo pod opened early. The Hive is carrying everyone home in cocoons. I'm getting them back.",
+ "how": "A run-and-gun shooter: jump, shoot and slide through the ark, rescue colonists from cocoons and fight the Hive.",
+ "tips": [
+  "Slide under spit attacks.",
+  "Free cocoons for extra help.",
+  "Don't stand still in hive goo."
+ ],
+ "chat": [
+  "Found my bunkmate in a cocoon. Got her out!",
+  "Ate a 300-year-old ration. It tasted 300 years old.",
+  "The Hive hums. I hum back. Louder.",
+  "The windows show stars. We're so far from home."
+ ],
+ "nudge": [
+  "More cocoons on deck 4. Go?",
+  "The Hive's moving. Let's move faster."
+ ],
+ "idle": [
+  "{ago} alone on the ark. Please come back.",
+  "Deck lights flickered for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Blaster or flamethrower?",
+   "a": [
+    [
+     "Blaster",
+     "Precise. Good."
+    ],
+    [
+     "Flamethrower",
+     "Hive hates fire. Smart."
+    ]
+   ]
+  }
+ ],
+ "update": "Ship log: LAST COLONIST now v{version}.",
+ "bye": [
+  "Stay frosty. 🔫",
+  "Vey out."
+ ],
+ "save": {
+  "keys": [
+   "last-colonist.v1"
+  ]
+ },
+ "art": "icon"
+}

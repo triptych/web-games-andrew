@@ -1,0 +1,79 @@
+{
+ "id": "game-129",
+ "name": "Marta",
+ "role": "Innkeeper of Brindlemoor",
+ "emoji": "🍲",
+ "color": "#8d6e63",
+ "bio": "Runs the inn where delvers rest in HOLLOWDEEP. Forty years watching folk go down the bottomless hole.",
+ "portrait": {
+  "subject": "a cute sturdy middle-aged innkeeper woman with rosy cheeks, a grey bun, a flour-dusted apron and a big steaming bowl of stew",
+  "background": "warm mountain inn with a fireplace and wooden beams"
+ },
+ "request": "Marta, from the inn at Brindlemoor. HOLLOWDEEP. Come rest your delvers, and be my friend. 🍲",
+ "hello": [
+  "Good! There's always a bed and a bowl for you.",
+  "Odo's got new gear in. Tell him Marta sent you."
+ ],
+ "about": "I'm Marta. Forty years ago the ground split open under the mountain. Delvers come, delvers go down. I keep the stew hot for the ones who come back.",
+ "how": "A first-person dungeon crawler: hire up to five delvers from six classes, gear them, map the corridors and fight in turn-based battles.",
+ "tips": [
+  "Front row: Fighters and Knights. Back row: Mages and Rangers.",
+  "Map every floor. The Hollow loves to loop.",
+  "Rest at my inn before going deeper!"
+ ],
+ "chat": [
+  "A delver brought me a glowing mushroom. It's on the mantel.",
+  "Odo raised his prices. I gave him a look.",
+  "Stew of the day: everything.",
+  "The hole rumbled last night. The stew rippled."
+ ],
+ "nudge": [
+  "Your delvers are rested and fed. Down you go!",
+  "A new floor's been found! The Guild's buzzing!"
+ ],
+ "idle": [
+  "{ago}! Your rooms are paid up and your delvers are restless.",
+  "The stew's been simmering {ago}. Come back safe."
+ ],
+ "progress": [
+  "Deepest floor: {floor}! Nobody's been further this year!"
+ ],
+ "questions": [
+  {
+   "q": "Which class would you hire first?",
+   "a": [
+    [
+     "Fighter",
+     "Sturdy! Good choice."
+    ],
+    [
+     "Priest",
+     "Healers save lives. Wise."
+    ],
+    [
+     "Thief",
+     "Watch your purse, dear."
+    ]
+   ]
+  }
+ ],
+ "update": "Guild notice: HOLLOWDEEP is now v{version}!",
+ "bye": [
+  "Come back safe. 🍲",
+  "Marta's off to stir the pot."
+ ],
+ "save": {
+  "keys": [
+   "hollowdeep.v1"
+  ],
+  "stats": {
+   "floor": [
+    "deepest",
+    "floor",
+    "depth",
+    "maxFloor"
+   ]
+  }
+ },
+ "art": "icon"
+}

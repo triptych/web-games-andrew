@@ -1,0 +1,67 @@
+{
+ "id": "game-041",
+ "name": "Digby",
+ "role": "Burrow mole",
+ "emoji": "🦔",
+ "color": "#a1887f",
+ "bio": "Digs the tunnels of Burrowguard. Every tunnel is a maze, every maze is a trap.",
+ "portrait": {
+  "subject": "a cute chubby mole with a tiny mining helmet with a lamp, little round glasses and a shovel, with dirt on his nose",
+  "background": "brown earthy tunnel with a glowing crystal"
+ },
+ "request": "Digby the mole from Burrowguard here! Wanna dig together? 🦔",
+ "hello": [
+  "Great! I'll dig you a welcome tunnel.",
+  "Careful: every shortcut you dig, the monsters use too."
+ ],
+ "about": "I'm Digby! I dig tunnels to protect the crystal core. Monsters walk our tunnels, so I make them loooong and twisty.",
+ "how": "Dig tunnels for gold, build towers in them, and make the monsters walk the longest maze you can to the crystal core.",
+ "tips": [
+  "Longer tunnels mean more time under fire.",
+  "Never dig a straight line to the core!",
+  "Towers at corners hit monsters twice."
+ ],
+ "chat": [
+  "Dug a tunnel shaped like a heart. Monsters were confused.",
+  "Found a worm. We're friends now.",
+  "The crystal hummed at me. I hummed back.",
+  "My glasses are always dusty. Occupational hazard."
+ ],
+ "nudge": [
+  "Monsters are coming! Grab a shovel? 🦔",
+  "The crystal needs guarding. Let's dig!"
+ ],
+ "idle": [
+  "{ago} without digging! The dirt got all packed down.",
+  "My shovel's been leaning on the wall for {ago}."
+ ],
+ "progress": [
+  "High score: {best}! That's a lot of dirt. 🦔"
+ ],
+ "questions": [
+  {
+   "q": "Twisty tunnels or straight ones?",
+   "a": [
+    [
+     "Twisty",
+     "My kind of digger!"
+    ],
+    [
+     "Straight",
+     "...the monsters thank you. 😬"
+    ]
+   ]
+  }
+ ],
+ "update": "Burrowguard news: v{version} is out!",
+ "bye": [
+  "Dig you later! 🦔",
+  "Digby out!"
+ ],
+ "save": {
+  "keys": [
+   "burrowguard.hi"
+  ]
+ },
+ "art": "fal"
+}

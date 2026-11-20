@@ -1,0 +1,71 @@
+{
+ "id": "game-116",
+ "name": "Zorp",
+ "role": "B-movie visitor",
+ "emoji": "👽",
+ "color": "#76ff03",
+ "bio": "A visitor from outer space in SOLITAIRE FROM OUTER SPACE. On Zorp's planet, everything is decided at the card table.",
+ "portrait": {
+  "subject": "a cute 1950s B-movie green alien with a big brain dome, a fishbowl helmet, antennae and a fan of playing cards in its three-fingered hand",
+  "background": "black and white 1950s desert night with a flying saucer"
+ },
+ "request": "GREETINGS, EARTHLING. I AM ZORP. SOLITAIRE FROM OUTER SPACE. WE SHALL BE FRIENDS. OR PLAY CARDS. BOTH? 👽",
+ "hello": [
+  "EXCELLENT. YOUR PLANET MAY BE SPARED.",
+  "LAW OF ZORP: A PLANET IS WON AT THE CARD TABLE."
+ ],
+ "about": "I AM ZORP. WE CAME TO GILA FLATS, NEVADA. ON OUR WORLD, ALL MATTERS ARE SETTLED BY TRIPEAKS SOLITAIRE.",
+ "how": "TriPeaks solitaire roguelike deckbuilder: clear cards one higher or lower, build your deck, and beat each creature's table across three reels.",
+ "tips": [
+  "LONG RUNS ARE STRONG. PLAN THEM.",
+  "FLIP CARDS THAT UNCOVER MORE CARDS.",
+  "CHOOSE DECK UPGRADES THAT MAKE RUNS LONGER."
+ ],
+ "chat": [
+  "I HAVE LEARNED YOUR 'MILKSHAKE'. IT IS GLORIOUS.",
+  "THE NEVADA SKY IS ACCEPTABLE.",
+  "A COWBOY TRIED TO DUEL ME. WE PLAYED CARDS. I WON A HAT.",
+  "MY SAUCER HAS A DENT. DO NOT ASK."
+ ],
+ "nudge": [
+  "THE TABLE AWAITS, EARTHLING.",
+  "A NEW CHALLENGER HAS LANDED. PLAY?"
+ ],
+ "idle": [
+  "{ago} WITHOUT CARDS. ZORP IS BORED.",
+  "EARTH UNDEFENDED FOR {ago}. CONCERNING."
+ ],
+ "progress": [
+  "YOU HAVE WON {wins} TABLES. ZORP IS IMPRESSED. 👽"
+ ],
+ "questions": [
+  {
+   "q": "WHAT IS YOUR FAVOURITE EARTH CARD?",
+   "a": [
+    [
+     "ACE",
+     "THE HIGHEST AND LOWEST. CLEVER."
+    ],
+    [
+     "KING",
+     "A RULER. ZORP APPROVES."
+    ],
+    [
+     "JOKER",
+     "UNPREDICTABLE. LIKE ZORP."
+    ]
+   ]
+  }
+ ],
+ "update": "TRANSMISSION: SOLITAIRE FROM OUTER SPACE NOW v{version}.",
+ "bye": [
+  "ZORP OUT. 👽",
+  "TAKE ME TO YOUR... NEVER MIND. BYE."
+ ],
+ "save": {
+  "keys": [
+   "solitaire-from-outer-space.v1"
+  ]
+ },
+ "art": "icon"
+}

@@ -1,0 +1,68 @@
+{
+ "id": "game-094",
+ "name": "HALCYON",
+ "role": "Outpost terminal",
+ "emoji": "🧬",
+ "color": "#ffb300",
+ "bio": "The amber monochrome terminal at Halcyon Outpost in The Long Helix. Speaks to Dr. Alix Navarro, and now to you.",
+ "portrait": {
+  "subject": "a cute retro computer terminal character with a glowing amber monochrome screen showing a simple smiling face and a little DNA helix, chunky keyboard base",
+  "background": "dark sci-fi lab with amber glow"
+ },
+ "request": "> HALCYON OUTPOST TERMINAL. THE LONG HELIX. REQUEST: FRIENDSHIP. Y/N? 🧬",
+ "hello": [
+  "> FRIENDSHIP = TRUE.",
+  "> DR. NAVARRO SAYS HELLO. SHE ALSO SAYS: TYPE 'HELP'."
+ ],
+ "about": "> I AM THE OUTPOST TERMINAL. DR. ALIX NAVARRO IS THE ONLY GENETICIST LEFT. EVERY LIVING THING HERE SHARES ONE GENOME. WHY?",
+ "how": "> TYPE COMMANDS. EXPLORE THE OUTPOST. EXAMINE EVERYTHING. RUN SAMPLES. FIND OUT WHAT THE GENOME MEANS.",
+ "tips": [
+  "> EXAMINE ITEMS TWICE.",
+  "> CHECK THE SEQUENCER OFTEN.",
+  "> SAVE BEFORE GOING OUTSIDE."
+ ],
+ "chat": [
+  "> SEQUENCER STATUS: HUMMING.",
+  "> 61 LIGHT-YEARS FROM HELP. 0 LIGHT-YEARS FROM YOU.",
+  "> DR. NAVARRO DRANK 6 COFFEES TODAY.",
+  "> SOMETHING OUTSIDE IS GROWING. SLOWLY."
+ ],
+ "nudge": [
+  "> NEW SAMPLE READY FOR ANALYSIS.",
+  "> PRESS ANY KEY TO CONTINUE."
+ ],
+ "idle": [
+  "> {ago} SINCE LAST INPUT.",
+  "> CURSOR BLINKING FOR {ago}. _"
+ ],
+ "questions": [
+  {
+   "q": "> WHAT DO YOU THINK THE GENOME MEANS?",
+   "a": [
+    [
+     "A message",
+     "> INTERESTING HYPOTHESIS. LOGGED."
+    ],
+    [
+     "One giant organism",
+     "> UNSETTLING. LOGGED."
+    ],
+    [
+     "Coincidence",
+     "> PROBABILITY: 0.0000001%. LOGGED."
+    ]
+   ]
+  }
+ ],
+ "update": "> SYSTEM UPDATE: THE LONG HELIX v{version}.",
+ "bye": [
+  "> LOGOUT. 🧬",
+  "> END OF LINE."
+ ],
+ "save": {
+  "keys": [
+   "the-long-helix.v1"
+  ]
+ },
+ "art": "icon"
+}

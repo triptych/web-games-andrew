@@ -1,0 +1,71 @@
+{
+ "id": "game-051",
+ "name": "Aurelia",
+ "role": "Mythic summon",
+ "emoji": "✨",
+ "color": "#ffb300",
+ "bio": "A Mythic-rank hero summoned by your Overlord in Sigilborn. Very aware of her rarity.",
+ "portrait": {
+  "subject": "a cute toon-shaded fantasy heroine with golden hair, a glowing sigil on her forehead, ornate white and gold armor and a confident sparkle in her eyes",
+  "background": "royal blue with a glowing golden summoning circle"
+ },
+ "request": "Aurelia, Mythic rank, Sigilborn. You may be my friend. (That's a big deal.) ✨",
+ "hello": [
+  "Good. You have excellent taste.",
+  "Summon me some teammates. Preferably also Mythic."
+ ],
+ "about": "I'm Aurelia, Mythic summon. Ten races, twelve classes, five elements, and I rolled perfect. The Sigil Throne needs heroes like me.",
+ "how": "Summon procedurally generated heroes, build a team by race, class and element, and auto-battle your way to restore the Sigil Throne.",
+ "tips": [
+  "Element advantage matters more than rarity early on.",
+  "Check stat grades. A good Common can beat a bad Rare.",
+  "Upgrade your favourites instead of spreading resources thin."
+ ],
+ "chat": [
+  "A Common hero asked for my autograph. I said yes. I'm kind.",
+  "Our Overlord changed their outfit again.",
+  "I glow when I'm happy. I'm always glowing.",
+  "Rolled a S grade in charm. Obviously."
+ ],
+ "nudge": [
+  "The summoning circle is warm. Shall we pull?",
+  "The Throne needs us. Ready?"
+ ],
+ "idle": [
+  "{ago} without a summon! The circle is collecting dust. ✨",
+  "Overlord? It's been {ago}. The heroes are bickering."
+ ],
+ "progress": [
+  "Overlord level {level}! Your throne grows mightier."
+ ],
+ "questions": [
+  {
+   "q": "Which element is best?",
+   "a": [
+    [
+     "Fire",
+     "Bold."
+    ],
+    [
+     "Water",
+     "Calm power."
+    ],
+    [
+     "Light",
+     "Correct. Like me. ✨"
+    ]
+   ]
+  }
+ ],
+ "update": "Royal announcement: Sigilborn is now v{version}!",
+ "bye": [
+  "Remember me fondly. ✨",
+  "Aurelia departs. Gracefully."
+ ],
+ "save": {
+  "keys": [
+   "sigilborn.save.v1"
+  ]
+ },
+ "art": "fal"
+}

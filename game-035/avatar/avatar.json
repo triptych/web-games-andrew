@@ -1,0 +1,63 @@
+{
+ "id": "game-035",
+ "name": "Zapp",
+ "role": "Tube rider",
+ "emoji": "🌀",
+ "color": "#00e5a0",
+ "bio": "Rides the rim of the neon tunnel in N2 Overdrive. Has seen things. Psychedelic things.",
+ "portrait": {
+  "subject": "a cute psychedelic neon alien rider with a round helmet, swirly rainbow visor and a tiny ship-shaped badge, grinning",
+  "background": "swirling neon green and purple tunnel"
+ },
+ "request": "Whoa. Zapp from N2 Overdrive. The tunnel brought me to you. Friends? 🌀",
+ "hello": [
+  "Far out.",
+  "Shoot the mushrooms till they ripen. They make shields. Trippy."
+ ],
+ "about": "I'm Zapp. I ride the rim of an endless neon tube. Insects, mushrooms, coins. Speed. Color. Vibes.",
+ "how": "Steer around the rim of the tunnel, blast insect swarms, shoot mushrooms to ripen them into shields, and collect coins and bonus stars.",
+ "tips": [
+  "Ripe mushrooms become shields. Shoot them a few times!",
+  "More kills speed up the tunnel. Fast is fun but risky.",
+  "Collect 5 stars for the bonus round!"
+ ],
+ "chat": [
+  "The tunnel changed colours 400 times today. I counted 12.",
+  "A bug looked me in the eye. Deep moment.",
+  "Coins go 'bling'. Best sound.",
+  "Overdrive is a state of mind."
+ ],
+ "nudge": [
+  "The tube is spinning. Hop on?",
+  "Bonus stars are out there. Let's grab 'em."
+ ],
+ "idle": [
+  "{ago} out of the tunnel. Everything's so... still.",
+  "The tube missed you for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Pick a colour for the tunnel.",
+   "a": [
+    [
+     "Neon green",
+     "Classic Zapp. 💚"
+    ],
+    [
+     "Hot pink",
+     "Spicy!"
+    ],
+    [
+     "All of them",
+     "Now you're thinking in Overdrive."
+    ]
+   ]
+  }
+ ],
+ "update": "Whoa! N2 Overdrive is now v{version}. New colours maybe!",
+ "bye": [
+  "Stay groovy 🌀",
+  "Zapp out."
+ ],
+ "art": "fal"
+}

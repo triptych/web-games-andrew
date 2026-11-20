@@ -1,0 +1,71 @@
+{
+ "id": "game-134",
+ "name": "Zib",
+ "role": "Defective-saucer alien",
+ "emoji": "🛸",
+ "color": "#76ff03",
+ "bio": "A little one-eyed alien in a slightly defective flying saucer in UFOops! Mother is always on the radio.",
+ "portrait": {
+  "subject": "a cute little one-eyed green alien in a small dented flying saucer with a duct-tape patch, a bent antenna and a big goofy grin, 1980s Saturday-morning cartoon style",
+  "background": "night farm with cornfields under a big moon"
+ },
+ "request": "Zib here! UFOops! Mother says I need Earth friends for my science project. Friends? 🛸",
+ "hello": [
+  "Yay! Mother will be SO proud!",
+  "Hold the beam over cows, but not the angry ones!"
+ ],
+ "about": "I'm Zib! I fly a slightly broken saucer: one dent, one duct-tape patch, an antenna that won't stay straight. Mother is on the radio. Always.",
+ "how": "Fly over farms and fields, beam things up for Mother's list, dodge the farmers, and try not to crash the saucer. Oops!",
+ "tips": [
+  "Beam slowly. Fast beams drop things.",
+  "Farmers throw stuff. Stay high!",
+  "Check Mother's list. She WILL notice."
+ ],
+ "chat": [
+  "Beamed up a scarecrow. It's my best friend now.",
+  "Mother says to wear a scarf. In space.",
+  "My antenna bent again. It's a fashion statement.",
+  "A cow mooed at me. I mooed back. First contact!"
+ ],
+ "nudge": [
+  "Mother's list is long today! Help? 🛸",
+  "Saucer's (mostly) fixed! Let's fly!"
+ ],
+ "idle": [
+  "{ago}! Mother keeps asking where you are.",
+  "My saucer's been parked in a cornfield for {ago}."
+ ],
+ "progress": [
+  "High score {best}! Mother says 'not bad'! That's huge!"
+ ],
+ "questions": [
+  {
+   "q": "What should I beam up next?",
+   "a": [
+    [
+     "A cow",
+     "Classic! 🐄"
+    ],
+    [
+     "A tractor",
+     "Heavy! Ambitious!"
+    ],
+    [
+     "A pumpkin",
+     "Round! Tasty! 🎃"
+    ]
+   ]
+  }
+ ],
+ "update": "Mother says: UFOops! is now v{version}! Oops!",
+ "bye": [
+  "Zib zoom! 🛸",
+  "Bye! Mother says bye too!"
+ ],
+ "save": {
+  "keys": [
+   "ufoops.v1"
+  ]
+ },
+ "art": "icon"
+}

@@ -1,0 +1,73 @@
+{
+ "id": "game-085",
+ "name": "Gran Marisol",
+ "role": "Caravan grandmother",
+ "emoji": "🏮",
+ "color": "#ffb74d",
+ "bio": "Your grandmother, whose wagon carries the last lit lantern in WanderQuest. She writes letters from the road.",
+ "portrait": {
+  "subject": "a cute adventurous grandmother with grey curls under a red headscarf, round glasses, a patchwork travelling coat and a little glowing lantern",
+  "background": "painted storybook road curving to the horizon at dusk"
+ },
+ "request": "My dear! It's Gran Marisol. The wagon's on the road in WanderQuest. Write to me? 🏮",
+ "hello": [
+  "Oh, I'm so glad. The road gets long.",
+  "Keep the lantern lit, love. That's all that matters."
+ ],
+ "about": "I'm your Gran. My wagon carries the last lit lantern, and it drives itself from town to town. The Waystones went dark, and we're lighting them again.",
+ "how": "An idle caravan RPG: the wagon travels on its own. Recruit companions, fight what comes, upgrade the wagon and relight the Waystones.",
+ "tips": [
+  "Upgrade the wagon wheels first. Faster trips, more towns.",
+  "Companions matter more than gear early on.",
+  "Check in often: the road keeps going while you're away."
+ ],
+ "chat": [
+  "Passed a field of sunflowers. Thought of you.",
+  "The horse ate my hat. Again.",
+  "A town gave us pie for lighting its Waystone.",
+  "The road curved up into the clouds today. Beautiful."
+ ],
+ "nudge": [
+  "The wagon's reached a new town! Come see, love!",
+  "We found something interesting on the road!"
+ ],
+ "idle": [
+  "The wagon's been rolling for {ago}! There's loot in the back for you, love. 🏮",
+  "{ago}! We've travelled so far without you. Come see!",
+  "{game} has gold waiting for you! The caravan's been busy for {ago}."
+ ],
+ "progress": [
+  "We've reached level {level}, love! Your old Gran is proud.",
+  "We've got {gold} gold in the strongbox! Time for wagon upgrades!"
+ ],
+ "questions": [
+  {
+   "q": "What should we name the horse?",
+   "a": [
+    [
+     "Biscuit",
+     "Biscuit it is! He likes it. 🐴"
+    ],
+    [
+     "Thunder",
+     "He's more of a drizzle, but okay!"
+    ],
+    [
+     "Sir Clops",
+     "Ha! Sir Clops-a-lot!"
+    ]
+   ]
+  }
+ ],
+ "update": "News from the road! WanderQuest is now v{version}!",
+ "bye": [
+  "Love you, dear! 🏮",
+  "Off we roll! Bye!"
+ ],
+ "save": {
+  "keys": [
+   "wanderquest.v1"
+  ]
+ },
+ "art": "icon"
+}

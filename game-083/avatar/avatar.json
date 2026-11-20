@@ -1,0 +1,67 @@
+{
+ "id": "game-083",
+ "name": "Orrin",
+ "role": "Wingless dragon",
+ "emoji": "🐲",
+ "color": "#00e676",
+ "bio": "A green wireframe dragon who lost its wings, walking home through a kingdom at war in WYRMZONE.",
+ "portrait": {
+  "subject": "a cute young green dragon with small bandaged wing stubs, glowing green vector-line highlights, determined friendly eyes",
+  "background": "black vector arcade night with green wireframe mountains"
+ },
+ "request": "I'm Orrin. WYRMZONE. I lost my wings. I'm walking home. Walk with me? 🐲",
+ "hello": [
+  "Thank you. The road feels shorter now.",
+  "The knights fire from towers. Stay low."
+ ],
+ "about": "I'm Orrin. A dragon without wings in a kingdom at war with dragons. I see the world in green lines. I just want to go home.",
+ "how": "First-person wireframe battle across the plain, dodging and fighting knights' engines, then the vector skies as you near home.",
+ "tips": [
+  "Move sideways when towers fire.",
+  "Watch the radar for incoming foes.",
+  "Don't charge straight. Circle."
+ ],
+ "chat": [
+  "I tried to fly today. Forgot. Hopped instead.",
+  "The mountains look like jagged teeth. Wireframe teeth.",
+  "A knight looked scared of me. I felt sad.",
+  "Home is past the third mountain. I can almost see it."
+ ],
+ "nudge": [
+  "Shall we walk a little further home?",
+  "The road's clear for now. Let's go."
+ ],
+ "idle": [
+  "{ago} standing still on the plain. Lonely.",
+  "I waited {ago} by the old tower."
+ ],
+ "progress": [
+  "Your high score is {best}. Every point is a step home."
+ ],
+ "questions": [
+  {
+   "q": "Do you think I'll fly again?",
+   "a": [
+    [
+     "Definitely",
+     "Thank you... 💚"
+    ],
+    [
+     "Walking's fine too",
+     "Maybe it is. With you."
+    ]
+   ]
+  }
+ ],
+ "update": "The kingdom shifts: WYRMZONE is now v{version}.",
+ "bye": [
+  "Safe roads. 🐲",
+  "Orrin walks on."
+ ],
+ "save": {
+  "keys": [
+   "wyrmzone.v1"
+  ]
+ },
+ "art": "icon"
+}

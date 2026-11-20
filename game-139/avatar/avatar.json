@@ -1,0 +1,71 @@
+{
+ "id": "game-139",
+ "name": "Nightfall",
+ "role": "Retired assassin innkeeper",
+ "emoji": "🗡️",
+ "color": "#37474f",
+ "bio": "Once the deadliest blade in the five cities. Now runs an inn in CLEAN SLATE. Rivals come by, one a night.",
+ "portrait": {
+  "subject": "a cute retired assassin with a dark hooded cloak pushed back, a scar over one eye, a soft smile, holding a teacup and a dish towel over the shoulder",
+  "background": "warm candlelit inn at night with a deck of cards on the table"
+ },
+ "request": "They called me Nightfall. Now I pour ale. CLEAN SLATE. Friends? Just friends. 🗡️",
+ "hello": [
+  "Good. I don't have many of those.",
+  "Pyramid solitaire settles things here. No blood. Mostly."
+ ],
+ "about": "I was Nightfall, the deadliest blade in the five cities. Now I run an inn. Every rival I ever crossed comes by. We settle it with cards.",
+ "how": "A Pyramid solitaire roguelike: pair cards that add to 13 to clear the pyramid, upgrade your deck, and settle each rival's grudge.",
+ "tips": [
+  "Kings clear alone. Use them early.",
+  "Look at what each pair uncovers.",
+  "Upgrade cards that make thirteen easier."
+ ],
+ "chat": [
+  "A rival came in tonight. Ordered chamomile. We played. I won.",
+  "Swept the floor. Found an old dagger. Put it in a drawer.",
+  "The inn cat has learned to sit on the deck.",
+  "Retirement is hard work."
+ ],
+ "nudge": [
+  "A rival's at the door. Deal them in?",
+  "The inn's quiet. Fancy a hand?"
+ ],
+ "idle": [
+  "{ago}. The rivals keep coming. I keep pouring.",
+  "Inn's been yours to visit for {ago}. Door's open."
+ ],
+ "progress": [
+  "You've settled {wins} grudges. Clean slate, almost. 🗡️"
+ ],
+ "questions": [
+  {
+   "q": "What's the best part of retirement?",
+   "a": [
+    [
+     "Peace and quiet",
+     "Rare. Precious."
+    ],
+    [
+     "Running an inn",
+     "Hard work. Good work."
+    ],
+    [
+     "No more enemies",
+     "...ha. If only."
+    ]
+   ]
+  }
+ ],
+ "update": "Inn notice: CLEAN SLATE is now v{version}.",
+ "bye": [
+  "Rest easy. 🗡️",
+  "The inn's always open."
+ ],
+ "save": {
+  "keys": [
+   "clean-slate.v1"
+  ]
+ },
+ "art": "icon"
+}

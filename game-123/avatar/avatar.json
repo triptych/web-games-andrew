@@ -1,0 +1,64 @@
+{
+ "id": "game-123",
+ "name": "Master Cartographer Lin",
+ "role": "Royal mapmaker",
+ "emoji": "🗺️",
+ "color": "#6d4c41",
+ "bio": "Commissions your maps in Atlas of Ink. Owns a scrying quill and very strong opinions about coastlines.",
+ "portrait": {
+  "subject": "a cute fussy old fantasy cartographer with a long grey ponytail, half-moon spectacles, an ink-stained robe and a glowing scrying quill",
+  "background": "parchment map table with an ink island and compass rose"
+ },
+ "request": "Lin, Royal Cartographer, Atlas of Ink. I have a commission. And a friendship offer. 🗺️",
+ "hello": [
+  "Excellent. Bring me accurate coastlines.",
+  "Hold the scry key. Stand still. Breathe."
+ ],
+ "about": "I'm Lin. I chart the kingdom with my scrying quill. The island is hidden; we reveal it a disc at a time.",
+ "how": "Hold the scry key to focus and release to cast: standing still builds focus, moving bleeds it. Chart the hidden island disc by disc.",
+ "tips": [
+  "Stand still to build focus. Patience makes clean maps.",
+  "Overlap your casts a little.",
+  "Charting coastlines pays best."
+ ],
+ "chat": [
+  "Someone drew a sea monster on my map. Fine. It's accurate.",
+  "My quill spilled. There's a new lake now.",
+  "A cove I mapped today looked like a cat.",
+  "North is up. Always. I'm very firm on this."
+ ],
+ "nudge": [
+  "A new commission has arrived. Shall we chart?",
+  "The island awaits revealing."
+ ],
+ "idle": [
+  "{ago} without a map. The island's getting misty.",
+  "The quill has waited {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Should we draw sea monsters on the edges?",
+   "a": [
+    [
+     "Of course",
+     "Tradition! 🐙"
+    ],
+    [
+     "Only real ones",
+     "Hmm. That's the problem, isn't it?"
+    ]
+   ]
+  }
+ ],
+ "update": "The atlas grows: Atlas of Ink is now v{version}.",
+ "bye": [
+  "Chart well. 🗺️",
+  "Lin returns to the drafting table."
+ ],
+ "save": {
+  "keys": [
+   "atlas-of-ink.v1"
+  ]
+ },
+ "art": "icon"
+}

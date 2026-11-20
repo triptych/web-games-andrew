@@ -1,0 +1,93 @@
+{
+ "id": "game-001",
+ "name": "Nova Vance",
+ "role": "Ace pilot",
+ "emoji": "🚀",
+ "color": "#ff5a4f",
+ "bio": "Flies the red-striped fighter in Space Shooter. Thinks every asteroid is personal.",
+ "portrait": {
+  "subject": "a plucky young space pilot girl with short red hair, a white and red flight helmet pushed up on her head, goggles, and a little rocket badge on her flight suit",
+  "background": "deep space navy with a few soft stars"
+ },
+ "request": "Pilot Nova Vance here! Saw your flying in Space Shooter. Wingmates? 🚀",
+ "hello": [
+  "Wingmates it is! I'll radio in when the asteroid belt gets spicy.",
+  "Pro tip: you can hold fire the whole time. I never let go. Ever."
+ ],
+ "about": "I'm Nova! Born on a cargo ship, learned to fly before I learned to walk. Now I hold the line in Space Shooter, one asteroid at a time.",
+ "how": "Steer with the arrows or A/D, hold Space to fire. On a phone, drag to steer and hold to shoot. Survive and beat your best!",
+ "tips": [
+  "Stay low and centered: you can swing either way when a wave comes in.",
+  "Don't chase everything. Let the far-side ones drift off the screen.",
+  "When it gets busy, small taps of movement beat big swerves.",
+  "Watch the gaps, not the rocks. Fly into empty space."
+ ],
+ "chat": [
+  "Polished my helmet today. Saw my reflection and said 'nice' out loud. Nobody was there. 😅",
+  "Do you ever look at the stars and think 'I could shoot that'? Just me?",
+  "My ship's name is Comet Kisser. Don't tell the other pilots.",
+  "Fun fact: in space nobody can hear you go 'pew pew'. I say it anyway.",
+  "I counted the stars outside the cockpit. Lost count at 4,000. Started over.",
+  "Mission log: ate a space sandwich. Crumbs floated everywhere. Regret.",
+  "The asteroids came back today. They always come back. Rude.",
+  "If you were a ship, you'd be the fast kind. Just saying. ✨"
+ ],
+ "nudge": [
+  "Sky's full of rocks and I'm out of wingmates. Scramble with me? 🚀",
+  "Engines warm, cannons loaded. Ready when you are, pilot!",
+  "One quick flight? Five minutes. Maybe six. Okay, ten."
+ ],
+ "idle": [
+  "Hey pilot, your fighter's been in the hangar for {ago}. It misses you.",
+  "{ago} without a sortie! The asteroids are getting cocky out here.",
+  "Radio check... is this thing on? It's been {ago}, wingmate!"
+ ],
+ "progress": [
+  "Your best in Space Shooter is {best}! I think {best^} is in reach. Let's go! 🔥",
+  "{best} points? Okay, that's my rival number now. I'm coming for it.",
+  "Rumor on the flight deck says someone scored {best}. That was YOU, right?"
+ ],
+ "questions": [
+  {
+   "q": "Quick poll from the flight deck: lasers or missiles?",
+   "a": [
+    [
+     "Lasers!",
+     "Pew pew forever! You get me. ⚡"
+    ],
+    [
+     "Missiles!",
+     "Big booms. Respect. I'll paint a missile on my wing for you."
+    ],
+    [
+     "Dodging!",
+     "Ha! The best weapon is not getting hit. Wise wingmate."
+    ]
+   ]
+  },
+  {
+   "q": "Be honest. Is my call sign cool? It's 'Supernova'.",
+   "a": [
+    [
+     "So cool",
+     "I KNEW it. Telling everyone you said so."
+    ],
+    [
+     "A bit much",
+     "Hmm. 'Nova' then. Low-key. Mysterious."
+    ]
+   ]
+  }
+ ],
+ "update": "Hangar news! Space Shooter got an update to v{version}. Come take the new build for a spin! 🛠️",
+ "bye": [
+  "Nova out! Fly safe. 🚀",
+  "Over and out, wingmate!"
+ ],
+ "save": {
+  "keys": [
+   "spaceShooter_best"
+  ]
+ },
+ "art": "fal"
+}

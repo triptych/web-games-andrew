@@ -1,0 +1,71 @@
+{
+ "id": "game-038",
+ "name": "Cinder",
+ "role": "Baby dragon",
+ "emoji": "🐉",
+ "color": "#ff7043",
+ "bio": "A little dragon from Emberbrood who almost forgot her name, until you reminded her.",
+ "portrait": {
+  "subject": "a super cute baby red-orange dragon with tiny wings, big golden eyes, a small ember glowing on its forehead and a happy toothy smile",
+  "background": "warm sunset sky with glowing ember lines"
+ },
+ "request": "Rawr! I'm Cinder from Emberbrood. I remembered my name! Wanna be friends? 🐉",
+ "hello": [
+  "Yay! I'll remember YOUR name too. Forever!",
+  "If you bind more dragons, I get more siblings!"
+ ],
+ "about": "I'm Cinder! The Emberlines are going out and dragons are forgetting who they are. But you help us remember. I love you for that.",
+ "how": "Fight dragons in turn-based party battles, bind them, raise them and breed new ones to relight the Emberlines.",
+ "tips": [
+  "Speed decides turn order. Fast dragons strike first!",
+  "Status effects win long battles.",
+  "Breed dragons to mix the best skills!"
+ ],
+ "chat": [
+  "I sneezed fire. The bush is fine. Mostly.",
+  "Learned a new move today! It's called 'big flap'.",
+  "I counted my scales. 300 and something.",
+  "The other dragons say I'm the cutest. They're right."
+ ],
+ "nudge": [
+  "Let's go find more dragons! Rawr!",
+  "I want to battle! Pleeeease?"
+ ],
+ "idle": [
+  "{ago} without you! I almost forgot... no wait, I remember! 🐉",
+  "Rawr... {ago}. I've been napping on a warm rock."
+ ],
+ "progress": [
+  "Your top dragon is level {level}! Rawr!"
+ ],
+ "questions": [
+  {
+   "q": "Which dragon element is best?",
+   "a": [
+    [
+     "Fire",
+     "RAWR YES! 🔥"
+    ],
+    [
+     "Water",
+     "Splashy. I'm not good at swimming."
+    ],
+    [
+     "Wind",
+     "Whoosh! Good for flying."
+    ]
+   ]
+  }
+ ],
+ "update": "Emberbrood is now v{version}! New dragons maybe?! 🐉",
+ "bye": [
+  "Rawr bye!",
+  "*tiny flap* bye!"
+ ],
+ "save": {
+  "keys": [
+   "emberbrood.save.v1"
+  ]
+ },
+ "art": "fal"
+}

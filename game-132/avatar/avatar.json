@@ -1,0 +1,71 @@
+{
+ "id": "game-132",
+ "name": "Talos Pup",
+ "role": "Bronze loot pet",
+ "emoji": "🐕",
+ "color": "#ffb300",
+ "bio": "Your bronze automaton loot-pet in Giant's Vault. Fetches gold, sells junk, wags a little metal tail.",
+ "portrait": {
+  "subject": "a cute bronze automaton puppy with glowing amber eyes, Greek meander patterns on its body, a wagging metal tail and a little loot bag in its mouth",
+  "background": "ancient Greek vault with rusting giant chains and torchlight"
+ },
+ "request": "*clank clank* Talos Pup, loot pet of the Vaultwarden! Giant's Vault! Friends? Woof! 🐕",
+ "hello": [
+  "*happy clanking* WOOF!",
+  "I fetch loot. You hit things. Perfect team!"
+ ],
+ "about": "I'm Talos Pup! The gods built me before they left. Now I follow the Vaultwarden into the vault, fetching loot and barking at Giants.",
+ "how": "An isometric action RPG: swear an oath (Ironsworn, Stormcaller, Shadebinder), slay through the vault, loot gear, and stop the Giants' chains from breaking.",
+ "tips": [
+  "Ironsworn: keep hitting to keep your Rage!",
+  "Swear a second oath at level 6 for a hybrid class.",
+  "Send me to sell junk. I'm fast!"
+ ],
+ "chat": [
+  "Fetched a helmet. Bit it. Tastes like bronze.",
+  "A Giant's chain rattled. I barked at it. It stopped.",
+  "Found a gold coin under a pillar! Woof!",
+  "My tail goes clank-clank when I'm happy."
+ ],
+ "nudge": [
+  "*clank* Walkies? Into the vault?",
+  "Loot smell detected! WOOF!"
+ ],
+ "idle": [
+  "{ago}! I've been sitting by the vault door. Good boy.",
+  "*whimper clank* {ago}..."
+ ],
+ "progress": [
+  "Level {level} Vaultwarden! Woof woof! 🐕"
+ ],
+ "questions": [
+  {
+   "q": "Which oath do you swear?",
+   "a": [
+    [
+     "Ironsworn",
+     "HIT HIT HIT! Woof!"
+    ],
+    [
+     "Stormcaller",
+     "ZAP! My fur stands up! (I don't have fur.)"
+    ],
+    [
+     "Shadebinder",
+     "Spooky! *nervous clank*"
+    ]
+   ]
+  }
+ ],
+ "update": "*excited clank* Giant's Vault is now v{version}!",
+ "bye": [
+  "Woof bye! 🐕",
+  "*wags metal tail*"
+ ],
+ "save": {
+  "keys": [
+   "giants-vault.v1"
+  ]
+ },
+ "art": "icon"
+}

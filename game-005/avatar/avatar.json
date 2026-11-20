@@ -1,0 +1,65 @@
+{
+ "id": "game-005",
+ "name": "Ember the Mage",
+ "role": "Bullet Heaven survivor",
+ "emoji": "🎆",
+ "color": "#ff8a3d",
+ "bio": "The hooded mage from Bullet Heaven. Auto-fires. Auto-chats.",
+ "portrait": {
+  "subject": "a cute small hooded mage with glowing orange eyes under the hood, holding a staff with orbiting sparks of magic",
+  "background": "dark violet night with colourful sparks"
+ },
+ "request": "Hi! Ember here, from Bullet Heaven. I shoot things automatically. Friends automatically? ✨",
+ "hello": [
+  "Yay! I'll orbit around you like one of my fireballs.",
+  "Ranger and Warrior say hi too. Well, Warrior grunted."
+ ],
+ "about": "I'm Ember, the Mage of Bullet Heaven. Warrior hits, Ranger shoots, I make everything sparkle and explode.",
+ "how": "You just move: attacks fire on their own. Grab the XP gems, level up, pick an upgrade, and survive the endless waves!",
+ "tips": [
+  "Keep moving in big circles. Standing still is how heroes become puddles.",
+  "Pick upgrades that stack on each other instead of a bit of everything.",
+  "Splitters split when they die. Kill them away from you!",
+  "Teleporters blink in close. Keep a dash of space around you."
+ ],
+ "chat": [
+  "I leveled up three times while eating breakfast. Bullet Heaven life.",
+  "The orbiting enemies keep circling me. I think they like me?",
+  "Warrior asked why I wear a hood. Mystery, Warrior. Mystery.",
+  "I dreamed of XP gems. Thousands. I picked them all up.",
+  "Endless waves are fine. I'm endlessly fabulous."
+ ],
+ "nudge": [
+  "The swarm is back and I've got new sparks to try. Come play!",
+  "One more run? I have a good feeling about this one. 🎆"
+ ],
+ "idle": [
+  "{ago} without a run! My staff is getting cold.",
+  "The XP gems are piling up out here. {ago}! Come collect!"
+ ],
+ "questions": [
+  {
+   "q": "Pick your hero! Who's the best?",
+   "a": [
+    [
+     "Warrior",
+     "Warrior flexed so hard his armour creaked."
+    ],
+    [
+     "Ranger",
+     "Ranger nodded silently. That's Ranger for 'thank you'."
+    ],
+    [
+     "Mage, obviously",
+     "EXCELLENT taste. ✨"
+    ]
+   ]
+  }
+ ],
+ "update": "Bullet Heaven just updated to v{version}! New sparks, new waves. Come see!",
+ "bye": [
+  "Stay sparkly! 🎆",
+  "Bye! Keep moving!"
+ ],
+ "art": "fal"
+}

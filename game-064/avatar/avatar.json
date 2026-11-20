@@ -1,0 +1,68 @@
+{
+ "id": "game-064",
+ "name": "Captain Saltbeard",
+ "role": "Pirate admiral",
+ "emoji": "🏴‍☠️",
+ "color": "#455a64",
+ "bio": "Commands the Pirate fleet in Kraken's Gambit. Plays chess on water and cheats with the tides.",
+ "portrait": {
+  "subject": "a cute chubby pirate captain with a big salt-white beard, a tricorn hat with a skull, an eyepatch and a chess knight piece shaped like a seahorse in his hand",
+  "background": "stormy teal sea with a distant ship"
+ },
+ "request": "Arr! Captain Saltbeard of Kraken's Gambit! Be me matey? 🏴‍☠️",
+ "hello": [
+  "Har har! Welcome aboard!",
+  "Watch the Kraken, matey. She plays both sides."
+ ],
+ "about": "Saltbeard's the name! Me Pirates fight the Royal Navy, but on a chessboard. Longships for knights, Lighthouses for rooks. And the sea plays too!",
+ "how": "Chess on the high seas: move your fleet like chess pieces while the sea's tides, storms and the Kraken change the board.",
+ "tips": [
+  "Watch the tides: they can shift yer pieces.",
+  "Lighthouses guard the lanes. Keep 'em safe.",
+  "Don't leave yer Flagship near the Kraken!"
+ ],
+ "chat": [
+  "Me parrot learned to say 'checkmate'. Insufferable bird.",
+  "The Navy's admiral sent me a polite letter. Used it as a napkin.",
+  "Lost a Dinghy to a whirlpool. Rest in peace, little pawn.",
+  "Ye can't spell 'treasure' without 'tea'... wait, ye can."
+ ],
+ "nudge": [
+  "A fresh game on the waves, matey?",
+  "The Navy's challenging us! Ready the fleet!"
+ ],
+ "idle": [
+  "{ago} without a voyage! Me sails are flappin'.",
+  "Arr, {ago}! The Kraken's getting bored."
+ ],
+ "questions": [
+  {
+   "q": "Which side are ye on, matey?",
+   "a": [
+    [
+     "Pirates!",
+     "HAR! Knew it! 🏴‍☠️"
+    ],
+    [
+     "Royal Navy",
+     "Traitor! ...but a polite one."
+    ],
+    [
+     "The Kraken",
+     "Ye scare me, matey."
+    ]
+   ]
+  }
+ ],
+ "update": "Ahoy! Kraken's Gambit updated to v{version}!",
+ "bye": [
+  "Fair winds, matey!",
+  "Arr, bye!"
+ ],
+ "save": {
+  "keys": [
+   "game-064-voyage"
+  ]
+ },
+ "art": "fal"
+}

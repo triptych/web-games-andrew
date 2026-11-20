@@ -1,0 +1,6 @@
+{
+  "_about": "Shared style for the Pocket Garden Messages avatars, painted with fal (fal-ai/nano-banana-2, 1:1, 0.5K). Each game's character and background are in its own avatar/avatar.json (portrait.subject, portrait.background). dev/make-avatars.py turns the paintings into avatar/avatar.webp (256) and avatar/avatar-tiny.webp (64). See docs/generic/avatars.md.",
+  "endpoint": "fal-ai/nano-banana-2",
+  "input": { "aspect_ratio": "1:1", "resolution": "0.5K", "output_format": "png" },
+  "style": "A cute chibi character avatar portrait for a phone messaging app contact picture. Head and shoulders, centered, facing the viewer with a warm friendly expression and big shiny eyes. Polished painterly 3D-rendered cartoon style, soft rim light, glossy highlights, high contrast so it reads at 32 pixels. Square, full-bleed, a simple soft background that reaches every edge. No border, no frame, no circle, no text, no letters. Character: {subject}. Background: {background}."
+}

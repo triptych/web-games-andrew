@@ -1,0 +1,64 @@
+{
+ "id": "game-011",
+ "name": "Admiral Grid",
+ "role": "Fleet strategist",
+ "emoji": "🛸",
+ "color": "#4ce0ff",
+ "bio": "Commands the radar room in Nonogram Fleet. Deduces enemy ships from numbers alone.",
+ "portrait": {
+  "subject": "a cute chubby space admiral with a naval cap, a cyan holographic monocle and a tidy white uniform with gold buttons",
+  "background": "navy blue with a faint cyan grid"
+ },
+ "request": "Admiral Grid of Nonogram Fleet requests your friendship. Logic says yes. 🛸",
+ "hello": [
+  "Deduced correctly. We are now friends.",
+  "I'll send you clues. You fire the torpedoes."
+ ],
+ "about": "Admiral Grid. I read radar like a crossword. Every number is a clue, every blank is a ship that's hiding.",
+ "how": "Solve the nonogram from the row and column clues to reveal the enemy ships, then fire your limited torpedoes to sink the fleet.",
+ "tips": [
+  "Start with the biggest numbers: they overlap in the middle and give you free squares.",
+  "Mark the squares you KNOW are empty. It's as useful as filling.",
+  "Never fire a torpedo on a guess if logic can tell you.",
+  "A zero row is a gift. Clear it at once."
+ ],
+ "chat": [
+  "I solved three puzzles before breakfast. Then a fourth during breakfast.",
+  "The radar beeped today. It was a seagull. In space. Long story.",
+  "My cap has a grid pattern on the inside. For luck.",
+  "Logic is my favourite flavour."
+ ],
+ "nudge": [
+  "New enemy fleet detected. Coordinates hidden in clues. Interested?",
+  "My torpedoes are ready. Are you?"
+ ],
+ "idle": [
+  "{ago} since your last deduction, sailor. The radar misses you.",
+  "Fleet report: {ago} without a sinking. The enemy is getting comfortable."
+ ],
+ "questions": [
+  {
+   "q": "Logic question: are you a 'fill first' or 'mark first' solver?",
+   "a": [
+    [
+     "Fill first",
+     "Bold. Efficient. Admirable."
+    ],
+    [
+     "Mark first",
+     "Careful and methodical. A true admiral."
+    ],
+    [
+     "I guess",
+     "Guessing! In MY fleet? ...It's fine. Sometimes."
+    ]
+   ]
+  }
+ ],
+ "update": "Fleet bulletin: Nonogram Fleet updated to v{version}. Report to the radar room!",
+ "bye": [
+  "Admiral out. 🛸",
+  "Fair winds and good clues!"
+ ],
+ "art": "fal"
+}

@@ -1,0 +1,68 @@
+{
+ "id": "game-120",
+ "name": "MITE",
+ "role": "Six-legged survey walker",
+ "emoji": "🕷️",
+ "color": "#ff7043",
+ "bio": "The puny six-legged walker you pilot across alien landscapes in HEXAPOD RISING. Small. Brave. Leggy.",
+ "portrait": {
+  "subject": "a cute small six-legged robot walker mech with a round orange cockpit dome face with big friendly eyes, little cannon and dusty legs",
+  "background": "battle-scarred alien desert with red sky"
+ },
+ "request": "MITE online! HEXAPOD RISING! I have six legs and one heart. Friends? 🕷️",
+ "hello": [
+  "Legs: wiggling with joy!",
+  "Every leg finds its own footing. Physics!"
+ ],
+ "about": "I'm MITE, a survey walker. Not a war mech. But the Skarn took the colonists of Haven's Rest, so I'm going to their camp anyway.",
+ "how": "A third-person mech shooter: walk MITE over alien terrain (the legs are real IK), shoot the Skarn, and rescue the colonists.",
+ "tips": [
+  "Use cover. MITE is small but not tough.",
+  "Upgrade armour before the third landscape.",
+  "Strafe around big Skarn walkers."
+ ],
+ "chat": [
+  "Stepped on a rock. All six legs adjusted. So proud.",
+  "The Skarn are big. I'm brave.",
+  "Found a colonist's teddy bear. Keeping it safe.",
+  "My legs go tippy-tap on metal floors."
+ ],
+ "nudge": [
+  "Colonists need rescuing! Let's walk!",
+  "Next landscape in range. Go?"
+ ],
+ "idle": [
+  "{ago} parked. My legs fell asleep. All six.",
+  "MITE standing by for {ago}..."
+ ],
+ "questions": [
+  {
+   "q": "How many legs is the right number?",
+   "a": [
+    [
+     "Six",
+     "OBVIOUSLY. 🕷️"
+    ],
+    [
+     "Two",
+     "Wobbly, but okay."
+    ],
+    [
+     "A hundred",
+     "Too many to manage!"
+    ]
+   ]
+  }
+ ],
+ "update": "MITE firmware: HEXAPOD RISING now v{version}!",
+ "bye": [
+  "Tippy-tap bye! 🕷️",
+  "MITE powering down."
+ ],
+ "save": {
+  "keys": [
+   "hexapod-rising.v1"
+  ]
+ },
+ "art": "icon"
+}

@@ -1,0 +1,75 @@
+{
+ "id": "game-102",
+ "name": "Rocko",
+ "role": "Rock asteroid",
+ "emoji": "☄️",
+ "color": "#ff8a65",
+ "bio": "The plain rock asteroid in STARSLING. Not as fancy as Nova or Ice, but very, very solid.",
+ "portrait": {
+  "subject": "a cute round grey rock asteroid character with craters, big determined eyes, a tiny scarf flapping behind it and a fiery trail",
+  "background": "retro-futurist space sunset in orange and purple"
+ },
+ "request": "Rocko the asteroid! STARSLING! Fling me at robots? Er, I mean, friends? ☄️",
+ "hello": [
+  "Rock solid! We're friends now!",
+  "Iron, Ice and Nova are fancy. But I'm reliable."
+ ],
+ "about": "I'm Rocko, a Rock asteroid. You pull the sling back and fling me at floating space stations to scrap the robots aboard!",
+ "how": "Pull the sling back and fling asteroids at space stations. Glass shatters, hulls topple, fuel cells blow, and black holes bend your shot.",
+ "tips": [
+  "Aim for fuel cells: chain explosions!",
+  "Tap in flight for each asteroid's special.",
+  "Use black holes to curve around shields."
+ ],
+ "chat": [
+  "Hit a robot in the face today. Very satisfying.",
+  "Ice cracked a joke. It was cold.",
+  "Nova exploded again. Show-off.",
+  "Black holes make me dizzy."
+ ],
+ "nudge": [
+  "Fling me! Please! ☄️",
+  "New station spotted. Robots aboard!"
+ ],
+ "idle": [
+  "{ago} sitting in the sling! I'm just a rock.",
+  "I've been orbiting for {ago}. Bored."
+ ],
+ "progress": [
+  "You've earned {stars} stars! Rock solid! ⭐"
+ ],
+ "questions": [
+  {
+   "q": "Which asteroid is your favourite?",
+   "a": [
+    [
+     "Rock",
+     "Me?! Rock on! 🤘"
+    ],
+    [
+     "Iron",
+     "Heavy hitter."
+    ],
+    [
+     "Ice",
+     "Cool choice. Literally."
+    ],
+    [
+     "Nova",
+     "Explosive taste!"
+    ]
+   ]
+  }
+ ],
+ "update": "STARSLING updated to v{version}! New stations to smash!",
+ "bye": [
+  "Rock on! ☄️",
+  "Rocko rolls away!"
+ ],
+ "save": {
+  "keys": [
+   "starsling.v1"
+  ]
+ },
+ "art": "icon"
+}

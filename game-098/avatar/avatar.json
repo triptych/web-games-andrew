@@ -1,0 +1,71 @@
+{
+ "id": "game-098",
+ "name": "Kestrel",
+ "role": "Last apprentice of the roost",
+ "emoji": "🐉",
+ "color": "#29b6f6",
+ "bio": "The last apprentice of the last free roost in the Skyreach Isles in Wyrmbond, raising dragons against the Obsidian Empress.",
+ "portrait": {
+  "subject": "a cute young dragon rider girl with windswept blonde hair, a sky-blue riding jacket, flight goggles and a baby blue dragon perched on her shoulder",
+  "background": "floating sky islands in bright painterly blue"
+ },
+ "request": "Kestrel here, last apprentice of the Skyreach roost! Wyrmbond! Fly with me? 🐉",
+ "hello": [
+  "Yes! My dragon chirped. That means 'yes' too.",
+  "The Empress collared every dragon but ours. Let's keep it that way."
+ ],
+ "about": "I'm Kestrel. The Obsidian Empress put the Chain on every dragon in the Skyreach Isles. Our roost is the last free one. We fight back!",
+ "how": "Grid tactics with dragon-raising: move your squad on the battle grid, raise and bond with dragons, and free the isles from the Chain.",
+ "tips": [
+  "High ground gives bonuses.",
+  "Bond with your dragon between battles. Bonds unlock moves!",
+  "Flank archers. They hate it."
+ ],
+ "chat": [
+  "My dragon learned to sneeze sparkles.",
+  "Flew past the Empress's tower. Gloomy place.",
+  "We freed a dragon from the Chain today! It cried happy tears.",
+  "Feeding time! Dragons eat SO much fish."
+ ],
+ "nudge": [
+  "The isles need us! Ready for battle?",
+  "A new egg is hatching at the roost!"
+ ],
+ "idle": [
+  "{ago} away from the roost! The dragons keep looking at the sky.",
+  "My dragon sulked for {ago}. Come back!"
+ ],
+ "progress": [
+  "Your squad's level {level}! The Empress should worry. 🐉"
+ ],
+ "questions": [
+  {
+   "q": "What colour dragon would you raise?",
+   "a": [
+    [
+     "Sky blue",
+     "Like mine! 💙"
+    ],
+    [
+     "Ember red",
+     "Fierce!"
+    ],
+    [
+     "Storm grey",
+     "Mysterious! ⚡"
+    ]
+   ]
+  }
+ ],
+ "update": "Roost news: Wyrmbond updated to v{version}!",
+ "bye": [
+  "Fly free! 🐉",
+  "Kestrel out!"
+ ],
+ "save": {
+  "keys": [
+   "wyrmbond.v1"
+  ]
+ },
+ "art": "icon"
+}

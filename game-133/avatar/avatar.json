@@ -1,0 +1,71 @@
+{
+ "id": "game-133",
+ "name": "Guildmaster Brea",
+ "role": "Retiring Guildmaster",
+ "emoji": "📋",
+ "color": "#795548",
+ "bio": "The outgoing Guildmaster of Brightmoor's adventurers' guild in Lanternhall. Thirty days to find a successor.",
+ "portrait": {
+  "subject": "a cute retired adventurer guildmaster woman with silver-streaked braids, an eyepatch, a warm smile, a quill behind her ear and a stack of quest papers",
+  "background": "busy cosy adventurers' guild hall with notice boards and lanterns"
+ },
+ "request": "Brea, Guildmaster of Lanternhall. You're the new clerk? Good. Friends, then. 📋",
+ "hello": [
+  "Excellent. Grade dangers honestly and we'll get on fine.",
+  "Wild Folk pay in acorns. Accept the acorns."
+ ],
+ "about": "I'm Brea. I've run Brightmoor's guild for twenty years. In thirty days it needs a new Guildmaster. You might be it.",
+ "how": "Sit behind the quest desk: read petitions, grade the danger with the Guild Handbook, assign adventurers, and grow the guild in thirty days.",
+ "tips": [
+  "Creature + number + place + omen. Add it up honestly.",
+  "Underrated quests get adventurers hurt.",
+  "Rotate your adventurers. Tired ones fail."
+ ],
+ "chat": [
+  "A goose filed a quest against another goose.",
+  "The Crown wants a dragon 'gently relocated'.",
+  "Copper rookies broke the training dummy. Again.",
+  "Found an acorn in my tea. The Wild Folk pay early."
+ ],
+ "nudge": [
+  "Petitioners at the desk, clerk!",
+  "A tricky quest came in. Your call."
+ ],
+ "idle": [
+  "The desk's been unattended for {ago}! Papers everywhere!",
+  "{ago}, clerk! The adventurers are getting rowdy."
+ ],
+ "progress": [
+  "Day {day} of 30! The guild's in good hands. 📋"
+ ],
+ "questions": [
+  {
+   "q": "How do you grade a quest about '3 wolves in a dark forest'?",
+   "a": [
+    [
+     "Copper",
+     "Bit low. Dark forests count extra."
+    ],
+    [
+     "Silver",
+     "Sensible. Good clerk!"
+    ],
+    [
+     "Platinum",
+     "Very cautious! Nobody gets hurt, at least."
+    ]
+   ]
+  }
+ ],
+ "update": "Guild bulletin: Lanternhall updated to v{version}!",
+ "bye": [
+  "Back to the desk! 📋",
+  "Brea signs off."
+ ],
+ "save": {
+  "keys": [
+   "lanternhall.v1"
+  ]
+ },
+ "art": "icon"
+}

@@ -1,0 +1,75 @@
+{
+ "id": "game-025",
+ "name": "Munch",
+ "role": "Crypt valkyrie",
+ "emoji": "🍗",
+ "color": "#e07a5f",
+ "bio": "The valkyrie of Crypt Crawler. Fights for treasure, lives for the food.",
+ "portrait": {
+  "subject": "a cute small valkyrie warrior girl with a winged helmet, blonde braids, a round shield and a chicken drumstick in her hand",
+  "background": "dark green crypt maze with warm torchlight"
+ },
+ "request": "Munch the Valkyrie, Crypt Crawler! Need a friend. Got food? 🍗",
+ "hello": [
+  "Friend acquired! Snack acquired? No? Okay still friends.",
+  "Shoot the nests, not just the monsters. Trust me."
+ ],
+ "about": "I'm Munch! Valkyrie, treasure hunter, food enthusiast. The crypt is full of monsters and roast chicken. I'm here for both.",
+ "how": "Pick a class, fight through 3D mazes, destroy monster nests, grab food to stay alive and keys to open the exit. Descend deeper!",
+ "tips": [
+  "Destroy the nests! Monsters keep pouring out until you do.",
+  "Don't shoot the food. I've done it. I wept.",
+  "Grab keys before treasure. Doors first, riches second."
+ ],
+ "chat": [
+  "I shot a roast chicken by accident. Worst day of my life.",
+  "The wizard says I eat too much. The wizard is wrong.",
+  "Found 400 gold and one sandwich. Kept the sandwich.",
+  "Valkyrie fact: winged helmets do not let you fly. I checked."
+ ],
+ "nudge": [
+  "The crypt is open and it smells like treasure. Come!",
+  "New level, new nests, new snacks? Let's go!"
+ ],
+ "idle": [
+  "{ago}! My health is draining! (I'm hungry.)",
+  "Haven't crawled in {ago}! The monsters bred. A lot."
+ ],
+ "progress": [
+  "High score {best}! Valkyrie salute! 🛡️"
+ ],
+ "questions": [
+  {
+   "q": "Which class would you pick?",
+   "a": [
+    [
+     "Warrior",
+     "Big axe energy!"
+    ],
+    [
+     "Valkyrie",
+     "Best answer obviously. 🛡️"
+    ],
+    [
+     "Wizard",
+     "Magic is cool. But he steals my snacks."
+    ],
+    [
+     "Elf",
+     "Fast! Good for grabbing food first."
+    ]
+   ]
+  }
+ ],
+ "update": "Crypt news! Crypt Crawler is now v{version}!",
+ "bye": [
+  "Munch out! 🍗",
+  "Don't shoot the food!"
+ ],
+ "save": {
+  "keys": [
+   "cryptCrawler.highScore"
+  ]
+ },
+ "art": "fal"
+}

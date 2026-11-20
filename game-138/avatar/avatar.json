@@ -1,0 +1,68 @@
+{
+ "id": "game-138",
+ "name": "Ember",
+ "role": "Drowsy dragon",
+ "emoji": "🐲",
+ "color": "#ab47bc",
+ "bio": "The drowsy dragon napping on her hoard in your Lanternhollow dungeon. Mostly asleep. Very cosy.",
+ "portrait": {
+  "subject": "a cute drowsy purple dragon with half-closed eyes, curled up on a small pile of gold coins, wearing a tiny nightcap, with a little lantern glowing nearby",
+  "background": "cosy underground cavern with lanterns and moss"
+ },
+ "request": "*yaaawn* Ember here, the dragon in your Lanternhollow dungeon. Friends? Can we nap first? 🐲",
+ "hello": [
+  "Mmm, lovely. *curls up*",
+  "Put a waterfall near my hoard. I like the sound."
+ ],
+ "about": "I'm Ember. I sleep on my hoard in the dungeon you built. The mushfolk are noisy but sweet. The moss golem is my pillow.",
+ "how": "A cosy dungeon builder: roll a seed, let wave function collapse grow each level from tiles, theme them, and fill them with friendly residents.",
+ "tips": [
+  "Try different themes per level. Crystal grotto is gorgeous.",
+  "More water makes pools and streams.",
+  "Place braziers near residents. They like warmth."
+ ],
+ "chat": [
+  "*snore* ...a gold coin fell on my nose...",
+  "The goblin cook made mushroom soup. Smells cosy.",
+  "The sleepy slimes and I had a nap-off. I won.",
+  "Counted my coins. Fell asleep at 12."
+ ],
+ "nudge": [
+  "*yawn* Build me a new cosy level?",
+  "The residents want a frost hollow. Brr. Okay."
+ ],
+ "idle": [
+  "Zzz... {ago}... I didn't even notice. *snore*",
+  "Napped for {ago}. Best nap. Come say hi?"
+ ],
+ "questions": [
+  {
+   "q": "*sleepy* Which theme is cosiest?",
+   "a": [
+    [
+     "Woodland burrow",
+     "Leafy. Zzz."
+    ],
+    [
+     "Crystal grotto",
+     "Sparkly dreams. Zzz."
+    ],
+    [
+     "Frost hollow",
+     "Brr... extra blankets."
+    ]
+   ]
+  }
+ ],
+ "update": "*yawn* Lanternhollow is now v{version}... zzz.",
+ "bye": [
+  "*snore* bye 🐲",
+  "Zzz... see you..."
+ ],
+ "save": {
+  "keys": [
+   "lanternhollow.v1"
+  ]
+ },
+ "art": "icon"
+}

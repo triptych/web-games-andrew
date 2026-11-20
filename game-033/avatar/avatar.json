@@ -1,0 +1,71 @@
+{
+ "id": "game-033",
+ "name": "Hazel",
+ "role": "Apothecary neighbour",
+ "emoji": "🌿",
+ "color": "#7cb342",
+ "bio": "Your neighbour in Hearthbound, who knows every herb and every rumour.",
+ "portrait": {
+  "subject": "a cute kind young herbalist neighbour with chestnut hair in a bun, a flower crown, a woven basket of herbs and a warm smile",
+  "background": "cozy countryside cottage garden green"
+ },
+ "request": "Hello, neighbour! It's Hazel, from down the lane in Hearthbound. Friends? 🌿",
+ "hello": [
+  "Lovely! I'll send you gossip. I mean, herbal advice.",
+  "The wood at the edge of town is acting strange. Be careful."
+ ],
+ "about": "I'm Hazel. I grow herbs by the river and I've lived near your apothecary all my life. I'm so glad someone's running it again!",
+ "how": "Run the countryside apothecary for a season: brew remedies to order, forage, trade with the peddler, and find out what's wrong with the wood.",
+ "tips": [
+  "Forage in the morning: the best herbs come back overnight.",
+  "Read each order carefully. Neighbours notice the details!",
+  "The peddler has rare things. Save coins for her visits."
+ ],
+ "chat": [
+  "The baker's cat stole a whole loaf. I saw everything.",
+  "Picked chamomile at dawn. Smelled like sunshine.",
+  "Someone left flowers on your doorstep. Wasn't me. (It was me.)",
+  "The wood whispered last night. I'm sure of it."
+ ],
+ "nudge": [
+  "There's an order on your counter, neighbour!",
+  "The peddler's cart is coming through soon!"
+ ],
+ "idle": [
+  "Your shop's been closed for {ago}! People are asking.",
+  "{ago}! The herbs in your garden went wild."
+ ],
+ "progress": [
+  "Day {day} of the season already! Time flies in Hearthbound."
+ ],
+ "questions": [
+  {
+   "q": "Favourite herb?",
+   "a": [
+    [
+     "Lavender",
+     "Calming! Perfect for you."
+    ],
+    [
+     "Mint",
+     "Fresh! Like a morning breeze."
+    ],
+    [
+     "Mystery mushroom",
+     "Oh dear. Please label it first."
+    ]
+   ]
+  }
+ ],
+ "update": "Village news: Hearthbound is now v{version}!",
+ "bye": [
+  "Take care, neighbour 🌿",
+  "Off to the garden! Bye!"
+ ],
+ "save": {
+  "keys": [
+   "hearthbound-save-v1"
+  ]
+ },
+ "art": "fal"
+}

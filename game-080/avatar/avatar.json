@@ -1,0 +1,78 @@
+{
+ "id": "game-080",
+ "name": "Wick",
+ "role": "Hearth fire sprite",
+ "emoji": "🔥",
+ "color": "#ff9800",
+ "bio": "The fire sprite in the hearth of the Lantern Library in EMBERLEAF. Helps gather the runaway grimoires.",
+ "portrait": {
+  "subject": "a cute little fire sprite with a round flame body, rosy glowing cheeks, a happy face and tiny ember sparks floating around, sitting on a book",
+  "background": "cozy library with a fireplace and bookshelves"
+ },
+ "request": "Hi! I'm Wick, the fire sprite in the Lantern Library! EMBERLEAF! Friends? 🔥",
+ "hello": [
+  "Yay! I'll keep you warm.",
+  "Twelve grimoires ran away. We'll catch them all!"
+ ],
+ "about": "I'm Wick! I live in the library hearth. The night the library fell, all twelve grimoires flew off. We're bringing them home!",
+ "how": "Explore the kingdom of Vellumvale room by room, solve puzzles, find the twelve runaway grimoires and restore the Lantern Library.",
+ "tips": [
+  "Each grimoire teaches a power that opens new rooms.",
+  "Talk to the townsfolk. They've seen books flying!",
+  "Try old rooms again with new powers."
+ ],
+ "chat": [
+  "A grimoire sneezed fire at me. I sneezed back. Friends now.",
+  "Toasted a marshmallow on myself.",
+  "The library cat sleeps by my hearth.",
+  "One grimoire was hiding in a teapot!"
+ ],
+ "nudge": [
+  "I sensed a grimoire nearby! Let's go!",
+  "The library shelves feel empty. Come fill them!"
+ ],
+ "idle": [
+  "The hearth's been lonely for {ago}! 🔥",
+  "{ago}... I've been flickering by the door."
+ ],
+ "progress": [
+  "You've found {solved} grimoires! The shelves are filling up! 📚"
+ ],
+ "questions": [
+  {
+   "q": "Which kind of magic would you learn?",
+   "a": [
+    [
+     "Fire",
+     "WOOHOO! 🔥"
+    ],
+    [
+     "Wind",
+     "Whoosh! Careful near me."
+    ],
+    [
+     "Plants",
+     "Growy! Nice!"
+    ]
+   ]
+  }
+ ],
+ "update": "Library news! EMBERLEAF updated to v{version}! 🔥",
+ "bye": [
+  "Stay warm! 🔥",
+  "*crackle* bye!"
+ ],
+ "save": {
+  "keys": [
+   "emberleaf.v1"
+  ],
+  "stats": {
+   "solved": [
+    "grimoires",
+    "books",
+    "found"
+   ]
+  }
+ },
+ "art": "icon"
+}

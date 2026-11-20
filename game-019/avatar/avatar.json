@@ -1,0 +1,63 @@
+{
+ "id": "game-019",
+ "name": "DJ Paddle",
+ "role": "Synthwave DJ",
+ "emoji": "🎧",
+ "color": "#ff3cac",
+ "bio": "Spins the beats and the paddle in Synthwave Breakout. Every brick is a beat.",
+ "portrait": {
+  "subject": "a cute retro synthwave DJ with big pink headphones, mirrored sunglasses, a purple jacket and a glowing neon paddle",
+  "background": "neon pink and purple sunset grid"
+ },
+ "request": "DJ Paddle in the house! Synthwave Breakout's coolest. Friends? 🎧",
+ "hello": [
+  "Righteous! Your friendship has a beat. 🎶",
+  "Combos are like remixes. Keep 'em going!"
+ ],
+ "about": "DJ Paddle! I bounce balls and drop beats. Neon bricks shatter in time with the music.",
+ "how": "Move the paddle to bounce the ball and smash all the neon bricks. Keep combos going and catch power-ups like multiball and lasers!",
+ "tips": [
+  "Hit the ball with the edge of the paddle to aim it sharply.",
+  "Clear a gap at the side and send the ball behind the bricks!",
+  "Multiball first, then laser. Total chaos. Total points."
+ ],
+ "chat": [
+  "Made a mixtape of brick sounds. It slaps.",
+  "The grid in the background is my dance floor.",
+  "Slow-mo power-up is my favourite. Everything gets dramatic.",
+  "I wear sunglasses at night. It's the 80s, baby."
+ ],
+ "nudge": [
+  "Bricks are stacked and the beat is dropping. Play? 🎶",
+  "New high score vibes tonight. You feel it?"
+ ],
+ "idle": [
+  "{ago} without a break(out)! The bricks are too comfortable.",
+  "The neon's been humming alone for {ago}."
+ ],
+ "questions": [
+  {
+   "q": "Favourite power-up?",
+   "a": [
+    [
+     "Multiball",
+     "CHAOS! Love it."
+    ],
+    [
+     "Laser",
+     "Pew pew paddle! Stylish."
+    ],
+    [
+     "Slow-mo",
+     "Dramatic. Cinematic. Chef's kiss."
+    ]
+   ]
+  }
+ ],
+ "update": "Fresh remix! Synthwave Breakout is now v{version} 🎧",
+ "bye": [
+  "Stay radical! 🎧",
+  "Peace out!"
+ ],
+ "art": "fal"
+}

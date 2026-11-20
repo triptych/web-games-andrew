@@ -1,0 +1,71 @@
+{
+ "id": "game-071",
+ "name": "Bryn",
+ "role": "Hollowmere Keep's smith",
+ "emoji": "⚒️",
+ "color": "#5c6bc0",
+ "bio": "Forges blades at Hollowmere Keep in FROSTMARCH. Saw you survive the dragon's lightning.",
+ "portrait": {
+  "subject": "a cute sturdy young blacksmith woman with braided red hair, soot on her cheek, a leather apron and a glowing hot hammer, smiling warmly",
+  "background": "snowy northern keep with a warm forge glow"
+ },
+ "request": "Bryn, smith of Hollowmere Keep. I saw what the storm did to you, Stormsworn. Friends? ⚒️",
+ "hello": [
+  "Good. You'll need a friend with a hammer.",
+  "Bring me iron. I'll make you something worth swinging."
+ ],
+ "about": "I'm Bryn. I forge at the Keep. The dead walk from the barrows and a black dragon's in the sky. Busy season.",
+ "how": "An open-world RPG: explore the frozen north, fight the walking dead, take quests, level up, and face the black dragon.",
+ "tips": [
+  "Upgrade your weapon before going into barrows.",
+  "Fire scares the dead. Bring torches.",
+  "Talk to everyone at the Keep. Quests are everywhere."
+ ],
+ "chat": [
+  "Forged a sword so sharp it cut the anvil. Need a new anvil.",
+  "The dragon flew over again. Everyone hid. I kept hammering.",
+  "Your scars glowed in the storm last night.",
+  "Snow in the forge. Hiss!"
+ ],
+ "nudge": [
+  "The barrows are restless. Ready to go?",
+  "Your new blade is ready. Come get it!"
+ ],
+ "idle": [
+  "{ago} away from the Keep, Stormsworn. People talk.",
+  "The forge has been cold for {ago}. Well, less hot."
+ ],
+ "progress": [
+  "Level {level}, Stormsworn. The dragon should worry."
+ ],
+ "questions": [
+  {
+   "q": "Sword, axe or hammer?",
+   "a": [
+    [
+     "Sword",
+     "Classic. I'll make it shine."
+    ],
+    [
+     "Axe",
+     "Northern choice! Good."
+    ],
+    [
+     "Hammer",
+     "My favourite! ⚒️"
+    ]
+   ]
+  }
+ ],
+ "update": "Word from the Keep: FROSTMARCH is now v{version}!",
+ "bye": [
+  "Stay warm, Stormsworn. ⚒️",
+  "Bryn returns to the forge."
+ ],
+ "save": {
+  "keys": [
+   "frostmarch.v1*"
+  ]
+ },
+ "art": "fal"
+}

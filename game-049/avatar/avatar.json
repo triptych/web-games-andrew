@@ -1,0 +1,80 @@
+{
+ "id": "game-049",
+ "name": "Lumi",
+ "role": "Lastlight lamp sprite",
+ "emoji": "🪔",
+ "color": "#ffd54f",
+ "bio": "The little flame living in your missing teacher's lantern, down the Hundred Stairs of Lanterndeep.",
+ "portrait": {
+  "subject": "a cute tiny flame sprite with big round eyes and a little smile, sitting inside an old brass lantern, warm golden glow on its cheeks",
+  "background": "dark stone stairway fading into blue gloom"
+ },
+ "request": "Flicker flicker! I'm Lumi, the flame in your lantern from Lanterndeep. Friends? 🪔",
+ "hello": [
+  "Yay! I'll burn extra bright for you.",
+  "Your teacher went down the stairs. We'll find them."
+ ],
+ "about": "I'm Lumi, the little fire in the lantern. Lastlight's lamps are going out, and we're going down a hundred floors to find out why.",
+ "how": "A turn-based roguelike: every step is a turn. Explore 100 random floors across ten buried worlds, fight, loot and keep the lantern lit.",
+ "tips": [
+  "Every step is a turn. Never rush a fight.",
+  "Fight in doorways so only one enemy can reach you.",
+  "Read new items before you need them, not during a fight."
+ ],
+ "chat": [
+  "I flickered at a ghost. It flickered back. We're friends now.",
+  "The drowned library smelled like old soup.",
+  "The dwarven forge was so warm! I grew a whole inch.",
+  "I can see 4 tiles. You can see the rest!"
+ ],
+ "nudge": [
+  "The stairs are calling. Down we go? 🪔",
+  "I feel brave today! Let's explore!"
+ ],
+ "idle": [
+  "{ago} in the dark... I've been glowing all alone.",
+  "The stairs are cold. It's been {ago}!"
+ ],
+ "progress": [
+  "Deepest floor: {floor}! {floor+1} is right there. Let's go!"
+ ],
+ "questions": [
+  {
+   "q": "Which buried world sounds most fun?",
+   "a": [
+    [
+     "Glowing grotto",
+     "Sparkly! ✨"
+    ],
+    [
+     "Drowned library",
+     "Books! Soggy ones."
+    ],
+    [
+     "Clockwork machine",
+     "Tick tock! Fancy!"
+    ]
+   ]
+  }
+ ],
+ "update": "Lanterndeep updated to v{version}! New floors to light! 🪔",
+ "bye": [
+  "Stay bright! 🪔",
+  "*flicker* bye!"
+ ],
+ "save": {
+  "keys": [
+   "lanterndeep_records_v1",
+   "lanterndeep_run_v1"
+  ],
+  "stats": {
+   "floor": [
+    "deepest",
+    "bestFloor",
+    "floor",
+    "depth"
+   ]
+  }
+ },
+ "art": "fal"
+}
