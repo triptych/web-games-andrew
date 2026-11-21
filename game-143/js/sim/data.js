@@ -7,32 +7,33 @@ export const RES_ICON = { gold: '🪙', flour: '🌾', sugar: '🍬', stone: '�
 // ------------------------------------------------------------------ buildings
 // make: produced per second. use: consumed per second while running. hope: added to the hope target.
 // workers: villagers needed to run at full speed. aff: the staff member who works best here.
+// ripe: seconds for its harvest bubble to fill (different for each kind, so they don't all appear together).
 export const BUILDINGS = {
-    cottage: { name: 'Cottage', icon: '🏡', cost: { gold: 40, stone: 10 }, workers: 0, housing: 6, aff: null,
+    cottage: { name: 'Cottage', icon: '🏡', cost: { gold: 40, stone: 10 }, workers: 0, housing: 6, ripe: 11, aff: null,
         desc: 'Crooked, cosy and slightly haunted. Houses six villagers per level.' },
-    mill: { name: 'Windmill', icon: '🌾', cost: { gold: 50, stone: 10 }, workers: 3, make: { flour: 0.5 }, aff: null,
+    mill: { name: 'Windmill', icon: '🌾', cost: { gold: 50, stone: 10 }, workers: 3, make: { flour: 0.5 }, ripe: 8, aff: null,
         desc: 'Grinds flour. The crow on the sail is called Reginald and he is not paid.' },
-    beets: { name: 'Sugarbeet Patch', icon: '🍬', cost: { gold: 55, stone: 10 }, workers: 3, make: { sugar: 0.4 }, aff: null,
+    beets: { name: 'Sugarbeet Patch', icon: '🍬', cost: { gold: 55, stone: 10 }, workers: 3, make: { sugar: 0.4 }, ripe: 9.5, aff: null,
         desc: 'Fat pink beets, boiled down to sugar. The scarecrow wears a witch hat, for solidarity.' },
-    quarry: { name: 'Quarry', icon: '🪨', cost: { gold: 60 }, workers: 4, make: { stone: 0.5 }, aff: 'gerald',
+    quarry: { name: 'Quarry', icon: '🪨', cost: { gold: 60 }, workers: 4, make: { stone: 0.5 }, ripe: 10.5, aff: 'gerald',
         desc: 'Stone for walls and buildings. Gerald can lift a block in each hand.' },
-    bakery: { name: 'Bakery', icon: '🥐', cost: { gold: 100, stone: 30 }, workers: 3, use: { flour: 0.3, sugar: 0.2 }, make: { gold: 1.5 }, hope: 6, aff: 'pip',
+    bakery: { name: 'Bakery', icon: '🥐', cost: { gold: 100, stone: 30 }, workers: 3, use: { flour: 0.3, sugar: 0.2 }, make: { gold: 1.5 }, hope: 6, ripe: 7, aff: 'pip',
         desc: 'Turns flour and sugar into pastries, gold and hope. Nobody is scared of a town that smells like this.' },
-    market: { name: 'Market', icon: '🎪', cost: { gold: 80, stone: 20 }, workers: 2, tax: 0.035, aff: null,
+    market: { name: 'Market', icon: '🎪', cost: { gold: 80, stone: 20 }, workers: 2, tax: 0.035, ripe: 12, aff: null,
         desc: 'Stalls of pumpkins, candles and cloth. Earns gold from every villager in town.' },
-    tailor: { name: 'Knitting Circle', icon: '🧶', cost: { gold: 120, stone: 40 }, workers: 2, hope: 5, armor: 0.08, aff: 'silk',
+    tailor: { name: 'Knitting Circle', icon: '🧶', cost: { gold: 120, stone: 40 }, workers: 2, hope: 5, armor: 0.08, ripe: 14, aff: 'silk',
         desc: 'Madame Silkwhistle\'s tailor shop. Knits cozies for the wall: less damage from every hit, per level.' },
-    tavern: { name: 'The Grinning Gourd', icon: '🍺', cost: { gold: 150, stone: 40 }, workers: 2, slots: [2, 4, 5], aff: null,
+    tavern: { name: 'The Grinning Gourd', icon: '🍺', cost: { gold: 150, stone: 40 }, workers: 2, slots: [2, 4, 5], ripe: 13, aff: null,
         desc: 'A tavern where adventurers drink cocoa and wait to be hired. More rooms, more heroes.' },
-    tower: { name: 'Watchtower', icon: '🗼', cost: { gold: 120, stone: 50 }, workers: 1, aff: 'grizelda',
+    tower: { name: 'Watchtower', icon: '🗼', cost: { gold: 120, stone: 50 }, workers: 1, ripe: 16, aff: 'grizelda',
         desc: 'Each tower puts a candied crossbow on the wall in a siege. Grizelda keeps them in flowers.' },
-    witch: { name: 'Witch\'s Kitchen', icon: '🧪', cost: { gold: 180, stone: 50 }, workers: 2, use: { sugar: 0.08 }, aff: null, unlock: 'witch',
+    witch: { name: 'Witch\'s Kitchen', icon: '🧪', cost: { gold: 180, stone: 50 }, workers: 2, use: { sugar: 0.08 }, ripe: 15, aff: null, unlock: 'witch',
         desc: 'Brews hex-starch for the Mayor\'s doilies: they hit harder, per level.' },
-    bell: { name: 'Belfry', icon: '🔔', cost: { gold: 160, stone: 60 }, workers: 1, hope: 8, morale: 0.06, aff: 'wick',
+    bell: { name: 'Belfry', icon: '🔔', cost: { gold: 160, stone: 60 }, workers: 1, hope: 8, morale: 0.06, ripe: 17, aff: 'wick',
         desc: 'A bell to ring at bedtime and in a siege. Hope in town, and everyone shoots faster on the wall.' },
     oven: { name: 'The Great Oven', icon: '🎂', cost: { gold: 250, stone: 80 }, workers: 4, unique: true, aff: 'pip', unlock: 'oven',
         desc: 'Big enough to bake a person. The Mayor will not say what for. "Trust me."' },
-    gingerhome: { name: 'Gingerfolk Cottage', icon: '🍪', cost: { gold: 60, sugar: 30 }, workers: 0, housing: 8, hope: 3, aff: null, unlock: 'ginger',
+    gingerhome: { name: 'Gingerfolk Cottage', icon: '🍪', cost: { gold: 60, sugar: 30 }, workers: 0, housing: 8, hope: 3, ripe: 11.5, aff: null, unlock: 'ginger',
         desc: 'Homes for the gingerfolk who decided to stay. They are excellent neighbours and smell of cinnamon.' },
 };
 export const BUILD_ORDER = ['cottage', 'mill', 'beets', 'quarry', 'bakery', 'market', 'tailor', 'tavern', 'tower', 'bell', 'witch', 'oven', 'gingerhome'];
@@ -277,6 +278,45 @@ export const SCENES = {
 };
 
 // Gossip ticker lines by hope: frightened, uneasy, hopeful, cheerful. View-only flavour.
+// Lady Noxia's little cheers, shown on the tip card between Lord Vellum's advice.
+export const NOXIA_CHEERS = [
+    'Look at this town! Mother would be appalled. I love it.',
+    'Every brick a little act of defiance. Splendid.',
+    'We are doing wonderfully. Don\'t tell Vellum I said so, he\'ll want a raise.',
+    'A villain plans. A mayor plans, and then bakes. I contain both.',
+    'Deep breaths. Doilies ready. We\'ve got this.',
+    'The Crumb Horde has never met a town this cosy. Poor things.',
+    'Oh, that went rather well, didn\'t it?',
+    'One plot at a time, darling. Thistlegloom wasn\'t built in a day. It was built in several.',
+    'If the King could see this, he\'d be green with icing.',
+    'I used to frighten villages. Building one is so much more satisfying.',
+    'Pip says the bakery smells like victory. Pip says that about everything.',
+    'Chin up, cape on. We are magnificent.',
+    'You\'re a natural at this. Have you considered a career in light tyranny?',
+    'Gerald gave me a thumbs up. Well, a crumb up. Same thing.',
+    'Nobody has been eaten all week. A personal best!',
+    'Keep going. Every bubble popped is a bun for the wall.',
+];
+
+// Coming back after time away: what Lord Vellum says first, then a few villagers on the tip card ({totals} is
+// filled in by the UI with what the town saved up).
+export const WELCOME_BACK = [
+    'Welcome back, Madam Mayor. While you were away the town kept working, and I kept the books.',
+    'Ah, there you are. The villagers carried on without you. Rather well, if I may say.',
+    'Madam Mayor! I took the liberty of collecting the takings while you were out.',
+    'You were gone a while. I counted everything twice. Then a third time, for fun.',
+];
+export const IDLE_GOSSIP = [
+    ['vellum', 'The ledger says {totals}. I have filed it under "pleasant surprises".'],
+    ['pip', 'I kept the ovens warm the whole time you were gone, boss! The till is up by {totals}.'],
+    ['gerald', 'Stacked the stone while nobody watched. Wanted it to be a surprise.'],
+    ['hollyhock', 'Of course we kept working, dearie. Who else is going to?'],
+    ['lark', 'I\'m writing a song about the takings. It\'s called "{totals}". Working title.'],
+    ['tansy', 'Mayor! Mayor! We counted the sugar and it was LOTS.'],
+    ['silk', 'Eight hands are never idle, darling. The circle kept knitting, the town kept earning.'],
+    ['bram', 'Quiet few hours. Mills turned, beets grew. Not a crumb on the hill.'],
+];
+
 export const GOSSIP = [
     ['Villagers hide under beds. Beds report feeling crowded.', 'Someone heard a cookie crunch in the woods. Everyone heard it twice.', 'Bram has started sleeping with his pitchfork again.'],
     ['Mayor seen in apron at the bakery. Villagers unsure whether to be scared or hungry.', 'The cottage ghost moaned again. Nobody has asked him why.', 'Gingerbread scouts sighted. Granny Hollyhock says "not my gingerbread".'],

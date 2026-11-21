@@ -15,8 +15,19 @@ import { readiness, liveEnemies } from './battle.js';
 import { ENEMIES } from './data.js';
 import { hash3 } from '../rng.js';
 
-export function makeBot({ skill = 1, seed = 7 } = {}) {
-    return { skill, seed, think: 0, n: 0, aim: 55, aimT: 0, abilT: 0 };
+/** pace: seconds between town turns for a skill-1 bot (story mode slows it down so the town is watchable). */
+export function makeBot({ skill = 1, seed = 7, pace = 1.5 } = {}) {
+    return { skill, seed, pace, think: 0, n: 0, aim: 55, aimT: 0, abilT: 0 };
+}
+
+/** Story mode: the bot runs only the town, through the same commands, and leaves the wall to the player. */
+export function storyTurn(G, bot, dt) {
+    if (G.mode !== 'town' || G.over) return;
+    bot.think -= dt;
+    if (bot.think > 0) return;
+    bot.n++;
+    bot.think = bot.pace;
+    townTurn(G, bot);
 }
 
 // a stateless coin for the bot, so it never consumes the game's random stream
@@ -156,7 +167,7 @@ export function botInput(G, bot, dt = 1 / 120) {
         if (bot.think <= 0) {
             bot.n++;
             // a sharp mayor checks in every couple of seconds; a distracted one every half day or so
-            bot.think = 1.5 + (1 - bot.skill) * (DAY_LEN * 0.4) * coin(bot, 1);
+            bot.think = (bot.pace ?? 1.5) + (1 - bot.skill) * (DAY_LEN * 0.4) * coin(bot, 1);
             townTurn(G, bot);
         }
         return { ax: 0, aim: null, fire: false };

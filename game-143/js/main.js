@@ -3,15 +3,15 @@
 //
 // ?debug=1 exposes window.__ds for the dev/ harnesses; &fast=N runs N× simulation per frame.
 
-import { STEP, MAX_FRAME, DAY_LEN } from './config.js';
+import { STEP, MAX_FRAME, DAY_LEN, IDLE, MODES } from './config.js';
 import { View } from './view/view.js';
 import { loadAssets } from './view/assets.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
-import { UI } from './ui.js';
-import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
+import { UI, totalsText } from './ui.js';
+import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, savedAt, loadLegacy, saveLegacy, clearLegacy } from './save.js';
 import { newGame, step, act, questDef } from './sim/game.js';
-import { makeBot, botInput } from './sim/bot.js';
+import { makeBot, botInput, storyTurn } from './sim/bot.js';
 import { BUILDINGS, DAY_EVENTS, ADVENTURERS, STAFF } from './sim/data.js';
 
 const params = new URLSearchParams(location.search);
@@ -30,6 +30,8 @@ let ffing = false;           // fast-forwarding: the bot's refused tries are not
 let bot = null;
 let acc = 0, time = 0, last = performance.now(), saveT = 0, wasRunning = false;
 let pendingAfterResult = null;
+let storyBot = null;         // story mode: Lord Vellum runs the town
+let hiddenAt = null;         // when the tab was hidden, for the time-away bonus
 const seen = {};
 
 const send = (cmd) => {
@@ -66,6 +68,8 @@ function showGoal(g) {
     ui.openPanel('plot:' + s.plot);
 }
 ui.G = G;
+// Lady Noxia's cheers on the tip card; the test harnesses (debug=1) turn them off unless &cheer=1
+ui.cheers = !DEBUG || params.get('cheer') === '1';
 
 loadAssets().then(() => { document.body.classList.add('art-ready'); });
 
@@ -82,12 +86,32 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     if (!b) return;
     audio.ui('click');
     const a = b.dataset.act;
-    if (a === 'new') startGame(newGame((Date.now() % 1e9) | 0));
+    if (a === 'new') ui.showModes(loadLegacy());
     else if (a === 'continue') {
-        const g = loadGame();
-        if (g) startGame(g); else ui.toast('That save could not be read.');
+        const at = savedAt(), g = loadGame();
+        if (g) { startGame(g); if (at) claimIdle((Date.now() - at) / 1000); } else ui.toast('That save could not be read.');
     } else ui.openScreen(a);
 });
+document.getElementById('mode-menu').addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-mode]');
+    if (!b || !MODES.includes(b.dataset.mode)) return;
+    audio.ui('click');
+    newRun(b.dataset.mode);
+});
+/** A new game in a mode; a fallen hard-mode town's head start goes to it. */
+function newRun(mode) {
+    const legacy = loadLegacy();
+    clearLegacy();
+    startGame(newGame((Date.now() % 1e9) | 0, { mode, legacy }));
+}
+/** Back after `sec` seconds away: the town saved some of its takings. */
+function claimIdle(sec) {
+    if (mode !== 'play' || !(sec >= IDLE.min)) return;
+    send({ t: 'idle', sec: Math.round(sec) });
+    saveGame(G);
+}
+document.getElementById('gameover-title').addEventListener('click', () => { audio.ui('click'); toTitle(); });
+document.getElementById('gameover-again').addEventListener('click', () => { audio.ui('click'); newRun('hard'); });
 document.getElementById('pause-menu').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-act]');
     if (!b) return;
@@ -111,6 +135,7 @@ document.getElementById('ending-ok').addEventListener('click', () => { audio.ui(
 
 function startGame(g) {
     G = g; ui.G = G;
+    storyBot = G.diff === 'story' ? makeBot({ skill: 1, seed: 3, pace: 2.5 }) : null;
     for (const id of [...ui.stack]) ui.closeScreen(id);
     document.activeElement?.blur?.();
     mode = 'play';
@@ -120,6 +145,7 @@ function startGame(g) {
     syncMode();
     updateTouch();
     if (G.flags.intro) ui.toast(`Welcome back, Madam Mayor. Day ${G.day}.`);
+    else if (G.legacy) ui.toast(`🎁 Your last town's savings came along: ${totalsText(G.legacy)}`);
     saveGame(G);
 }
 function toTitle() {
@@ -254,6 +280,7 @@ function flushEvents() {
             }
             case 'built': if (e.kind) ui.toast(`${BUILDINGS[e.kind].icon} ${BUILDINGS[e.kind].name} ${e.lvl > 1 ? 'is now ★' + e.lvl : 'is ready'}!`); else if (e.part) ui.toast(e.part === 'wall' ? `🧱 The wall is now level ${e.lvl}!` : `🏛️ The Town Hall is now level ${e.lvl}!`); break;
             case 'hired': ui.toast(`🗡️ ${ADVENTURERS[e.adv].name} moves into the Grinning Gourd.`); break;
+            case 'idle': ui.idleNews(e.got, e.sec); break;
             case 'refused': {
                 if (ffing || bot) break;
                 const why = { 'too dear': "We can't afford that yet.", 'no room': 'The tavern is full. Upgrade it for more rooms.', 'not yet': 'Not yet.', 'plot not open': 'Upgrade the Town Hall to use that plot.', busy: 'Already being built.' }[e.why];
@@ -283,6 +310,13 @@ function flushEvents() {
 
 function onBattleEnd(e) {
     syncMode();
+    if (e.result === 'over') {
+        // hard mode: this town is done; the next one starts with some of what it had
+        saveLegacy(e.legacy);
+        clearSave();
+        ui.showGameOver(G, e);
+        return;
+    }
     saveGame(G);
     if (e.result === 'love') { themeFor(); audio.playTheme('love'); scene('ending', () => ui.showEnding(G)); return; }
     ui.showResult(e);
@@ -307,6 +341,12 @@ function frame(now) {
         let n = 0, townT = 0;
         while (acc >= STEP && n < 12 * FAST * 3) {
             if (G.mode === 'town') townT += STEP;
+            if (storyBot && !bot && G.mode === 'town') {
+                // story mode: Lord Vellum takes his turn; his refused tries are not news
+                const e0 = G.events.length;
+                storyTurn(G, storyBot, STEP);
+                if (G.events.length > e0) G.events.splice(e0, G.events.length - e0, ...G.events.slice(e0).filter((x) => x.type !== 'refused'));
+            }
             const inp = bot ? botInput(G, bot, STEP) : input.state();
             const ev0 = G.events.length;
             step(G, inp, STEP);
@@ -318,7 +358,7 @@ function frame(now) {
         if (n >= 12 * FAST * 3) acc = 0;
         view.tickTown(G, townT);
         saveT += dt;
-        if (saveT > 20 && G.mode === 'town') { saveT = 0; saveGame(G); }
+        if (saveT > 20 && G.mode === 'town' && !G.over) { saveT = 0; saveGame(G); }
     } else acc = 0;
     flushEvents();
     view.selPlot = ui.panel ? view.selPlot : -1;
@@ -328,8 +368,11 @@ function frame(now) {
     }
 }
 
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); });
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { pause(); hiddenAt = Date.now(); return; }
+    if (hiddenAt != null) { const away = (Date.now() - hiddenAt) / 1000; hiddenAt = null; claimIdle(away); }
+});
+window.addEventListener('pagehide', () => { if (mode === 'play' && !G.over) saveGame(G); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 
@@ -340,7 +383,9 @@ if (DEBUG) {
         get mode() { return mode; },
         seen, view, ui, audio, input,
         set quiet(v) { quiet = !!v; }, get quiet() { return quiet; },
-        start(seed = 1) { startGame(newGame(seed)); return G; },
+        start(seed = 1, mode = 'normal', legacy = null) { startGame(newGame(seed, { mode, legacy })); return G; },
+        idle: (sec) => claimIdle(sec),
+        newRun,
         load(g) { startGame(g); },
         autoplay(on = true, skill = 1) { bot = on ? makeBot({ skill, seed: 5 }) : null; },
         /** Run the sim ahead with the bot playing; events reach the view, sound and screens as usual. */

@@ -2,7 +2,7 @@
 
 **Genre:** Town-building tycoon with castle-defence sieges, and a story
 **Engine:** Vanilla JS, Canvas 2D. Generated art (fal) and audio (ElevenLabs), with code fallbacks
-**Status:** v1.1.0
+**Status:** v1.2.0
 
 ---
 
@@ -216,6 +216,31 @@ A first player didn't know what to do and sat waiting for money. Now:
   rewards on the first side quests. `simtest` follows the tips through the first phase on three seeds: never more than
   25 s with nothing doable, the story quests done and the first checklist met.
 
+## Modes, time away and polish (v1.2.0)
+
+From a play session's notes:
+- **Three modes**, picked on New Game: **Story** (`story`): the bot's town half (`storyTurn` in [bot.js](js/sim/bot.js),
+  every 2.5 s) builds, upgrades, delivers, hires and staffs; the player only holds the wall, and the tip card says so
+  with a Speed up button. **Normal** (`normal`): unchanged. **Hard** (`hard`): a lost siege ends the game
+  (`G.over`, a `battleEnd` with `result: 'over'` and a `legacy`); the save is deleted and the legacy (`HARD.keep` of
+  the stores, `HARD.refund` of every level's cost of the standing buildings) waits in storage for the next new game,
+  whatever its mode. `G.diff` holds the mode; old saves load as normal.
+- **Time away**: `act({ t: 'idle', sec })` pays `IDLE.share` of the town's positive net production for one town day per
+  `IDLE.perDay` real seconds, between `minDays` and `maxDays`, with a gold floor; nothing under `IDLE.min`. main.js
+  claims it on Continue (from the save's timestamp) and when a hidden tab comes back. The UI shows a toast, then
+  Lord Vellum's tally and three villagers' lines on the tip card (Next ▸ skips), and the ticker repeats them.
+- **Notes on the tip card**: the card can be taken over for a few seconds by a note: the time-away news, and Lady
+  Noxia's cheers (one when the tip changes and 30 s have passed since the last, or after 60 s on the same tip).
+  The test harnesses turn the cheers off unless `&cheer=1`.
+- **Bubble timers**: `ripe` per building kind in data.js, times `RIPE_JITTER[plot]`, stored on the building as `rt`;
+  the harvest scales with `rt / HARVEST.ripe`, so a slow bubble pays more and the rate is unchanged.
+- **The "!" badge**: `canUpgrade` / `canUpgradeHall` in town.js.
+- **Facing**: the sprites that face right (zombie, corn, slime, ghost, bat, the young King) are mirrored in a siege.
+- **Steady HUD**: fixed-width boxes for the wall's number and the resource counts.
+
+Story mode with a fair or sloppy wall bot (skill 0.6 and 0.3, three seeds each) wins every siege first time and reaches
+the Queen in about 30 minutes.
+
 ## Balance notes
 
 From `dev/balance.mjs` (whole games) and `dev/siege.mjs` (one siege against a town that exactly meets the checklist):
@@ -252,6 +277,13 @@ What the bot found along the way:
 - More quests and town events for the epilogue; seasonal decorations.
 
 ## Changelog
+
+### v1.2.0 (2026-11-21)
+- Three modes: Story (Lord Vellum runs the town), Normal, Hard (a fallen wall ends the game; the next starts with a head
+  start).
+- Time away pays out part of the town's production, with news on the tip card and the ticker.
+- Lady Noxia's cheers between the tips; a gold "!" over affordable upgrades; bubbles ripen at each building's own pace.
+- Fixed: five enemy kinds walked backwards; the siege bars twitched as the wall's number changed width.
 
 ### v1.1.0 (2026-11-20)
 - Lord Vellum's helper: a tutorial after the intro and before the first siege, a tip card with Show me, a What next?

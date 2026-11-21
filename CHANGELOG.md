@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Doom & Doilies: The Sugar Siege** (game-143) v1.2.0: three ways to play, a payout for time away, and a livelier town ([game-plan.md](game-143/game-plan.md#modes-time-away-and-polish-v120)).
+  - **Three modes** (New Game asks): 📖 **Story**, where Lord Vellum runs the town (the bot's town half, at a watchable pace) and you hold the wall; 🎂 **Normal**, as before; 💀 **Hard**, where a fallen wall ends the game and the next game starts with half the stores on hand and a quarter of what the standing buildings cost. Old saves load as Normal.
+  - **Time away**: coming back (Continue, or returning to the tab) after two minutes or more pays out part of what the town makes, one town day per half hour away, up to three days ([town.js](game-143/js/sim/town.js) `idleLoot`). Lord Vellum and the villagers tell you about it on the tip card, and the ticker carries the news.
+  - **Lady Noxia's cheers**: 16 little encouragements on the tip card between Lord Vellum's tips.
+  - **Bubbles at their own pace**: each kind of building ripens on its own timer (bakery 7 s up to belfry 17 s, nudged by the plot it stands on), so they no longer all appear together; a slower bubble holds more, so the payout per second is unchanged.
+  - **A gold "!"** bobs over every building (and the Town Hall) you can afford to upgrade.
+  - **Fixed**: the gingerbread zombies, candy-corn imps, gumdrop slimes, marshmallow ghosts and sugar-skull bats walked backwards (their pictures face right); they now face the wall. The siege bars no longer twitch as the wall's number changes width, and the town's resource counts hold their places too.
+  - **Tests**: `simtest` (≈370 checks) adds the ripening timers (no two buildings ripen together after collecting everything), the badge rule, the idle payout and its cap, the three modes, the hard-mode end and legacy, and Vellum running a story town; `browsertest` adds a `modes` run (story, time away, a cheer, the badges, the still siege bars, hard mode's game over and Try again).
+
 ### Added
 - **VACANCY** (game-145) v1.0.0: a first-person walking simulator about decay and liminal space, in three.js, built in the sim/view layout.
   - A whole city from a seed ([city.js](game-145/js/sim/city.js)): 11×11 blocks of downtown towers, a ring of apartments, shops, parks and the civic buildings, residential streets of houses with yards, an industrial side, and the fenced Threshold Laboratory compound; abandoned cars, buses, street lights (a few still lit), traffic lights, bus shelters, payphones, newspaper boxes, working vending machines, containers and dead trees. About 450 buildings and 0.22 km² of floor per city.

@@ -139,11 +139,36 @@
         </div>
     </div>
 
+    <div id="modes" class="screen" hidden>
+        <div class="sheet">
+            <h2>How shall we play?</h2>
+            <p id="legacy" class="legacy" hidden></p>
+            <div class="modes" id="mode-menu">
+                <button class="modecard" data-mode="story"><span class="mi">📖</span><span><b>Story</b><span>Lord Vellum runs the town for you: building, quests, staff and heroes. You watch Thistlegloom grow and hold the wall in the sieges.</span></span></button>
+                <button class="modecard" data-mode="normal"><span class="mi">🎂</span><span><b>Normal</b><span>Build the town yourself and hold the wall. A lost siege costs some stores, and the wave comes back.</span></span></button>
+                <button class="modecard hard" data-mode="hard"><span class="mi">💀</span><span><b>Hard</b><span>If the wall falls, the game is over. Your next game starts with part of what this town had saved and built.</span></span></button>
+            </div>
+            <div class="sheet-foot"><button class="btn" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="gameover" class="screen" hidden>
+        <div class="sheet">
+            <h2 class="endtitle">The Wall Has Fallen</h2>
+            <img src="art/en/zombie.png" alt="" class="resimg">
+            <p id="gameover-text"></p>
+            <p id="gameover-legacy" class="legacy"></p>
+            <div class="sheet-foot"><button id="gameover-title" class="btn">Title</button><button id="gameover-again" class="btn primary">Try again (Hard)</button></div>
+        </div>
+    </div>
+
     <div id="howto" class="screen" hidden>
         <div class="sheet">
             <h2>How to Play</h2>
+            <p><b>Three ways to play.</b> 📖 <b>Story</b>: Lord Vellum runs the town and you hold the wall. 🎂 <b>Normal</b>: you do both. 💀 <b>Hard</b>: if the wall falls the game is over, but the next game starts with part of what the old town had.</p>
             <p><b>Lost?</b> Lord Vellum's tip card at the bottom says what to do next, and <b>Show me</b> points at it. The 💡 <b>Next</b> button lists every good idea at once.</p>
-            <p><b>Bubbles.</b> Every few seconds a glowing bubble floats over a busy building. Tap it (or press C) to collect a bonus. The little rising numbers show what each building is making.</p>
+            <p><b>Bubbles.</b> Every few seconds a glowing bubble floats over a busy building (each kind at its own pace). Tap it (or press C) to collect a bonus. The little rising numbers show what each building is making. A gold <b>!</b> over a building means you can afford to upgrade it.</p>
+            <p><b>Time away.</b> When you come back, the town has saved up some of what it made while you were gone.</p>
             <p><b>The town.</b> Tap an empty plot to build: cottages for villagers, a windmill and a sugarbeet patch for flour and sugar, a bakery to turn them into gold and hope, a quarry for stone. Buildings need villagers to work them, and villagers come when there is room and hope. Assign your staff to buildings to speed them up.</p>
             <p><b>The countdown.</b> Each phase gives you a few days before the next invasion. The 🛡️ Siege panel lists what the town should have ready: wall, watchtowers, adventurers, the bake. Meet it all and the wall gets a bonus.</p>
             <p><b>The siege.</b> You command the wall on the left. Tap or drag on the field (or ← → and Space) to throw doilies. Towers and adventurers fight on their own; your staff's abilities are the round buttons. Beaten enemies curl up and nap. Hold out and you win more days; lose and the wave comes back in three, a little weaker.</p>

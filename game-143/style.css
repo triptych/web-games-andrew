@@ -63,8 +63,9 @@ a { color: var(--accent); }
     font-weight: 600; font-size: 15px; text-shadow: 0 1px 2px #000;
 }
 .res { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; }
-.res b { font-variant-numeric: tabular-nums; }
-.res i { font-style: normal; font-size: 11px; color: var(--mint); }
+.res b { font-variant-numeric: tabular-nums; display: inline-block; min-width: 3.4ch; }
+.res i { font-style: normal; font-size: 11px; color: var(--mint); font-variant-numeric: tabular-nums; display: inline-block; min-width: 3.4ch; }
+#r-pop b { min-width: 4.6ch; }
 .res i.neg { color: var(--danger); }
 .hope { align-items: center; }
 .hope .bar { width: 64px; }
@@ -111,6 +112,11 @@ a { color: var(--accent); }
 .tipacts { display: flex; align-items: center; gap: 4px; flex: none; }
 .tipacts .ibtn { min-width: 44px; padding: 0; }
 .tipacts .btn.small { min-height: 44px; }
+/* Lady Noxia's little cheers between the tips */
+#tip.cheer { border-color: rgba(255, 159, 210, 0.75); background: linear-gradient(90deg, rgba(70, 24, 66, 0.96), var(--panel)); }
+#tip.cheer .tipbody b { color: var(--accent); }
+#tip.cheer .tipbody p { font-style: italic; }
+#tip.story { border-color: rgba(159, 245, 208, 0.6); }
 #btn-collect { margin-left: auto; flex: none; min-height: 48px; padding: 6px 14px; font-size: 18px; background: linear-gradient(180deg, #fff1b8, #ffc94d); color: #3a2400; border-color: transparent; box-shadow: 0 0 16px rgba(255, 211, 107, 0.7); }
 #btn-collect b { font-size: 16px; }
 .card.hint { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 0 18px rgba(255, 211, 107, 0.45); }
@@ -120,6 +126,17 @@ a { color: var(--accent); }
 .guide li { margin: 5px 0; line-height: 1.35; }
 .pulse-on { animation: btnpulse 0.8s 4; }
 @keyframes btnpulse { 50% { box-shadow: 0 0 0 3px var(--gold), 0 0 14px var(--gold); } }
+
+/* the mode picker and the hard-mode game over */
+.modes { display: grid; gap: 10px; margin: 10px 0; }
+.modecard { display: flex; gap: 12px; align-items: center; text-align: left; width: 100%; padding: 12px 14px; font: inherit; color: var(--text); cursor: pointer;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid var(--line); border-radius: 14px; min-height: 64px; }
+.modecard:hover, .modecard:focus-visible { border-color: var(--accent); background: rgba(255, 159, 210, 0.12); outline: none; }
+.modecard .mi { font-size: 32px; flex: none; width: 44px; text-align: center; }
+.modecard b { display: block; font-size: 17px; }
+.modecard span { display: block; font-size: 13px; color: var(--dim); line-height: 1.35; }
+.modecard.hard b { color: var(--danger); }
+.legacy { border: 1px dashed rgba(255, 211, 107, 0.6); border-radius: 12px; padding: 8px 12px; color: var(--gold); font-size: 14px; }
 
 /* ---------------------------------------------------------------- siege HUD */
 #bhud { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
@@ -132,6 +149,8 @@ a { color: var(--accent); }
 #b-wall { background: linear-gradient(90deg, #ff5f7a, #ffc46b); }
 #b-wave { background: linear-gradient(90deg, #9ff5d0, #7ab8ff); }
 .bwave b { white-space: nowrap; font-size: 13px; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+/* the wall's number changes width as it falls (1300 → 520 → 85): a fixed box stops the bars beside it from twitching */
+#b-wall-n { flex: none; width: 4.2ch; text-align: right; font-variant-numeric: tabular-nums; }
 #btn-pause2 { pointer-events: auto; }
 #b-abil { position: absolute; right: calc(10px + var(--safe-r)); bottom: calc(14px + var(--safe-b)); display: flex; gap: 8px; pointer-events: auto; }
 .abtn {
