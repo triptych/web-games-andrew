@@ -1,5 +1,5 @@
 {
-  "note": "Not generated yet: the ElevenLabs account ran out of credits first. Generate each with eleven_music_v2_5 (instrumental, about 60-75 s), encode 80 kbps stereo with a short fade at the loop seam, and drop it in audio/music/<name>.mp3; process.py then lists it in js/audio-files.js and the game uses it instead of the synth.",
+  "note": "The prompts the seven tracks were generated from with eleven_music_v2_5 (instrumental, 60-80 s each, about 900-1,200 credits). process.py encodes each music-<name>.mp3 at 80 kbps stereo with a short fade in and a 2 s fade out at the loop seam into audio/music/<name>.mp3.",
   "title": "A cozy steampunk village theme at dusk: music box, warm pizzicato strings, soft brass and a ticking clock rhythm, gentle and wondering, 84 bpm, loopable",
   "lane": "Cheerful cozy village lane music: accordion, plucked mandolin, light clockwork percussion, a whistling melody, bright and bouncy, 100 bpm, loopable",
   "wilds": "Pastoral wandering music for a sunlit meadow strewn with old machinery: flute, acoustic guitar, glockenspiel, a soft ticking pulse, breezy and curious, 92 bpm, loopable",

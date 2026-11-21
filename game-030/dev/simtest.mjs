@@ -64,7 +64,7 @@ for (const [id, m] of Object.entries(MAPS)) {
     const W = m.grid[0].length;
     ok(m.grid.every((r) => r.length === W), `${id}: rows are ${W} wide`);
     ok(ART.bg.includes(m.bg), `${id}: backdrop ${m.bg} painted`);
-    ok(['title', 'lane', 'wilds', 'gully', 'battle', 'boss', 'ending'].includes(m.music), `${id}: music ${m.music} is a theme`);
+    ok(['title', 'lane', 'wilds', 'gully', 'battle', 'boss', 'ending'].includes(m.music) && (!MEDIA || MUSIC.includes(m.music)), `${id}: music ${m.music} is a theme with a track`);
     for (const p of m.props) ok(ART.prop.includes(p.k), `${id}: prop art ${p.k}`);
     if (m.tree) ok(ART.prop.includes(m.tree), `${id}: tree art`);
     for (const ex of m.exits) {
@@ -131,7 +131,7 @@ for (const [tid, t] of Object.entries(TREES)) {
         }
     }
 }
-console.log(`  (${voiced} of ${spoken} spoken dialogue lines are voiced; the battle shouts are, and every clip in audio/vo is checked below)`);
+ok(!MEDIA || voiced === spoken, `every spoken dialogue line is voiced (${voiced} of ${spoken})`);
 if (MEDIA && VOICES.size) for (const [who, b] of Object.entries(BARKS)) for (const t of Object.values(b)) ok(VOICES.has(voiceKey(who === 'bigbertha' ? 'bertha' : who, t)), `bark ${who}: ${t}`);
 // every quest is given somewhere and can be completed
 const acts = Object.values(TREES).flatMap((t) => Object.values(t.nodes).flatMap((n) => [...(n.act || []), ...(n.choices || []).flatMap((c) => c.act || [])]));

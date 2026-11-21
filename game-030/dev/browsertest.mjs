@@ -68,6 +68,7 @@ console.log('\n# desktop');
     ok(await ea(page, '__.mode()') === 'explore', 'Space through the prologue reaches the village');
     ok(await ea(page, `__.G.map === 'lane' && __.G.party.length === 1`), 'Wick starts alone on the lane');
     ok(await ea(page, `__.audio.current === 'lane'`), 'the lane theme is the one asked for');
+    ok(await ea(page, `Object.values(__.audio.tracks).some((t) => !t.paused && !t._bad)`), 'the lane track is playing');
     ok(await ea(page, `Object.values(__.audio.buffers).filter(Boolean).length >= 15`), 'the effects decoded');
     // walk to Trina and take her quests
     ok(await walkTo(page, 4, 6, true), 'walked to Trina by arrow keys');
@@ -81,6 +82,7 @@ console.log('\n# desktop');
     await page.waitForTimeout(300);
     await shot(page, 'trina');
     ok(await page.evaluate(() => { const i = document.getElementById('vn-por'); return !i.hidden && i.naturalWidth > 0; }), 'Trina\'s painted portrait is showing');
+    ok(await ea(page, `__.audio.voiceEl?.src.includes('audio/vo/trina-') && !__.audio.voiceEl.error`), 'Trina speaks a recorded line');
     await talkThrough(page, [2]);
     ok(await ea(page, `__.G.quests.main_gear?.s === 'active' && __.G.quests.side_scraps?.s === 'active'`), 'choices by number keys took the quests');
     // the hint and the menu

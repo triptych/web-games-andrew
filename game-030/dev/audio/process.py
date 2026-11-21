@@ -32,12 +32,20 @@ def encode(src, out, lufs, kbps, ss=None, to=None, cap=None):
     return run(*b)
 sfx = []
 for f in sorted(os.listdir(RAW)):
-    if not f.endswith('.mp3') or f.startswith('take-'): continue
+    if not f.endswith('.mp3') or f.startswith(('take-', 'dlg-', 'music-')): continue
     name = f[:-4]
     out = os.path.join(SFX_DIR, name + '.mp3')
     r = encode(os.path.join(RAW, f), out, -18, 96, cap=3.5)
     if r.returncode: print('sfx failed', name, r.stderr[-300:]); continue
     sfx.append(name)
+
+# music: music-<name>.mp3 -> audio/music/<name>.mp3, 80 kbps stereo, a short fade in and a 2 s fade out at the loop seam
+for f in sorted(os.listdir(RAW)):
+    if not (f.startswith('music-') and f.endswith('.mp3')): continue
+    dur = float(run('ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', os.path.join(RAW, f)).stdout.strip())
+    out = os.path.join(MUSIC_DIR, f[6:])
+    r = run('ffmpeg', '-nostdin', '-y', '-i', os.path.join(RAW, f), '-af', f'afade=t=in:d=0.25,afade=t=out:st={dur - 2:.2f}:d=2', '-ac', '2', '-b:a', '80k', out)
+    if r.returncode: print('music failed', f, r.stderr[-300:])
 
 def fnv(s):
     h = 2166136261
@@ -53,8 +61,8 @@ def key(who, text): return f'{who}-{b36(fnv(text.strip()))}'
 voices = []
 takes = json.load(open(os.path.join(HERE, 'takes.json')))
 for t in takes:
-    src = os.path.join(RAW, f"take-{t['speaker']}.mp3")
-    if not os.path.exists(src): print('missing take', t['speaker']); continue
+    src = os.path.join(RAW, t['file'])
+    if not os.path.exists(src): print('missing take', t['file']); continue
     n = len(t['lines'])
     r = run('ffmpeg', '-nostdin', '-i', src, '-af', 'silencedetect=noise=-38dB:d=0.28', '-f', 'null', '-')
     starts = [float(x) for x in re.findall(r'silence_start: ([\d.]+)', r.stderr)]
@@ -67,7 +75,7 @@ for t in takes:
     inner = [(s, e) for s, e in gaps if s > 0.3 and e < dur - 0.05]
     inner.sort(key=lambda g: g[0] - g[1])
     cuts = sorted(inner[:n - 1])
-    if len(cuts) != n - 1: print(f"{t['speaker']}: found {len(cuts)} pauses, wanted {n - 1}"); continue
+    if len(cuts) != n - 1: print(f"{t['file']}: found {len(cuts)} pauses, wanted {n - 1}"); continue
     bounds = [0.0] + [((s + e) / 2) for s, e in cuts] + [dur]
     for i, line in enumerate(t['lines']):
         a, b = bounds[i], bounds[i + 1]

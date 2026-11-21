@@ -3,7 +3,7 @@
 **Genre:** Cozy-fantasy RPG (tinker's tale)
 **Layout:** sim/view, plain HTML, CSS and JavaScript (Canvas 2D for the map and the battle stage, DOM for everything else)
 **Version:** 2.0.0
-**Status:** Complete: one story arc to a boss, three side quests, a party of three. Open: music and voiced dialogue (see below).
+**Status:** Complete: one story arc to a boss, four quests, a party of three, painted, scored and fully voiced.
 
 ---
 
@@ -97,9 +97,10 @@ never disagree with the world.
 
 ## Look and sound
 
-Everything is painted with fal `nano-banana-2` from the data's descriptions ([dev/art/README.md](dev/art/README.md)). The sound
-effects and the battle shouts were made with ElevenLabs ([dev/audio/README.md](dev/audio/README.md)); the music is a Web Audio
-synth that stands in until the tracks are generated. A Web Audio synth also stands in for any effect that fails to load.
+Everything is painted with fal `nano-banana-2` from the data's descriptions ([dev/art/README.md](dev/art/README.md)). Everything
+you hear was made with ElevenLabs ([dev/audio/README.md](dev/audio/README.md)): seven music themes (Music v2.5), 18 sound effects,
+and every line of dialogue and every battle shout, in six voices. A Web Audio synth stands in for any music or effect that fails to
+load, and a missing voice clip is silent.
 
 ## Module overview
 
@@ -117,9 +118,9 @@ dev/              simtest, browsertest, play, shots, preview, serve; art/ and au
 
 ## Testing
 
-- `node game-030/dev/simtest.mjs`: 893 checks. Purity, every map/person/event reachable, every dialogue reference, every quest
+- `node game-030/dev/simtest.mjs`: 965 checks. Purity, every map/person/event reachable, every dialogue reference, every quest
   given and completed, every picture and audio file, a test for each v1 gap, whole games by the bot at skill 1, 0.6 and 0.3.
-- `node game-030/dev/browsertest.mjs`: Chromium, desktop by real keys and clicks, two touch-only phones, blocked storage, and
+- `node game-030/dev/browsertest.mjs`: 44 checks. Chromium, desktop by real keys and clicks, two touch-only phones, blocked storage, and
   the bot autoplaying in the page. Screenshots in `dev/shots/`.
 
 ## Balance notes
@@ -130,10 +131,7 @@ about half, level 6 reliably, which is what the guide recommends.
 
 ## Open questions / next steps
 
-- **Music**: seven themes (title, lane, wilds, gully, battle, boss, ending) are wired to `audio/music/<name>.mp3` and use the
-  synth until the files exist. Prompts are in [dev/audio/music.json](dev/audio/music.json).
-- **Dialogue voices**: only the battle shouts are voiced. `dev/audio/voices.mjs` + `process.py` already cut and name clips by
-  speaker and a hash of the line; voicing the quest-givers is generating takes and rerunning them.
+- Listen to the voice clips: each take was cut at its longest pauses and the counts matched, but a clip that starts or ends a word early would only be heard by ear.
 - One more companion, or a second boss, would suit the Gully's closed corner better than more random encounters.
 
 ## Changelog
@@ -141,7 +139,7 @@ about half, level 6 reliably, which is what the guide recommends.
 ### v2.0.0 (2026-11-21)
 Rebuilt without a framework in the sim/view layout. Saves; a party of three; status effects; enemies with their own AI; a bed
 above the shop; the Golden Gear sequence fixed; a fourth quest; a hint arrow, tap-to-walk and a touch pad; 41 painted images,
-18 sound effects and 22 voiced battle shouts; a bot, a sim test and a browser test. See the root CHANGELOG.
+seven music themes, 18 sound effects and every line voiced (86 clips); a bot, a sim test and a browser test. See the root CHANGELOG.
 
 ### v1.1.3
 Dialogs pinned (PR #369). v1 (v1.0.0) was the Kaplay-free Canvas 2D prototype with a solo hero, no saves and emoji art.

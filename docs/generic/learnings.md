@@ -7463,9 +7463,11 @@ because of something that table showed.
 - **fal and ElevenLabs bill separately, and either can run out mid-set.** fal reported "ready" from `check_account_status`
   while jobs were still refused with `balance_exhausted`; a rejected submission key is remembered, so a retry needs a *new*
   key. Test with one cheap job, not the status call, before resubmitting a batch. ElevenLabs showed 2,093 credits left of
-  296,000: a sound effect cost 17 (its estimate said 55) and a short voice take about 230, which paid for the effects and the
-  battle shouts but not the music or the dialogue. Price one of each kind first, and spend the budget on the cheapest things
-  that make the biggest difference.
+  296,000, so only the effects and the battle shouts were made. When the user came back, the limit read 406,000 (a plan change):
+  check `account_get_usage` again instead of assuming it is still empty. Then the music (seven tracks, 900 to 1,200 credits each,
+  estimated at 1,650) and all 64 lines of dialogue (about 7,000 credits) went through. Prices differed from estimates both ways: a
+  sound effect cost 17 against an estimate of 55. Price one of each kind first, read the charge from the run, and spend the
+  budget on the things that make the biggest difference first.
 - **Sheets come back in their own layout.** The item sheet was prompted as a 4×3 grid and returned four ragged rows with two
   of the twelve things duplicated. Cutting by blob in reading order and mapping by index (after drawing the boxes over the
   picture and looking) was quicker than reprompting.
