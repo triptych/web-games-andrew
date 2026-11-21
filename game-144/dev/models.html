@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEBULA REQUIEM — model gallery</title>
+<style>
+  html, body { margin: 0; background: #2a2d34; color: #ddd; font: 13px system-ui, sans-serif; }
+  #grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; padding: 4px; }
+  .cell { position: relative; background: #3a3e46; aspect-ratio: 4 / 6; }
+  .cell canvas { width: 100%; height: 50%; display: block; }
+  .cell b { position: absolute; left: 6px; top: 4px; }
+  .cell i { position: absolute; right: 6px; top: 4px; font-style: normal; color: #9fd; }
+</style>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+</head>
+<body>
+<div id="grid"></div>
+<script type="module">
+// Every Meshy model as the game fits it (js/view/meshy.js FIT), side-on like the game camera, on neutral grey with
+// plain lights: the arrow shows which way it should face (ships → right, enemies ← left). ?names=a,b limits it.
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { FIT, loadMeshy, meshyClone } from '../js/view/meshy.js';
+
+const only = new URLSearchParams(location.search).get('names');
+if (only && only.split(',').length < 6) document.getElementById('grid').style.gridTemplateColumns = `repeat(${only.split(',').length}, 1fr)`;
+const names = Object.keys(FIT).filter((n) => !only || only.split(',').includes(n));
+// ?rot=0 shows every model as Meshy made it (no turn), to read off its native facing
+if (new URLSearchParams(location.search).get('rot') === '0') for (const n of names) FIT[n].rot = [0, 0, 0];
+const loaded = await loadMeshy('../models/');
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+const pm = new THREE.PMREMGenerator(renderer);
+const env = pm.fromScene(new RoomEnvironment(), 0.04).texture;
+for (const name of names) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    const m = meshyClone(name);
+    cell.innerHTML = `<b>${name}</b><i>${m ? '' : 'not loaded'}</i>`;
+    document.getElementById('grid').appendChild(cell);
+    if (!m) continue;
+    const scene = new THREE.Scene();
+    scene.environment = env;
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x404050, 1.2));
+    const d = new THREE.DirectionalLight(0xffffff, 2); d.position.set(-3, 5, 6); scene.add(d);
+    scene.add(m);
+    const box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3());
+    const R = Math.max(size.x, size.y * 1.33) * 0.75;
+    const ship = name.startsWith('ship-');
+    const arrow = new THREE.ArrowHelper(new THREE.Vector3(ship ? 1 : -1, 0, 0), new THREE.Vector3(0, -size.y / 2 - R * 0.12, 0), R * 0.5, ship ? 0x40ff80 : 0xff6040);
+    scene.add(arrow);
+    const cam = new THREE.PerspectiveCamera(30, 4 / 3, 0.01, 1000);
+    renderer.setSize(720, 540);
+    // side (as the game sees it), then from above (+x still to the right, +z toward the bottom)
+    for (const [p, up] of [[[-R * 0.35, R * 0.45, R * 3.2], [0, 1, 0]], [[0, R * 3.2, 0.001], [0, 0, -1]]]) {
+        cam.position.set(...p); cam.up.set(...up); cam.lookAt(0, 0, 0);
+        renderer.render(scene, cam);
+        const c = document.createElement('canvas');
+        c.width = 720; c.height = 540;
+        c.getContext('2d').drawImage(renderer.domElement, 0, 0);
+        cell.appendChild(c);
+    }
+}
+document.title += ` (${loaded} loaded)`;
+window.galleryDone = true;
+</script>
+</body>
+</html>

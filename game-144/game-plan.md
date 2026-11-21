@@ -2,7 +2,7 @@
 
 **Genre:** 3D side-scrolling bullet-hell shoot-'em-up (horizontal, arcade style) with an anime story
 **Engine:** three.js r165 (import map), sim/view layout; art by fal, music, effects and voices by ElevenLabs
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -111,7 +111,9 @@ star relights; survival mode is endless.
 
 ## Look and sound
 
-Side view from slightly above and to the left, leaning round for bosses; shake, flashes and a refraction shockwave on
+The Seraphs, every enemy kind and the bosses are Meshy text-to-3D models (`models/`, fitted in `js/view/meshy.js`;
+see `dev/meshy/README.md`); the procedural models in `js/view/models.js` stand in while they load and keep the
+bosses' animated weak points. Side view from slightly above and to the left, leaning round for bosses; shake, flashes and a refraction shockwave on
 big hits (all toned down by the Calm setting or `prefers-reduced-motion`). Painted fal backdrops far behind (dimmed per
 stage so the bullets stay readable), a nebula shader and streaking starfield, and per-stage 3D scenery that drifts at
 its depth. Bullets are one instanced draw call shaped in the fragment shader (orb, rice, needle, big, star), coloured
@@ -166,6 +168,14 @@ move; skill sets reaction rate, how many bullets it notices and look-ahead). Nor
 - More boss variety in survival (they repeat with more HP after six).
 
 ## Changelog
+
+### v1.1.0 (2026-11-21)
+- The three Seraphs, all 21 enemy kinds and the six bosses are now Meshy 3D models (30 GLBs, 15 MB after shrinking
+  the textures), each turned and sized to face its way; bosses keep their procedural weak points and effects.
+  `dev/models.html` shows them all; the browser test checks every one loads.
+
+### v1.0.1 (2026-11-21)
+- Fixed square halos round bright objects: a sanitize pass before the bloom zeroes NaN/infinite pixels and caps the rest.
 
 ### v1.0.0 (2026-11-21)
 - First release: three pilots with voiced stories and endings, six stages, capital ships, six bosses, eleven power-ups
