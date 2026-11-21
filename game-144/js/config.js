@@ -22,7 +22,7 @@ export const PLAYER = {
 
 export const WEAPON = {
     maxPower: 6, maxOptions: 4, maxRockets: 4, maxShield: 5, maxWarp: 3, maxHalo: 2,
-    rocketEvery: 0.62, rocketDmg: 5, rocketSplash: 1.3, rocketSpeed: 20,
+    rocketEvery: 0.62, rocketDmg: 3, rocketSplash: 1.3, rocketSpeed: 20,
     optionEvery: 0.14,
     warpDist: 7, warpInv: 0.5, warpDmg: 22, warpRecharge: 6, warpClear: 1.3,
     haloRadius: 1.7, haloDps: 9, haloBlade: 0.42,
@@ -50,3 +50,6 @@ export const RANK = { perMinute: 0.035, max: 0.25 };
 export const LIMITS = { bullets: 1400, shots: 500, enemies: 140, items: 260, events: 400 };
 
 export const SCROLL = 4.2;                // background/world scroll speed (units/s), for terrain and capital ships
+export const BOSS_HP = 2.4;            // every boss phase's HP in bosses.js is multiplied by this
+// ...and by the stage's factor: the player is far stronger by stage 6 than stage 1 (balance table in game-plan.md)
+export const STAGE_BOSS_HP = { bellwether: 0.62, wyrm: 0.6, organ: 0.95, titan: 1.3, mother: 1.4, heart: 1.65 };

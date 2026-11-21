@@ -38,8 +38,8 @@ export function mothership(seed, len = 210) {
         const x = i * W;
         const r1 = hash3(seed, i, 1), r2 = hash3(seed, i, 2);
         const wave = Math.sin(i * 0.37 + seed) * 0.5 + 0.5;
-        let top = 0.6 + wave * 4.2 + r1 * 1.2;
-        let bot = 0.6 + (1 - wave) * 4.2 + r2 * 1.2;
+        let top = 0.6 + wave * 6.2 + r1 * 1.6;
+        let bot = 0.6 + (1 - wave) * 6.2 + r2 * 1.6;
         if (i < 3) { top = 0.6; bot = 0.6; }              // a clean mouth to enter by
         const gap = FIELD.h - top - bot;
         if (gap < MIN_GAP + 1.5) { const k = (MIN_GAP + 1.5) / gap; top /= k; bot /= k; }

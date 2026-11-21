@@ -3,7 +3,7 @@
 //
 // B = { id, key, x, y, t, phase, pt (phase time), hp, maxhp, vuln, coreW: {x,y,r}, entering, s (boss state) }
 
-import { FIELD } from '../config.js';
+import { FIELD, BOSS_HP, STAGE_BOSS_HP } from '../config.js';
 import { BOSSES } from './data/world.js';
 import { emit } from './patterns.js';
 import { spawnEnemy, killEnemy, ev, addScore, cancelBullets, dropItem, dropGems } from './core.js';
@@ -28,25 +28,26 @@ export const BOSS_DEFS = {
     // 1. A dreadnought you fly over and under: its hull is solid; the core opens once its engines are down.
     bellwether: {
         hx: 22.5, hy: 9, c: 0, core: { ox: -6.2, oy: 0, r: 1.5 },
-        walls: [{ x: -5.2, y: -2.6, w: 13.5, h: 5.2 }, { x: -1, y: -4.4, w: 4.5, h: 1.8 }, { x: 2.5, y: 2.6, w: 5, h: 1.2 }],
+        // the hull is solid; its engines hang above and below the stern, so you fly along the hull to reach them
+        walls: [{ x: -5.2, y: -2.4, w: 13.5, h: 4.8 }],
         parts: [
-            { type: 'turret', ox: -3, oy: -3.1 }, { type: 'turret', ox: -3, oy: 3.1 },
-            { type: 'bigturret', ox: 1.2, oy: -5.0 }, { type: 'turret', ox: 5, oy: 3.9 },
-            { type: 'engine', ox: 8.8, oy: -1.6, tag: 'engine' }, { type: 'engine', ox: 8.8, oy: 1.6, tag: 'engine' },
+            { type: 'turret', ox: -3, oy: -2.9 }, { type: 'turret', ox: -3, oy: 2.9 },
+            { type: 'bigturret', ox: 2.2, oy: -3.0 }, { type: 'turret', ox: 4.5, oy: 3.0 },
+            { type: 'engine', ox: 7.6, oy: -3.6, tag: 'engine' }, { type: 'engine', ox: 7.6, oy: 3.6, tag: 'engine' },
         ],
         phases: [
             { hp: 520, time: 45, armored: true, step(G, B) {
                 bob(B, 0.6, 1.4, 0.3, 0.45);
                 // the core is shut until both engines are down (or the clock runs out)
                 B.vuln = partsAlive(G, B, 'engine').length === 0 || B.pt > 32;
-                every(B, 'curtain', 3.2, () => emit(G, 'curtain', src(B, -6, 0), { rows: 11, speed: 6.5, gap: 3 }));
+                every(B, 'curtain', 4.0, () => emit(G, 'curtain', src(B, -6, 0), { rows: 11, speed: 6, gap: 4 }));
                 if (B.vuln) every(B, 'fan', 1.1, () => emit(G, 'fan', src(B, -6, 0), { n: 9, arc: 1.4, speed: 8 }));
             } },
             { hp: 700, time: 50, step(G, B) {
                 bob(B, 0.8, 2.6, 0.3, 0.5);
                 B.vuln = true;
-                every(B, 'spiral', 0.09, () => { B.s.ang = (B.s.ang || 0) + 0.21; emit(G, 'ring', src(B, -6, 0), { n: 4, speed: 6, off: B.s.ang, step: 0 }); });
-                every(B, 'aim', 1.4, () => emit(G, 'aimed', src(B, -6, 0, 3), { n: 7, spread: 0.12, speed: 10 }));
+                every(B, 'spiral', 0.14, () => { B.s.ang = (B.s.ang || 0) + 0.23; emit(G, 'ring', src(B, -6, 0), { n: 4, speed: 5.2, off: B.s.ang, step: 0 }); });
+                every(B, 'aim', 1.9, () => emit(G, 'aimed', src(B, -6, 0, 3), { n: 5, spread: 0.16, speed: 8.5 }));
             } },
             { hp: 620, time: 50, step(G, B) {
                 bob(B, 1.2, 3.2, 0.4, 0.6);
@@ -71,7 +72,7 @@ export const BOSS_DEFS = {
             { hp: 760, time: 50, step(G, B) {
                 B.x = B.hx + 2 + Math.sin(B.t * 0.5) * 3; B.y = B.hy + Math.sin(B.t * 0.9) * 6;
                 B.vuln = true;
-                every(B, 'breath', 3.6, () => emit(G, 'laser', src(B, -1, 0, 2), { warm: 0.8, life: 1.6, w: 0.9, spin: (B.s.dir = -(B.s.dir || 1)) * 0.5 }));
+                every(B, 'breath', 3.6, () => emit(G, 'laser', src(B, -1, 0, 2), { warm: 0.9, life: 1.3, w: 0.9 }));
                 every(B, 'shard', 0.35, () => emit(G, 'fan', src(B), { n: 3, arc: 0.5, speed: 7.5, k: 'needle', c: 1 }));
             } },
             { hp: 620, time: 50, step(G, B) {
@@ -230,7 +231,7 @@ function orbitHalos(G, B, R, w) {
 // ---------------------------------------------------------------------------- lifecycle
 export function startBoss(G, key, o = {}) {
     const D = BOSS_DEFS[key];
-    const mul = (G.ehp || 1) * (o.hpMul || 1);
+    const mul = BOSS_HP * (STAGE_BOSS_HP[key] || 1) * (G.ehp || 1) * (o.hpMul || 1);
     const B = {
         id: G.nextId++, key, x: FIELD.w + 10, y: D.hy, hx: D.hx, hy: D.hy, t: 0, pt: 0, dt: 0, phase: 0, c: D.c,
         hp: D.phases[0].hp * mul, maxhp: D.phases[0].hp * mul, mul, vuln: false, entering: 3.0, flash: 0, dead: false, armor: 1,

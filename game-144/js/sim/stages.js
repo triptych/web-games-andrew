@@ -131,7 +131,7 @@ export function stepStage(G, dt) {
     }
     const spent = G.scriptI >= st.script.length;
     const quiet = !G.enemies.some((e) => !e.part) && !G.capital;
-    return spent && (G.stageT >= st.end || (quiet && G.stageT > st.script[st.script.length - 1].t + 3));
+    return spent && (G.stageT >= st.end || (quiet && G.stageT > (st.script.at(-1)?.t ?? 0) + 3));
 }
 
 // ---------------------------------------------------------------------------- survival

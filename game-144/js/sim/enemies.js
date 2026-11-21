@@ -101,6 +101,8 @@ function fire(G, e, dt) {
     if (e.x < G.player.x + 1.2 && d.move !== 'mounted' && e.type !== 'carrier') return;   // never shoot from behind the player
     if (G.chill > 0) return;
     const [pat, every, prm] = d.fire[e.fi % d.fire.length];
+    // no aimed shots point-blank: a bullet fired from two ships' lengths away can't be read, only guessed
+    const close = Math.hypot(e.x - G.player.x, e.y - G.player.y) < 3.2 && (pat === 'aimed' || pat === 'stream' || pat === 'fan');
     if (prm.burst) {
         // fire continuously for `burst` seconds, then rest
         const period = prm.burst + 1.6 / G.erate;
@@ -114,6 +116,7 @@ function fire(G, e, dt) {
     e.ft -= dt * G.erate;
     if (e.ft <= 0) {
         e.ft += every;
+        if (close) return;
         if (d.chance != null && G.rng() > d.chance) return;
         emit(G, pat, e, prm);
         e.fi++;
@@ -140,7 +143,7 @@ export function stepEnemies(G, dt) {
         if (!e.dead && d.move !== 'mounted' && p.dead <= 0 && Math.hypot(e.x - p.x, e.y - p.y) < e.r * 0.8 + p.hit) hitPlayer(G, 'ram');
     }
     // drop the dead and the gone
-    G.enemies = G.enemies.filter((e) => !e.dead && e.x > -5 && e.x < 46 && e.y > -8 && e.y < 26);
+    G.enemies = G.enemies.filter((e) => !e.dead && (e.part || (e.x > -5 && e.x < 46 && e.y > -8 && e.y < 26)));
 }
 
 // ------------------------------------------------------------------ formations (used by stages and the endless director)

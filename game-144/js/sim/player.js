@@ -80,8 +80,9 @@ function nearestEnemy(G, x, y, ahead = true) {
         if (d < bd) { bd = d; best = e; }
     }
     if (G.boss && G.boss.vuln && !G.boss.dead) {
+        // seekers prefer an exposed boss core over its turrets
         const c = G.boss.coreW;
-        const d = (c.x - x) ** 2 + (c.y - y) ** 2;
+        const d = ((c.x - x) ** 2 + (c.y - y) ** 2) * 0.3;
         if (d < bd) return { id: 'boss', x: c.x, y: c.y };
     }
     return best;
