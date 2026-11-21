@@ -13,12 +13,15 @@
  *   works, controls ≥ 44 px and on screen, no sideways scroll, the canvas matches the visible viewport, every
  *   panel's Close button stays on screen.
  * nostorage: localStorage throws; the game still boots and plays.
+ * modes: Story (the town builds itself, the card says so), time away (the payout, the toast, the notes on the tip card,
+ *   the ticker), Lady Noxia's cheers, the "!" badges, the siege bars holding still as the wall's number changes width,
+ *   the enemies facing the wall, Hard (the wall falls → game over → a head start for the next game).
  * Fails on any console error, page error or failed request.
  *
  *   python3 -m http.server 8143          # from the REPO ROOT
  *   node game-143/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8143), ONLY=desktop,phones,nostorage.
+ * Env: BASE (default http://127.0.0.1:8143), ONLY=modes,desktop,phones,nostorage.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -104,7 +107,10 @@ async function desktop() {
     await shot(page, 'desktop-title');
 
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, () => __ds.mode === 'play' && !document.getElementById('talk').hidden, 'New Game starts with the election scene');
+    await until(page, () => !document.getElementById('modes').hidden && document.querySelectorAll('#mode-menu [data-mode]').length === 3, 'New Game asks how to play: Story, Normal or Hard');
+    await shot(page, 'desktop-modes');
+    await click(page, '#mode-menu [data-mode="normal"]');
+    await until(page, () => __ds.mode === 'play' && __ds.G.diff === 'normal' && !document.getElementById('talk').hidden, 'Normal starts with the election scene');
     // advance the intro with real keys (Enter presses the focused Next button)
     for (let i = 0; i < 14; i++) {
         if (await Q(page, () => document.getElementById('talk').hidden)) break;
@@ -145,7 +151,7 @@ async function desktop() {
 
     // harvest bubbles and the rising numbers
     await Q(page, () => __ds.act({ t: 'speed', v: 3 }));
-    if (!await until(page, () => __ds.G.plots[0].b.ripe >= 10 && __ds.view.bub.some((b) => b.i === 0), 'a glowing bubble grows over the cottage', 30000)) {
+    if (!await until(page, () => __ds.G.plots[0].b.ripe >= (__ds.G.plots[0].b.rt || 10) && __ds.view.bub.some((b) => b.i === 0), 'a glowing bubble grows over the cottage', 30000)) {
         console.log('    state', await Q(page, () => JSON.stringify({ ripe: __ds.G.plots[0].b, speed: __ds.G.speed, stack: __ds.ui.stack, bub: __ds.view.bub, t: __ds.G.t })));
     }
     await Q(page, () => __ds.act({ t: 'speed', v: 0 }));
@@ -159,7 +165,7 @@ async function desktop() {
     check(await Q(page, () => __ds.view.floats.some((f) => f.big)), 'a big number rises from it');
     await Q(page, () => __ds.act({ t: 'speed', v: 3 }));
     await until(page, () => __ds.view.floats.some((f) => !f.big), 'working buildings show what they make as small rising numbers', 20000);
-    await until(page, () => __ds.G.plots.some((p) => p.b && p.b.ripe >= 10), 'another bubble ripens', 30000);
+    await until(page, () => __ds.G.plots.some((p) => p.b && p.b.ripe >= (p.b.rt || 10)), 'another bubble ripens', 30000);
     await Q(page, () => __ds.act({ t: 'speed', v: 0 }));
     await shot(page, 'desktop-floaters');
     const c0 = await Q(page, () => __ds.seen.collect || 0);
@@ -294,7 +300,9 @@ async function phone(w, h) {
 
     check(await backLinkOk(page), '← Games link is on top');
     await tapSel('#title-menu [data-act="new"]');
-    await until(page, () => __ds.mode === 'play' && !document.getElementById('talk').hidden, 'a tap on New Game starts the story');
+    await until(page, () => !document.getElementById('modes').hidden, 'a tap on New Game opens the mode picker');
+    await tapSel('#mode-menu [data-mode="normal"]');
+    await until(page, () => __ds.mode === 'play' && !document.getElementById('talk').hidden, 'a tap on Normal starts the story');
     const n0 = await Q(page, () => __ds.ui.talkQ.length);
     await tapSel('#talk-line');
     await until(page, (n) => __ds.ui.talkQ.length < n, 'a tap on the dialogue moves it along', 10000, n0);
@@ -370,6 +378,7 @@ async function nostorage() {
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
     await Q(page, () => { __ds.quiet = true; });
     await click(page, '#title-menu [data-act="new"]');
+    await click(page, '#mode-menu [data-mode="hard"]');
     await until(page, () => __ds.mode === 'play', 'boots and starts a game with localStorage throwing');
     await Q(page, () => __ds.ff(60));
     check(await Q(page, () => __ds.save() === false), 'saving fails quietly');
@@ -377,7 +386,74 @@ async function nostorage() {
     reportErrors('nostorage');
 }
 
+// ======================================================================
+async function modes() {
+    console.log('\n== modes, time away, cheers, badges, the siege HUD');
+    const page = await open({ width: 1280, height: 760 });
+    await Q(page, () => { __ds.quiet = true; });
+
+    // story: Lord Vellum runs the town by himself
+    await click(page, '#title-menu [data-act="new"]');
+    await click(page, '#mode-menu [data-mode="story"]');
+    await until(page, () => __ds.mode === 'play' && __ds.G.diff === 'story', 'Story starts a story-mode game');
+    await Q(page, () => __ds.act({ t: 'speed', v: 3 }));
+    await until(page, () => __ds.G.stats.built >= 3, 'in story mode the town builds itself', 60000);
+    await until(page, () => /Story mode/.test(document.getElementById('tip-title').textContent) && document.getElementById('tip-show').textContent === 'Speed up', 'the tip card says Lord Vellum is running the town');
+    check(await Q(page, () => /📖/.test(document.getElementById('r-day').textContent)), 'the day counter shows the story icon');
+    await shot(page, 'modes-story');
+
+    // time away: the town saved up, and the villagers say so on the tip card
+    await Q(page, () => { __ds.act({ t: 'speed', v: 1 }); __ds.G.res.gold = 100; });
+    const g0 = await Q(page, () => __ds.G.res.gold);
+    await Q(page, () => __ds.idle(5400));
+    await until(page, (g) => __ds.G.res.gold > g && /While you were away/.test(document.getElementById('toasts').textContent), 'coming back after 90 minutes pays out, with a toast', 10000, g0);
+    await until(page, () => /While you were away/.test(document.getElementById('tip-title').textContent) && document.getElementById('tip-show').textContent === 'Next ▸', 'Lord Vellum tells the tally on the tip card');
+    await page.waitForTimeout(400);
+    await shot(page, 'modes-idle');
+    await page.waitForTimeout(250);
+    await click(page, '#tip-show');
+    await until(page, () => /💬/.test(document.getElementById('tip-title').textContent), 'Next ▸ moves on to what the villagers say about it');
+    check(await Q(page, () => __ds.ui.news.length > 0 || /Thistlegloom saved up|“/.test(document.getElementById('ticker-text').textContent)), 'the ticker carries the news too');
+    const n = await Q(page, () => __ds.ui.notes.length);
+    for (let i = 0; i <= n; i++) { await page.waitForTimeout(250); await click(page, '#tip-show'); }
+    await until(page, () => /Story mode/.test(document.getElementById('tip-title').textContent), 'then the card goes back to its tips');
+    check(await Q(page, () => { const g = __ds.G.res.gold; __ds.idle(30); return __ds.G.res.gold === g; }), 'a half-minute break gives nothing');
+
+    // Lady Noxia's cheers between the tips
+    await Q(page, () => { __ds.ui.cheers = true; __ds.ui.cheerGap = 999; __ds.ui.tipT = 0; });
+    await until(page, () => document.getElementById('tip').classList.contains('cheer') && /Noxia/.test(document.getElementById('tip-title').textContent), 'Lady Noxia chips in with a cheer between the tips');
+    await page.waitForTimeout(400);
+    await shot(page, 'modes-cheer');
+    await until(page, () => !document.getElementById('tip').classList.contains('cheer'), 'and hands the card back a few seconds later', 15000);
+
+    // the "!" badge over buildings that can go up a level
+    await Q(page, () => { const G = __ds.G; for (const r of ['gold', 'flour', 'sugar', 'stone']) G.res[r] = 99999; __ds.act({ t: 'speed', v: 0 }); });
+    await page.waitForTimeout(300);
+    await shot(page, 'modes-badges');
+
+    // hard: the wall falls, the game is over, and the next game starts with a head start
+    await Q(page, () => __ds.start(21, 'hard'));
+    await Q(page, () => { const G = __ds.G; G.res.gold = 500; G.daysLeft = 1; G.dayT = __ds.DAY_LEN - 0.5; G.speed = 1; });
+    await until(page, () => __ds.G.mode === 'battle', 'a hard-mode siege begins');
+    // the wall's number changes width, the bars beside it must not move
+    const x1 = await Q(page, () => { __ds.G.battle.wall.hp = 1300; __ds.ui.battleHud(__ds.G); return document.getElementById('b-wave').parentElement.getBoundingClientRect().left; });
+    const x2 = await Q(page, () => { __ds.G.battle.wall.hp = 85; __ds.ui.battleHud(__ds.G); return document.getElementById('b-wave').parentElement.getBoundingClientRect().left; });
+    const x3 = await Q(page, () => { __ds.G.battle.wall.hp = 7; __ds.ui.battleHud(__ds.G); return document.getElementById('b-wave').parentElement.getBoundingClientRect().left; });
+    check(Math.abs(x1 - x2) < 0.5 && Math.abs(x2 - x3) < 0.5, `the siege bars hold still while the wall number changes width (${x1}, ${x2}, ${x3})`);
+    await Q(page, () => { const B = __ds.G.battle; B.t = Math.max(B.t, 20); });
+    await until(page, () => __ds.G.battle?.enemies.some((e) => e.x < 60 && !e.nap), 'the horde is on the field', 30000);
+    await shot(page, 'modes-siege-facing');
+    await Q(page, () => { __ds.G.battle.wall.hp = 0; });
+    await until(page, () => !document.getElementById('gameover').hidden && __ds.G.over, 'hard mode: the wall falls and the game is over', 30000);
+    check(await Q(page, () => !__ds.hasSave() && !!JSON.parse(localStorage.getItem('doom-doilies-sugar-siege.v1.legacy'))?.gold), 'the save is gone and a head start is kept for next time');
+    await shot(page, 'modes-gameover');
+    await click(page, '#gameover-again');
+    await until(page, () => __ds.mode === 'play' && __ds.G.diff === 'hard' && __ds.G.res.gold > 300 && !localStorage.getItem('doom-doilies-sugar-siege.v1.legacy'), 'Try again starts a hard game with the head start in the stores');
+    reportErrors('modes');
+}
+
 try {
+    if (want('modes')) await modes();
     if (want('desktop')) await desktop();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
     if (want('nostorage')) await nostorage();

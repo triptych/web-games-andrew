@@ -3,7 +3,7 @@
 
 import { DAY_LEN, FIELD, DOILY, KNIGHT, PLOTS_OPEN, BUILD_DAYS, UPGRADE_DAYS, POP } from '../config.js';
 import { BUILDINGS, ENEMIES, STAFF, ADVENTURERS, RES_ICON } from '../sim/data.js';
-import { buildingRate, isRipe, harvestValue } from '../sim/town.js';
+import { buildingRate, isRipe, harvestValue, canUpgrade, canUpgradeHall } from '../sim/town.js';
 import { IMG } from './assets.js';
 import { hash3 } from '../rng.js';
 
@@ -17,6 +17,9 @@ const HALL_POS = { x: 0.085, y: 0.66, s: 0.78 };
 const BG_W = 1600, BG_H = 900;
 const STAFF_SPRITE = Object.fromEntries(Object.entries(STAFF).map(([k, v]) => [k, v.sprite]));
 const VILLAGERS = ['vil/tansy', 'vil/hollyhock', 'vil/bram', 'vil/hilde'];
+// The Crumb Horde marches left, toward the wall. These pictures were painted facing right, so they are mirrored;
+// the rest (spider, mimic, brute, golem, the old King) already face left.
+const FACES_RIGHT = new Set(['en/zombie', 'en/corn', 'en/slime', 'en/ghost', 'en/bat', 'en/king-young']);
 
 const RES_COLOR = { gold: '#ffd36b', flour: '#fff3d6', sugar: '#ffb3dc', stone: '#d9d0e0' };
 const FLOW_T = 2.2;
@@ -439,6 +442,7 @@ export class View {
             const bob = Math.abs(Math.sin(time * 4 + i)) * 4 * q.k;
             this.img(STAFF_SPRITE[id], q.x + 78 * q.k, q.y + 6 * q.k - bob, 58 * q.k);
         }
+        if (canUpgrade(G, i)) this.badge(q.x + 64 * q.k, q.y - h * 0.82, q.k, time + i);
         if (isRipe(b)) {
             const got = harvestValue(G, i), k = Object.keys(got)[0] || 'gold';
             this.bub.push({ i, x: q.x, y: q.y - h - 26 * q.k, r: Math.max(17, 30 * q.k), icon: RES_ICON[k] });
@@ -451,11 +455,27 @@ export class View {
         }
     }
 
+    /** "This can go up a level": a bobbing gold "!" over a building. */
+    badge(x, y, k, time) {
+        const c = this.ctx, r = clamp(15 * k * 1.2, 10, 17);
+        y -= Math.abs(Math.sin(time * 3.2)) * 6;
+        c.save();
+        c.shadowColor = 'rgba(255, 211, 107, 0.9)'; c.shadowBlur = 10;
+        c.fillStyle = '#ffd36b'; c.strokeStyle = '#3a2400'; c.lineWidth = 2.5;
+        c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill(); c.shadowBlur = 0; c.stroke();
+        c.fillStyle = '#3a2400'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.font = `bold ${Math.round(r * 1.5)}px Fredoka, sans-serif`;
+        c.fillText('!', x, y + r * 0.06);
+        c.restore();
+    }
+
     drawHall(G, time) {
         const q = this.townPt(HALL_POS);
         const sel = this.selPlot === 'hall' || this.hoverPlot === 'hall';
         if (sel) { const c = this.ctx; c.save(); c.strokeStyle = '#ffd36b'; c.lineWidth = 3; c.beginPath(); c.ellipse(q.x, q.y - 6 * q.k, 110 * q.k, 26 * q.k, 0, 0, Math.PI * 2); c.stroke(); c.restore(); }
-        this.img('bld/hall', q.x, q.y + 6 * q.k, 250 * q.k * (1 + 0.08 * (G.hall.lvl - 1)));
+        const hh = 250 * q.k * (1 + 0.08 * (G.hall.lvl - 1));
+        this.img('bld/hall', q.x, q.y + 6 * q.k, hh);
+        if (canUpgradeHall(G)) this.badge(q.x + 40 * q.k, q.y - hh * 0.9, q.k, time);
         // the Mayor herself, on the steps
         const bob = Math.sin(time * 2) * 2 * q.k;
         this.img('spr/noxia', q.x + 105 * q.k, q.y + 8 * q.k + bob, 120 * q.k);
@@ -586,16 +606,17 @@ export class View {
         const x = this.fx2s(e.x);
         let y = this.eY(e, g);
         if (def.fly) y -= this.S * 0.18 + Math.sin(time * 4 + e.id) * 8;
+        const flip = FACES_RIGHT.has(key);
         if (e.nap > 0 || (e.hp <= 0)) {
             const a = clamp(e.nap / 0.6, 0, 1);
-            this.img(key, x, y, h * 0.9, { rot: -1.4, alpha: a, anchor: 'centre', tint: 'saturate(0.35) brightness(1.15)' });
+            this.img(key, x, y, h * 0.9, { rot: -1.4, alpha: a, anchor: 'centre', tint: 'saturate(0.35) brightness(1.15)', flip });
             return;
         }
-        if (e.sit) { this.img(key, x, y, h * 0.85, { sy: 0.85, sx: 1.08 }); return; }
+        if (e.sit) { this.img(key, x, y, h * 0.85, { sy: 0.85, sx: 1.08, flip }); return; }
         const walk = !e.block && e.x > FIELD.reach;
         const bob = walk ? Math.abs(Math.sin(time * (def.spd + 4) + e.id)) * 4 * g.u : 0;
         const lean = walk ? Math.sin(time * (def.spd + 4) + e.id) * 0.06 : Math.sin(time * 10 + e.id) * 0.12;
-        this.img(key, x, y - bob, h, { rot: lean });
+        this.img(key, x, y - bob, h, { rot: lean, flip });
         if (e.hp < e.max && !def.boss) this.bar(x, y - h - 6, 30 * g.u * def.size, e.hp / e.max, '#ff7aa8');
         if (def.boss && !e.young) this.bar(x, y - h - 10, 120 * g.u, (e.hp - e.max * 0.5) / (e.max * 0.5), '#ffd36b');
         if (e.young) {   // a warm glow around the freshly baked King

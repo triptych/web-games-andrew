@@ -2,7 +2,7 @@
 
 import {
     DAY_LEN, PLOTS_OPEN, LVL_MULT, UPGRADE_COST, BUILD_DAYS, UPGRADE_DAYS, HALL_HOUSING, HALL_COST, HOPE, POP,
-    STAFF_BONUS, BAKE, WALL_COST, WALL_DAYS, HARVEST,
+    STAFF_BONUS, BAKE, WALL_COST, WALL_DAYS, HARVEST, RIPE_JITTER, IDLE, HARD,
 } from '../config.js';
 import { BUILDINGS, RES, STAFF, ADVENTURERS, ADV_MAX } from './data.js';
 
@@ -102,25 +102,30 @@ export const bakeCap = (G) => 25 * G.bake.ings.length;
  *  (rent, tips at the tavern, a sold cozy, a purse found on the lookout). */
 export const HARVESTS = Object.keys(BUILDINGS).filter((k) => k !== 'oven');
 
-/** What a tap on this building's ripe bubble would give right now. */
+/** Seconds this building's bubble takes to fill: its kind's own time, nudged by the plot it stands on. */
+export const ripeTime = (b) => b.rt || BUILDINGS[b.kind].ripe || HARVEST.ripe;
+export const ripeFor = (kind, plot) => +((BUILDINGS[kind].ripe || HARVEST.ripe) * RIPE_JITTER[plot % RIPE_JITTER.length]).toFixed(2);
+
+/** What a tap on this building's ripe bubble would give right now. A slow bubble holds more. */
 export function harvestValue(G, i) {
     const b = G.plots[i].b, out = {};
     if (!b) return out;
-    const r = buildingRate(G, i);
-    for (const k in r.make) out[k] = Math.max(HARVEST.min, Math.round(r.make[k] * HARVEST.bonus));
-    if (!Object.keys(out).length) out.gold = HARVEST.coins * b.lvl;
+    const r = buildingRate(G, i), k = ripeTime(b) / HARVEST.ripe;
+    for (const res in r.make) out[res] = Math.max(HARVEST.min, Math.round(r.make[res] * HARVEST.bonus * k));
+    if (!Object.keys(out).length) out.gold = Math.round(HARVEST.coins * b.lvl * k);
     return out;
 }
-export const isRipe = (b) => !!b && (b.ripe || 0) >= HARVEST.ripe && !(b.build > 0 && !b.up);
+export const isRipe = (b) => !!b && (b.ripe || 0) >= ripeTime(b) && !(b.build > 0 && !b.up);
 
 export function stepTown(G, dt) {
     // harvest bubbles fill on every working building
     for (let i = 0; i < G.plots.length; i++) {
         const b = G.plots[i].b;
         if (!b || (b.build > 0 && !b.up) || !HARVESTS.includes(b.kind)) continue;
-        if ((b.ripe || 0) < HARVEST.ripe) {
+        const rt = ripeTime(b);
+        if ((b.ripe || 0) < rt) {
             b.ripe = (b.ripe || 0) + dt;
-            if (b.ripe >= HARVEST.ripe) { b.ripe = HARVEST.ripe; G.events.push({ type: 'ripe', plot: i }); }
+            if (b.ripe >= rt) { b.ripe = rt; G.events.push({ type: 'ripe', plot: i }); }
         }
     }
     // construction
@@ -187,6 +192,39 @@ export const advSlots = (G) => { const t = finished(G).filter((b) => b.kind === 
 export const advsHired = (G) => Object.values(G.advs).filter((a) => a.hired).length;
 export const trainCost = (lvl) => Math.round(60 * 1.7 ** (lvl - 1));
 
+/** Can this building go up a level right now (finished, below ★3, and affordable)? The view's "!" badge. */
+export function canUpgrade(G, i) {
+    const b = G.plots[i]?.b;
+    return !!b && b.lvl < 3 && !(b.build > 0) && canAfford(G, costOf(b.kind, b.lvl + 1));
+}
+export const canUpgradeHall = (G) => G.hall.lvl < HALL_COST.length && !(G.hall.build > 0) && canAfford(G, HALL_COST[G.hall.lvl]);
+
+// ------------------------------------------------------------------ time away and hard mode
+/** What the town saved up while the player was away `sec` real seconds, or null for a short break. */
+export function idleLoot(G, sec) {
+    if (!(sec >= IDLE.min)) return null;
+    const days = clamp(sec / IDLE.perDay, IDLE.minDays, IDLE.maxDays), eff = days * DAY_LEN;
+    const r = rates(G), out = {};
+    for (const k of RES) {
+        const v = Math.round(Math.max(0, r[k]) * eff * IDLE.share);
+        if (v > 0) out[k] = v;
+    }
+    out.gold = Math.max(out.gold || 0, Math.round(IDLE.floor * days));
+    return out;
+}
+
+/** What a fallen hard-mode town leaves the next game: part of the stores, and part of what its buildings cost. */
+export function legacyOf(G) {
+    const out = {};
+    for (const r of RES) out[r] = (G.res[r] || 0) * HARD.keep;
+    for (const p of G.plots) {
+        if (!p.b) continue;
+        for (let l = 1; l <= p.b.lvl; l++) { const c = costOf(p.b.kind, l); for (const r in c) out[r] += c[r] * HARD.refund; }
+    }
+    for (const r of RES) out[r] = Math.round(out[r]);
+    return out;
+}
+
 // ------------------------------------------------------------------ commands (the UI, the bot and the tests all come through here)
 export function canBuild(G, plot, kind) {
     const def = BUILDINGS[kind];
@@ -206,7 +244,7 @@ export function townAct(G, c) {
             const why = canBuild(G, c.plot, c.kind);
             if (why) return fail(why);
             pay(G, costOf(c.kind));
-            G.plots[c.plot].b = { kind: c.kind, lvl: 1, build: BUILD_DAYS * DAY_LEN, up: false };
+            G.plots[c.plot].b = { kind: c.kind, lvl: 1, build: BUILD_DAYS * DAY_LEN, up: false, rt: ripeFor(c.kind, c.plot) };
             G.stats.built++;
             G.events.push({ type: 'build', plot: c.plot, kind: c.kind });
             return true;
