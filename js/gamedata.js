@@ -2250,6 +2250,23 @@ const games = [
             { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-145',
+        title: 'VACANCY',
+        description: 'You wake on a rotting mattress in a broken house in Ashmere, a city where everyone walked into the light one night and never came back. Walk it in first person: a whole procedural city from a seed, 450-odd buildings you can enter floor by floor (malls with tree-split atriums, hospitals, hotels, factories, car parks, houses, endless yellow backrooms offices), all decaying: rotten floors you fall through, collapsed walls, mould, puddles, dead trees, cars left in the streets, vending machines that still work. A brass compass points at the next of ten diaries left by the missing; they tell what the Threshold Laboratory opened, hold the tools that open boarded, chained and card-locked doors, and carry the dial numbers and conduit order you will need at the ring in Hall C to bring everyone home. No enemies. Every seed is a different city, cast and code.',
+        icon: '\uD83C\uDFDA\uFE0F',
+        folder: 'game-145',
+        version: '1.0.0',
+        cssClass: 'vacancy',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83D\uDEB6', label: 'Walking sim' },
+            { emoji: '\uD83D\uDFE8', label: 'Liminal' },
+            { emoji: '\uD83C\uDF06', label: 'Procedural city' },
+            { emoji: '\uD83C\uDFA8', label: 'fal art' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

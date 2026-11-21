@@ -73,7 +73,7 @@ export class Stage {
         const r = this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
         r.outputColorSpace = THREE.SRGBColorSpace;
         r.toneMapping = THREE.ACESFilmicToneMapping;
-        r.toneMappingExposure = 1.05;
+        r.toneMappingExposure = 1.2;
         r.shadowMap.enabled = this.q.shadows;
         r.shadowMap.type = THREE.PCFSoftShadowMap;
         setAnisotropy(Math.min(8, r.capabilities.getMaxAnisotropy()));

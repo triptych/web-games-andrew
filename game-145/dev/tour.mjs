@@ -3,6 +3,7 @@
  *
  *   node game-145/dev/tour.mjs [seed] [only,names]      → dev/shots/tour-<name>.png
  *
+ * CLEAN=1 hides the HUD (for the preview picture).
  * Places: home (where you wake), street (outside home), mall (the atrium), backrooms (a yellow office floor),
  * hospital (a corridor), factory (the hall), hall (Hall C with the ring), hotel (the VACANCY sign), stairs.
  */
@@ -63,6 +64,7 @@ for (const [name, code] of Object.entries(SPOTS)) {
         // let the stream build what is near
         await page.waitForFunction(() => { const v = __va.view; return v.want && !v.want.levels.slice(0, 6).some((l) => !v.levels.has(l.key)) && !v.want.chunks.slice(0, 6).some((c) => !v.chunks.has(c.key)); }, null, { timeout: 120000 }).catch(() => console.log('  (stream not finished)'));
         await page.waitForTimeout(1500);
+        if (process.env.CLEAN) await page.addStyleTag({ content: '#hud, #back-link, #touch, #toasts { display: none !important; }' });
         await page.screenshot({ path: path.join(HERE, 'shots', `tour-${name}.png`) });
         console.log('shot', name);
     } catch (err) { console.log('FAIL', name, err.message.split('\n')[0]); }

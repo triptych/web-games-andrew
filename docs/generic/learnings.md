@@ -7520,3 +7520,38 @@ and a survival mode. What the next game should know:
   creature, no head, no legs", "head only, no neck, no body". A redo needs new operation ids (`NR_TAG=v2-`).
 - **Shrink Meshy GLBs before committing.** 2K PBR textures made each model 5–9 MB; rewriting the embedded images at
   512 px (`dev/meshy/shrink.py`, Pillow only) made them 0.2–1 MB with no visible loss at game scale.
+
+## Game 145: VACANCY — a procedural city you can walk into, floor by floor (2026-11-21)
+
+A first-person walking simulator in three.js ([game-145](../../game-145/)): an 11×11-block city from a seed, about 450
+buildings, every floor of every building walkable, with a ten-diary lock-and-key story on top. What carried it:
+
+- **One tile grid for outside and inside.** Every building owns a rectangle of the city's 2 m tiles and stacks its own
+  levels on them; walls live on tile edges (`eN`/`eW` arrays per level, [interior.js](../../game-145/js/sim/interior.js)).
+  A single `moves(C, L, tx, tz, canOpen)` ([world.js](../../game-145/js/sim/world.js)) answers "where can I step from
+  here" for the street, the stairs, doors and locks; the walker's collision, the A* the bot walks with and the
+  solvability proof all call it, so they can't disagree.
+- **Switchback stairwells as a grid rule.** A 2 × (S + 2) footprint: level L's run climbs in column L % 2, and on level
+  L + 1 the tiles above it are a railed void with one open edge. Leaving the top of a run moves you up a level; stepping
+  off a landing onto the void drops you onto the top of the run below. The top of a run is a wall from the floor below
+  (a step-height check, not a special case).
+- **Repair after layout, then prove it.** After rooms, furniture and decay, flood every building from its doors and knock
+  a broken wall through to any pocket nobody can reach (it reads as decay). The simtest floods every floor of six whole
+  cities. It found two real bugs: mezzanine voids that swallowed the stairwell landings (keep a walkway round the
+  stairwell), and vending machines placed *after* the repair that sealed small rooms (place anything solid before it).
+- **Holes in floors must not cut their floor in two.** Make the hole, flood the level, undo it if anything walkable went
+  unreachable. Falling through one is a feature, not a trap: the room below is always connected.
+- **Story gating by construction.** Tool k lies with diary 2k+1; a diary's building is only ever locked with a tool found
+  earlier. The proof walks the whole chain over 30 seeds with the real A* and only the tools found so far.
+- **Streaming that you can see into.** The city is built a block at a time and interiors a building *level* at a time
+  near the walker. Window panes are one merged mesh per block whose vertices carry `(building × 16 + level) × 2 + broken`;
+  a shader looks that up in a 1024 × 16 `DataTexture` of "built" flags and shows dark glass until the rooms behind exist,
+  then clear glass (or nothing). No per-building meshes, no pop.
+- **Swapping a stand-in texture for the real one: dispose first** (three r165, WebGL2). A texture first uploaded from a
+  64 px canvas gets immutable storage at 64 px; setting `t.image` to the 512 px photo and `needsUpdate` then fills only
+  its corner, and every wall shows big blotches. `t.dispose(); t.image = img; t.needsUpdate = true;` reallocates.
+- **A full-screen touch layer above the HUD eats HUD taps.** The look zone (right half of the screen) sat above the
+  pause and journal buttons; the size test passed because it only measured boxes. Put the touch deck *under* the HUD and
+  test `document.elementFromPoint(centre)` is the button.
+- **Dust motes at the lens.** Size-attenuated `Points` that drift within a few cm of the camera become huge white disks.
+  Push any mote inside ~0.9 m back out to 1.2 m each frame.
