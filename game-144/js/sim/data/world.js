@@ -13,7 +13,7 @@ export const STAGES = [
     {
         id: 'veil', n: 2, name: 'VEIL OF GLASS', sub: 'The crystal nebula',
         music: 'stage1', boss: 'wyrm',
-        sky: { top: 0x050a18, bottom: 0x0d2a3a, neb: 0x40f0ff, neb2: 0xff5ad8, fog: 0x081626, key: 0xb8fff6, rim: 0xff7ae0, dust: 0x9ff8ff },
+        sky: { top: 0x050a18, bottom: 0x0d2a3a, neb: 0x2090b0, neb2: 0xb03a98, fog: 0x081626, key: 0xb8fff6, rim: 0xff7ae0, dust: 0x9ff8ff, dim: 0.85 },
         art: "a luminous cyan and magenta nebula full of floating giant prismatic glass crystals and shards that refract starlight into rainbows, glowing gas clouds, deep space",
     },
     {
@@ -37,7 +37,7 @@ export const STAGES = [
     {
         id: 'heart', n: 6, name: 'REQUIEM HEART', sub: 'Inside the dying star',
         music: 'stage3', boss: 'heart',
-        sky: { top: 0x0a0a20, bottom: 0x302060, neb: 0xffffff, neb2: 0x60a0ff, fog: 0x14122e, key: 0xffffff, rim: 0x80b0ff, dust: 0xffffff },
+        sky: { top: 0x0a0a20, bottom: 0x302060, neb: 0x7088ff, neb2: 0xffc060, fog: 0x14122e, key: 0xffffff, rim: 0x80b0ff, dust: 0xc8d8ff, dim: 0.42 },
         art: "the interior of a dying blue-white star turned into an alien choir cathedral, rings of angelic crystalline spires orbiting a blinding core, ribbons of plasma like musical staves, white and blue and gold light, sublime and terrifying",
     },
 ];

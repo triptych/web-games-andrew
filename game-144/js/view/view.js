@@ -137,7 +137,7 @@ export class View {
             this.stage.lean = 0;
             return;
         }
-        if (!this.boss || this.boss.id !== B.id) {
+        if (!this.boss || this.boss.id !== B.id || this.boss.key !== B.key) {
             if (this.boss) this.root.remove(this.boss.obj);
             const obj = bossModel(B.key);
             this.root.add(obj);
@@ -339,7 +339,18 @@ export class View {
 
     later(t, fn) { this.timers.push({ t, fn }); }
 
+    /** A new run (or the attract demo restarting): sim ids start again at 1, so drop every model keyed by id. */
+    reset() {
+        for (const o of this.enemies.values()) this.root.remove(o);
+        for (const o of this.items.values()) this.root.remove(o);
+        this.enemies.clear(); this.items.clear();
+        if (this.boss) { this.root.remove(this.boss.obj); this.boss = null; }
+        if (this.capital) { this.root.remove(this.capital.mesh); this.capital = null; }
+        this.timers.length = 0;
+    }
+
     frame(G, dt, time) {
+        if (this.game !== G) { this.game = G; this.reset(); }
         if (!this.sky.id) this.sky.setStage(this.stageId(G), G.mode === 'endless' ? STAGES[G.stage]?.id || 'saturn' : this.stageId(G));
         for (let i = this.timers.length - 1; i >= 0; i--) { const T = this.timers[i]; T.t -= dt; if (T.t <= 0) { this.timers.splice(i, 1); T.fn(); } }
         this.warp = Math.max(0, this.warp - dt * 0.8);

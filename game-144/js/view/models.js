@@ -64,7 +64,7 @@ export function eyeTexture(iris = '#ffcc33', ring = '#ff3300') {
 }
 function eyeball(r, iris, ring, glowCol) {
     const g = new THREE.Group();
-    const m = new THREE.MeshStandardMaterial({ map: eyeTexture(iris, ring), roughness: 0.15, metalness: 0.1, emissive: new THREE.Color(glowCol), emissiveIntensity: 0.4, emissiveMap: eyeTexture(iris, ring) });
+    const m = new THREE.MeshStandardMaterial({ map: eyeTexture(iris, ring), roughness: 0.2, metalness: 0.05, emissive: new THREE.Color(glowCol), emissiveIntensity: 0.12, emissiveMap: eyeTexture(iris, ring) });
     const s = new THREE.Mesh(new THREE.SphereGeometry(r, 28, 20), m);
     s.rotation.y = -Math.PI / 2;                 // the iris looks along -x (at the player)
     g.add(s);
@@ -310,7 +310,8 @@ export function bossModel(key) {
         const head = add(mesh(new THREE.ConeGeometry(1.25, 3.4, 6), cm)); head.rotation.z = Math.PI / 2;
         const jaw = add(mesh(new THREE.ConeGeometry(0.8, 2.6, 5), crystal(0xffa0f0, 0xff40d0))); jaw.rotation.z = Math.PI / 2 + 0.25; jaw.position.set(0.3, -0.6, 0); P.extra.jaw = jaw;
         for (const z of [0.7, -0.7]) for (let i = 0; i < 3; i++) { const horn = add(mesh(new THREE.ConeGeometry(0.2, 1.8 - i * 0.4, 5), cm)); horn.position.set(0.8 + i * 0.6, 0.9 - i * 0.1, z); horn.rotation.z = -1.0 + i * 0.15; }
-        P.core = add(sph(0.5, glow(0xffffff, 2.5), -0.8, 0.2, 0, 12));
+        P.core = add(sph(0.4, glow(0xff80f0, 1.3), -0.8, 0.2, 0, 12));
+        g.scale.setScalar(1.6);
         for (const z of [0.55, -0.55]) P.glows.push(add(sph(0.2, glow(0xff60e0, 4), -0.2, 0.45, z, 8)));
     } else if (key === 'organ') {
         // a wall of organ pipes (sim wall x 0.4..6.4, y ±9) with the eye in front
@@ -328,7 +329,7 @@ export function bossModel(key) {
         const lid = add(mesh(new THREE.SphereGeometry(1.95, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat('lid', () => std(0x5a2820, { r: 0.7, m: 0.2, side: THREE.DoubleSide })))); lid.position.copy(eye.position); P.extra.lidTop = lid;
         const lid2 = lid.clone(); lid2.rotation.x = Math.PI; add(lid2); P.extra.lidBot = lid2;
     } else if (key === 'titan') {
-        const armor = metal(0x40424c), red = paint(0xa01822), gold = metal(0xd0a050);
+        const armor = metal(0x7a7e8c), red = paint(0xb8202c), gold = metal(0xd0a050);
         add(box(2.4, 2.6, 2.0, armor, 0.6, 0.2, 0));                 // torso
         add(box(2.8, 0.8, 2.4, red, 0.6, 1.4, 0));                    // chest plate
         add(box(1.0, 0.9, 0.9, armor, 0.4, 1.9, 0));                  // neck
@@ -344,6 +345,7 @@ export function bossModel(key) {
         const armS = add(box(0.6, 2.2, 0.6, armor, -0.5, 1.6, -1.4)); armS.rotation.z = -0.4;
         const blade = add(box(0.2, 4.5, 0.25, glow(0xa070ff, 3), -1.9, 3.6, -1.4)); blade.rotation.z = 0.6; P.extra.blade = blade;
         add(box(0.6, 0.6, 0.6, gold, -1.6, 2.2, -1.4));
+        g.scale.setScalar(1.3);
     } else if (key === 'mother') {
         const eye = add(eyeball(2.0, '#ffe030', '#20a050', 0x40ff80)); P.eye = eye.userData.eye; P.core = eye;
         add(mesh(new THREE.TorusGeometry(2.3, 0.35, 10, 30), flesh(0x5a2a6a, 0x6020a0))).rotation.y = Math.PI / 2;
@@ -356,7 +358,7 @@ export function bossModel(key) {
             add(tm); P.extra.tentacles.push(tm);
         }
     } else if (key === 'heart') {
-        const white = mat('heartWhite', () => std(0xf8f4ff, { r: 0.2, m: 0.5, e: 0xa0b8ff, ei: 0.4 }));
+        const white = mat('heartWhite', () => std(0xd8dcf0, { r: 0.25, m: 0.55, e: 0x506090, ei: 0.25 }));
         const face = add(sph(1.4, white, 0, 0, 0.2, 28)); face.scale.set(0.8, 1.1, 0.9); P.core = face;
         for (const z of [0.42, -0.42]) P.glows.push(add(sph(0.12, glow(0xffffff, 6), -1.05, 0.25, z, 8)));
         add(box(0.05, 0.4, 0.5, glow(0x80a0ff, 3), -1.12, -0.45, 0.2));
@@ -370,7 +372,7 @@ export function bossModel(key) {
             w.position.set(1.2, 0, -0.6);
             P.extra.wings.push(w);
         }
-        const robe = add(mesh(body([[-0.6, 0.6], [-2.5, 1.6], [-5, 2.2]], 16), mat('robe', () => std(0xfff4e0, { r: 0.5, m: 0.2, e: 0xffd090, ei: 0.25, t: true, op: 0.85 }))));
+        const robe = add(mesh(body([[-0.6, 0.6], [-2.5, 1.6], [-5, 2.2]], 16), mat('robe', () => std(0xe8dcc8, { r: 0.5, m: 0.3, e: 0x806040, ei: 0.2, t: true, op: 0.8 }))));
         robe.rotation.z = Math.PI / 2; robe.position.set(0.4, -0.4, 0);
     }
     g.userData.parts = P;

@@ -69,7 +69,7 @@ export class Stage {
         // a soft studio environment so the metal hulls have something to reflect
         const pm = new THREE.PMREMGenerator(this.renderer);
         this.scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture;
-        this.scene.environmentIntensity = 0.55;
+        this.scene.environmentIntensity = 1.0;
         pm.dispose();
 
         this.hemi = new THREE.HemisphereLight(0x8fa8ff, 0x1a1020, 0.7);

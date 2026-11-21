@@ -61,7 +61,7 @@ export const BOSS_DEFS = {
     // 2. A crystal serpent: the body is a chain of segments that shoot; the head is the core.
     wyrm: {
         hx: 22, hy: 9, c: 2, core: { ox: 0, oy: 0, r: 1.3 }, trail: true,
-        parts: Array.from({ length: 12 }, (_, i) => ({ type: 'segment', follow: (i + 1) * 4 })),
+        parts: Array.from({ length: 12 }, (_, i) => ({ type: 'segment', follow: (i + 1) * 4, hp: 3 })),
         phases: [
             { hp: 650, time: 50, step(G, B) {
                 B.x = B.hx + Math.sin(B.t * 0.7) * 5; B.y = B.hy + Math.sin(B.t * 1.4) * 5.5;
@@ -127,7 +127,7 @@ export const BOSS_DEFS = {
         ],
         phases: [
             { hp: 720, time: 50, step(G, B) {
-                B.x = B.hx + Math.sin(B.t * 0.4) * 1.5; track(G, B, 0.7);
+                B.x = B.hx + Math.sin(B.t * 0.4) * 1.5; track(G, B, 0.7, 6.5, 11.5);
                 B.vuln = true;
                 if (B.part('cannon')) every(B, 'beam', 3.4, () => emit(G, 'laser', src(B, -2.4, 1.8, 0), { warm: 1.1, life: 1.0, w: 1.2 }));
                 if (B.part('pods')) every(B, 'pods', 2.6, () => emit(G, 'homing', src(B, 1, -3.6, 3), { n: 3, speed: 4.5 }));
@@ -137,7 +137,7 @@ export const BOSS_DEFS = {
                 // the sword: lunge forward and sweep, then pull back
                 const ph = B.pt % 6;
                 const tx = ph < 1.4 ? 14 : B.hx;
-                B.x += (tx - B.x) * Math.min(1, B.dt * 2.2); track(G, B, 0.9);
+                B.x += (tx - B.x) * Math.min(1, B.dt * 2.2); track(G, B, 0.9, 6.5, 11.5);
                 B.vuln = true;
                 if (ph > 0.9 && ph - B.dt <= 0.9 && B.part('sword')) emit(G, 'laser', src(B, -1.6, -2.4, 1), { ang: Math.PI * 0.62, warm: 0.45, life: 0.7, w: 0.9, len: 11, spin: 2.6 });
                 every(B, 'fan', 0.9, () => emit(G, 'fan', src(B, 0, -1.2), { n: 11, arc: 1.6, speed: 7.5 }));
@@ -154,7 +154,7 @@ export const BOSS_DEFS = {
     // 5. The Mother of Eyes: tentacle eyes around a great eye; she lays eggs that hatch.
     mother: {
         hx: 24, hy: 9, c: 4, core: { ox: 0, oy: 0, r: 2.0 },
-        parts: [0, 1, 2, 3, 4, 5].map((i) => ({ type: 'turret', ox: Math.cos(Math.PI / 2 + (i / 6) * TAU) * 3.6, oy: Math.sin(Math.PI / 2 + (i / 6) * TAU) * 3.6, tag: 'tentacle', i })),
+        parts: [0, 1, 2, 3, 4, 5].map((i) => ({ type: 'turret', ox: Math.cos(Math.PI / 2 + (i / 6) * TAU) * 3.6, oy: Math.sin(Math.PI / 2 + (i / 6) * TAU) * 3.6, tag: 'tentacle', i, hp: 2.5 })),
         phases: [
             { hp: 760, time: 55, step(G, B) {
                 bob(B, 1.5, 3, 0.35, 0.5);
@@ -240,7 +240,7 @@ export function startBoss(G, key, o = {}) {
     if (o.hpScale) { B.hp *= o.hpScale; B.maxhp *= o.hpScale; }
     G.boss = B;
     for (const p of D.parts) {
-        const e = spawnEnemy(G, p.type, B.x + (p.ox || 0), B.y + (p.oy || 0), { parent: B.id, ox: p.ox || 0, oy: p.oy || 0, part: p.tag || 'boss', force: true, mv: { i: p.i ?? 0 }, hpMul: 1.4 * (o.hpMul || 1), delay: 1.5 });
+        const e = spawnEnemy(G, p.type, B.x + (p.ox || 0), B.y + (p.oy || 0), { parent: B.id, ox: p.ox || 0, oy: p.oy || 0, part: p.tag || 'boss', force: true, mv: { i: p.i ?? 0 }, hpMul: 4 * (p.hp || 1) * (o.hpMul || 1), delay: 1.5 });
         if (e && p.follow) { e.parent = B.id; e.ox = p.follow; e.type = 'segment'; e.followBoss = true; }
     }
     ev(G, 'boss', { key, name: BOSSES[key].name, title: BOSSES[key].title });

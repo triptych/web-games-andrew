@@ -265,7 +265,7 @@ export class FX {
             const bm = G.beams[i];
             m.visible = !!bm;
             if (!bm) return;
-            const w = bm.t < bm.warm ? bm.w * 0.5 : bm.w * 2.4;
+            const w = bm.t < bm.warm ? bm.w * 0.5 : bm.w * 1.7;
             m.scale.set(bm.len, w, 1);
             m.rotation.z = -bm.ang;
             m.position.set(wx(bm.x) + Math.cos(bm.ang) * bm.len / 2, wy(bm.y) - Math.sin(bm.ang) * bm.len / 2, 0.5);

@@ -129,6 +129,7 @@ export class Sky {
         this.fade = first ? 1 : 0;
         // colours
         const sky = S.sky;
+        this.backMat.color.set(0x4a4a58).multiplyScalar(sky.dim ?? 1);
         this.nebMat.uniforms.uA.value.set(sky.neb);
         this.nebMat.uniforms.uB.value.set(sky.neb2);
         this.starMat.uniforms.uTint.value.set(sky.dust);
@@ -158,7 +159,8 @@ export class Sky {
             this.props.add(mesh);
             this.propList.push({ mesh, items, o });
         };
-        const std = (c, e = 0x000000, ei = 0, r = 0.7, m = 0.2) => new THREE.MeshStandardMaterial({ color: c, emissive: e, emissiveIntensity: ei, roughness: r, metalness: m });
+        // scenery stays well under the action: darker than its nominal colour, glows turned way down
+        const std = (c, e = 0x000000, ei = 0, r = 0.7, m = 0.2) => new THREE.MeshStandardMaterial({ color: new THREE.Color(c).multiplyScalar(0.5), emissive: e, emissiveIntensity: ei * 0.3, roughness: r, metalness: m });
         const q = this.stage.quality === 'low' ? 0.5 : 1;
         switch (id) {
             case 'saturn':
@@ -167,8 +169,8 @@ export class Sky {
                 add(new THREE.BoxGeometry(3, 0.7, 1.2), std(0x24262c, 0xff5a20, 0.12, 0.7, 0.5), Math.round(6 * q), { spanX: 220, spanY: 60, z: (r) => -45 - r(3) * 50, s: (r) => 1 + r(4) * 2.2, speed: 1, spin: 0.1 });
                 break;
             case 'veil':
-                add(new THREE.OctahedronGeometry(1, 0), std(0x88f0ff, 0x30d8ff, 0.9, 0.08, 0.3), Math.round(90 * q), { spanX: 160, spanY: 70, z: (r) => -20 - r(3) * 70, s: (r) => 0.4 + r(4) ** 2 * 3, sy: (r) => 1.5 + r(9) * 2.5, speed: 1, spin: 0.3 });
-                add(new THREE.OctahedronGeometry(1, 0), std(0xff9ae8, 0xff40c8, 0.9, 0.08, 0.3), Math.round(50 * q), { spanX: 160, spanY: 70, z: (r) => -22 - r(3) * 60, s: (r) => 0.3 + r(4) * 1.6, sy: (r) => 2 + r(9) * 2, speed: 1, spin: 0.3 });
+                add(new THREE.OctahedronGeometry(1, 0), std(0x88f0ff, 0x30d8ff, 0.9, 0.08, 0.3), Math.round(45 * q), { spanX: 200, spanY: 80, z: (r) => -30 - r(3) * 70, s: (r) => 0.4 + r(4) ** 2 * 2.2, sy: (r) => 1.5 + r(9) * 2, speed: 1, spin: 0.3 });
+                add(new THREE.OctahedronGeometry(1, 0), std(0xff9ae8, 0xff40c8, 0.9, 0.08, 0.3), Math.round(25 * q), { spanX: 200, spanY: 80, z: (r) => -32 - r(3) * 60, s: (r) => 0.3 + r(4) * 1.3, sy: (r) => 2 + r(9) * 2, speed: 1, spin: 0.3 });
                 break;
             case 'cathedral':
                 add(new THREE.TorusGeometry(26, 1.6, 6, 28, Math.PI), std(0x3a2a28, 0x401008, 0.4, 0.8, 0.3), Math.round(14 * q), { spanX: 180, y: () => -12, z: (r) => -14 - r(3) * 26, s: () => 1, speed: 1, spin: 0, fixedRot: true });
@@ -187,8 +189,8 @@ export class Sky {
                 break;
             case 'heart':
             default:
-                add(new THREE.ConeGeometry(1, 8, 5), std(0xeaf2ff, 0x80b0ff, 1.1, 0.1, 0.4), Math.round(60 * q), { spanX: 170, spanY: 70, z: (r) => -20 - r(3) * 60, s: (r) => 0.4 + r(4) * 1.6, speed: 1, spin: 0.25 });
-                add(new THREE.TorusGeometry(6, 0.12, 6, 48), std(0xffe8a0, 0xffd060, 2.0, 0.2, 0.6), Math.round(10 * q), { spanX: 160, spanY: 50, z: (r) => -20 - r(3) * 50, s: (r) => 0.6 + r(4) * 2, speed: 1, spin: 0.4 });
+                add(new THREE.ConeGeometry(1, 8, 5), std(0x8090b0, 0x4060c0, 0.8, 0.2, 0.5), Math.round(28 * q), { spanX: 170, spanY: 70, z: (r) => -20 - r(3) * 60, s: (r) => 0.4 + r(4) * 1.6, speed: 1, spin: 0.25 });
+                add(new THREE.TorusGeometry(6, 0.12, 6, 48), std(0xc0a060, 0xffd060, 1.2, 0.2, 0.6), Math.round(5 * q), { spanX: 160, spanY: 50, z: (r) => -20 - r(3) * 50, s: (r) => 0.6 + r(4) * 2, speed: 1, spin: 0.4 });
                 break;
         }
     }
