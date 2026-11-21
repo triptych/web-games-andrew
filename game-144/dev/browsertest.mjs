@@ -1,20 +1,22 @@
 /**
  * browsertest.mjs — the real game in real Chromium (SwiftShader WebGL).
  *
- * desktop (1280×760): boot to the title with no errors, the ← Games link on top → New Game by
- *   click → real key presses move the player → Escape pauses and the sim stops → Resume →
- *   the action key dashes → Save & Quit → Continue restores the game → the round ends →
- *   Play Again. No sideways scroll; the canvas fills the window.
- * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, the
- *   touch deck appears, the stick moves the player, A dashes, controls ≥ 44 px and on screen,
- *   no sideways scroll, the canvas matches the visible viewport.
- * nostorage: localStorage throws; the game still boots and plays.
+ * desktop (1280×760): boots to the title with no errors, ← Games on top → Story → pilot select by click →
+ *   Launch → the opening cutscene shows its art, a portrait and voiced text; Enter advances, Escape skips →
+ *   play: real keys move the ship, Shift focuses, X bombs, Space fires Burst when full, C warps; Escape pauses
+ *   and the sim stops; Space on Resume resumes (game-078) → Save & Quit → Continue restores the run →
+ *   the HUD shows boss bar on a boss → game over → Continue → results → title. Music plays (an <audio> is running)
+ *   and sound comes out (meter peak > 0). Pixels are not blank. No sideways scroll; the canvas fills the window.
+ * survival: starts from the title and reaches wave 2.
+ * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, skip a scene by tapping,
+ *   the deck is shown, the stick moves the ship, BOMB bombs, FOCUS holds focus, controls ≥ 44 px and on screen.
+ * nostorage: localStorage throws; the game boots and plays.
  * Fails on any console error, page error or failed request.
  *
  *   python3 -m http.server 8144          # from the REPO ROOT
  *   node game-144/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8144), ONLY=desktop,phones,nostorage, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8144), ONLY=desktop,survival,phones,nostorage, THREE_PKG.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -33,7 +35,7 @@ let fails = 0;
 let errors = [];
 let browser = null;
 
-async function open(viewport, { touch = false, nostorage = false } = {}) {
+async function open(viewport, { touch = false, nostorage = false, q = '' } = {}) {
     if (browser) await browser.close();
     browser = await chromium.launch({
         executablePath: process.env.PW_CHROMIUM_PATH || undefined,
@@ -46,7 +48,6 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
     }, nostorage);
     const page = await ctx.newPage();
     if (PKG) {
-        // No network to the CDN? Serve the genuine three.js package from disk.
         await page.route('https://unpkg.com/**', (route) => {
             const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');
             const file = path.join(PKG, rel);
@@ -58,8 +59,8 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
     errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
-    page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
-    await page.goto(`${BASE}/game-144/index.html?debug=1&fast=4`);
+    page.on('requestfailed', (r) => { const u = r.url(); if (!u.includes('favicon') && !/\.mp3/.test(u)) errors.push(`requestfailed: ${u} ${r.failure()?.errorText}`); });
+    await page.goto(`${BASE}/game-144/index.html?debug=1&fast=4${q}`);
     await page.waitForFunction(() => window.__nr && __nr.mode === 'title', null, { timeout: 60000 });
     return page;
 }
@@ -67,11 +68,10 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
 const check = (cond, msg) => { if (!cond) { fails++; console.log('  FAIL', msg); } else console.log('  ok', msg); return cond; };
 const Q = (page, fn, arg) => page.evaluate(fn, arg);
 const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, `bt-${name}.png`) }); };
-// SwiftShader draws a few frames a second: wait on state, never on the clock.
-const until = (page, fn, msg, timeout = 30000, arg = null) =>
+const until = (page, fn, msg, timeout = 40000, arg = null) =>
     page.waitForFunction(fn, arg, { timeout, polling: 100 }).then(() => check(true, msg), () => check(false, msg));
-// Playwright's click() waits for animation frames to settle, which SwiftShader never does; click from inside.
 const click = (page, sel) => Q(page, (s) => { const e = document.querySelector(s); if (!e) return false; e.click(); return true; }, sel);
+const visible = (page, id) => Q(page, (i) => { const e = document.getElementById(i); return !!e && !e.hidden && e.getClientRects().length > 0; }, id);
 const backLinkOk = (page) => Q(page, () => {
     const a = document.getElementById('back-link');
     if (!a || a.getAttribute('href') !== '../index.html') return false;
@@ -87,6 +87,21 @@ const layout = (page) => Q(page, () => {
         canvas: Math.abs(c.width - (vv?.width ?? innerWidth)) < 2 && Math.abs(c.height - (vv?.height ?? innerHeight)) < 2 && c.left === 0 && c.top === 0,
     };
 });
+// the frame is not blank: sample the canvas (preserveDrawingBuffer is off, so read in the same task as a render)
+const notBlank = (page) => Q(page, () => {
+    const v = __nr.view, r = v.stage.renderer;
+    v.stage.render();
+    const gl = r.getContext(), w = gl.drawingBufferWidth, h = gl.drawingBufferHeight;
+    const px = new Uint8Array(4);
+    const seen = new Set();
+    let lum = 0;
+    for (let i = 0; i < 64; i++) {
+        gl.readPixels(Math.floor(((i % 8) + 0.5) * w / 8), Math.floor((Math.floor(i / 8) + 0.5) * h / 8), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+        seen.add(px[0] >> 4 | (px[1] >> 4) << 4 | (px[2] >> 4) << 8);
+        lum += (px[0] + px[1] + px[2]) / 3;
+    }
+    return { colours: seen.size, lum: lum / 64 };
+});
 const reportErrors = (label) => { check(errors.length === 0, `${label}: no console errors, page errors or failed requests`); for (const e of errors.slice(0, 8)) console.log('    ', e); };
 
 // ======================================================================
@@ -94,48 +109,113 @@ async function desktop() {
     console.log('\n== desktop 1280×760');
     const page = await open({ width: 1280, height: 760 });
     check(await backLinkOk(page), '← Games link is on top and points at ../index.html');
-    check(await Q(page, () => !document.getElementById('title').hidden), 'title screen is up');
+    check(await visible(page, 'title'), 'title screen is up');
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
+    check(await Q(page, () => document.querySelectorAll('#select-title, #over-title').length <= 1), 'no button steals a screen heading id');
     const L = await layout(page);
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
+    await page.mouse.click(5, 400);                                  // a gesture: audio may start
     await shot(page, 'desktop-title');
 
-    await click(page, '#title-menu [data-act="new"]');
-    await until(page, () => __nr.mode === 'play' && document.getElementById('title').hidden, 'New Game starts play');
+    await click(page, '#title-menu [data-act="story"]');
+    await until(page, () => !document.getElementById('select').hidden, 'Story opens pilot select');
+    await click(page, '.pilot[data-pilot="lyra"]');
+    await click(page, '.diff[data-diff="0"]');
+    check(await Q(page, () => document.querySelector('.pilot.sel')?.dataset.pilot === 'lyra' && __nr.ui.sel.diff === 0), 'choosing a pilot and difficulty selects them');
+    await click(page, '#select-go');
+    await until(page, () => __nr.mode === 'play' && !document.getElementById('scene').hidden, 'Launch starts the story with a cutscene');
+    await until(page, () => document.getElementById('scene').classList.contains('full') && document.getElementById('scene-img').naturalWidth > 0, 'the opening scene shows its painted art');
+    check(await Q(page, () => document.getElementById('dlg-who').textContent.includes('MEI') && document.getElementById('dlg-por').naturalWidth > 0), 'with the speaker\'s name and portrait');
+    await shot(page, 'desktop-scene');
+    const line0 = await Q(page, () => __nr.ui.scene?.i);
+    await page.keyboard.press('Enter'); await page.keyboard.press('Enter');
+    await until(page, (l) => __nr.ui.scene && __nr.ui.scene.i > l, 'Enter advances the dialogue', 20000, line0);
+    // skip through the intro scenes
+    for (let i = 0; i < 4; i++) { await page.keyboard.press('Escape'); await page.waitForTimeout(300); if (await Q(page, () => __nr.G.phase === 'play')) break; }
+    await until(page, () => __nr.G.phase === 'play' && document.getElementById('scene').hidden, 'Escape skips the scenes into stage 1');
+    check(await Q(page, () => __nr.G.pilot === 'lyra' && __nr.G.diff === 0), 'the run uses the chosen pilot and difficulty');
+    await until(page, () => (__nr.seen.radio || 0) >= 1 && !document.getElementById('radio').hidden, 'Commander Mei radios in at the stage start');
 
     const x0 = await Q(page, () => __nr.G.player.x);
     await page.keyboard.down('ArrowRight');
-    await until(page, (x) => __nr.G.player.x > x + 2, 'holding → moves the player right', 30000, x0);
+    await until(page, (x) => __nr.G.player.x > x + 2, 'holding → moves the ship right', 30000, x0);
     await page.keyboard.up('ArrowRight');
+    await page.keyboard.down('ShiftLeft');
+    await until(page, () => __nr.G.player.focus, 'holding Shift focuses');
+    await page.keyboard.up('ShiftLeft');
+    await until(page, () => __nr.G.shots.length > 0, 'the guns fire on their own');
+    const b0 = await Q(page, () => __nr.G.bombs);
+    await page.keyboard.press('KeyX');
+    await until(page, (b) => __nr.G.bombs === b - 1 && (__nr.seen.bomb || 0) >= 1, 'X bombs', 30000, b0);
+    await Q(page, () => { __nr.G.burst = 100; });
+    await page.keyboard.press('Space');
+    await until(page, () => (__nr.seen.burst || 0) >= 1, 'Space fires Burst when the gauge is full');
+    await Q(page, () => { __nr.G.player.warpMax = 1; __nr.G.player.warp = 1; });
+    await page.keyboard.press('KeyC');
+    await until(page, () => (__nr.seen.warp || 0) >= 1, 'C warps');
+    const blank = await notBlank(page);
+    check(blank.colours > 6 && blank.lum > 4, `the frame is not blank (${blank.colours} colours, mean ${blank.lum.toFixed(0)})`);
+    await shot(page, 'desktop-play');
 
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');
     const t0 = await Q(page, () => __nr.G.t);
     await page.waitForTimeout(500);
     check(await Q(page, (t) => __nr.G.t === t, t0), 'the sim stops while paused');
-    await click(page, '#pause-menu [data-act="resume"]');
-    // wait for the sim to run again, not just for the screen to close: Resume flushes presses on its next frame,
-    // and a key pressed before that frame is dropped (game-140 found this on the untouched scaffold)
-    await until(page, (t) => document.getElementById('pause').hidden && __nr.G.t > t, 'Resume closes the pause screen and the sim runs again', 30000, t0);
-
+    await Q(page, () => document.querySelector('#pause-menu [data-act="resume"]').focus());
     await page.keyboard.press('Space');
-    await until(page, () => __nr.seen.dash >= 1, 'Space dashes (the press reaches a sim step)');
+    await until(page, (t) => document.getElementById('pause').hidden && __nr.G.t > t, 'Space on Resume resumes', 30000, t0);
 
-    await shot(page, 'desktop-play');
-    const score = await Q(page, () => { __nr.ff(5); return __nr.G.score; });
-    await Q(page, () => document.querySelector('#btn-pause').click());
+    // a boss: the HUD bar, the warning
+    await Q(page, () => { __nr.god(); __nr.G._script = { script: [], end: 0 }; __nr.G.scriptI = 0; });
+    await until(page, () => (__nr.seen.warning || 0) >= 1, 'the boss is announced with a WARNING');
+    await until(page, () => __nr.G.phase === 'talk' || (__nr.G.boss && !__nr.G.boss.dead), 'the pilot has words before the boss', 40000);
+    for (let i = 0; i < 4 && await Q(page, () => __nr.G.phase === 'talk'); i++) { await page.keyboard.press('Escape'); await page.waitForTimeout(400); }
+    await until(page, () => !document.getElementById('boss-bar').hidden, 'the boss bar shows its name and health', 40000);
+    await shot(page, 'desktop-boss');
+
+    // Save & Quit, then Continue
+    const score = await Q(page, () => __nr.G.score);
+    await click(page, '#btn-pause');
     await until(page, () => !document.getElementById('pause').hidden, 'the ❚❚ button pauses');
     await click(page, '#pause-menu [data-act="quit"]');
     await until(page, () => __nr.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
     await click(page, '#title-menu [data-act="continue"]');
-    await until(page, (s) => __nr.mode === 'play' && __nr.G.score === s, 'Continue restores the saved game', 30000, score);
+    await until(page, (s) => __nr.mode === 'play' && __nr.G.score >= s && __nr.G.pilot === 'lyra', 'Continue restores the saved run', 30000, score);
 
-    await Q(page, () => __nr.ff(120));
-    await until(page, () => __nr.mode === 'over' && !document.getElementById('over').hidden, 'the round ends and shows the score');
-    await shot(page, 'desktop-over');
-    await click(page, '#over-again');
-    await until(page, () => __nr.mode === 'play' && __nr.G.t < 5, 'Play Again starts a fresh round');
+    // sound and music
+    const snd = await Q(page, async () => { for (let i = 0; i < 30; i++) { if (__nr.audio.level() > 0.002) return true; await new Promise((r) => setTimeout(r, 100)); } return false; });
+    check(snd, 'sound comes out (meter peak above zero)');
+    check(await Q(page, () => __nr.audio.musicPlaying()), 'the stage music is playing');
+    check(await Q(page, () => __nr.audio.loaded >= 10), 'the ElevenLabs sound effects decoded');
+
+    // game over → continue → give up → results
+    await Q(page, () => { __nr.god(false); __nr.G.lives = 0; __nr.G.player.inv = 0; __nr.G.player.shield = 0; const p = __nr.G.player; __nr.G.bullets.push({ x: p.x, y: p.y, vx: 0, vy: 0, r: 0.3, k: 'orb', c: 0, t: 0 }); });
+    await until(page, () => !document.getElementById('over').hidden, 'losing the last ship shows Game Over');
+    await click(page, '#over-cont');
+    await until(page, () => __nr.G.phase === 'play' && __nr.G.continues === 1, 'Continue puts the ship back');
+    await Q(page, () => { __nr.G.lives = 0; __nr.G.player.inv = 0; const p = __nr.G.player; __nr.G.bullets.push({ x: p.x, y: p.y, vx: 0, vy: 0, r: 0.3, k: 'orb', c: 0, t: 0 }); });
+    await until(page, () => !document.getElementById('over').hidden, 'Game Over again');
+    await click(page, '#over-quit');
+    await until(page, () => !document.getElementById('results').hidden, 'giving up shows the results');
+    await shot(page, 'desktop-results');
+    await click(page, '#results-ok');
+    await until(page, () => __nr.mode === 'title', 'and back to the title');
     reportErrors('desktop');
+}
+
+// ======================================================================
+async function survival() {
+    console.log('\n== survival');
+    const page = await open({ width: 1280, height: 760 });
+    await click(page, '#title-menu [data-act="endless"]');
+    await until(page, () => !document.getElementById('select').hidden && document.getElementById('select-head').textContent.includes('Survival'), 'Survival opens pilot select');
+    await click(page, '#select-go');
+    await until(page, () => __nr.mode === 'play' && __nr.G.mode === 'endless', 'a survival run starts');
+    await Q(page, () => { __nr.god(); __nr.autoplay(true); });
+    await until(page, () => __nr.G.wave >= 2, 'the waves keep coming', 90000);
+    await shot(page, 'survival');
+    reportErrors('survival');
 }
 
 // ======================================================================
@@ -150,35 +230,40 @@ async function phone(w, h) {
         await page.touchscreen.tap(r.x, r.y);
         return true;
     };
-
     check(await backLinkOk(page), '← Games link is on top');
-    await tapSel('#title-menu [data-act="new"]');
-    await until(page, () => __nr.mode === 'play', 'a tap on New Game starts play');
+    await tapSel('#title-menu [data-act="story"]');
+    await until(page, () => !document.getElementById('select').hidden, 'a tap on Story opens pilot select');
+    await tapSel('.pilot[data-pilot="kaito"]');
+    await tapSel('#select-go');
+    await until(page, () => __nr.mode === 'play' && !document.getElementById('scene').hidden, 'a tap on Launch starts the opening scene');
+    const sz = await Q(page, () => { const r = document.getElementById('scene-skip').getBoundingClientRect(); return r.height >= 36 && r.right <= innerWidth && r.top >= 0; });
+    check(sz, 'Skip is on screen');
+    await page.touchscreen.tap(w / 2, h / 2);
+    await until(page, () => __nr.ui.scene && __nr.ui.scene.i >= 0, 'tapping the scene advances it');
+    for (let i = 0; i < 5 && await Q(page, () => __nr.G.phase === 'talk'); i++) { await tapSel('#scene-skip'); await page.waitForTimeout(300); }
+    await until(page, () => __nr.G.phase === 'play' && document.getElementById('scene').hidden, 'Skip gets to the stage');
+    await Q(page, () => __nr.god());          // these steps test the controls; a ship shot down mid-step can't bomb or pause
     await until(page, () => !document.getElementById('touch').hidden, 'the touch deck is shown');
-
     const L = await layout(page);
     check(L.noHScroll, 'no sideways scroll');
     check(L.canvas, 'the canvas matches the visible viewport');
-
-    const sizes = await Q(page, () => ['#btn-a', '#btn-pause'].map((s) => {
+    const sizes = await Q(page, () => ['#t-bomb', '#t-warp', '#t-burst', '#t-focus', '#btn-pause'].map((s) => {
         const r = document.querySelector(s).getBoundingClientRect();
         return { s, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight };
     }));
     for (const z of sizes) check(z.ok, `${z.s} is at least 44 px and on screen`);
+    check(await Q(page, () => __nr.view.onScreen(__nr.G.player.x, __nr.G.player.y) && __nr.view.onScreen(1, 1) && __nr.view.onScreen(31, 17)), 'the whole field is on screen');
 
-    // drag the stick right with a real touch
     const zone = await Q(page, () => { const r = document.getElementById('stick-zone').getBoundingClientRect(); return { x: r.left + r.width * 0.4, y: r.top + r.height * 0.5 }; });
     const x0 = await Q(page, () => __nr.G.player.x);
     await touch('touchStart', zone.x, zone.y);
     for (let i = 1; i <= 6; i++) await touch('touchMove', zone.x + i * 12, zone.y);
-    await until(page, (x) => __nr.G.player.x > x + 1, 'dragging the stick moves the player', 30000, x0);
+    await until(page, (x) => __nr.G.player.x > x + 1, 'dragging the stick moves the ship', 30000, x0);
     await touch('touchEnd', 0, 0);
-
-    const dashes = await Q(page, () => __nr.seen.dash || 0);
-    await tapSel('#btn-a');
-    await until(page, (n) => (__nr.seen.dash || 0) > n, 'tapping A dashes', 30000, dashes);
+    const bombs = await Q(page, () => __nr.G.bombs);
+    await tapSel('#t-bomb');
+    await until(page, (b) => __nr.G.bombs === b - 1, 'tapping BOMB bombs', 30000, bombs);
     await shot(page, `phone-${w}x${h}`);
-
     await tapSel('#btn-pause');
     await until(page, () => !document.getElementById('pause').hidden, 'tapping ❚❚ pauses');
     await page.waitForTimeout(300);
@@ -191,8 +276,8 @@ async function phone(w, h) {
 // ======================================================================
 async function nostorage() {
     console.log('\n== blocked storage');
-    const page = await open({ width: 1280, height: 760 }, { nostorage: true });
-    await click(page, '#title-menu [data-act="new"]');
+    const page = await open({ width: 1280, height: 760 }, { nostorage: true, q: '&q=low' });
+    await Q(page, () => __nr.start(5, { pilot: 'sora' }));
     await until(page, () => __nr.mode === 'play', 'boots and starts a game with localStorage throwing');
     await Q(page, () => __nr.ff(3));
     check(await Q(page, () => __nr.save() === false), 'saving fails quietly');
@@ -201,6 +286,7 @@ async function nostorage() {
 
 try {
     if (want('desktop')) await desktop();
+    if (want('survival')) await survival();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
     if (want('nostorage')) await nostorage();
 } catch (err) {

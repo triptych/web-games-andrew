@@ -230,6 +230,9 @@ p { line-height: 1.4; }
 #results-body .stat b { font-family: var(--hud-font); color: var(--gold); }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
 
+@media (max-width: 600px) {
+    #radio { bottom: auto; top: calc(112px + var(--safe-t)); }
+}
 @media (max-width: 520px) {
     #hud-score b { font-size: 18px; }
     #hud-gear { max-width: 100%; order: 3; }
