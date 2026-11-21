@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Coppergate Lane** (game-030) v2.0.1: the same auto battle bug as Echoes of Aethermoor 2.0.0. Auto carries on into the next battle, but while it ran the command menu (and its Auto button) never appeared, so on a phone there was no way back. A **Take control** bar now shows whenever auto is on, from the first moment of each battle, and hands the commands back on the next turn (Q still works).
+
+### Fixed
 - **Echoes of Aethermoor** (game-028) v2.0.1: auto battle carries on into the next battle, but while it ran the command menu (and its Auto button) never appeared, so on a phone there was no way back. A **Take control** bar now shows whenever auto is on, from the first moment of each battle, and hands the commands back on the next turn (Q still works).
 
 ### Changed

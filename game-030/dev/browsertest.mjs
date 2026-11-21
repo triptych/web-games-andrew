@@ -119,6 +119,29 @@ console.log('\n# desktop');
     await idle(page);
     ok(await ea(page, `__.mode() === 'explore' && document.getElementById('battle').hidden`), 'Continue returns to the map');
     ok(await page.evaluate(() => { try { return !!localStorage.getItem('coppergate-lane.v2'); } catch { return false; } }), 'the game saved');
+    // Auto carries on into the next battle, and a bar hands control back
+    await ea(page, `__.fight('cogs2')`);
+    await page.waitForSelector('#b-menu [data-b=auto]', { timeout: 20000 });
+    await page.click('#b-menu [data-b=auto]');
+    ok(await page.waitForSelector('#b-menu [data-b=manual]', { timeout: 5000 }).then(() => true, () => false), 'Auto shows a Take control bar');
+    await page.waitForFunction(() => !document.getElementById('b-result').hidden, null, { timeout: 60000 });
+    await page.click('#b-result-foot .gold');
+    await idle(page);
+    await ea(page, `__.fight('cogs2')`);
+    ok(await page.waitForSelector('#b-menu [data-b=manual]', { timeout: 5000 }).then(() => true, () => false), 'the next battle starts on Auto, with the bar showing');
+    await shot(page, 'autobar');
+    await page.click('#b-menu [data-b=manual]');
+    ok(await page.waitForSelector('#b-menu [data-b=attack]', { timeout: 20000 }).then(() => true, () => false) || await ea(page, '__.G.battle?.over'), 'Take control brings the commands back');
+    await ea(page, `__.G.battle.over || (__.G.battle.units.filter((u) => u.side === 'e').forEach((u) => u.hp = 1), true)`);
+    for (let n = 0; n < 40 && await ea(page, `__.mode() === 'battle' && !__.G.battle.over`); n++) {
+        await page.waitForFunction(() => document.querySelector('#b-menu [data-b=attack]') || window.__cl.G.battle?.over, null, { timeout: 20000 });
+        if (await ea(page, '__.G.battle.over')) break;
+        await page.click('#b-menu [data-b=attack]'); await page.waitForTimeout(80);
+        const tgt = await page.$('#b-targets .tgt'); if (tgt) await tgt.click();
+    }
+    await page.waitForFunction(() => !document.getElementById('b-result').hidden, null, { timeout: 20000 });
+    await page.click('#b-result-foot .gold');
+    await idle(page);
     // Bertram's stall: buy and equip
     await ea(page, `(__.G.gold = 500, __.warp('lane', 22, 13), __.G.face = 'up')`);
     await idle(page); await page.waitForTimeout(450);   // the Space that closed the last scene is swallowed for a moment

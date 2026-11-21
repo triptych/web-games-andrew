@@ -2,7 +2,7 @@
 
 **Genre:** Cozy-fantasy RPG (tinker's tale)
 **Layout:** sim/view, plain HTML, CSS and JavaScript (Canvas 2D for the map and the battle stage, DOM for everything else)
-**Version:** 2.0.0
+**Version:** 2.0.1
 **Status:** Complete: one story arc to a boss, four quests, a party of three, painted, scored and fully voiced.
 
 ---
@@ -39,7 +39,7 @@ same guide, so a hint can never point at something the bot couldn't do.
 
 ### Battles
 Everyone acts in order of speed (shown at the top). Commands: Attack, Skills (SP), Items (on a chosen friend), Defend (half
-damage and a little SP back), Flee (not from a boss), Auto. Damage is attack × power − defence × 0.6 (physical) or × 0.3
+damage and a little SP back), Flee (not from a boss), Auto (stays on from battle to battle; a Take control bar or Q hands the commands back). Damage is attack × power − defence × 0.6 (physical) or × 0.3
 (gadgets), ±10%, 6% crits on physical hits. **Statuses**: Stun (lose a turn; bosses resist), Rust (defence ×0.7), Weak
 (−30% attack), ATK Up (+30%), Taunt, Guard (half damage), Evade (the next attack misses).
 
@@ -135,6 +135,9 @@ about half, level 6 reliably, which is what the guide recommends.
 - One more companion, or a second boss, would suit the Gully's closed corner better than more random encounters.
 
 ## Changelog
+
+### v2.0.1 (2026-11-21)
+- Auto battle shows a Take control bar while it runs (it carries on from battle to battle, and the menu with its Auto button stayed hidden).
 
 ### v2.0.0 (2026-11-21)
 Rebuilt without a framework in the sim/view layout. Saves; a party of three; status effects; enemies with their own AI; a bed
