@@ -246,6 +246,33 @@ if (want('rules')) {
     run(G, 10);
     ok(G.phase === 4 && G.ended && G.unlocks.ginger, 'the war ends: the epilogue begins and gingerfolk cottages unlock');
 
+    section('rules: modes');
+    {
+        const N = Gm.newGame(1), S = Gm.newGame(1, { mode: 'story' }), H = Gm.newGame(1, { mode: 'hard', legacy: { gold: 200, stone: 50 } });
+        ok(N.diff === 'normal' && S.diff === 'story' && H.diff === 'hard' && Gm.newGame(1, { mode: 'nope' }).diff === 'normal', 'three modes, normal by default');
+        ok(H.res.gold === C.START.gold + 200 && H.res.stone === C.START.stone + 50 && H.res.flour === C.START.flour, 'a head start adds to the starting stores');
+        const old = Gm.serialize(N); delete old.diff;
+        ok(Gm.deserialize(old).diff === 'normal', 'a save from before the modes loads as normal');
+        // hard: the wall falls, the game is over, and it leaves a legacy
+        let G = fresh(); G.diff = 'hard'; put(G, 1, 'bakery', 2); G.res.gold = 400; G.mode = 'battle'; G.battle = Bt.newBattle(G);
+        G.battle.result = 'lose'; G.events.length = 0; run(G, 3);
+        const end = G.events.find((e) => e.type === 'battleEnd');
+        ok(G.over && end?.result === 'over', 'hard mode: a fallen wall ends the game');
+        ok(end.legacy.gold >= 400 * C.HARD.keep && end.legacy.gold > 200 && end.legacy.stone > 0, `and leaves part of the stores and buildings to the next game (${JSON.stringify(end.legacy)})`);
+        const t = G.t, gold = G.res.gold; run(G, 5);
+        ok(G.t === t && G.res.gold === gold && !Gm.act(G, { t: 'build', plot: 2, kind: 'mill' }), 'nothing runs after the end');
+        G = fresh(); G.diff = 'hard'; G.mode = 'battle'; G.battle = Bt.newBattle(G); G.battle.result = 'win'; run(G, 3);
+        ok(!G.over && G.phase === 1, 'a held wall in hard mode goes on as usual');
+        // story: the bot runs the town through the same commands, and only the town
+        G = Gm.newGame(7, { mode: 'story' }); G.flags.intro = true;
+        const sb = Bot.makeBot({ skill: 1, seed: 3, pace: 2.5 });
+        for (let i = 0; i < 120 * 60; i++) { Bot.storyTurn(G, sb, DT); Gm.step(G, IDLE, DT); }
+        ok(G.stats.built >= 3 && G.stats.collected > 0, `story mode: Lord Vellum builds and collects on his own (${G.stats.built} built, ${G.stats.collected} bubbles in a minute)`);
+        G.mode = 'battle'; G.battle = Bt.newBattle(G); const n0 = sb.n;
+        Bot.storyTurn(G, sb, 10);
+        ok(sb.n === n0, 'and leaves the wall to the player');
+    }
+
     section('rules: losing and the epilogue');
     G = fresh(); put(G, 1, 'bakery', 3); G.phase = 1; G.mode = 'battle'; G.battle = Bt.newBattle(G); const gold0 = G.res.gold;
     G.battle.result = 'lose'; run(G, 3);
@@ -266,26 +293,77 @@ if (want('harvest')) {
         const G = Gm.newGame(5);
         ok(!T.isRipe(G.plots[0].b), 'a fresh cottage has no bubble yet');
         ok(!Gm.act(G, { t: 'collect', plot: 0 }) && G.events.some((e) => e.type === 'refused' && e.cmd === 'collect'), 'collecting an unripe building is refused');
-        run(G, C.HARVEST.ripe + 0.1);
-        ok(T.isRipe(G.plots[0].b) && G.events.some((e) => e.type === 'ripe' && e.plot === 0), `the cottage ripens after ${C.HARVEST.ripe} s, with a ripe event`);
-        const gold = G.res.gold;
+        const rt0 = T.ripeTime(G.plots[0].b);
+        run(G, rt0 - 0.2);
+        ok(!T.isRipe(G.plots[0].b), `not before its ripening time (${rt0} s)`);
+        run(G, 0.3);
+        ok(T.isRipe(G.plots[0].b) && G.events.some((e) => e.type === 'ripe' && e.plot === 0), `the cottage ripens after ${rt0} s, with a ripe event`);
+        const gold = G.res.gold, coins = Math.round(C.HARVEST.coins * rt0 / C.HARVEST.ripe);
         G.events.length = 0;
         ok(Gm.act(G, { t: 'collect', plot: 0 }), 'collecting a ripe bubble works');
         const ev = G.events.find((e) => e.type === 'collect');
-        ok(ev && ev.got.gold === C.HARVEST.coins && Math.abs(G.res.gold - gold - C.HARVEST.coins) < 1e-6, `it pays out (${ev?.got.gold} gold)`);
+        ok(ev && ev.got.gold === coins && Math.abs(G.res.gold - gold - coins) < 1e-6, `it pays out (${ev?.got.gold} gold, scaled by the wait)`);
         ok(!T.isRipe(G.plots[0].b) && G.stats.collected === 1, 'and the bubble starts filling again');
         ok(!Gm.act(G, { t: 'collect', plot: 0 }), 'a bubble cannot be collected twice');
         // a mill under construction does not ripen; once built it gives at least the minimum
         Gm.act(G, { t: 'build', plot: 1, kind: 'mill' });
         run(G, 2);
         ok(!T.isRipe(G.plots[1].b) && !(G.plots[1].b.ripe > 0), 'a building site grows no bubble');
-        run(G, C.BUILD_DAYS * C.DAY_LEN + C.HARVEST.ripe + 0.5);
+        run(G, C.BUILD_DAYS * C.DAY_LEN + T.ripeTime(G.plots[1].b) + 0.5);
         ok(T.isRipe(G.plots[1].b), 'a finished mill ripens');
         const fl = G.res.flour;
         ok(Gm.act(G, { t: 'collectAll' }) && G.res.flour - fl >= C.HARVEST.min - 1e-6, `collect-all gathers the mill (+${(G.res.flour - fl).toFixed(1)} flour)`);
         ok(!Gm.act(G, { t: 'collectAll' }), 'collect-all with nothing ripe does nothing');
         const saved = Gm.deserialize(Gm.serialize(G));
         ok(saved.plots[1].b.ripe === G.plots[1].b.ripe, 'bubble progress survives a save');
+    }
+    {
+        // every kind ripens at its own pace, and the same kind on two plots ripens apart, so bubbles never all pop at once
+        const kinds = T.HARVESTS;
+        ok(kinds.every((k) => D.BUILDINGS[k].ripe > 0), 'every bubbling building has its own ripening time');
+        ok(new Set(kinds.map((k) => D.BUILDINGS[k].ripe)).size === kinds.length, 'and no two kinds share one');
+        const G = fresh(3); rich(G);
+        for (let i = 1; i < 8; i++) Gm.act(G, { t: 'build', plot: i, kind: ['mill', 'mill', 'beets', 'quarry', 'bakery', 'market', 'mill'][i - 1] });
+        run(G, C.BUILD_DAYS * C.DAY_LEN + 0.1);
+        for (const p of G.plots) if (p.b) p.b.ripe = 0;          // as after "collect all"
+        const firstRipe = {};
+        for (let t = 0; t < 30 * 120; t++) { Gm.step(G, null, 1 / 120); G.plots.forEach((p, i) => { if (firstRipe[i] == null && T.isRipe(p.b)) firstRipe[i] = t; }); }
+        const times = Object.values(firstRipe);
+        ok(new Set(times).size === times.length, `after collecting everything at once, no two buildings ripen on the same step (${times.map((t) => (t / 120).toFixed(1)).join(' ')})`);
+        ok(firstRipe[1] !== firstRipe[2], 'two windmills on different plots ripen apart');
+        // old saves (no stored time) fall back to the kind's
+        const b = { kind: 'mill', lvl: 1, build: 0, ripe: 0 };
+        ok(T.ripeTime(b) === D.BUILDINGS.mill.ripe, 'a building from an old save uses its kind\'s ripening time');
+    }
+    {
+        // the "!" badge: affordable upgrades only
+        const G = fresh(2);
+        G.res.gold = 0; G.res.stone = 0;
+        ok(!T.canUpgrade(G, 0), 'no upgrade badge when the town is broke');
+        rich(G);
+        ok(T.canUpgrade(G, 0) && T.canUpgradeHall(G), 'a badge on the cottage and the hall once they can be afforded');
+        Gm.act(G, { t: 'upgrade', plot: 0 });
+        ok(!T.canUpgrade(G, 0), 'not while it is being upgraded');
+        G.plots[0].b = { kind: 'cottage', lvl: 3, build: 0, up: false };
+        ok(!T.canUpgrade(G, 0), 'not at ★3');
+    }
+    {
+        // time away: the town saves some of its takings
+        const G = fresh(4); rich(G); put(G, 1, 'mill'); put(G, 2, 'bakery'); put(G, 3, 'quarry'); G.res.gold = 100; G.res.stone = 0;
+        ok(!Gm.act(G, { t: 'idle', sec: 30 }), 'a short break gives nothing');
+        const r = T.rates(G), g0 = { ...G.res };
+        G.events.length = 0;
+        ok(Gm.act(G, { t: 'idle', sec: 3600 }), 'an hour away gives a welcome-back bonus');
+        const ev = G.events.find((e) => e.type === 'idle');
+        ok(ev && ev.got.gold > 0 && ev.got.stone > 0 && Math.abs(G.res.gold - g0.gold - ev.got.gold) < 1e-6, `it pays out what the town makes (${JSON.stringify(ev?.got)})`);
+        const two = 2 * C.DAY_LEN * C.IDLE.share;
+        ok(Math.abs(ev.got.stone - Math.round(r.stone * two)) <= 1, 'an hour is two town days of production at the idle share');
+        const big = T.idleLoot(G, 1e7), cap = T.idleLoot(G, C.IDLE.perDay * C.IDLE.maxDays);
+        ok(big.gold === cap.gold, `it is capped at ${C.IDLE.maxDays} days`);
+        const empty = fresh(5); empty.plots[0].b = null;
+        ok(T.idleLoot(empty, 600).gold >= C.IDLE.floor * C.IDLE.minDays, 'even a town that makes nothing gets a little gold');
+        G.mode = 'battle'; G.battle = Bt.newBattle(G);
+        ok(Gm.act(G, { t: 'idle', sec: 600 }), 'it works from a save made mid-siege too');
     }
     {
         // the advisor: a fresh town always has something doable, and following it moves the story on

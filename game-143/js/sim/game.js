@@ -2,22 +2,30 @@
 // Pure: no DOM, no Math.random, no clock. The view reads G and drains G.events; the UI, the bot and the
 // tests change it only through act(G, cmd) and step(G, inp, dt).
 
-import { DAY_LEN, PHASE_DAYS, EPI_DAYS, RETRY_DAYS, PLOTS, START } from '../config.js';
+import { DAY_LEN, PHASE_DAYS, EPI_DAYS, RETRY_DAYS, PLOTS, START, MODES } from '../config.js';
 import { makeRng } from '../rng.js';
 import { QUESTS, STAFF_ORDER, ADV_ORDER, DAY_EVENTS, BUILDINGS, RES } from './data.js';
-import { stepTown, townAct, countOf, advsHired, canAfford, pay, gain, resetWall, wallMax } from './town.js';
+import { stepTown, townAct, countOf, advsHired, canAfford, pay, gain, resetWall, wallMax, ripeFor, idleLoot, legacyOf } from './town.js';
 import { newBattle, stepBattle, battleAct } from './battle.js';
 
 const EVENT_CAP = 400;   // a headless run that never drains still can't grow without bound
 
-export function newGame(seed = 1) {
+/**
+ * A new game. opts.mode: 'story' (the town runs itself, you hold the wall), 'normal', or 'hard' (if the wall falls
+ * the game is over). opts.legacy: resources a fallen hard-mode town left behind, added to the starting stores.
+ */
+export function newGame(seed = 1, opts = {}) {
+    const legacy = opts.legacy || null;
     const G = {
         v: 1, seed, rng: makeRng(seed), t: 0,
+        diff: MODES.includes(opts.mode) ? opts.mode : 'normal',
+        legacy,                       // what this game started with from the last one (for the welcome line)
+        over: false,                  // hard mode: the wall fell
         mode: 'town',                 // town | battle
         phase: 0,                     // 0..3 the four invasions; 4 the epilogue
         day: 1, dayT: 0, daysLeft: PHASE_DAYS[0],
         today: null,
-        res: { gold: START.gold, flour: START.flour, sugar: START.sugar, stone: START.stone },
+        res: Object.fromEntries(RES.map((r) => [r, START[r] + Math.max(0, legacy?.[r] || 0)])),
         pop: START.pop, hope: START.hope, hopeBonus: 0,
         plots: Array.from({ length: PLOTS }, () => ({ b: null })),
         hall: { lvl: 1, build: 0 },
@@ -30,13 +38,13 @@ export function newGame(seed = 1) {
         quests: { active: [], done: {}, paid: {} },
         battle: null, retries: 0, ended: false,
         epi: { waves: 0, best: 0 },
-        stats: { built: 0, calmed: 0, wavesWon: 0, wavesLost: 0, quests: 0, collected: 0 },
+        stats: { built: 0, calmed: 0, wavesWon: 0, wavesLost: 0, quests: 0, collected: 0, idle: 0 },
         flags: { intro: false },
         speed: 1,
         events: [],
     };
     // the first plot starts with a cottage: the Mayor's own, since the castle is a bakery museum now
-    G.plots[0].b = { kind: 'cottage', lvl: 1, build: 0, up: false };
+    G.plots[0].b = { kind: 'cottage', lvl: 1, build: 0, up: false, rt: ripeFor('cottage', 0) };
     resetWall(G);
     return G;
 }
@@ -138,6 +146,11 @@ function endBattle(G) {
         }
     } else if (res === 'retreat') {
         G.daysLeft = RETRY_DAYS;
+    } else if (G.diff === 'hard') {   // hard mode: the wall fell, and that's the end of this Thistlegloom
+        G.stats.wavesLost++;
+        G.over = true;
+        summary.result = 'over';
+        summary.legacy = legacyOf(G);
     } else {   // lose: the horde gets into the edge of town, then wanders off with the snacks
         G.stats.wavesLost++;
         G.retries++;
@@ -159,6 +172,7 @@ function endBattle(G) {
 // ------------------------------------------------------------------ the loop
 /** Advance one fixed step. inp = { ax, aim, fire } (only the siege reads it). */
 export function step(G, inp, dt) {
+    if (G.over) return;
     if (!G.flags.intro) { G.flags.intro = true; G.events.push({ type: 'scene', id: 'intro' }); }
     G.t += dt;
     if (G.mode === 'battle') {
@@ -179,7 +193,17 @@ export function step(G, inp, dt) {
 /** Commands. Returns true when it did something. */
 export function act(G, c) {
     if (c.t === 'ability' || c.t === 'queen') return battleAct(G, c);
+    if (G.over) return false;
     if (c.t === 'speed') { G.speed = [0, 1, 2, 3].includes(c.v) ? c.v : 1; return true; }
+    if (c.t === 'idle') {
+        // the player was away c.sec real seconds: the town saved some of its takings
+        const got = idleLoot(G, c.sec);
+        if (!got) return false;
+        gain(G, got);
+        G.stats.idle = (G.stats.idle || 0) + 1;
+        G.events.push({ type: 'idle', sec: c.sec, got });
+        return true;
+    }
     if (G.mode !== 'town') return false;
     if (c.t === 'deliver') {
         const q = questDef(c.id);
@@ -216,6 +240,9 @@ export function deserialize(d) {
     const { rngState, ...rest } = d;
     const G = { ...JSON.parse(JSON.stringify(rest)), rng: makeRng(0), events: [] };
     G.rng.setState(rngState);
+    // saves from before v1.2 have no mode
+    if (!MODES.includes(G.diff)) G.diff = 'normal';
+    G.over = !!G.over;
     return G;
 }
 

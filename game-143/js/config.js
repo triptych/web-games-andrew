@@ -1,6 +1,6 @@
 // Doom & Doilies: The Sugar Siege — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.2.0';
 export const SAVE_KEY = 'doom-doilies-sugar-siege.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
@@ -18,10 +18,20 @@ export const UPGRADE_COST = 2.4;          // each level costs this many times th
 export const BUILD_DAYS = 0.15;           // a new building takes about six seconds
 export const UPGRADE_DAYS = 0.4;
 export const START = { gold: 300, flour: 40, sugar: 30, stone: 100, pop: 8, hope: 48 };
-// Harvest bubbles: a working building fills up over `ripe` seconds, then a tap collects `bonus` seconds of its
-// output (at least `min` of each), or `coins` gold per level from a building that makes nothing. Something to do
-// every few seconds, and a reward for paying attention.
+// Harvest bubbles: a working building fills up over its own ripening time (each kind has one in data.js, nudged a
+// little by the plot, so they never all pop up at once), then a tap collects `bonus` seconds of its output for every
+// `ripe` seconds it waited (at least `min` of each), or `coins` gold per level from a building that makes nothing.
+// Something to do every few seconds, and a reward for paying attention.
 export const HARVEST = { ripe: 10, bonus: 8, min: 4, coins: 6 };
+export const RIPE_JITTER = [0.9, 1.04, 0.96, 1.12, 0.86, 1.0, 1.08, 0.93, 1.15, 0.98, 0.88, 1.06];   // by plot, so two windmills ripen apart
+// Time away: coming back after at least `min` real seconds, the town has saved up `share` of its production,
+// one town day's worth for every `perDay` real seconds away, between `minDays` and `maxDays`, and never less than
+// `floor` gold a day.
+export const IDLE = { min: 120, perDay: 1800, minDays: 0.5, maxDays: 3, share: 0.6, floor: 60 };
+// Hard mode: the wall falls, the game is over. The next game starts with `keep` of the stores on hand and `refund`
+// of what the standing buildings cost.
+export const HARD = { keep: 0.5, refund: 0.25 };
+export const MODES = ['story', 'normal', 'hard'];
 export const HALL_HOUSING = 6;
 export const HALL_COST = [null, { gold: 300 }, { gold: 700, stone: 200 }];   // level 2 is gold only, so a town short of stone can always grow
 export const HOPE = { base: 38, fearMax: 18, approach: 0.06 };

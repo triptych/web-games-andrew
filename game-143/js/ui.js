@@ -4,7 +4,7 @@
 import { VERSION, DAY_LEN, PLOTS_OPEN, WALL_COST, HALL_COST, PHASE_DAYS } from './config.js';
 import {
     BUILDINGS, BUILD_ORDER, STAFF, STAFF_ORDER, ADVENTURERS, ADV_ORDER, ADV_MAX, ABILITIES, ABILITY_ORDER, INGREDIENTS, ING_ORDER,
-    QUESTS, CAST, SCENES, GOSSIP, RES, RES_ICON, WAVES, DAY_EVENTS,
+    QUESTS, CAST, SCENES, GOSSIP, RES, RES_ICON, WAVES, DAY_EVENTS, NOXIA_CHEERS, WELCOME_BACK, IDLE_GOSSIP,
 } from './sim/data.js';
 import {
     costOf, canAfford, canBuild, rates, buildingRate, housing, workersNeeded, staffing, advSlots, advsHired, trainCost, wallArmor,
@@ -20,6 +20,13 @@ const fmt = (n) => (n >= 10000 ? (n / 1000).toFixed(1) + 'k' : String(Math.floor
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const costHtml = (G, cost) => Object.entries(cost).filter(([, v]) => v).map(([r, v]) => `<span class="${(G.res[r] || 0) < v ? 'short' : ''}">${RES_ICON[r]}${fmt(v)}</span>`).join(' ');
 const por = (id) => artUrl('por/' + (CAST[id]?.por || id));
+const porSrc = (id) => por(id) || `art/por/${CAST[id]?.por || id}.png`;
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+/** "🪙120 🌾40 🍬30" */
+export const totalsText = (got) => RES.filter((r) => got[r] > 0).map((r) => `${RES_ICON[r]}${fmt(got[r])}`).join(' ');
+const MODE_ICON = { story: '📖', normal: '', hard: '💀' };
+const CHEER_GAP = 30;        // seconds of tips between two of Lady Noxia's cheers
+const CHEER_IDLE = 60;       // ...or this long on the same tip
 const PANEL_TITLES = { whatnext: 'What next?', quests: 'Quests', staff: 'The Household', heroes: 'Adventurers', defence: 'The Siege', bake: 'The Grand Bake' };
 
 export class UI {
@@ -28,6 +35,10 @@ export class UI {
         this.onShow = onShow;       // "Show me": main.js points the view at a goal
         this.hintBuild = null;      // the building a "Show me" asked the plot panel to highlight
         this.tipId = null; this.tipOff = null; this.tipT = 0; this.tipGoal = null;
+        // notes are short messages that take over the tip card for a few seconds: Lady Noxia's cheers between the
+        // tips, and the villagers' news about what the town saved up while the player was away
+        this.notes = []; this.note = null; this.noteT = 0; this.cheerGap = 0; this.cheers = true;
+        this.news = [];             // lines the ticker prints before going back to gossip
         this.settings = settings;
         this.send = send;
         this.stack = [];
@@ -95,10 +106,15 @@ export class UI {
         // the helper's tip card and the collect-all button
         $('tip-show').addEventListener('click', () => {
             audio.ui('open');
+            if (this.note) { this.endNote(); this.tips(this.G, 0); return; }   // "Next ▸" on a note: on to the next one, or the tip
             this.tipT = 0; this.tips(this.G, 0);     // act on the town as it is now, not half a second ago
             if (this.tipGoal) this.onShow?.(this.tipGoal);
         });
-        $('tip-close').addEventListener('click', () => { audio.ui('close'); this.tipOff = this.tipId; $('tip').hidden = true; });
+        $('tip-close').addEventListener('click', () => {
+            audio.ui('close');
+            if (this.note) { this.notes.length = 0; this.endNote(); }
+            this.tipOff = this.tipId || 'note'; $('tip').hidden = true;
+        });
         $('btn-collect').addEventListener('click', () => this.send({ t: 'collectAll' }));
 
         // dialogue
@@ -127,7 +143,7 @@ export class UI {
         const t = this.top();
         if (!t) return;
         if (t === 'talk') { this.talkQ.length = 0; this.nextLine(); return; }
-        if (t === 'result' || t === 'ending') return;
+        if (t === 'result' || t === 'ending' || t === 'gameover') return;
         this.closeScreen(t);
     }
     top() { return this.stack[this.stack.length - 1] || null; }
@@ -161,9 +177,25 @@ export class UI {
         this.gossipT -= dt;
         if (this.gossipT > 0) return;
         this.gossipT = 14;
+        if (this.news.length) { $('ticker-text').textContent = '📰 ' + this.news.shift(); return; }
         const band = G.hope < 25 ? 0 : G.hope < 50 ? 1 : G.hope < 75 ? 2 : 3;
         const lines = GOSSIP[band];
         $('ticker-text').textContent = '📰 ' + lines[Math.floor(Math.random() * lines.length)];
+    }
+
+    /** The town saved `got` while the player was away `sec` seconds: a toast, the villagers' notes, the ticker. */
+    idleNews(got, sec) {
+        const tot = totalsText(got);
+        const away = sec >= 86400 ? `${Math.floor(sec / 86400)} day${sec >= 172800 ? 's' : ''}` : sec >= 3600 ? `${Math.floor(sec / 3600)} hour${sec >= 7200 ? 's' : ''}` : `${Math.max(2, Math.round(sec / 60))} minutes`;
+        this.toast(`🎁 While you were away (${away}): ${tot}`);
+        this.notes.length = 0;
+        this.pushNote({ who: 'vellum', title: `📒 While you were away: ${tot}`, text: pick(WELCOME_BACK), t: 7 });
+        const lines = IDLE_GOSSIP.slice().sort(() => Math.random() - 0.5).slice(0, 3);
+        for (const [who, line] of lines) this.pushNote({ who, title: `💬 ${CAST[who]?.name || who}`, text: line.replace('{totals}', tot), t: 5 });
+        this.news = lines.map(([who, line]) => `${CAST[who]?.name || who}: “${line.replace('{totals}', tot)}”`);
+        this.news.unshift(`While the Mayor was away, Thistlegloom saved up ${tot}.`);
+        this.gossipT = 0;
+        this.tipOff = null;   // the news brings the card back
     }
 
     // ------------------------------------------------------------------ the town HUD
@@ -181,9 +213,10 @@ export class UI {
         $('r-pop').title = `Villagers ${Math.floor(G.pop)}, homes for ${housing(G)}, jobs ${Math.round(workersNeeded(G))}`;
         $('r-hope').querySelector('.bar > div').style.width = `${G.hope}%`;
         $('r-hope').querySelector('.face').textContent = G.hope < 25 ? '😨' : G.hope < 50 ? '😟' : G.hope < 75 ? '🙂' : '😄';
-        const day = $('r-day');
-        if (G.phase >= 4) day.textContent = `Day ${G.day} · stragglers in ${Math.ceil(daysUntil(G))}d · held ${G.epi.waves}`;
-        else day.textContent = `Day ${G.day} · Siege ${G.phase + 1}/4 in ${Math.ceil(daysUntil(G))}d`;
+        const day = $('r-day'), mi = MODE_ICON[G.diff] ? MODE_ICON[G.diff] + ' ' : '';
+        day.title = { story: 'Story mode: Lord Vellum runs the town', hard: 'Hard mode: if the wall falls, the game is over', normal: '' }[G.diff] || '';
+        if (G.phase >= 4) day.textContent = `${mi}Day ${G.day} · stragglers in ${Math.ceil(daysUntil(G))}d · held ${G.epi.waves}`;
+        else day.textContent = `${mi}Day ${G.day} · Siege ${G.phase + 1}/4 in ${Math.ceil(daysUntil(G))}d`;
         day.classList.toggle('warn', daysUntil(G) <= 1.5);
         for (const b of document.querySelectorAll('[data-speed]')) b.classList.toggle('on', +b.dataset.speed === G.speed);
         const ready = G.quests.active.filter((id) => { const q = questDef(id); return needsDeliver(q) && objectiveMet(G, q) && !G.quests.paid[id]; }).length;
@@ -203,12 +236,22 @@ export class UI {
         const cb = $('btn-collect');
         cb.hidden = ripe < 1;
         cb.querySelector('b').textContent = ripe;
+        // a note has the card for a few seconds, then the next note, then the tips again
+        this.cheerGap += dt;
+        if (this.note) { this.noteT -= dt; if (this.noteT > 0) return; this.endNote(); }
+        if (this.notes.length) { this.showNote(this.notes.shift()); return; }
         this.tipT -= dt;
         if (this.tipT > 0) return;
         this.tipT = 0.5;
-        const goals = nextGoals(G), g = goals[0];
+        const g = G.diff === 'story' ? this.storyGoal(G) : nextGoals(G)[0];
         const tip = $('tip');
         if (!g) { tip.hidden = true; return; }
+        // Lady Noxia chips in between two tips (or when one tip has sat there a while)
+        if (this.cheers && !this.tipOff && this.tipId && this.tipId !== 'note'
+            && ((g.id !== this.tipId && this.cheerGap > CHEER_GAP) || this.cheerGap > CHEER_IDLE)) {
+            this.showNote({ who: 'noxia', title: '💜 Lady Noxia', text: pick(NOXIA_CHEERS), t: 4.5, cls: 'cheer' });
+            return;
+        }
         this.tipGoal = g;
         // a hidden card comes back for the next story step (or when the player asks via 💡)
         if (this.tipOff && g.id !== this.tipOff && g.pri <= 3) this.tipOff = null;
@@ -221,8 +264,41 @@ export class UI {
         tip.dataset.text = g.text;
         $('tip-title').textContent = `${g.icon} ${g.title}`;
         $('tip-text').textContent = g.text;
-        $('tip-show').hidden = !g.show && g.id !== 'wait';
-        $('tip-show').textContent = g.id === 'wait' ? 'Speed up' : 'Show me';
+        $('tip-show').hidden = !g.show && g.id !== 'wait' && g.id !== 'story';
+        $('tip-show').textContent = g.id === 'wait' || g.id === 'story' ? 'Speed up' : 'Show me';
+        tip.classList.toggle('story', g.id === 'story');
+    }
+
+    /** Story mode's card: the town runs itself, so the card says so and offers to speed things up. */
+    storyGoal(G) {
+        const d = Math.ceil(daysUntil(G));
+        const when = G.phase >= 4 ? `More stragglers in ${d} day${d === 1 ? '' : 's'}.` : `Siege ${G.phase + 1} of 4 in ${d} day${d === 1 ? '' : 's'}.`;
+        return { id: 'story', icon: '📖', title: 'Story mode: Lord Vellum runs the town', text: `${when} Watch Thistlegloom grow, tap bubbles if you like, or speed up time. You hold the wall when the horde comes.`, show: null };
+    }
+
+    pushNote(n) { this.notes.push(n); }
+    showNote(n) {
+        const tip = $('tip');
+        this.note = n; this.noteT = n.t || 4.5;
+        if (n.cls === 'cheer') this.cheerGap = 0;
+        tip.hidden = false;
+        $('tiprow').classList.remove('tipoff');
+        $('ticker').style.visibility = 'hidden';
+        tip.classList.remove('fresh', 'story'); void tip.offsetWidth; tip.classList.add('fresh');
+        tip.classList.toggle('cheer', n.cls === 'cheer');
+        $('tip-por').src = porSrc(n.who);
+        $('tip-title').textContent = n.title;
+        $('tip-text').textContent = n.text;
+        $('tip-show').hidden = false;
+        $('tip-show').textContent = 'Next ▸';
+        this.tipId = 'note'; tip.dataset.text = '';
+    }
+    endNote() {
+        this.note = null;
+        $('tip').classList.remove('cheer');
+        $('tip-por').src = porSrc('vellum');
+        this.tipT = 0;
+        if (this.tipOff === 'note') this.tipOff = null;
     }
 
     whatnextHtml(G) {
@@ -420,6 +496,7 @@ export class UI {
                 html += `<li class="${r.ok ? 'ok' : 'no'}">${label}${have}</li>`;
             }
             html += `</ul><p class="obj">All ready: the wall gets +15% strength.</p>`;
+            if (G.diff === 'hard') html += '<p class="obj" style="color:var(--danger)">💀 Hard mode: if the wall falls, the game is over.</p>';
         } else html += `<h3>The epilogue</h3><p>Leftover gingerfolk who never heard the news wander in every few days, a little tougher each time. Held so far: ${G.epi.waves} (best ${G.epi.best}).</p>`;
         const wl = G.wall.lvl;
         html += `<div class="card"><img src="${artUrl(wl >= 4 ? 'wall/5' : wl === 3 ? 'wall/3' : 'wall/1')}" alt=""><div class="body"><h3>The Wall ${'★'.repeat(wl)}</h3>
@@ -524,6 +601,20 @@ export class UI {
         $('result-text').textContent = text;
         this.openScreen('result');
     }
+    /** Hard mode: the wall fell. What the next game starts with. */
+    showGameOver(G, e) {
+        $('gameover-text').textContent = `${e.epi ? 'The stragglers' : 'The Crumb Horde'} broke through on day ${G.day}. Thistlegloom held ${G.stats.wavesWon} siege${G.stats.wavesWon === 1 ? '' : 's'}${G.epi.waves ? ` and ${G.epi.waves} straggler waves` : ''}, ${G.stats.calmed} gingerfolk napped and ${G.stats.quests} favours were done. The villagers pack what they can carry and set off to start again.`;
+        $('gameover-legacy').textContent = `Your next game starts with ${totalsText(e.legacy)} more in the stores.`;
+        this.openScreen('gameover');
+    }
+    /** The mode picker, with the head start a fallen hard-mode town left behind. */
+    showModes(legacy) {
+        const el = $('legacy');
+        el.hidden = !legacy;
+        if (legacy) el.textContent = `🎁 A head start from your last town: ${totalsText(legacy)}. It goes to whichever game you start next.`;
+        this.openScreen('modes');
+    }
+
     showEnding(G) {
         $('ending-text').textContent = `Queen Honeysnap crossed the battlefield and kissed King Crumbleton, and like a frog prince he was baked fresh again: golden, young and not a crack on him. ${G.stats.calmed} gingerfolk napped through the war, ${G.stats.quests} favours were done for the village, and nobody was ever eaten. The Mayor of Thistlegloom is, it turns out, a terrible overlord and a wonderful neighbour.`;
         this.openScreen('ending');
