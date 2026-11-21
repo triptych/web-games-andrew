@@ -1,0 +1,10 @@
+{
+  "note": "Not generated yet: the ElevenLabs account ran out of credits first. Generate each with eleven_music_v2_5 (instrumental, about 60-75 s), encode 80 kbps stereo with a short fade at the loop seam, and drop it in audio/music/<name>.mp3; process.py then lists it in js/audio-files.js and the game uses it instead of the synth.",
+  "title": "A cozy steampunk village theme at dusk: music box, warm pizzicato strings, soft brass and a ticking clock rhythm, gentle and wondering, 84 bpm, loopable",
+  "lane": "Cheerful cozy village lane music: accordion, plucked mandolin, light clockwork percussion, a whistling melody, bright and bouncy, 100 bpm, loopable",
+  "wilds": "Pastoral wandering music for a sunlit meadow strewn with old machinery: flute, acoustic guitar, glockenspiel, a soft ticking pulse, breezy and curious, 92 bpm, loopable",
+  "gully": "Atmospheric cozy-spooky music for a ravine of rusting machines: low clarinet, marimba, creaking metal pads, warm amber mood, mysterious but not scary, 80 bpm, loopable",
+  "battle": "Energetic playful battle theme with clockwork percussion, driving strings, brass stabs and a rattling snare, light-hearted danger, 150 bpm, loopable",
+  "boss": "Big boss battle theme for a giant clockwork giantess: heavy brass, anvil hits, pounding timpani, churning gears rhythm, imposing but a little comic, 138 bpm, loopable",
+  "ending": "A warm triumphant ending theme for a village festival: music box, strings, celesta, soft brass, joyful and tender, 84 bpm"
+}

@@ -70,7 +70,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 027 | [Alchemist's Lattice](game-027/) | A block-placement puzzle in a cozy alchemy adventure: fill rows and columns to peel buried deposits, brew potions and cut down foes; learn tile types at the cauldron across a three-chapter story | three.js |
 | 028 | [Echoes of Aethermoor](game-028/) | Voiced visual-novel fantasy RPG with painted art | Canvas 2D |
 | 029 | [Wayfarer's Path](game-029/) | Procedural road RPG | three.js |
-| 030 | [Coppergate Lane](game-030/) | Cozy-fantasy top-down RPG adventure | Kaplay |
+| 030 | [Coppergate Lane](game-030/) | Painted cozy-fantasy tinker RPG: a party of three, foes that each play differently, saves | Canvas 2D |
 | 031 | [Grimhold Abyss](game-031/) | Retro 90s PC-style dungeon crawler | Custom software renderer |
 | 032 | [Ironhollow Depths](game-032/) | 8-bit top-down dungeon crawler | Kaplay |
 | 033 | [Hearthbound](game-033/) | Cozy fantasy visual novel | Vanilla JS (DOM + Canvas) |

@@ -7444,3 +7444,31 @@ because of something that table showed.
 - **Keyboard taps shorter than a frame**: walking read only the held-key state, so a press and release inside one frame did nothing on the map (a browser test with `keyboard.press` caught it). Queue the press and step on it too.
 - **A "swallow the closing key" guard must only swallow that key.** After a dialogue closes, presses were ignored for 0.25 s so the Space that closed it would not talk again; it also ate the arrow keys pressed right after, and a test walking straight from a dialogue arrived four tiles short. Guard Space/Enter only.
 - **A tween that only advances while it is drawn can freeze a gate.** The map's step tween counted toward "busy", and it advanced only in the map's draw; a battle that began mid-step hid the map, so busy stayed true and the in-browser bot never acted in its first battle. Snap tweens when their view is hidden, and count a view's busy only while it is on screen.
+
+## Game 030 Coppergate Lane v2.0.0: a prototype rebuilt on another game's engine, a boss tuned by sweeping levels, and two media budgets that ran out (2026-11-21)
+
+- **The fastest 2.x is the last 2.x.** game-030 was rebuilt by copying game-028's pure sim (`act(G, cmd)`, battle, rules, world,
+  guide, bot), its two views and its UI, then replacing the data and the few rules that differed. The bot played a whole game
+  on the first run; the work was content, balance and media, not engine. Keep the sim's shape the same from game to game so
+  this stays true.
+- **Tune a boss by sweeping party levels, not by playing it.** A tiny script (`for lv of [4,5,6,7,9]`, 20 seeds each, careful
+  autoCommand, a few supplies) showed Big Bertha losing to a level 5 party in under five rounds. Two edits to her HP and attack
+  later the table read 4 wins in 20 at level 4, 10 at 5, 20 at 6: that curve is what the guide's recommended level should say.
+- **Foes that differ are mostly data.** Distinct behaviour came from five small fields: ability weights and `when` conditions,
+  `cd` cooldowns, an `aim` (weakest, random or the taunter), a `tell` that fires a turn later, and `steal` and `summon` as two
+  new ability kinds. A thief that holds your gold until it dies must also be part of the retry snapshot.
+- **A bot gate must not wait on a view that has stopped drawing.** In the browser the autoplayer stalled after the first scene
+  with a painted backdrop: the map stops drawing in a scene, so its walk animation stayed "busy" and the bot's `mapView.busy`
+  check never cleared. Gate the bot on what the sim and the thing on screen need, not on every view.
+- **fal and ElevenLabs bill separately, and either can run out mid-set.** fal reported "ready" from `check_account_status`
+  while jobs were still refused with `balance_exhausted`; a rejected submission key is remembered, so a retry needs a *new*
+  key. Test with one cheap job, not the status call, before resubmitting a batch. ElevenLabs showed 2,093 credits left of
+  296,000: a sound effect cost 17 (its estimate said 55) and a short voice take about 230, which paid for the effects and the
+  battle shouts but not the music or the dialogue. Price one of each kind first, and spend the budget on the cheapest things
+  that make the biggest difference.
+- **Sheets come back in their own layout.** The item sheet was prompted as a 4×3 grid and returned four ragged rows with two
+  of the twelve things duplicated. Cutting by blob in reading order and mapping by index (after drawing the boxes over the
+  picture and looking) was quicker than reprompting.
+- **ffmpeg can hang on a filter chain.** `silenceremove` followed by `loudnorm` in one `-af` chain ran forever on a three
+  second effect, and ffmpeg also reads stdin unless told not to (`-nostdin`). Two passes through a temporary file fixed both.
+

@@ -1,0 +1,110 @@
+[
+ {
+  "speaker": "wick",
+  "lines": [
+   {
+    "text": "Tighten up!",
+    "key": "wick-efg22k"
+   },
+   {
+    "text": "Hold still, this might sting.",
+    "key": "wick-bbsl3u"
+   },
+   {
+    "text": "Catch!",
+    "key": "wick-vxjanr"
+   },
+   {
+    "text": "Spanner in the works!",
+    "key": "wick-9dnmwz"
+   },
+   {
+    "text": "Nice and tidy.",
+    "key": "wick-9ztot7"
+   },
+   {
+    "text": "Ow. Just... ow.",
+    "key": "wick-1h2wr7n"
+   }
+  ]
+ },
+ {
+  "speaker": "trina",
+  "lines": [
+   {
+    "text": "Zap!",
+    "key": "trina-2t4xtz"
+   },
+   {
+    "text": "Sprocket storm!",
+    "key": "trina-9qn20m"
+   },
+   {
+    "text": "Rust never sleeps!",
+    "key": "trina-le8keq"
+   },
+   {
+    "text": "Now we're cooking!",
+    "key": "trina-4vhski"
+   },
+   {
+    "text": "I knew that would work.",
+    "key": "trina-1tqy9om"
+   },
+   {
+    "text": "That was... unplanned.",
+    "key": "trina-14iaha0"
+   }
+  ]
+ },
+ {
+  "speaker": "mabel",
+  "lines": [
+   {
+    "text": "Have a nice cuppa.",
+    "key": "mabel-7yfuac"
+   },
+   {
+    "text": "Mind your manners!",
+    "key": "mabel-gxr57p"
+   },
+   {
+    "text": "Scones all round!",
+    "key": "mabel-bbyr34"
+   },
+   {
+    "text": "Snug as a bug!",
+    "key": "mabel-1et8h8s"
+   },
+   {
+    "text": "And stay out of my kitchen.",
+    "key": "mabel-1fdurbk"
+   },
+   {
+    "text": "Oh, my poor oven...",
+    "key": "mabel-g8dtp4"
+   }
+  ]
+ },
+ {
+  "speaker": "bertha",
+  "lines": [
+   {
+    "text": "GEAR SLAM!",
+    "key": "bertha-i3uo6"
+   },
+   {
+    "text": "Hot enough for you?",
+    "key": "bertha-1hp59ap"
+   },
+   {
+    "text": "Cogs! To me!",
+    "key": "bertha-9na4bo"
+   },
+   {
+    "text": "NOW I'M CROSS!",
+    "key": "bertha-qe8hhj"
+   }
+  ]
+ }
+]
