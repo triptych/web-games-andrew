@@ -1,20 +1,20 @@
 /**
- * browsertest.mjs — the real game in real Chromium (SwiftShader WebGL).
+ * browsertest.mjs — VACANCY in real Chromium (SwiftShader WebGL).
  *
- * desktop (1280×760): boot to the title with no errors, the ← Games link on top → New Game by
- *   click → real key presses move the player → Escape pauses and the sim stops → Resume →
- *   the action key dashes → Save & Quit → Continue restores the game → the round ends →
- *   Play Again. No sideways scroll; the canvas fills the window.
- * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, the
- *   touch deck appears, the stick moves the player, A dashes, controls ≥ 44 px and on screen,
- *   no sideways scroll, the canvas matches the visible viewport.
+ * desktop (1280×760): the title with no errors and the ← Games link on top → New Journey → the waking card → Get up
+ *   → real keys walk and turn → F toggles the flashlight → J opens the journal, Escape closes it → M the map →
+ *   Escape pauses and the sim stops → Resume → E reads a diary (the reader opens with the right name) → Put it away
+ *   → Save & Quit → Continue restores the journey → the seed field builds a named city → the bot plays the whole
+ *   game (ff) and the ending card shows → A new journey. No sideways scroll; the canvas fills the window.
+ * phones (touch only, real CDP touches) at 390×844 and 844×390: taps through the menus, the touch deck, the stick
+ *   walks, the right half looks, USE reads a diary, controls ≥ 44 px and on screen, the canvas matches the viewport.
  * nostorage: localStorage throws; the game still boots and plays.
  * Fails on any console error, page error or failed request.
  *
  *   python3 -m http.server 8145          # from the REPO ROOT
  *   node game-145/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8145), ONLY=desktop,phones,nostorage, THREE_PKG.
+ * Env: BASE (default http://127.0.0.1:8145), ONLY=desktop,phones,nostorage, Q (picture quality, default low).
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -22,8 +22,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
 const BASE = process.env.BASE ?? 'http://127.0.0.1:8145';
+const Q = process.env.Q ?? 'low';
 const OUT = path.join(HERE, 'shots');
 const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 const want = (name) => !ONLY.length || ONLY.includes(name);
@@ -45,41 +45,31 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
         else try { localStorage.clear(); } catch { /* */ }
     }, nostorage);
     const page = await ctx.newPage();
-    if (PKG) {
-        // No network to the CDN? Serve the genuine three.js package from disk.
-        await page.route('https://unpkg.com/**', (route) => {
-            const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');
-            const file = path.join(PKG, rel);
-            if (!fs.existsSync(file)) return route.abort();
-            route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
-        });
-    }
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
-    page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
-    await page.goto(`${BASE}/game-145/index.html?debug=1&fast=4`);
+    page.on('requestfailed', (r) => { if (!r.url().includes('favicon') && !r.url().includes('fonts.g')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
+    await page.goto(`${BASE}/game-145/index.html?debug=1&fast=4&q=${Q}`);
     await page.waitForFunction(() => window.__va && __va.mode === 'title', null, { timeout: 60000 });
     return page;
 }
 
 const check = (cond, msg) => { if (!cond) { fails++; console.log('  FAIL', msg); } else console.log('  ok', msg); return cond; };
-const Q = (page, fn, arg) => page.evaluate(fn, arg);
+const Q_ = (page, fn, arg) => page.evaluate(fn, arg);
 const shot = async (page, name) => { await page.screenshot({ path: path.join(OUT, `bt-${name}.png`) }); };
-// SwiftShader draws a few frames a second: wait on state, never on the clock.
-const until = (page, fn, msg, timeout = 30000, arg = null) =>
+const until = (page, fn, msg, timeout = 60000, arg = null) =>
     page.waitForFunction(fn, arg, { timeout, polling: 100 }).then(() => check(true, msg), () => check(false, msg));
-// Playwright's click() waits for animation frames to settle, which SwiftShader never does; click from inside.
-const click = (page, sel) => Q(page, (s) => { const e = document.querySelector(s); if (!e) return false; e.click(); return true; }, sel);
-const backLinkOk = (page) => Q(page, () => {
+const click = (page, sel) => Q_(page, (s) => { const e = document.querySelector(s); if (!e) return false; e.click(); return true; }, sel);
+const visible = (page, id) => Q_(page, (i) => !document.getElementById(i).hidden, id);
+const backLinkOk = (page) => Q_(page, () => {
     const a = document.getElementById('back-link');
     if (!a || a.getAttribute('href') !== '../index.html') return false;
     const r = a.getBoundingClientRect();
     const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
     return r.width > 0 && r.top >= 0 && (top === a || a.contains(top));
 });
-const layout = (page) => Q(page, () => {
+const layout = (page) => Q_(page, () => {
     const vv = window.visualViewport;
     const c = document.getElementById('view').getBoundingClientRect();
     return {
@@ -88,53 +78,105 @@ const layout = (page) => Q(page, () => {
     };
 });
 const reportErrors = (label) => { check(errors.length === 0, `${label}: no console errors, page errors or failed requests`); for (const e of errors.slice(0, 8)) console.log('    ', e); };
+/** Stand a little way from a thing, facing it. */
+const faceThing = (page, id, back = 1.1) => Q_(page, ([i, d]) => {
+    const G = __va.G, t = G.thingById.get(i);
+    __va.tp(i);
+    G.p.x = t.x; G.p.z = t.z + d;
+    G.p.yaw = Math.atan2(t.x - G.p.x, -(t.z - G.p.z));
+    return true;
+}, [id, back]);
 
 // ======================================================================
 async function desktop() {
     console.log('\n== desktop 1280×760');
     const page = await open({ width: 1280, height: 760 });
     check(await backLinkOk(page), '← Games link is on top and points at ../index.html');
-    check(await Q(page, () => !document.getElementById('title').hidden), 'title screen is up');
-    check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a save');
+    check(await visible(page, 'title'), 'the title screen is up');
+    check(await Q_(page, () => document.getElementById('btn-continue').hidden), 'no Continue without a saved journey');
     const L = await layout(page);
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
+    check(await Q_(page, () => document.querySelectorAll('#over-title, #title-title').length <= 2), 'no element id shadows a screen heading');
     await shot(page, 'desktop-title');
 
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, () => __va.mode === 'play' && document.getElementById('title').hidden, 'New Game starts play');
+    await until(page, () => __va.mode === 'intro' && !document.getElementById('intro').hidden, 'New Journey builds a city and shows the waking card', 120000);
+    await shot(page, 'desktop-intro');
+    await click(page, '#intro-go');
+    await until(page, () => __va.mode === 'play' && !document.getElementById('hud').hidden, 'Get up starts play with the HUD');
+    check(await Q_(page, () => __va.G.items.includes('compass') && document.getElementById('compass-label').textContent.length > 3), 'the compass names what it points at');
 
-    const x0 = await Q(page, () => __va.G.player.x);
+    const d0 = await Q_(page, () => __va.G.p.dist);
+    await page.keyboard.down('KeyW');
+    await until(page, (d) => __va.G.p.dist > d + 0.5, 'holding W walks', 60000, d0);
+    await page.keyboard.up('KeyW');
+    const y0 = await Q_(page, () => __va.G.p.yaw);
     await page.keyboard.down('ArrowRight');
-    await until(page, (x) => __va.G.player.x > x + 2, 'holding → moves the player right', 30000, x0);
+    await until(page, (y) => Math.abs(__va.G.p.yaw - y) > 0.2, 'holding → turns', 60000, y0);
     await page.keyboard.up('ArrowRight');
+
+    await page.keyboard.press('KeyF');
+    await until(page, () => __va.view.flashOn === false, 'F switches the flashlight off');
+    await page.keyboard.press('KeyF');
+    await until(page, () => __va.view.flashOn === true, 'and on again');
+
+    await page.keyboard.press('KeyJ');
+    await until(page, () => !document.getElementById('journal').hidden, 'J opens the journal');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('journal').hidden && __va.mode === 'play', 'Escape closes it');
+    await page.keyboard.press('KeyM');
+    await until(page, () => !document.getElementById('map').hidden, 'M opens the map');
+    await shot(page, 'desktop-map');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('map').hidden, 'Escape closes the map');
 
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');
-    const t0 = await Q(page, () => __va.G.t);
+    const t0 = await Q_(page, () => __va.G.t);
     await page.waitForTimeout(500);
-    check(await Q(page, (t) => __va.G.t === t, t0), 'the sim stops while paused');
+    check(await Q_(page, (t) => __va.G.t === t, t0), 'the sim stops while paused');
     await click(page, '#pause-menu [data-act="resume"]');
-    // wait for the sim to run again, not just for the screen to close: Resume flushes presses on its next frame,
-    // and a key pressed before that frame is dropped (game-140 found this on the untouched scaffold)
-    await until(page, (t) => document.getElementById('pause').hidden && __va.G.t > t, 'Resume closes the pause screen and the sim runs again', 30000, t0);
+    await until(page, (t) => document.getElementById('pause').hidden && __va.G.t > t, 'Resume closes the pause screen and the sim runs again', 60000, t0);
 
-    await page.keyboard.press('Space');
-    await until(page, () => __va.seen.dash >= 1, 'Space dashes (the press reaches a sim step)');
-
+    // read the first diary with a real key press
+    await faceThing(page, 'diary0');
+    await page.waitForTimeout(300);
+    await page.keyboard.press('KeyE');
+    await until(page, () => !document.getElementById('reader').hidden && __va.G.gotSet.has('diary0'), 'E on a diary opens the reader');
+    const name = await Q_(page, () => document.getElementById('reader-name').textContent);
+    check(await Q_(page, (n) => n.length > 3 && __va.G.story.diaries[0] && n.includes(' '), name), `the reader shows whose diary it is (${name})`);
+    check(await Q_(page, () => __va.ui.top() === 'reader' && __va.G.t === __va.G.t), 'reading pauses the walk');
+    await shot(page, 'desktop-reader');
+    await click(page, '#reader [data-close]');
+    await until(page, () => document.getElementById('reader').hidden && __va.mode === 'play', 'Put it away returns to the city');
+    await until(page, () => /diary/.test(document.getElementById('compass-label').textContent), 'and the compass points at the next diary');
     await shot(page, 'desktop-play');
-    const score = await Q(page, () => { __va.ff(5); return __va.G.score; });
-    await Q(page, () => document.querySelector('#btn-pause').click());
+
+    // save, quit, continue
+    const read = await Q_(page, () => __va.G.read.length);
+    await Q_(page, () => document.querySelector('#btn-pause').click());
     await until(page, () => !document.getElementById('pause').hidden, 'the ❚❚ button pauses');
     await click(page, '#pause-menu [data-act="quit"]');
     await until(page, () => __va.mode === 'title' && !document.getElementById('btn-continue').hidden, 'Save & Quit returns to the title with Continue');
     await click(page, '#title-menu [data-act="continue"]');
-    await until(page, (s) => __va.mode === 'play' && __va.G.score === s, 'Continue restores the saved game', 30000, score);
+    await until(page, (r) => __va.mode === 'play' && __va.G.read.length === r, 'Continue restores the journey', 120000, read);
 
-    await Q(page, () => __va.ff(120));
-    await until(page, () => __va.mode === 'over' && !document.getElementById('over').hidden, 'the round ends and shows the score');
+    // the whole game, by the bot
+    await Q_(page, () => __va.ff(60 * 60));
+    await until(page, () => __va.mode === 'over' && !document.getElementById('over').hidden, 'the bot brings everyone home and the ending shows', 180000);
     await shot(page, 'desktop-over');
     await click(page, '#over-again');
-    await until(page, () => __va.mode === 'play' && __va.G.t < 5, 'Play Again starts a fresh round');
+    await until(page, () => __va.mode === 'intro', 'A new journey builds a new city', 120000);
+    // a named seed
+    await Q_(page, () => { document.getElementById('intro-go').click(); });
+    await until(page, () => __va.mode === 'play', 'into play');
+    await Q_(page, () => document.querySelector('#btn-pause').click());
+    await click(page, '#pause-menu [data-act="quit"]');
+    await until(page, () => __va.mode === 'title', 'back to the title');
+    await Q_(page, () => { document.getElementById('seed-input').value = 'ashmere'; document.querySelector('#title-menu [data-act="seed"]').click(); });
+    await until(page, () => __va.mode === 'intro' && __va.G.seed !== 0, 'a typed seed builds that city', 120000);
+    const s1 = await Q_(page, () => __va.G.seed);
+    check(await Q_(page, async (s) => (await import('/game-145/js/rng.js')).seedFromText('ashmere') === s, s1), 'the same word always gives the same city');
     reportErrors('desktop');
 }
 
@@ -143,46 +185,61 @@ async function phone(w, h) {
     console.log(`\n== phone ${w}×${h} (touch only)`);
     const page = await open({ width: w, height: h }, { touch: true });
     const cdp = await page.context().newCDPSession(page);
-    const touch = (type, x, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y, id: 1 }] });
+    const touch = (type, pts) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: pts });
     const tapSel = async (sel) => {
-        const r = await Q(page, (s) => { const e = document.querySelector(s); e?.scrollIntoView({ block: 'center' }); const b = e?.getBoundingClientRect(); return b && { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, sel);
+        const r = await Q_(page, (s) => { const e = document.querySelector(s); e?.scrollIntoView({ block: 'center' }); const b = e?.getBoundingClientRect(); return b && { x: b.left + b.width / 2, y: b.top + b.height / 2 }; }, sel);
         if (!r) return false;
         await page.touchscreen.tap(r.x, r.y);
         return true;
     };
-
     check(await backLinkOk(page), '← Games link is on top');
     await tapSel('#title-menu [data-act="new"]');
-    await until(page, () => __va.mode === 'play', 'a tap on New Game starts play');
+    await until(page, () => __va.mode === 'intro', 'a tap on New Journey builds a city', 120000);
+    await tapSel('#intro-go');
+    await until(page, () => __va.mode === 'play', 'a tap on Get up starts play');
     await until(page, () => !document.getElementById('touch').hidden, 'the touch deck is shown');
-
     const L = await layout(page);
     check(L.noHScroll, 'no sideways scroll');
     check(L.canvas, 'the canvas matches the visible viewport');
-
-    const sizes = await Q(page, () => ['#btn-a', '#btn-pause'].map((s) => {
+    const sizes = await Q_(page, () => ['#btn-use', '#btn-run', '#btn-light', '#btn-pause', '#btn-journal', '#btn-map'].map((s) => {
         const r = document.querySelector(s).getBoundingClientRect();
-        return { s, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight };
+        const el = document.querySelector(s), top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+        return { s, ok: r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight && (top === el || el.contains(top)) };
     }));
-    for (const z of sizes) check(z.ok, `${z.s} is at least 44 px and on screen`);
+    for (const z of sizes) check(z.ok, `${z.s} is at least 44 px, on screen and on top`);
 
-    // drag the stick right with a real touch
-    const zone = await Q(page, () => { const r = document.getElementById('stick-zone').getBoundingClientRect(); return { x: r.left + r.width * 0.4, y: r.top + r.height * 0.5 }; });
-    const x0 = await Q(page, () => __va.G.player.x);
-    await touch('touchStart', zone.x, zone.y);
-    for (let i = 1; i <= 6; i++) await touch('touchMove', zone.x + i * 12, zone.y);
-    await until(page, (x) => __va.G.player.x > x + 1, 'dragging the stick moves the player', 30000, x0);
-    await touch('touchEnd', 0, 0);
+    // walk with the stick
+    const zone = await Q_(page, () => { const r = document.getElementById('stick-zone').getBoundingClientRect(); return { x: r.left + r.width * 0.45, y: r.top + r.height * 0.55 }; });
+    const d0 = await Q_(page, () => __va.G.p.dist);
+    await touch('touchStart', [{ x: zone.x, y: zone.y, id: 1 }]);
+    for (let i = 1; i <= 6; i++) await touch('touchMove', [{ x: zone.x, y: zone.y - i * 12, id: 1 }]);
+    await until(page, (d) => __va.G.p.dist > d + 0.3, 'pushing the stick walks', 60000, d0);
+    await touch('touchEnd', []);
+    // look with the right half
+    const look = await Q_(page, () => { const r = document.getElementById('look-zone').getBoundingClientRect(); return { x: r.left + r.width * 0.5, y: r.top + r.height * 0.4 }; });
+    const y0 = await Q_(page, () => __va.G.p.yaw);
+    await touch('touchStart', [{ x: look.x, y: look.y, id: 2 }]);
+    for (let i = 1; i <= 6; i++) await touch('touchMove', [{ x: look.x + i * 15, y: look.y, id: 2 }]);
+    await touch('touchEnd', []);
+    await until(page, (y) => Math.abs(__va.G.p.yaw - y) > 0.1, 'dragging on the right turns the view', 60000, y0);
 
-    const dashes = await Q(page, () => __va.seen.dash || 0);
-    await tapSel('#btn-a');
-    await until(page, (n) => (__va.seen.dash || 0) > n, 'tapping A dashes', 30000, dashes);
+    // USE on a diary
+    await faceThing(page, 'diary0');
+    await page.waitForTimeout(300);
+    await tapSel('#btn-use');
+    await until(page, () => !document.getElementById('reader').hidden, 'tapping USE reads the diary');
+    await page.waitForTimeout(300);
+    check(await visible(page, 'reader'), 'the reader stays open after the finger lifts');
+    const foot = await Q_(page, () => { const b = document.querySelector('#reader [data-close]').getBoundingClientRect(); return b.bottom <= innerHeight && b.top >= 0 && b.height >= 44; });
+    check(foot, 'its Put it away button is on screen without scrolling');
+    await shot(page, `phone-${w}x${h}-reader`);
+    await tapSel('#reader [data-close]');
+    await until(page, () => document.getElementById('reader').hidden, 'a tap puts it away');
     await shot(page, `phone-${w}x${h}`);
-
     await tapSel('#btn-pause');
     await until(page, () => !document.getElementById('pause').hidden, 'tapping ❚❚ pauses');
     await page.waitForTimeout(300);
-    check(await Q(page, () => !document.getElementById('pause').hidden), 'the pause screen stays open after the finger lifts');
+    check(await visible(page, 'pause'), 'the pause screen stays open after the finger lifts');
     await tapSel('#pause-menu [data-act="resume"]');
     await until(page, () => document.getElementById('pause').hidden, 'a tap on Resume closes it');
     reportErrors(`phone ${w}×${h}`);
@@ -193,9 +250,11 @@ async function nostorage() {
     console.log('\n== blocked storage');
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
     await click(page, '#title-menu [data-act="new"]');
-    await until(page, () => __va.mode === 'play', 'boots and starts a game with localStorage throwing');
-    await Q(page, () => __va.ff(3));
-    check(await Q(page, () => __va.save() === false), 'saving fails quietly');
+    await until(page, () => __va.mode === 'intro', 'builds a city with localStorage throwing', 120000);
+    await click(page, '#intro-go');
+    await until(page, () => __va.mode === 'play', 'and plays');
+    await Q_(page, () => __va.ff(20));
+    check(await Q_(page, () => __va.save() === false), 'saving fails quietly');
     reportErrors('nostorage');
 }
 

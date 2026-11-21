@@ -1,15 +1,19 @@
 /* VACANCY. Phone first: everything fits 360 px wide. */
 :root {
-    --bg: #0b0d14;
-    --panel: rgba(16, 20, 34, 0.94);
-    --line: rgba(255, 255, 255, 0.18);
-    --text: #eef2ff;
-    --dim: #9aa4c4;
-    --accent: #ffcc4d;
+    --bg: #0b0d0c;
+    --panel: rgba(18, 19, 17, 0.95);
+    --solid: #121311;
+    --line: rgba(230, 220, 180, 0.18);
+    --text: #e8e2cf;
+    --dim: #9a9582;
+    --accent: #d9b95a;
+    --paper: #e9e0c6;
+    --ink: #2b2418;
     --safe-t: env(safe-area-inset-top, 0px);
     --safe-b: env(safe-area-inset-bottom, 0px);
     --safe-l: env(safe-area-inset-left, 0px);
     --safe-r: env(safe-area-inset-right, 0px);
+    --type: 'Special Elite', 'Courier New', Courier, monospace;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -20,9 +24,6 @@ html, body {
     user-select: none; -webkit-user-select: none;
 }
 [hidden] { display: none !important; }
-
-/* The view sizes the canvas in px from JS. Never 100vw/100vh: on phones 100vh is taller than
-   the visible area, and taps land below the finger. */
 #view { position: fixed; left: 0; top: 0; display: block; touch-action: none; }
 
 #back-link {
@@ -34,77 +35,145 @@ html, body {
 #back-link:hover { background: rgba(0, 0, 0, 0.8); }
 
 /* ---------------------------------------------------------------- buttons */
-.btn, .ibtn, .tbtn {
+.btn, .ibtn, .tbtn, .tab {
     font: inherit; color: var(--text); cursor: pointer;
-    min-height: 44px; min-width: 44px;           /* finger-sized */
-    border: 1px solid var(--line); border-radius: 10px;
-    background: rgba(255, 255, 255, 0.08);
+    min-height: 44px; min-width: 44px;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
 }
-.btn { padding: 10px 18px; font-size: 16px; }
-.btn.primary { background: var(--accent); color: #1a1405; border-color: transparent; font-weight: 700; }
-.btn.danger { border-color: #ff6b6b; color: #ffb3b3; }
-.btn:focus-visible, .ibtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn { padding: 10px 18px; font-size: 16px; letter-spacing: 0.02em; }
+.btn.primary { background: var(--accent); color: #1b1606; border-color: transparent; font-weight: 700; }
+.btn.danger { border-color: #c8564a; color: #f1b0a6; }
+.btn:focus-visible, .ibtn:focus-visible, .tab:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ibtn { background: rgba(0, 0, 0, 0.45); font-size: 18px; }
 
 /* ---------------------------------------------------------------- HUD */
-#hud {
-    position: fixed; z-index: 10; pointer-events: none;
-    top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r)); left: calc(110px + var(--safe-l));
-    display: flex; justify-content: flex-end; align-items: center; gap: 14px;
-    font-weight: 700; font-size: 20px; text-shadow: 0 2px 4px #000;
+#hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
+#crosshair { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 50%; background: rgba(235, 228, 205, 0.55); box-shadow: 0 0 2px #000; }
+#prompt {
+    position: absolute; left: 50%; top: calc(50% + 34px); transform: translateX(-50%);
+    font-family: var(--type); font-size: 17px; color: var(--paper); text-shadow: 0 1px 3px #000, 0 0 8px #000; white-space: nowrap;
 }
-#hud .ibtn { pointer-events: auto; }
+#prompt kbd { font: 700 13px system-ui, sans-serif; border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 4px; padding: 1px 6px; background: rgba(0, 0, 0, 0.5); }
+#compass-box { position: absolute; left: 50%; bottom: calc(14px + var(--safe-b)); transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+#compass { width: 96px; height: 96px; filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.7)); }
+#compass-label { font-family: var(--type); font-size: 13px; color: var(--paper); text-shadow: 0 1px 3px #000; margin-top: 2px; text-align: center; max-width: 80vw; }
+#hud-buttons { position: absolute; top: calc(8px + var(--safe-t)); right: calc(8px + var(--safe-r)); display: flex; gap: 8px; pointer-events: auto; }
+#hud-where { position: absolute; top: calc(60px + var(--safe-t)); right: calc(12px + var(--safe-r)); font-family: var(--type); font-size: 14px; color: var(--dim); text-shadow: 0 1px 3px #000; text-align: right; max-width: 60vw; }
+#lock-hint { position: absolute; left: 50%; top: 38%; transform: translateX(-50%); font-family: var(--type); color: var(--paper); background: rgba(0, 0, 0, 0.5); padding: 8px 14px; border-radius: 6px; }
 
-/* ---------------------------------------------------------------- touch deck */
-#touch { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
-#stick-zone { position: absolute; left: 0; bottom: 0; width: 50%; height: 60%; pointer-events: auto; touch-action: none; }
-#stick { position: absolute; width: 0; height: 0; opacity: 0.35; left: 90px; bottom: 120px; }
-#stick.on { opacity: 0.9; }
-#stick .ring { position: absolute; width: 120px; height: 120px; left: -60px; top: -60px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.5); }
-#stick .knob { position: absolute; width: 54px; height: 54px; left: -27px; top: -27px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); }
+/* ---------------------------------------------------------------- touch */
+#touch { position: fixed; inset: 0; z-index: 9; pointer-events: none; }
+#stick-zone { position: absolute; left: 0; bottom: 0; width: 45%; height: 62%; pointer-events: auto; touch-action: none; }
+#look-zone { position: absolute; right: 0; top: 0; width: 55%; height: 100%; pointer-events: auto; touch-action: none; }
+#stick { position: absolute; width: 0; height: 0; opacity: 0.3; left: 90px; bottom: 130px; }
+#stick.on { opacity: 0.85; }
+#stick .ring { position: absolute; width: 120px; height: 120px; left: -60px; top: -60px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.45); }
+#stick .knob { position: absolute; width: 54px; height: 54px; left: -27px; top: -27px; border-radius: 50%; background: rgba(255, 255, 255, 0.45); }
 .tbtn {
     position: absolute; pointer-events: auto; touch-action: none;
-    right: calc(24px + var(--safe-r)); bottom: calc(40px + var(--safe-b));
-    width: 76px; height: 76px; border-radius: 50%; font-size: 22px; font-weight: 700;
-    background: rgba(255, 204, 77, 0.3);
+    right: calc(22px + var(--safe-r)); bottom: calc(132px + var(--safe-b));
+    width: 78px; height: 78px; border-radius: 50%; font-size: 15px; font-weight: 700;
+    background: rgba(217, 185, 90, 0.28);
 }
+.tbtn.small { width: 56px; height: 56px; font-size: 13px; background: rgba(255, 255, 255, 0.12); }
+#btn-run { right: calc(110px + var(--safe-r)); bottom: calc(118px + var(--safe-b)); }
+#btn-run.on { background: rgba(217, 185, 90, 0.5); }
+#btn-light { right: calc(30px + var(--safe-r)); bottom: calc(222px + var(--safe-b)); }
 
 /* ---------------------------------------------------------------- screens */
 .screen {
     position: fixed; inset: 0; z-index: 50;
     display: flex; align-items: center; justify-content: center;
-    /* top padding clears the fixed back link, so a scrolled button never sits under it */
     padding: calc(52px + var(--safe-t)) calc(12px + var(--safe-r)) calc(12px + var(--safe-b)) calc(12px + var(--safe-l));
-    background: rgba(5, 7, 12, 0.55); overflow-y: auto;
+    background: rgba(4, 5, 4, 0.62); overflow-y: auto;
 }
+.screen.plain { background: #050605; }
+.screen.art { background: #050605 url('art/k-title.webp') center / cover no-repeat; }
+.screen.art.wake { background-image: url('art/k-wake.webp'); }
+.screen.art.ending { background-image: url('art/k-ending.webp'); }
+.screen.art::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.75)); pointer-events: none; }
 .sheet {
-    width: min(460px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
-    /* set these wherever a sheet's padding is set (media queries too): the pinned foot and tabs bleed by them */
+    position: relative;
+    width: min(480px, 100%); max-height: 100%; overflow-y: auto; touch-action: pan-y;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
     padding: 18px; --sheet-pt: 18px; --sheet-px: 18px; --sheet-pb: 18px;
+    scrollbar-width: thin; scrollbar-color: rgba(230, 220, 180, 0.3) transparent;
 }
-.sheet h1, .sheet h2 { margin: 0 0 12px; }
-.logo { font-size: clamp(32px, 9vw, 56px); text-align: center; color: var(--accent); letter-spacing: 0.04em; }
+.sheet::-webkit-scrollbar { width: 8px; }
+.sheet::-webkit-scrollbar-thumb { background: rgba(230, 220, 180, 0.3); border-radius: 4px; }
+.sheet::-webkit-scrollbar-track { background: transparent; margin: 12px; }
+.sheet.wide { width: min(760px, 100%); }
+.sheet h2 { margin: 0 0 12px; font-family: var(--type); font-weight: normal; letter-spacing: 0.04em; }
+.title-sheet { background: rgba(10, 11, 10, 0.72); backdrop-filter: blur(2px); }
+.logo { font-family: var(--type); font-weight: normal; font-size: clamp(40px, 12vw, 72px); text-align: center; color: #e64a57; letter-spacing: 0.12em; margin: 4px 0 4px; text-shadow: 0 0 18px rgba(230, 60, 80, 0.75), 0 0 2px #fff; animation: neon 7s infinite; }
+@keyframes neon { 0%, 91%, 93%, 96%, 100% { opacity: 1; } 92%, 95% { opacity: 0.35; } }
+.tagline { text-align: center; color: var(--dim); font-family: var(--type); margin: 0 0 16px; }
 .menu { display: flex; flex-direction: column; gap: 10px; }
+.seed-row { display: flex; gap: 8px; align-items: center; }
+.seed-label { font-size: 13px; color: var(--dim); white-space: nowrap; }
+#seed-input { flex: 1; min-width: 0; min-height: 44px; font: 16px var(--type); color: var(--text); background: rgba(0, 0, 0, 0.4); border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; user-select: text; -webkit-user-select: text; }
 .sheet-foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
-/* A long sheet scrolls, but its foot (Done, Close) and tab bar never do: they are pinned to its bottom and top
-   edges over an OPAQUE strip (--panel is translucent; use the solid colour the sheet shows). Keep the foot and
-   the tabs direct children of .sheet. See docs/generic/learnings.md § "Dialogs: the Buttons and Tabs Never Scroll". */
 .sheet > .sheet-foot {
     position: sticky; bottom: calc(-1 * var(--sheet-pb)); z-index: 5;
     margin-inline: calc(-1 * var(--sheet-px)); margin-bottom: calc(-1 * var(--sheet-pb));
-    padding: 10px var(--sheet-px) var(--sheet-pb); background: #10141f; border-top: 1px solid var(--line);
+    padding: 10px var(--sheet-px) var(--sheet-pb); background: var(--solid); border-top: 1px solid var(--line);
 }
 .sheet > .tabs {
-    position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5;
-    margin-inline: calc(-1 * var(--sheet-px)); padding: 8px var(--sheet-px); background: #10141f;
+    position: sticky; top: calc(-1 * var(--sheet-pt)); z-index: 5; display: flex; gap: 6px; flex-wrap: wrap;
+    margin: calc(-1 * var(--sheet-pt)) calc(-1 * var(--sheet-px)) 12px; padding: 10px var(--sheet-px); background: var(--solid); border-bottom: 1px solid var(--line);
 }
+.tab { padding: 6px 14px; font-size: 15px; }
+.tab.on { background: var(--accent); color: #1b1606; border-color: transparent; }
 .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 44px; }
+.row input[type=checkbox] { width: 24px; height: 24px; }
 .version { text-align: center; color: var(--dim); font-size: 12px; margin-top: 12px; }
-table { border-collapse: collapse; width: 100%; }
+.small-note { color: var(--dim); font-size: 13px; }
+table { border-collapse: collapse; width: 100%; margin: 8px 0; }
 td { padding: 6px 4px; border-bottom: 1px solid var(--line); }
 td:first-child { color: var(--accent); white-space: nowrap; }
+.card { background: rgba(10, 11, 10, 0.78); }
+.card-text { font-family: var(--type); font-size: 17px; line-height: 1.55; white-space: pre-line; }
+.loading-text { font-family: var(--type); color: var(--dim); font-size: 20px; animation: breathe 2.4s infinite; }
+@keyframes breathe { 50% { opacity: 0.35; } }
 
-#toasts { position: fixed; left: 50%; bottom: calc(16px + var(--safe-b)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
-.toast { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; animation: toast 2.4s forwards; }
-@keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+/* the diary page */
+.sheet.paper { background: var(--paper) url('art/paper.webp') center / cover; color: var(--ink); border-color: #b9a77d; width: min(560px, 100%); }
+.sheet.paper > .sheet-foot { background: #d9cfb0; border-top-color: #b9a77d; }
+.reader-head { display: flex; gap: 14px; align-items: center; margin-bottom: 12px; }
+#reader-photo { width: 92px; height: auto; border-radius: 3px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45); transform: rotate(-2deg); background: #777; }
+#reader-name { font-family: var(--type); font-size: 22px; }
+#reader-role, #reader-count { font-size: 13px; color: #5b4f3a; }
+#reader-text p { font-family: var(--type); font-size: 17px; line-height: 1.6; margin: 0 0 12px; }
+#reader-clue { font-family: var(--type); font-size: 16px; line-height: 1.5; color: #6e1f12; border-top: 1px dashed #8c7a55; padding-top: 10px; }
+
+/* journal */
+.jlist { display: flex; flex-direction: column; gap: 8px; }
+.jitem { display: flex; gap: 10px; align-items: center; text-align: left; padding: 8px; width: 100%; }
+.jitem img { width: 48px; height: 56px; object-fit: cover; border-radius: 3px; }
+.jitem .who { font-family: var(--type); font-size: 16px; }
+.jitem .role { color: var(--dim); font-size: 13px; }
+.jitem.missing { opacity: 0.45; }
+.clue { font-family: var(--type); padding: 8px 0; border-bottom: 1px solid var(--line); line-height: 1.45; }
+.code { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 10px 0; font-family: var(--type); font-size: 18px; }
+.code .swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
+.stats { color: var(--dim); line-height: 1.7; }
+.map-sheet { display: flex; flex-direction: column; align-items: center; }
+#map-canvas { width: min(100%, 62vh); height: auto; aspect-ratio: 1; image-rendering: auto; border-radius: 6px; background: #111; touch-action: none; }
+.map-key { color: var(--dim); font-size: 13px; }
+.k-you { color: #f3e3a2; } .k-seen { color: #8a9a6e; } .k-goal { color: #e64a57; }
+.seed-show { color: var(--dim); font-family: var(--type); margin-top: -6px; }
+
+#toasts { position: fixed; left: 50%; top: calc(64px + var(--safe-t)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; width: min(92vw, 560px); }
+.toast { background: rgba(10, 11, 10, 0.82); border: 1px solid var(--line); border-radius: 6px; padding: 8px 14px; font-family: var(--type); font-size: 15px; line-height: 1.4; text-align: center; animation: toast 6s forwards; }
+.toast.big { font-size: 18px; color: var(--accent); }
+@keyframes toast { 0% { opacity: 0; transform: translateY(-4px); } 6%, 85% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }
+
+@media (max-width: 520px) {
+    #compass { width: 80px; height: 80px; }
+    #prompt { font-size: 15px; }
+    #hud-where { display: none; }
+    .sheet { padding: 14px; --sheet-pt: 14px; --sheet-px: 14px; --sheet-pb: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .logo, .loading-text { animation: none; } }
