@@ -4,6 +4,7 @@
  *   node game-144/dev/tour.mjs                  # all scenarios → dev/shots/tour-*.png
  *   ONLY=boss3,boss6 node game-144/dev/tour.mjs
  *   W=390 H=844 TOUCH=1 node game-144/dev/tour.mjs     # on a portrait phone
+ *   CLEAN=1 node game-144/dev/tour.mjs                 # just the 3D view: HUD, cards and radio hidden
  *
  * Each scenario starts a run with the debug hooks, fast-forwards the sim with the bot (god mode on) and waits a
  * moment of real frames so particles and bloom settle. Needs the static server on 8144 (see README.md).
@@ -49,7 +50,9 @@ for (const [name, code] of Object.entries(SCEN)) {
     await page.evaluate(`(async () => { ${code} })()`);
     await page.waitForTimeout(+(process.env.WAIT || 1800));
     const tag = TOUCH ? `-${W}x${H}` : '';
-    await page.screenshot({ path: path.join(HERE, 'shots', `tour-${name}${tag}.png`) });
+    if (process.env.CLEAN) await page.evaluate(() => { for (const el of document.body.children) if (el.id !== 'view') el.style.visibility = 'hidden'; });
+    await page.screenshot({ path: path.join(HERE, 'shots', `tour-${name}${tag}${process.env.CLEAN ? '-clean' : ''}.png`) });
+    if (process.env.CLEAN) await page.evaluate(() => { for (const el of document.body.children) el.style.visibility = ''; });
     const info = await page.evaluate(() => ({ stage: __nr.G.stage + 1, boss: __nr.G.boss?.key || '', phase: __nr.G.boss?.phase, bullets: __nr.G.bullets.length, enemies: __nr.G.enemies.length }));
     console.log(name, JSON.stringify(info), `${Date.now() - t0} ms`);
 }
