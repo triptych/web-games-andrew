@@ -1,8 +1,8 @@
 # VACANCY
 
 **Genre:** First-person walking simulator: exploration, decay and liminal space, with a light lock-and-key mystery
-**Engine:** three.js r165 (WebGL2), sim/view layout. Surfaces, portraits and key art by fal; every model, prop, light and sound is code
-**Status:** v1.0.0
+**Engine:** three.js r165 (WebGL2), sim/view layout. Surfaces, portraits and key art by fal; the vehicles by Meshy; every other model, prop, light and sound is code
+**Status:** v1.1.0
 
 ---
 
@@ -97,6 +97,7 @@ Fifteen citizens (a seamstress, a watchmaker, a lab technician, the lab's night 
 - **Post**: sanitize → bloom → ACES → grade (grain, vignette, radial chromatic aberration, teal shadows, sick-yellow highlights, a slow warp near the open ring, white-out at the end).
 - **Streaming**: the city a block at a time within ~230 m, interiors a building level at a time (all levels of the one you are in, the ground floor of everything within 46 m). Window panes carry their building and level; a shader shows dark dirty glass until that level exists, then clear glass (or nothing, if broken).
 - **fal art**: see [dev/art/README.md](dev/art/README.md).
+- **Meshy vehicles**: see [dev/meshy/README.md](dev/meshy/README.md). Loaded at boot (`js/view/vehicles.js`); the first city waits up to 8 s for them.
 - **Sound**: Web Audio only: wind and room tone, the low hum, fluorescent buzz, footsteps for carpet, wood, tile, concrete, grass, road and puddles, a sparse detuned pad with the odd bell, effects for every event.
 
 ## Module overview
@@ -124,6 +125,9 @@ See [dev/README.md](dev/README.md). The bot finishes every seed tried in 14–17
 - More of the Between: a playable yellow-rooms level behind the mall's service door.
 
 ## Changelog
+
+### v1.1.0 (2026-11-21)
+- The vehicles are Meshy models: seven text-to-3D vehicles (sedan, hatchback, wagon, pickup, van, box truck, city bus), abandoned and weathered, drawn instanced per block with faded tints and flat-tyre sags; the code-built ones stay as the fallback ([dev/meshy/README.md](dev/meshy/README.md)).
 
 ### v1.0.0 (2026-11-21)
 - First release: the seeded city and every interior, decay, the story chain of ten diaries, tools and locks, the portal console, the compass, journal and map, fal surfaces and portraits, Web Audio sound, the bot, the sim and browser tests.

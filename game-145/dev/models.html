@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>VACANCY — vehicle models</title>
+<style>html, body { margin: 0; background: #2b2d2c; overflow: hidden; } canvas { display: block; } #labels div { position: fixed; color: #eee; font: 13px system-ui; transform: translate(-50%, 0); text-shadow: 0 1px 2px #000; }</style>
+</head>
+<body>
+<div id="labels"></div>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+// Every vehicle as the game fits it (vehicles.js: long axis on z, real length, wheels on y = 0), in a row on a
+// neutral floor with a 1.8 m figure for scale. ?top=1 looks down from above. dev/gallery.mjs screenshots it.
+import * as THREE from 'three';
+import { loadVehicles, vehicles, addVehicles } from '../js/view/vehicles.js';
+const top = new URLSearchParams(location.search).get('top') === '1';
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(innerWidth, innerHeight); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(10, 20, 14); scene.add(sun);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 40), new THREE.MeshStandardMaterial({ color: 0x555855 }));
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+await loadVehicles();
+const names = Object.keys(vehicles.models);
+const list = names.map((n, i) => ({ k: { bus: 'bus', truck: 'truck', van: 'van' }[n] ?? 'car', x: i * 6.5 - names.length * 3.25, z: 0, r: 0, c: 0, flat: false, _n: n }));
+for (const p of list) p.model = p._n;
+addVehicles(scene, list);
+const fig = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 1.8, 12), new THREE.MeshStandardMaterial({ color: 0xd04040 }));
+fig.position.set(list[0].x - 4, 0.9, 0); scene.add(fig);
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 0.1, 300);
+if (top) { cam.position.set(0, 60, 0.01); cam.lookAt(0, 0, 0); } else { cam.position.set(0, 9, 34); cam.lookAt(0, 1.5, 0); }
+r.render(scene, cam);
+const L = document.getElementById('labels');
+for (const p of list) { const v = new THREE.Vector3(p.x, 0, 4).project(cam); const d = document.createElement('div'); d.textContent = `${p._n} (${vehicles.models[p._n].size.map((x) => x.toFixed(1)).join('×')})`; d.style.left = ((v.x + 1) / 2 * innerWidth) + 'px'; d.style.top = ((1 - v.y) / 2 * innerHeight) + 'px'; L.appendChild(d); }
+window.done = true;
+</script>
+</body>
+</html>

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **VACANCY** (game-145) v1.1.0: the cars, vans, trucks and buses are Meshy 3D models.
+  - Seven text-to-3D vehicles ([dev/meshy/](game-145/dev/meshy/README.md)): a sedan, a hatchback, a wood-panel wagon, a pickup, a panel van, a box truck and a city bus, all abandoned (faded paint, rust, grime, soft tyres), shrunk to 512 px textures, 3.0 MB together. 210 Meshy credits.
+  - [vehicles.js](game-145/js/view/vehicles.js) fits each one (long axis along the street, real length, wheels on the ground) and draws them as instanced meshes per city block and garage floor, each with a faded paint tint and, where the tyres are flat, a sag and a lean; the code-built vehicles stay as the fallback. [dev/models.html](game-145/dev/models.html) shows every model as the game fits it; the browser test checks all seven load and fill the streets.
 - **Doom & Doilies: The Sugar Siege** (game-143) v1.2.0: three ways to play, a payout for time away, and a livelier town ([game-plan.md](game-143/game-plan.md#modes-time-away-and-polish-v120)).
   - **Three modes** (New Game asks): 📖 **Story**, where Lord Vellum runs the town (the bot's town half, at a watchable pace) and you hold the wall; 🎂 **Normal**, as before; 💀 **Hard**, where a fallen wall ends the game and the next game starts with half the stores on hand and a quarter of what the standing buildings cost. Old saves load as Normal.
   - **Time away**: coming back (Continue, or returning to the tab) after two minutes or more pays out part of what the town makes, one town day per half hour away, up to three days ([town.js](game-143/js/sim/town.js) `idleLoot`). Lord Vellum and the villagers tell you about it on the tip card, and the ticker carries the news.

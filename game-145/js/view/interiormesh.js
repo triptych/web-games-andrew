@@ -9,6 +9,7 @@ import { lockKind } from '../sim/world.js';
 import { Kit } from './kit.js';
 import { surface, plain, decal } from './tex.js';
 import { buildProp } from './props.js';
+import { modelFor, addVehicles } from './vehicles.js';
 
 const WALL_TEX = { yellow: 'yellow', floral: 'floral', plaster: 'plaster', concrete: 'concrete', tile: 'tile', lab: 'lab', brick: 'brick', rust: 'rust' };
 const FLOOR_TEX = { carpet: 'carpet', wood: 'wood', tile: 'tile', terrazzo: 'terrazzo', concrete: 'fconcrete', lino: 'lino' };
@@ -185,8 +186,13 @@ export function buildLevel(G, I, L, opts = {}) {
     }
 
     // ------------------------------------------------------------ furniture
-    for (const p of lv.props) buildProp(K, p, ox, y0, oz);
-    const g = K.build({ name: `b${b.id}L${L}` });
+    const cars = [];
+    for (const p of lv.props) {
+        if (p.k === 'pcar' && modelFor({ ...p, x: ox + p.x, z: oz + p.z })) cars.push({ ...p, x: ox + p.x, y: y0, z: oz + p.z });
+        else buildProp(K, p, ox, y0, oz);
+    }
+    let g = K.build({ name: `b${b.id}L${L}` });
+    if (cars.length) { g ??= new THREE.Group(); addVehicles(g, cars); }
     return { group: g, lamps };
 }
 

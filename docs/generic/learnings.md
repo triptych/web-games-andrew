@@ -7555,3 +7555,9 @@ buildings, every floor of every building walkable, with a ten-diary lock-and-key
   test `document.elementFromPoint(centre)` is the button.
 - **Dust motes at the lens.** Size-attenuated `Points` that drift within a few cm of the camera become huge white disks.
   Push any mote inside ~0.9 m back out to 1.2 m each frame.
+- **Meshy vehicles as instanced meshes (v1.1.0).** Seven text-to-3D vehicles (210 credits, all right first time) fill
+  every street: `fit()` measures each model's box, turns the long axis onto the sim's layout axis, scales to a real
+  length and grounds it; one `InstancedMesh` per model part per city block, with `setColorAt` tints for faded paint.
+  The instances share the model's geometry, so a block's disposer must free only their instance buffers. Resolve
+  model URLs with `new URL(..., import.meta.url)`, or a dev gallery page in `dev/` 404s them
+  ([vehicles.js](../../game-145/js/view/vehicles.js)).

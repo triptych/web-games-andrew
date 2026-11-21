@@ -5,7 +5,7 @@
  *
  * CLEAN=1 hides the HUD (for the preview picture).
  * Places: home (where you wake), street (outside home), mall (the atrium), backrooms (a yellow office floor),
- * hospital (a corridor), factory (the hall), hall (Hall C with the ring), hotel (the VACANCY sign), stairs.
+ * hospital (a corridor), factory (the hall), hall (Hall C with the ring), hotel (the VACANCY sign), garage (the car park), stairs.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -39,6 +39,7 @@ const SPOTS = {
     factory: `place('factory', 0, (I, x, z) => z > 6 && x > 3, 0.4); __va.look(0.2);`,
     hall: `const t = G.thingById.get('master'); Object.assign(G.p, { x: t.x, z: t.z + 9, L: 0, yaw: 0 }); __va.look(0.18); G.power = true;`,
     hotel: `const b = G.city.buildings.find((b) => b.type === 'hotel'), e = b.entrances[0]; const D = [[0,-1],[1,0],[0,1],[-1,0]][e.dir]; Object.assign(G.p, { x: (b.x0 + e.x + 0.5 + D[0] * 6) * 2 + D[1] * 5, z: (b.z0 + e.z + 0.5 + D[1] * 6) * 2 - D[0] * 5, L: 0 }); G.p.yaw = Math.atan2((b.x0 + e.x + 0.5) * 2 - G.p.x, -((b.z0 + e.z + 0.5) * 2 - G.p.z)); __va.look(0.28);`,
+    garage: `place('garage', 1, (I, x, z) => x === 2 && z > 3, Math.PI / 2); __va.look(-0.05);`,
     stairs: `place('apartment', 0, (I, x, z, lv) => { const i = z * I.w + x; return lv.flags[i] === 0 && I.levels[0].stair[(z + 1) * I.w + x] === 1 + 2 * 16; }, Math.PI); __va.look(0.25);`,
 };
 const PRE = `

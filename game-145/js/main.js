@@ -13,6 +13,7 @@ import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } fr
 import { newGame, step, objective } from './sim/game.js';
 import { makeBot, botInput } from './sim/bot.js';
 import { seedFromText } from './rng.js';
+import { loadVehicles, vehicles } from './view/vehicles.js';
 
 const params = new URLSearchParams(location.search);
 const DEBUG = params.get('debug') === '1';
@@ -27,6 +28,7 @@ const canvas = document.getElementById('view');
 const input = new Input(canvas);
 input.sens = settings.sens; input.invert = settings.invert;
 const view = new View(canvas, quality);
+const vehiclesReady = loadVehicles();     // the Meshy cars, vans, trucks and buses: start at once, wait for them before building a city
 const ui = new UI({
     audio, settings,
     onSettings: (s) => { saveSettings(s); audio.setVolumes(s.sfx, s.music); input.sens = s.sens; input.invert = s.invert; updateTouch(); },
@@ -90,8 +92,9 @@ function begin(gOrSeed, fresh) {
     ui.showHud(false);
     $('loading-msg').textContent = 'Waking up…';
     ui.openScreen('loading');
-    // two frames so the loading screen paints before the city is built
-    requestAnimationFrame(() => requestAnimationFrame(() => {
+    // the vehicle models (at most a few seconds; without them the code-built ones are drawn), then two frames so the
+    // loading screen paints before the city is built
+    Promise.race([vehiclesReady, new Promise((r) => setTimeout(r, 8000))]).then(() => requestAnimationFrame(() => requestAnimationFrame(() => {
         G = typeof gOrSeed === 'number' ? newGame(gOrSeed) : gOrSeed;
         view.setGame(G);
         view.warm(G, DEBUG ? 600 : 2500);
@@ -99,7 +102,7 @@ function begin(gOrSeed, fresh) {
         saveGame(G);
         if (fresh) { $('intro-text').textContent = INTRO; mode = 'intro'; ui.openScreen('intro'); }
         else play();
-    }));
+    })));
 }
 
 function play() {
@@ -240,7 +243,7 @@ if (DEBUG) {
     window.__va = {
         get G() { return G; },
         get mode() { return mode; },
-        seen, view, ui, audio, input,
+        seen, view, ui, audio, input, vehicles,
         /** Start a city and skip the title and the waking. */
         start(seed = 1) { begin(seed, false); },
         autoplay(on = true) { bot = on ? makeBot() : null; },
