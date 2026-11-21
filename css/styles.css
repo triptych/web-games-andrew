@@ -1770,6 +1770,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 159, 210, 0.7);
 }
 
+.game-preview.nebula-requiem,
+.carousel-slide-bg.nebula-requiem {
+    background: radial-gradient(ellipse at 70% 30%, rgba(255, 210, 120, 0.35), transparent 45%), radial-gradient(ellipse at 25% 70%, rgba(90, 120, 255, 0.45), transparent 55%), linear-gradient(135deg, #07081a 0%, #26104a 45%, #5a1a6a 75%, #0a1430 100%);
+}
+
+.game-card.nebula-requiem .play-button {
+    background: linear-gradient(135deg, #5fe0ff, #8a6bff, #ff60c8);
+    color: #071028;
+    box-shadow: 0 0 14px rgba(140, 120, 255, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

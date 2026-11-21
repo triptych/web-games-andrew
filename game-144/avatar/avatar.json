@@ -1,0 +1,92 @@
+{
+ "id": "game-144",
+ "name": "Sora",
+ "role": "Seraph pilot",
+ "emoji": "🌌",
+ "color": "#4fc3ff",
+ "bio": "Sora Amane, 19, flies the Azure Seraph off the carrier Lumen Ark in NEBULA REQUIEM, and she can hear her lost sister singing inside the enemy's song.",
+ "portrait": {
+  "subject": "a cute chibi anime starfighter pilot girl with short sky-blue bob hair, bright cyan eyes, a white and azure flight suit with glowing blue piping and a silver locket, giving a confident thumbs-up",
+  "background": "a glowing violet and cyan nebula full of stars with a tiny azure starfighter streaking past"
+ },
+ "request": "Sora Amane, Azure Seraph! The Lumen Ark has three fighters left. Fly with me? 🌌",
+ "hello": [
+  "Kirin's fuelled and so am I! Ready?",
+  "Hey! The nebula's glowing again. Want to go see why?"
+ ],
+ "about": "I'm Sora. The Requiem came out of the Veil singing, and every star it sings to goes dark. My big sister Hikari flew in first. Everyone says she's gone. I can hear her.",
+ "how": "A sideways bullet-hell shooter: your gun fires on its own, so just weave. Arrows move, hold Shift to focus, X bombs, C warps, Space fires your Burst when it's full. On a phone, drag on the left and tap the buttons.",
+ "tips": [
+  "Only the little glowing dot on your cockpit can be hit. Hold focus and thread right through the gaps!",
+  "Brush past bullets on purpose. Grazing fills your Burst gauge, and Burst doubles your score.",
+  "Capital ships are solid! Fly along the hull and break every engine to bring the whole thing down.",
+  "Two power-ups together make a synergy. Four options plus full power? SERAPH WINGS. Try it!",
+  "The Bellwether's core won't open until both engines on its stern are gone. Go round it!"
+ ],
+ "chat": [
+  "Kaito says I fly too close to the bullets. Kaito's grazing count is very sad.",
+  "Commander Mei saved me a rice ball. Best mission briefing ever.",
+  "Lyra asked me what a sunrise is like. I promised to show her one.",
+  "I keep Hikari's locket on my collar. It goes everywhere I go.",
+  "The Veil looks like broken stained glass up close. Pretty. Deadly. Mostly deadly."
+ ],
+ "nudge": [
+  "The Lumen Ark's on standby. One more sortie? 🌌",
+  "I can hear the song again. Let's go!"
+ ],
+ "idle": [
+  "{ago} since we launched! Hikari's still out there.",
+  "The hangar's been quiet for {ago}. Kirin misses you."
+ ],
+ "progress": [
+  "You're on stage {stage+1} of six! The Heart's getting closer. 🌌"
+ ],
+ "questions": [
+  {
+   "q": "Which Seraph would you fly?",
+   "a": [
+    [
+     "Azure Seraph",
+     "Wide spread, lots of stars. Good choice!"
+    ],
+    [
+     "Crimson Halberd",
+     "Kaito's lance goes through everything. Scary-good."
+    ],
+    [
+     "Violet Wraith",
+     "Lyra's needles find their own way. Like her."
+    ]
+   ]
+  },
+  {
+   "q": "Bomb early or save them?",
+   "a": [
+    [
+     "Early!",
+     "Same! A bomb you didn't use is a ship you lost."
+    ],
+    [
+     "Save them",
+     "Brave. Bosses get mean later..."
+    ]
+   ]
+  }
+ ],
+ "update": "NEBULA REQUIEM is now v{version}! New orders from the Lumen Ark. 🌌",
+ "bye": [
+  "Seraph out! 🌌",
+  "Bring back the morning!"
+ ],
+ "save": {
+  "keys": [
+   "nebula-requiem.v1"
+  ],
+  "stats": {
+   "stage": [
+    "stage"
+   ]
+  }
+ },
+ "art": "fal"
+}
