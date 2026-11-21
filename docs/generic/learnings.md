@@ -7503,6 +7503,11 @@ and a survival mode. What the next game should know:
 - **fal ignored a chroma key once; fix it with an edit, not a regeneration.** One portrait came back on white (on a white
   flight suit). `nano-banana-2/edit` "replace the background with green, change nothing else" kept the face; putting the
   key instruction at the *start* of the prompt made every later portrait come back keyed.
+- **Square halos round every bright object: the sanitize pass the game-065 note asks for was skipped.** Clamping `pow()`
+  was not enough: additive bullets, sparks and glow materials at ×3–6 stack past the half-float maximum, and each
+  infinite pixel blooms into a box. A pass between the RenderPass and the bloom zeroes non-finite pixels and caps the rest
+  at 6 (`SanitizeShader` in `js/view/stage.js`). Proof: a quad writing `0/0` and `1/0` changed 24 of 24 sample points far
+  around it without the pass and 0 with it; the browser test keeps that check. The step is now in the scaffold checklist.
 - **Phone browser tests about controls should run in god mode.** At `&fast=4` an idle ship in a slow landscape test was
   shot down to Game Over, so a later BOMB tap "failed" while the ship was exploding. Test the controls on a ship that
   can't die; test dying separately.

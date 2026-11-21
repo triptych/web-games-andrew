@@ -156,6 +156,18 @@ async function desktop() {
     const blank = await notBlank(page);
     check(blank.colours > 6 && blank.lum > 4, `the frame is not blank (${blank.colours} colours, mean ${blank.lum.toFixed(0)})`);
     await shot(page, 'desktop-play');
+    // a NaN/infinite pixel must not bloom into a square halo (learnings: game-065, game-144)
+    const halo = await Q(page, () => {
+        const st = __nr.view.stage, gl = st.renderer.getContext();
+        const ring = () => { st.render(); const W = gl.drawingBufferWidth, H = gl.drawingBufferHeight, px = new Uint8Array(4), out = [];
+            for (let a = 0; a < 24; a++) { gl.readPixels(Math.round(W / 2 + Math.cos(a) * 0.16 * H), Math.round(H / 2 + Math.sin(a) * 0.16 * H), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); out.push(px[0] + px[1] + px[2]); } return out; };
+        const saved = __nr.G.bullets.splice(0);
+        const base = ring();
+        st.poison(true); const hit = ring(); st.poison(false);
+        __nr.G.bullets.push(...saved);
+        return hit.filter((v, i) => Math.abs(v - base[i]) > 60).length;
+    });
+    check(halo <= 2, `a NaN/infinite pixel does not bloom into a square halo (${halo}/24 far pixels changed)`);
 
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');

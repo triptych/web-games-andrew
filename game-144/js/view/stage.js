@@ -52,6 +52,24 @@ const FinalShader = {
         }`,
 };
 
+// Before the bloom: a pixel that is NaN or infinite (half-float buffers overflow where additive bullets, sparks and
+// bright glows stack up) poisons every blur tap that touches it, and the bloom's mip chain turns it into a square
+// halo. Zero the non-finite pixels (tested on the exponent bits; isnan() can be folded away by fast-math drivers) and
+// cap the rest, so nothing can be brighter than the bloom can blur smoothly. See learnings.md, game-065 and game-144.
+const SanitizeShader = {
+    uniforms: { tDiffuse: { value: null }, uMax: { value: 6.0 } },
+    vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+    fragmentShader: `
+        uniform sampler2D tDiffuse; uniform float uMax; varying vec2 vUv;
+        bool bad(float x){ return (floatBitsToUint(x) & 0x7f800000u) == 0x7f800000u; }
+        void main(){
+            vec4 c = texture2D(tDiffuse, vUv);
+            if (bad(c.r) || bad(c.g) || bad(c.b) || bad(c.a)) c = vec4(0.0, 0.0, 0.0, 1.0);
+            c.rgb = clamp(c.rgb, 0.0, uMax);
+            gl_FragColor = c;
+        }`,
+};
+
 export class Stage {
     constructor(canvas, { quality = 'high' } = {}) {
         this.canvas = canvas;
@@ -90,6 +108,8 @@ export class Stage {
         // post
         this.composer = new EffectComposer(this.renderer);
         this.composer.addPass(new RenderPass(this.scene, this.camera));
+        this.sanitize = new ShaderPass(SanitizeShader);
+        this.composer.addPass(this.sanitize);
         this.bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), low ? 0.55 : 0.7, 0.45, 0.82);
         if (!low) this.composer.addPass(this.bloom);
         this.final = new ShaderPass(FinalShader);
@@ -191,4 +211,18 @@ export class Stage {
     }
 
     render() { this.composer.render(); }
+
+    /** Debug (browser test): a small quad that writes NaN and infinity, to prove the sanitize pass contains it. */
+    poison(on = true) {
+        if (!this._poison) {
+            this._poison = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), new THREE.ShaderMaterial({
+                uniforms: { uZero: { value: 0 } }, toneMapped: false, depthTest: false,
+                vertexShader: 'void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+                fragmentShader: 'uniform float uZero; void main(){ float n = uZero / uZero; float i = 1.0 / uZero; gl_FragColor = vec4(n, i, 1e30, 1.0); }',
+            }));
+            this._poison.position.set(0, 0, 3);
+            this._poison.renderOrder = 99;
+        }
+        if (on) this.scene.add(this._poison); else this.scene.remove(this._poison);
+    }
 }

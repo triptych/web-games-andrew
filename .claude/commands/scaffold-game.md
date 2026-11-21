@@ -4831,6 +4831,7 @@ applies. Details and code are in [docs/generic/learnings.md](../../docs/generic/
 - [ ] A thing placed under the pointer is anchored on the pointed tile (`floor(p) - floor((size - 1) / 2)`), never on a rounded centre: for an even footprint the centre sits on a tile edge and a tap lands a row off (game-136).
 
 **Rendering (three.js)**
+- [ ] With bloom, a sanitize pass sits between the RenderPass and the bloom: non-finite pixels → black (test the exponent bits), the rest capped (~6). Additive bullets and bright glows overflow half-float targets to infinity, and the bloom turns each into a square halo on every bright object; clamping `pow()` alone doesn't cover that (game-144, `game-144/js/view/stage.js` `SanitizeShader`, tested in its browser test with a NaN quad).
 - [ ] Every `pow()` base in a shader is clamped to [0, 1]; with bloom, a single NaN pixel smears into a blinking box. SwiftShader doesn't produce the NaN, so headless tests never show it (game-065). A colour set with `.copy(0xff8800)` instead of `.set()` is NaN too (game-074).
 - [ ] Hand-built geometry is wound counter-clockwise from outside, or every barrel and pillar looks hollow (game-071's shared cylinder).
 - [ ] A part that is tilted and spun gets a holder group for the tilt; one mesh with both rotations spins about the wrong axis (game-073's drill).
