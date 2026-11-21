@@ -1,0 +1,102 @@
+{
+ "id": "game-145",
+ "name": "Benny",
+ "role": "late-night host, WKVR 88.3",
+ "emoji": "📻",
+ "color": "#d9b95a",
+ "bio": "Benny Okafor did the two-to-four slot on WKVR 88.3 in Ashmere, until the night everyone walked into the light. Somehow his signal still gets out of VACANCY's yellow rooms.",
+ "portrait": {
+  "subject": "a friendly Nigerian-American late-night radio DJ in his forties with big chunky headphones around his neck, a warm hopeful smile, a corduroy jacket, holding a vintage studio microphone",
+  "background": "a dim radio booth glowing with warm amber dial lights, a faint yellow hallway visible through the booth window"
+ },
+ "request": "This is Benny, WKVR 88.3, broadcasting from... somewhere yellow. You're the one who slept through it, right? Stay on the line. 📻",
+ "hello": [
+  "You're on the air, friend. How's Ashmere looking out there?",
+  "Static's thin tonight. I can almost hear the street. Is that you?"
+ ],
+ "about": "I'm Benny. On the fourteenth the town went quiet and everybody who was awake walked into Hall C. I walked in with them. It's all yellow wallpaper and buzzing lights in here, and the corridors go on forever. You slept through it. That makes you the only one who can turn the dials back.",
+ "how": "Walk the city in first person: WASD or the left thumb to walk, the mouse or your right thumb to look, E or USE to read, take and open, Shift to run, F for the flashlight, J for the journal, M for the map. The brass compass always points at the next diary, and the little arrow says how many floors up or down.",
+ "tips": [
+  "Read every diary. Some of them hold a piece of the portal code: three dial numbers and the order of four coloured conduits. Your journal's Clues page keeps the code for you.",
+  "Boarded doors want a crowbar, chains want bolt cutters, card readers want a staff badge. The tools are lying where we left them, right next to our diaries.",
+  "Rotten floors give way. You'll drop a storey, land in the rubble and walk away. Don't panic: the stairs are always in a stairwell at the end of the building.",
+  "If a vending machine is still lit, it still works. Nobody knows who fills them.",
+  "In the mall, take the stairs in the west walkway. The atrium is three floors of nothing in the middle."
+ ],
+ "chat": [
+  "Mrs. Lund called in about the weather. It's always the same weather in here.",
+  "I found a payphone on a wall with no building behind it. It rang. It was me, from yesterday.",
+  "June from the Starlite keeps a guest book in here too. Your name's in it. Don't worry about that.",
+  "Somebody keeps humming a song. Theo says if you sing the other half it goes quiet.",
+  "I've done four thousand station idents in here and the clock still says 3:33."
+ ],
+ "nudge": [
+  "Ashmere's waiting, friend. The compass is still pointing. 📻",
+  "Static's getting thick. Come back on the air?"
+ ],
+ "idle": [
+  "{ago} of dead air from your end. We're still here. We're still listening.",
+  "It's been {ago}. The VACANCY sign is still lit. Come back?"
+ ],
+ "progress": [
+  "{cans} cans out of machines that shouldn't work. You're keeping Lumen Cola in business, friend.",
+  "You've fallen through {falls} floors and you're still walking. Respect from the booth."
+ ],
+ "questions": [
+  {
+   "q": "Be honest with me: are you scared out there?",
+   "a": [
+    [
+     "A little",
+     "Me too. Keep the flashlight on and keep talking to me."
+    ],
+    [
+     "Not at all",
+     "That's the voice of somebody who slept through the end of the world. I like it."
+    ],
+    [
+     "It's beautiful",
+     "It is, isn't it? All that quiet. Don't get too used to it."
+    ]
+   ]
+  },
+  {
+   "q": "What do you do first in a new building?",
+   "a": [
+    [
+     "Find the stairs",
+     "Smart. Every building has a stairwell, and it goes all the way up."
+    ],
+    [
+     "Read everything",
+     "That's how I'd do it. Half the town wrote stuff down that week."
+    ],
+    [
+     "Follow the compass",
+     "The needle never lies. Mostly."
+    ]
+   ]
+  }
+ ],
+ "update": "VACANCY v{version} is on the air! Something changed in Ashmere. 📻",
+ "bye": [
+  "This is Benny, WKVR 88.3, signing off. Bring us home. 📻",
+  "Keep your flashlight on, friend."
+ ],
+ "save": {
+  "keys": [
+   "vacancy.v1"
+  ],
+  "stats": {
+   "cans": [
+    "data.cans",
+    "cans"
+   ],
+   "falls": [
+    "data.falls",
+    "falls"
+   ]
+  }
+ },
+ "art": "fal"
+}

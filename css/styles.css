@@ -1781,6 +1781,17 @@ h1 {
     box-shadow: 0 0 14px rgba(140, 120, 255, 0.7);
 }
 
+.game-preview.vacancy,
+.carousel-slide-bg.vacancy {
+    background: radial-gradient(ellipse at 50% 18%, rgba(230, 210, 140, 0.35), transparent 40%), radial-gradient(ellipse at 30% 80%, rgba(40, 70, 60, 0.6), transparent 55%), linear-gradient(180deg, #2a2f2c 0%, #4a4630 45%, #1b1d18 100%);
+}
+
+.game-card.vacancy .play-button {
+    background: linear-gradient(135deg, #d9b95a, #a5813c, #e64a57);
+    color: #1b1606;
+    box-shadow: 0 0 14px rgba(230, 74, 87, 0.6);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
