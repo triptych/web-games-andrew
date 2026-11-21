@@ -105,6 +105,8 @@ async function desktop() {
     await click(page, '#intro-go');
     await until(page, () => __va.mode === 'play' && !document.getElementById('hud').hidden, 'Get up starts play with the HUD');
     check(await Q_(page, () => __va.G.items.includes('compass') && document.getElementById('compass-label').textContent.length > 3), 'the compass names what it points at');
+    check(await Q_(page, () => __va.vehicles.loaded === 7 && __va.vehicles.failed === 0), 'all seven Meshy vehicle models load');
+    check(await Q_(page, () => { let n = 0; __va.view.scene.traverse((o) => { if (o.isInstancedMesh && o.name.startsWith('veh-')) n += o.count; }); return n > 10; }), 'and the streets are full of them (instanced)');
 
     const d0 = await Q_(page, () => __va.G.p.dist);
     await page.keyboard.down('KeyW');

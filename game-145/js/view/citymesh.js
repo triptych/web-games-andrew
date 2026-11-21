@@ -9,6 +9,7 @@ import { interiorOf, getEdge, E } from '../sim/interior.js';
 import { Kit } from './kit.js';
 import { surface, plain, decal, signTexture } from './tex.js';
 import { buildProp } from './props.js';
+import { modelFor, addVehicles, VEHICLE_KINDS } from './vehicles.js';
 import { windowSpan, DOOR_H } from './interiormesh.js';
 
 export const CHUNK = CITY.pitch;           // tiles per chunk side
@@ -127,9 +128,11 @@ export function buildChunk(G, ci, cj) {
 
     // ---- props, fences and lights
     const inChunk = (x, z) => x >= tx0 * TILE && x < tx1 * TILE && z >= tz0 * TILE && z < tz1 * TILE;
+    const cars = [];
     for (const p of C.props) {
         if (!inChunk(p.x, p.z)) continue;
         if (p.k === 'lotlines') lotLines(K, paint, p);
+        else if (VEHICLE_KINDS.has(p.k) && modelFor(p)) cars.push({ ...p, y: groundY(C, p.x, p.z) });   // a Meshy model
         else buildProp(K, { ...p, y: groundY(C, p.x, p.z) });
     }
     for (const L of C.lights) {
@@ -147,6 +150,7 @@ export function buildChunk(G, ci, cj) {
     }
     const group = K.build({ name: `chunk${ci},${cj}` }) ?? new THREE.Group();
     group.add(signs);
+    addVehicles(group, cars);
     return { group, lights };
 }
 

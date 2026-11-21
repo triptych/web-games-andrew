@@ -129,6 +129,7 @@ export class Kit {
 /** Dispose every geometry under a group (materials are shared and kept). */
 export function disposeGroup(g) {
     if (!g) return;
-    g.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+    // instanced Meshy vehicles share their model's geometry: free only their instance buffers
+    g.traverse((o) => { if (o.isInstancedMesh && o.userData.shared) o.dispose(); else if (o.geometry) o.geometry.dispose(); });
     g.removeFromParent();
 }
