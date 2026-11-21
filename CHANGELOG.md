@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Tests: [dev/simtest.mjs](game-144/dev/simtest.mjs) (rules, story for every pilot, generation proofs, determinism, survival, bot balance bands) and [dev/browsertest.mjs](game-144/dev/browsertest.mjs) (desktop, two touch phones, blocked storage); [dev/tour.mjs](game-144/dev/tour.mjs) photographs every stage and boss.
 - Launcher: NEBULA REQUIEM added to `js/gamedata.js` with its card style, README and status rows.
 
+### Changed
+- **NEBULA REQUIEM** (game-144) v1.1.0: the ships, enemies and bosses are Meshy 3D models.
+  - 30 text-to-3D models ([dev/meshy/](game-144/dev/meshy/README.md)): the three Seraphs, all 21 enemy kinds (three more reuse them at another size) and the six bosses, textured (PBR) and shrunk to 512 px textures, 15 MB in all. 960 Meshy credits, including two redone (the serpent's body segment and the wyrm's head both came back as whole creatures).
+  - [meshy.js](game-144/js/view/meshy.js) turns and sizes each to face its way (ships forward, enemies at the player, creatures three-quarter to the camera); the procedural models stand in until they load, and the bosses keep their procedural weak points and effects (the Bellwether's core, the Organ's eye, the Titan's sword, the Mother's tentacles, Seraphine's wings).
+  - [dev/models.html](game-144/dev/models.html) shows every model from the side and above; the browser test checks all 30 load; `CLEAN=1` tour shots hide the HUD.
+
 ### Fixed
 - **NEBULA REQUIEM** (game-144) v1.0.1: square halos round bright objects. Additive bullets, sparks and glows stacked past the half-float limit, and the bloom turned each infinite pixel into a box. A sanitize pass before the bloom now zeroes non-finite pixels and caps the rest; the browser test puts a NaN/infinity quad on screen and checks nothing far from it changes.
 - **Coppergate Lane** (game-030) v2.0.1: the same auto battle bug as Echoes of Aethermoor 2.0.0. Auto carries on into the next battle, but while it ran the command menu (and its Auto button) never appeared, so on a phone there was no way back. A **Take control** bar now shows whenever auto is on, from the first moment of each battle, and hands the commands back on the next turn (Q still works).

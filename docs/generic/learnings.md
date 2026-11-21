@@ -7511,3 +7511,12 @@ and a survival mode. What the next game should know:
 - **Phone browser tests about controls should run in god mode.** At `&fast=4` an idle ship in a slow landscape test was
   shot down to Game Over, so a later BOMB tap "failed" while the ship was exploding. Test the controls on a ship that
   can't die; test dying separately.
+- **Meshy models need a per-model turn, checked from two views.** Each text-to-3D result comes back in its own facing
+  (hulls mostly nose −x, creatures and robots facing +z, one ship +z). A side-on gallery alone misled me twice (a nose
+  seen head-on, a skull seen from above); a gallery with a top view as well (`dev/models.html`, `?rot=0` for the raw
+  facing) settled each in one look. Keep a table (`FIT` in `js/view/meshy.js`) of turn, size and boss offset, and keep
+  the procedural model as the fallback while GLBs load.
+- **Meshy turns "a body segment" or "a dragon head" into a whole creature.** Say what it is not: "an object not a
+  creature, no head, no legs", "head only, no neck, no body". A redo needs new operation ids (`NR_TAG=v2-`).
+- **Shrink Meshy GLBs before committing.** 2K PBR textures made each model 5–9 MB; rewriting the embedded images at
+  512 px (`dev/meshy/shrink.py`, Pillow only) made them 0.2–1 MB with no visible loss at game scale.

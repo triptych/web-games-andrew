@@ -12,6 +12,7 @@ import { POWERUPS } from '../sim/data/powerups.js';
 import { ENEMIES } from '../sim/data/enemies.js';
 import { optionPositions } from '../sim/player.js';
 import { WEAPON, SCROLL } from '../config.js';
+import { loadMeshy, dressShip, dressEnemy, dressBoss } from './meshy.js';
 
 const SHIELD_VS = 'varying vec3 vN; varying vec3 vV; void main(){ vN = normalize(normalMatrix * normal); vec4 mv = modelViewMatrix * vec4(position, 1.0); vV = normalize(-mv.xyz); gl_Position = projectionMatrix * mv; }';
 const SHIELD_FS = `uniform vec3 uCol; uniform float uA, uT; varying vec3 vN; varying vec3 vV;
@@ -66,6 +67,9 @@ export class View {
             mothership: new THREE.MeshStandardMaterial({ color: 0x5a3a36, roughness: 0.65, metalness: 0.35, emissive: 0x501008, emissiveIntensity: 0.6, map: t.map }),
         };
         this.options = [];
+        // Meshy models load in the background; anything built before they arrive keeps its procedural model
+        this.meshyReady = false;
+        loadMeshy().then((n) => { this.meshyReady = n > 0; this.meshyLoaded = n; this.pilot = null; this.reset(); });
     }
 
     setQuality(calm) { this.calm = calm; this.stage.calm = calm; }
@@ -76,7 +80,7 @@ export class View {
         if (this.ship) this.root.remove(this.ship);
         this.pilot = G.pilot;
         this.pl = PILOT_BY_ID[G.pilot];
-        this.ship = playerShip(G.pilot);
+        this.ship = dressShip(playerShip(G.pilot), 'ship-' + G.pilot);
         this.root.add(this.ship);
         for (const o of this.options) this.root.remove(o);
         this.options = [0, 1, 2, 3].map(() => { const o = optionDrone(this.pl.color); o.visible = false; this.root.add(o); return o; });
@@ -99,7 +103,7 @@ export class View {
                     if (bossKey === 'heart' && e.type === 'bigturret') model = 'haloRing';
                     if (bossKey === 'wyrm' && e.type === 'segment') model = 'crystalSegment';
                 }
-                o = enemyModel(model, BULLET_COLS[e.c % 6].getHex());
+                o = dressEnemy(enemyModel(model, BULLET_COLS[e.c % 6].getHex()), model);
                 if (ENEMIES[e.type].big || e.type === 'engine') o.scale.setScalar(e.scale || 1);
                 const hit = new THREE.Mesh(new THREE.SphereGeometry(e.r * 1.05, 10, 8), glow(0xffffff, 1.2));
                 hit.material = hit.material.clone(); hit.material.transparent = true; hit.material.opacity = 0.0; hit.material.blending = THREE.AdditiveBlending; hit.material.depthWrite = false;
@@ -139,7 +143,7 @@ export class View {
         }
         if (!this.boss || this.boss.id !== B.id || this.boss.key !== B.key) {
             if (this.boss) this.root.remove(this.boss.obj);
-            const obj = bossModel(B.key);
+            const obj = dressBoss(bossModel(B.key), B.key);
             this.root.add(obj);
             this.boss = { id: B.id, key: B.key, obj };
         }

@@ -168,6 +168,9 @@ async function desktop() {
         return hit.filter((v, i) => Math.abs(v - base[i]) > 60).length;
     });
     check(halo <= 2, `a NaN/infinite pixel does not bloom into a square halo (${halo}/24 far pixels changed)`);
+    // every Meshy model (js/view/meshy.js FIT: 3 ships, 21 enemies, 6 bosses) loads and the player wears one;
+    // a missing or broken GLB would silently fall back to the procedural shape
+    await until(page, () => __nr.view.meshyLoaded === 30 && !!__nr.view.ship?.userData.meshy, 'all 30 Meshy models load and the player ship wears its model');
 
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape pauses');
