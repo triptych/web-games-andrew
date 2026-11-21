@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Launcher: NEBULA REQUIEM added to `js/gamedata.js` with its card style, README and status rows.
 
 ### Fixed
+- **NEBULA REQUIEM** (game-144) v1.0.1: square halos round bright objects. Additive bullets, sparks and glows stacked past the half-float limit, and the bloom turned each infinite pixel into a box. A sanitize pass before the bloom now zeroes non-finite pixels and caps the rest; the browser test puts a NaN/infinity quad on screen and checks nothing far from it changes.
 - **Coppergate Lane** (game-030) v2.0.1: the same auto battle bug as Echoes of Aethermoor 2.0.0. Auto carries on into the next battle, but while it ran the command menu (and its Auto button) never appeared, so on a phone there was no way back. A **Take control** bar now shows whenever auto is on, from the first moment of each battle, and hands the commands back on the next turn (Q still works).
 
 ### Fixed

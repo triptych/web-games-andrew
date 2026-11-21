@@ -2,7 +2,7 @@
 
 **Genre:** 3D side-scrolling bullet-hell shoot-'em-up (horizontal, arcade style) with an anime story
 **Engine:** three.js r165 (import map), sim/view layout; art by fal, music, effects and voices by ElevenLabs
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -166,6 +166,9 @@ move; skill sets reaction rate, how many bullets it notices and look-ahead). Nor
 - More boss variety in survival (they repeat with more HP after six).
 
 ## Changelog
+
+### v1.0.1 (2026-11-21)
+- Fixed square halos round bright objects: a sanitize pass before the bloom zeroes NaN/infinite pixels and caps the rest.
 
 ### v1.0.0 (2026-11-21)
 - First release: three pilots with voiced stories and endings, six stages, capital ships, six bosses, eleven power-ups
