@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **NEBULA REQUIEM** (game-144) v1.0.0: a 3D side-scrolling bullet-hell shooter in three.js, built in the sim/view layout.
+  - Three pilots ([pilots.js](game-144/js/sim/data/pilots.js)) with their own guns, speeds, hitboxes and Burst supers, and their own voiced anime storylines and endings ([story.js](game-144/js/sim/data/story.js)): Sora searching for her sister inside the enemy's song, Kaito hunting the admiral who defected, Lyra deciding what she is.
+  - Six stages and six multi-phase bosses with destructible parts and phase timers ([bosses.js](game-144/js/sim/bosses.js)); capital ships with solid hulls, turrets and engines ([capital.js](game-144/js/sim/capital.js)), including a flight through a mothership's corridors whose broken engines weaken its boss; 22 enemy kinds and a 13-pattern bullet library ([patterns.js](game-144/js/sim/patterns.js)); survival mode with escalating waves and bosses every eight.
+  - Bombs, warp, focus, graze-fed Burst, chains and extends; 11 power-ups and 9 named synergies ([powerups.js](game-144/js/sim/data/powerups.js)); continues; Casual, Normal and Requiem difficulty.
+  - The look: procedural ships, enemies and boss models, instanced shader bullets, a particle pool, debris, shockwave rings and telegraphed beams, painted fal backdrops behind a nebula shader, parallax scenery per stage, bloom and a final pass with chromatic aberration, shockwave refraction, grain and flashes ([js/view/](game-144/js/view/)).
+  - Generated media: 39 fal images (backdrops, cutscene stills, portraits and battle expressions, boss cards, key art; [dev/art/](game-144/dev/art/README.md)) and ElevenLabs audio (8 music tracks, 17 effects, 74 voice lines in 8 voices; [dev/audio/](game-144/dev/audio/README.md)), with a Web Audio synth for the guns and as a fallback.
+  - Tests: [dev/simtest.mjs](game-144/dev/simtest.mjs) (rules, story for every pilot, generation proofs, determinism, survival, bot balance bands) and [dev/browsertest.mjs](game-144/dev/browsertest.mjs) (desktop, two touch phones, blocked storage); [dev/tour.mjs](game-144/dev/tour.mjs) photographs every stage and boss.
+- Launcher: NEBULA REQUIEM added to `js/gamedata.js` with its card style, README and status rows.
+
 ### Fixed
 - **Coppergate Lane** (game-030) v2.0.1: the same auto battle bug as Echoes of Aethermoor 2.0.0. Auto carries on into the next battle, but while it ran the command menu (and its Auto button) never appeared, so on a phone there was no way back. A **Take control** bar now shows whenever auto is on, from the first moment of each battle, and hands the commands back on the next turn (Q still works).
 

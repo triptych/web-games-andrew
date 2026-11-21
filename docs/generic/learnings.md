@@ -7474,3 +7474,35 @@ because of something that table showed.
 - **ffmpeg can hang on a filter chain.** `silenceremove` followed by `loudnorm` in one `-af` chain ran forever on a three
   second effect, and ffmpeg also reads stdin unless told not to (`-nostdin`). Two passes through a temporary file fixed both.
 
+
+---
+
+## Game 144: NEBULA REQUIEM — a 3D bullet hell with an anime story, fal art and ElevenLabs voices (2026-11-21)
+
+A horizontal three.js shmup in the sim/view layout: three pilots with their own guns, supers and voiced stories, capital
+ships whose hulls are solid walls, six multi-phase bosses with destructible parts, eleven power-ups and nine synergies,
+and a survival mode. What the next game should know:
+
+- **A view keyed by sim id must reset when the game object changes.** Ids restart at 1 in every new run, so a boss model
+  matched by `B.id` was reused by the next run's boss: every boss after the first rendered as the stage-3 organ in the
+  photo tour. The view now drops every id-keyed model when `G !== this.game` (`js/view/view.js` `reset()`). Any view
+  that caches by sim id needs this; the attract demo restarting behind the title triggers it too.
+- **Don't cull mounted parts by position.** Boss parts far behind the boss (the Bellwether's engines, 8 units back) sat
+  past the "off screen" cull while it flew in and were deleted, so its armoured core opened at once. A part lives and
+  dies with its host (`e.part ||` in the cull filter). Found by a simtest line, not by looking.
+- **Put a boss's weak points where the guns can reach.** The engines sat inside the hull's line of fire; shots hit the
+  wall first and the perfect bot died four times waiting for a core that could not open. A balance table that shows
+  *where* deaths happen (`boss p1 pt10: 14`) found it in one run.
+- **Bosses scale by stage, not by one constant.** With one HP multiplier the stage-1 boss took 100 s and the final one
+  50 s, because the player's power snowballs. A per-boss factor (`STAGE_BOSS_HP`) fixed the curve.
+- **Two fairness rules the bot asked for:** no aimed fire from inside ~3 units (a point-blank shot can only be guessed),
+  and beams that hold their line after the telegraph rather than sweep the whole screen.
+- **Painted backdrops must be dimmed per stage.** fal paints at full brightness; behind bloom and additive bullets the
+  Heart's white star washed the play field out completely. Each stage carries `sky.dim`; scenery gets ~50 % colour and
+  ~30 % glow; and far planes face the camera (a leaning boss camera saw their edges otherwise).
+- **fal ignored a chroma key once; fix it with an edit, not a regeneration.** One portrait came back on white (on a white
+  flight suit). `nano-banana-2/edit` "replace the background with green, change nothing else" kept the face; putting the
+  key instruction at the *start* of the prompt made every later portrait come back keyed.
+- **Phone browser tests about controls should run in god mode.** At `&fast=4` an idle ship in a slow landscape test was
+  shot down to Game Over, so a later BOMB tap "failed" while the ship was exploding. Test the controls on a ship that
+  can't die; test dying separately.
