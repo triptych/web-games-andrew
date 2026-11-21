@@ -51,10 +51,7 @@ painted and voiced media.
   last Phaser RPG, and a visual novel depends on portraits and voices. Paint the cast in several expressions each (game-027,
   game-140) and voice the lines (game-140 has 401 clips). Model the DOM visual-novel layer on game-133 or game-140. Once this and
   game-035 are done, `lib/phaser` can be removed. (Checked when game-028 was done: game-019, 020, 021 and 022 load it too.)
-- [ ] **game-030 Coppergate Lane** (Canvas 2D, cozy-fantasy RPG; rated Playable-but-partial). It is the only early game the audit
-  still rates *partial*: no save or load, one hero, and every enemy uses the same AI. The rebuild finishes it with saves, a party,
-  and enemies with distinct behaviour. Paint the town and townsfolk and give the quest-givers voices. Reuse game-103 Crown &
-  Crumpet or game-126 EMBERSPIRE for tactics and battles.
+- [x] **game-030 Coppergate Lane** (done in v2.0.0: no framework, saves, a party of three, enemies with distinct AI, 41 fal paintings, ElevenLabs music for seven themes, 18 effects and every line of dialogue and shout voiced; see its game-plan.md). Not yet listened to by ear: the voice cuts were checked by pause counts only.
 - [ ] **game-009 Chronicles of the Ember Crown** (Kaplay, party turn-based RPG). Four classes, 12 battles, a journey map and NG+,
   with 11 images. It follows the game-012 pattern: a bot balances the 12 fights. Paint the heroes and foes, and add battle barks
   rationed like game-126's. Finish the polish and endgame phases it never checked off.

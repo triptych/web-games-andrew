@@ -450,16 +450,17 @@ const games = [
     {
         id: 'game-030',
         title: 'Coppergate Lane',
-        description: "A cozy-fantasy top-down RPG adventure with quests and turn-based battles. Explore Coppergate Lane, the Whistling Wilds, and Gutter Gully, help the townsfolk with quests, battle clockwork critters in turn-based combat, and recover the Mayor's stolen Golden Gear from the brute Big Bertha.",
+        description: "A cozy-fantasy tinker's RPG in plain HTML, CSS and JavaScript, painted with fal and voiced with ElevenLabs. You are Wick, the handy newcomer on Coppergate Lane. Fetch scrap for Trina, find Mabel's kettle, run errands for Bertram, and gather a party of three through those quests, then fight clockwork critters in turn-based battles that each play differently: Cog Sprites swarm, Rust Crabs shell up and rust your armour, Lane Bandits pick your pocket, Gear-Wolves hunt the weakest. Win the Mayor's Golden Gear back from Big Bertha, who telegraphs a slam, calls her cogs and loses her temper. Saves itself, with a hint arrow, tap-to-walk, a touch pad and a bot that tuned the balance. Painted places, characters and creatures, ElevenLabs music, sound effects and every line of dialogue voiced.",
         icon: '⚙️',
         folder: 'game-030',
-        version: '1.1.3',
+        version: '2.0.0',
         cssClass: 'coppergate-lane',
         genre: 'rpg',
         tags: [
             { emoji: '🗺️', label: 'Adventure' },
             { emoji: '🎲', label: 'Turn-Based' },
-            { emoji: '⌨️', label: 'Keyboard' }
+            { emoji: '🎨', label: 'Painted' },
+            { emoji: '🖼️', label: 'Canvas 2D' }
         ]
     },
     {

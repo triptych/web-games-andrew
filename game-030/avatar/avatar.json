@@ -15,11 +15,14 @@
   "The clockwork critters are cranky lately. Be careful!"
  ],
  "about": "I'm Tess, the lane's tinker. I fix things, build things and sometimes blow things up. On purpose. Mostly.",
- "how": "Explore Coppergate Lane, the Whistling Wilds and Gutter Gully, help the townsfolk with quests, battle clockwork critters and get the Golden Gear back.",
+ "how": "Walk with the arrows or WASD (or tap), talk with Space, and press H for where to go next. Gather scrap for Trina, find Mabel's kettle and run Bertram's errands to build a party, then win back the Golden Gear from Big Bertha.",
  "tips": [
-  "Help the townsfolk: their quests pay off in the Gully.",
-  "Scrap is useful! Keep some.",
-  "Bertha hits HARD. Stock up on tea before the fight."
+  "Help the townsfolk: Trina and Mabel both join your party once their errands are done.",
+  "Scrap is useful! Keep five for Trina, she builds you a Spark Rod.",
+  "Bertha telegraphs her big slam a turn ahead. Defend, or let Mabel wrap everyone in a Cosy Blanket.",
+  "Rust Crabs hide in their shells, then rust your armour. Hit them when the shell is down.",
+  "Bandits pinch your gold! Beat the thief and it all jingles back.",
+  "Level 6 is a good time to visit Bertha, and stock up on tea and scones first."
  ],
  "chat": [
   "Built a clockwork bird. It flew into a window. Twice.",
@@ -59,5 +62,21 @@
   "Back to the bench! ⚙️",
   "Tess out, toolbelt on!"
  ],
- "art": "fal"
+ "art": "fal",
+ "updates": {
+  "2.0.0": "Big news: the lane got a proper rebuild! You can save now, Trina and Mabel can join your party, every critter fights its own way, and it is all painted, scored and voiced: everyone on the lane talks, even Bertha. She got a lot tougher too."
+ },
+ "save": {
+  "keys": [
+   "coppergate-lane.v2"
+  ],
+  "stats": {
+   "level": [
+    "level"
+   ],
+   "gold": [
+    "gold"
+   ]
+  }
+ }
 }
