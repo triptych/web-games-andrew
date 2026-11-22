@@ -91,7 +91,7 @@ export class View {
         this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
         this.renderer.outputColorSpace = THREE.SRGBColorSpace;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.05;
+        this.renderer.toneMappingExposure = 1.2;
         this.renderer.setClearColor(0x000000, 0);
         this.scene = new THREE.Scene();
         const pm = new THREE.PMREMGenerator(this.renderer);
@@ -99,10 +99,13 @@ export class View {
         pm.dispose();
         this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
         this.camera.position.set(0, 0, 40);
-        this.scene.add(new THREE.HemisphereLight(0xfff2dd, 0x203050, 0.8));
-        const key = new THREE.DirectionalLight(0xffffff, 1.6);
-        key.position.set(-4, 6, 10);
+        this.scene.add(new THREE.HemisphereLight(0xfff2dd, 0x203050, 0.9));
+        const key = new THREE.DirectionalLight(0xffffff, 2.4);
+        key.position.set(-5, 7, 9);
         this.scene.add(key);
+        const rimL = new THREE.DirectionalLight(0x9fc8ff, 1.2);       // a cool rim from the lower right
+        rimL.position.set(6, -5, 4);
+        this.scene.add(rimL);
 
         this.calm = false;
         this.guideMode = 'short';
@@ -147,13 +150,24 @@ export class View {
             rail.position.set(x, -7.0, -0.5);
             g.add(rail);
         }
-        // the snowy ceiling: a block of snow whose lower edge is the ceiling, with icicles under it
-        const snowMat = new THREE.MeshStandardMaterial({ color: 0xf4f8ff, roughness: 0.85 });
-        this.ceilBlock = new THREE.Mesh(new THREE.BoxGeometry(FIELD.w + 0.7, 1, 0.8), snowMat);
-        this.ceilBlock.position.z = -0.6;
+        // the ceiling: a frosted wash over the rows it has come down, and a snow-capped wooden beam at its edge
+        this.ceilBlock = new THREE.Mesh(new THREE.PlaneGeometry(FIELD.w + 0.3, 1), new THREE.MeshBasicMaterial({ color: 0xcfe4ff, transparent: true, opacity: 0.22, depthWrite: false }));
+        this.ceilBlock.position.z = -1;
         g.add(this.ceilBlock);
-        this.icicles = new THREE.InstancedMesh(new THREE.ConeGeometry(0.13, 0.5, 6), new THREE.MeshPhysicalMaterial({ color: 0xcfeaff, roughness: 0.1, transparent: true, opacity: 0.85, clearcoat: 1 }), 24);
-        this.icicles.rotation.x = Math.PI;
+        const beamTex = canvasTex(512, 64, (c, w, h) => {
+            const gr = c.createLinearGradient(0, 0, 0, h);
+            gr.addColorStop(0, '#8a5530'); gr.addColorStop(1, '#4e2c15');
+            c.fillStyle = gr; c.fillRect(0, 0, w, h);
+            c.strokeStyle = 'rgba(0,0,0,0.25)'; c.lineWidth = 2;
+            for (let y = 14; y < h; y += 14) { c.beginPath(); c.moveTo(0, y); for (let x = 0; x <= w; x += 32) c.lineTo(x, y + Math.sin(x * 0.05 + y) * 3); c.stroke(); }
+            c.fillStyle = '#f6fbff';
+            c.fillRect(0, 0, w, 14);
+            for (let x = 0; x < w; x += 22) { c.beginPath(); c.arc(x + 11, 13, 9 + (x % 3) * 2, 0, Math.PI); c.fill(); }
+        });
+        this.beam = new THREE.Mesh(new THREE.BoxGeometry(FIELD.w + 0.8, 0.55, 0.5), new THREE.MeshStandardMaterial({ map: beamTex, roughness: 0.8 }));
+        this.beam.position.z = -0.4;
+        g.add(this.beam);
+        this.icicles = new THREE.InstancedMesh(new THREE.ConeGeometry(0.1, 0.4, 6), new THREE.MeshPhysicalMaterial({ color: 0xcfeaff, roughness: 0.1, transparent: true, opacity: 0.85, clearcoat: 1 }), 24);
         g.add(this.icicles);
         // a garland of little lights along the ceiling's edge
         this.bulbs = new THREE.InstancedMesh(new THREE.SphereGeometry(0.11, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false }), 22);
@@ -170,7 +184,7 @@ export class View {
     _buildBalls() {
         const sphere = new THREE.SphereGeometry(0.47, 32, 22);
         this.colorMats = COLOR_HEX.map((c, i) => new THREE.MeshPhysicalMaterial({
-            map: ornamentTexture(i), metalness: i === 4 ? 0.55 : 0.3, roughness: 0.16, clearcoat: 1, clearcoatRoughness: 0.06, envMapIntensity: 1.25,
+            map: ornamentTexture(i), metalness: i === 4 ? 0.6 : 0.45, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.04, envMapIntensity: 1.8,
         }));
         this.colorMeshes = this.colorMats.map((m) => { const im = new THREE.InstancedMesh(sphere, m, CAP); im.frustumCulled = false; this.scene.add(im); return im; });
         // the little gold cap and hanging loop every ornament wears
@@ -224,8 +238,8 @@ export class View {
         const base = new THREE.Mesh(new THREE.SphereGeometry(0.95, 32, 16, 0, TAU, 0, Math.PI / 2), new THREE.MeshPhysicalMaterial({ color: 0x1f7a45, roughness: 0.35, clearcoat: 0.8 }));
         base.rotation.x = Math.PI / 2; base.position.set(0, -0.35, -0.6); base.scale.set(1, 1, 0.6);
         g.add(base);
-        const rim = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.08, 10, 40), new THREE.MeshStandardMaterial({ color: 0xf0c050, metalness: 1, roughness: 0.25 }));
-        rim.position.set(0, -0.35, -0.6);
+        const rim = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.16, 40), new THREE.MeshStandardMaterial({ color: 0xf0c050, metalness: 1, roughness: 0.25 }));
+        rim.position.set(0, -0.4, -0.5);
         g.add(rim);
         this.barrel = new THREE.Group();
         g.add(this.barrel);
@@ -311,7 +325,7 @@ export class View {
         const vw = VIEW.x1 - VIEW.x0, vh = VIEW.y1 - VIEW.y0;
         const s = this.s = Math.min(w / vw, (h - top - bot) / vh);
         this.ox = w / 2 - ((VIEW.x0 + VIEW.x1) / 2) * s;                  // screen x of sim x = 0
-        this.oy = top + (h - top - bot - vh * s) / 2 - VIEW.y0 * s;         // screen y of sim y = 0
+        this.oy = top + (h - top - bot - vh * s) * 0.7 - VIEW.y0 * s;       // screen y of sim y = 0 (tall phones: nearer the thumb)
         const cam = this.camera;
         cam.left = -this.ox / s; cam.right = (w - this.ox) / s;
         cam.top = this.oy / s; cam.bottom = -(h - this.oy) / s;
@@ -396,16 +410,17 @@ export class View {
         const top = H.top(G) + this.offY;
 
         // ceiling, icicles and lights follow it down
-        this.ceilBlock.scale.y = top + 1.2;
-        this.ceilBlock.position.set(FIELD.w / 2, -(top - (top + 1.2) / 2), -0.6);
+        this.ceilBlock.visible = top > 0.05;
+        this.ceilBlock.scale.y = Math.max(0.01, top + 0.4);
+        this.ceilBlock.position.set(FIELD.w / 2, 0.4 - (top + 0.4) / 2, -1);
+        this.beam.position.set(FIELD.w / 2, -(top - 0.27), -0.4);
         for (let i = 0; i < 24; i++) {
-            this.dummy.position.set(0.25 + i * 0.46, -(top + 0.22 + (i % 3) * 0.04), -0.3);
-            this.dummy.scale.set(1, 0.7 + ((i * 7) % 5) * 0.12, 1);
-            this.dummy.rotation.set(0, 0, 0);
+            this.dummy.position.set(0.25 + i * 0.46, -(top + 0.12 + (i % 3) * 0.03), -0.5);
+            this.dummy.scale.set(1, 0.6 + ((i * 7) % 5) * 0.1, 1);
+            this.dummy.rotation.set(0, 0, Math.PI);
             this.dummy.updateMatrix();
             this.icicles.setMatrixAt(i, this.dummy.matrix);
         }
-        this.icicles.rotation.x = 0;
         this.icicles.instanceMatrix.needsUpdate = true;
         for (let i = 0; i < 22; i++) {
             const tw = this.calm ? 1 : 0.75 + 0.25 * Math.sin(time * 2.5 + i * 1.7);

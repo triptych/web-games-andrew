@@ -11,6 +11,7 @@ import { makeRng } from '../rng.js';
 import * as H from './hex.js';
 import { buildLevel, endlessRow, pruneFloating } from './levels.js';
 import { LEVELS, POWERS, unlockedPowers } from './data/levels.js';
+import { PAR } from './data/par.js';
 
 export const PRESSURE_MISS = 2;                                  // a shot that pops nothing brings the ceiling closer twice as fast
 export const CANDY_MAX = 9;                                      // ornaments a candy cane smashes before it shatters
@@ -67,8 +68,7 @@ export function newGame({ mode = 'level', level = 1, seed = 1 } = {}) {
         G.slots = def.slots;
         G.dropEvery = def.drop + 3;
         buildLevel(G, def);
-        const t = targets(G);
-        G.parShots = Math.ceil(t * 0.36) + 2;
+        G.parShots = PAR[def.id - 1] || Math.ceil(targets(G) * 0.36) + 2;
     } else {
         G.colors = 4;
         G.slots = 3;
@@ -387,7 +387,7 @@ function afterShot(G, n) {
         }
     } else {
         G.pressure += n > 0 ? 1 : PRESSURE_MISS;
-        G.dropEvery = Math.max(ENDLESS.minPressure, ENDLESS.pressure - Math.floor(G.pushed / 6));
+        G.dropEvery = Math.max(ENDLESS.minPressure, ENDLESS.pressure - Math.floor(G.pushed / ENDLESS.every));
         if (G.pressure >= G.dropEvery) { G.pressure = 0; pushRow(G); }
         if (!boardColors(G).length && !H.balls(G).length) pushRow(G);     // a cleared blizzard board refills
     }
@@ -411,9 +411,9 @@ function pushRow(G, quiet = false) {
     G.par ^= 1;
     G.grid.unshift(Array(COLS).fill(null));
     G.colors = 4 + ENDLESS.colorsAt.filter((s) => G.score >= s).length - 1;
-    const late = Math.min(1, G.pushed / 30);
+    const late = Math.min(1, G.pushed / 20);
     const chances = quiet ? [['gift', 0.02]] : [
-        ['ice', 0.03 + 0.05 * late], ['coal', 0.02 + 0.04 * late], ['gift', 0.03], ['bell', 0.015 + 0.015 * late], ['prism', 0.015],
+        ['ice', 0.05 + 0.07 * late], ['coal', 0.04 + 0.06 * late], ['gift', 0.025], ['bell', 0.01 + 0.01 * late], ['prism', 0.01],
     ];
     G.grid[0] = endlessRow(G, G.colors, chances);
     G.pushed++;

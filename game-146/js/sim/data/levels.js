@@ -75,7 +75,7 @@ const RAW = [
     L('Ridge Top', 'full', 'clusters', 10, 6, 3, 6, 'p3 i5 c5 b3 g3'),
     // 6  Grimwick's Hoard: everything at once
     L('The Icy Gate', 'columns', 'cols', 10, 6, 3, 7, 'i6 c4 b2 g2 p2'),
-    L('Treasure Heaps', 'tree', 'random', 10, 6, 3, 7, 'i6 c5 b3 g3 p2'),
+    L('Treasure Heaps', 'tree', 'random', 10, 6, 3, 8, 'i6 c5 b3 g3 p2'),
     L('Icicle Chandelier', 'star', 'rings', 10, 6, 3, 7, 'i7 c4 b3 g2 p3'),
     L("The Goblin's Bedroom", 'wreath', 'clusters', 11, 6, 3, 6, 'i7 c6 b3 g3 p2'),
     L('Sack of Sparkles', 'diamond', 'random', 11, 6, 3, 6, 'i8 c6 b4 g3 p3'),

@@ -33,4 +33,4 @@ export const SACK_MAX = 3;                // power-ups the elf can carry
 export const STAR_GRACE = 1.45;           // 2 stars up to par × this many shots; 3 stars at par or better
 
 // Endless mode ("Blizzard")
-export const ENDLESS = { startRows: 6, pressure: 11, minPressure: 6, colorsAt: [0, 2500, 9000] };
+export const ENDLESS = { startRows: 6, pressure: 9, minPressure: 4, every: 4, colorsAt: [0, 1500, 5000] };
