@@ -5,7 +5,7 @@ import { SAVE_KEY } from './config.js';
 import { serialize, deserialize } from './sim/game.js';
 
 const SETTINGS_KEY = SAVE_KEY + '.settings';
-const PROGRESS_KEY = SAVE_KEY + '.progress';
+const PROGRESS_KEY = 'jingle-pop.v1.progress';     // SAVE_KEY + '.progress', spelled out for dev/check-avatars.mjs
 const DEFAULTS = { sfx: 0.8, music: 0.55, voice: 0.9, guide: 'short', calm: false };
 
 function read(key) {

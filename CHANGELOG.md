@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **JINGLE POP** (game-146) v1.0.0: a Christmas bubble shooter. Juniper the junior elf wins back the ornaments Grimwick the snow goblin blew out of Santa's workshop ([game-plan.md](game-146/game-plan.md)).
+  - **Rules** ([js/sim/](game-146/js/sim/)): a pure, seeded simulation. A hex grid hangs from a ceiling; shots are traced exactly when fired (ray against circle with a slightly small hit radius, wall bounces) and flown along that path, so the guide, the bot and the flight agree. Three of a colour pop and anything left hanging falls. A streak multiplier. A ceiling that comes down under shot pressure (a miss counts double), and an endless mode whose new rows push in without shifting the columns below.
+  - **36 levels** in six chapters ([data/levels.js](game-146/js/sim/data/levels.js), [levels.js](game-146/js/sim/levels.js)): 13 shapes, 7 paint schemes and special counts, built from each level's own seed. Every shape hangs from a two-row garland, and no colour group is bigger than six (four at the top), because the bot cleared thin-stalked shapes in one to three shots. Par is baked by [dev/balance.mjs](game-146/dev/balance.mjs).
+  - **Specials**: presents (power-ups), coal (never matches), frozen ornaments (thaw on a neighbouring pop), golden bells (ring and pop their neighbours), prism baubles (match anything). A swap tray of one, two then three ornaments.
+  - **Eight power-ups** from presents and a Christmas-spirit meter, unlocked chapter by chapter: Pudding Bomb, Rainbow Star, Candy Cane Striker, Gingerbread Break, Hot Cocoa, Jingle Bell, Tinsel Garland and North Star.
+  - **Blizzard** (endless): six rows to start, pressure that shrinks from 9 to 4, colours from 4 to 6, more specials as it goes; best score saved.
+  - **Look** ([view.js](game-146/js/view/view.js)): an orthographic three.js board. Instanced glossy ornaments, one mesh per colour, each with its own painted pattern so colour is never the only cue. A snow-capped beam with icicles and lights as the ceiling, a launcher, an aim guide, sparkles, falling ornaments and snow, over the chapter's painted backdrop.
+  - **Media, all ElevenLabs** (the fal account had no credit): 20 images from Nano Banana 2.1 ([dev/art/README.md](game-146/dev/art/README.md)), 4 music loops and 2 stings, 16 effects and 25 voice lines for Juni, Grimwick and Mrs. Claus ([dev/audio/README.md](game-146/dev/audio/README.md)). A Web Audio synth fallback covers anything that fails to load.
+  - **Tests**: [simtest.mjs](game-146/dev/simtest.mjs) covers purity, every rule, special and power-up, all 36 levels proved, determinism and mid-flight save round trips, and bots at three skills on every level with asserted balance bands. [browsertest.mjs](game-146/dev/browsertest.mjs) covers desktop by real mouse and keys, touch-only phones in both orientations, and blocked storage.
+- Launcher: JINGLE POP's entry, card style, preview, icons, PWA manifest and Pocket Garden character (Juni).
+- Docs: [learnings.md § Game 146](docs/generic/learnings.md#game-146-jingle-pop--a-bubble-shooter-with-traced-shots-a-bot-that-previews-every-aim-and-elevenlabs-for-everything-2026-11-22).
+
 ### Changed
 - **VACANCY** (game-145) v1.1.0: the cars, vans, trucks and buses are Meshy 3D models.
   - Seven text-to-3D vehicles ([dev/meshy/](game-145/dev/meshy/README.md)): a sedan, a hatchback, a wood-panel wagon, a pickup, a panel van, a box truck and a city bus, all abandoned (faded paint, rust, grime, soft tyres), shrunk to 512 px textures, 3.0 MB together. 210 Meshy credits.

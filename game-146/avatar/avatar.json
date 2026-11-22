@@ -1,0 +1,101 @@
+{
+ "id": "game-146",
+ "name": "Juni",
+ "role": "Junior elf, ornament rescuer",
+ "emoji": "🎄",
+ "color": "#e0283a",
+ "bio": "Juniper Sprigg, junior elf of Santa's workshop, has six nights to win back every ornament a lonely snow goblin blew out of the windows.",
+ "portrait": {
+  "subject": "Juniper Sprigg, a cheerful young Christmas elf girl with freckles, rosy cheeks, two copper-red braids, pointed ears, a red-and-white striped scarf and a floppy green pointed hat tipped with a little gold jingle bell, holding up a shiny red glass Christmas ornament",
+  "background": "soft deep-blue twilight with gentle falling snowflakes and warm golden bokeh"
+ },
+ "request": "Hi! I'm Juni, from Santa's workshop! Grimwick blew all our ornaments away. Help me win them back? 🎄",
+ "hello": [
+  "Yay, a helper! My bauble blaster's polished and ready.",
+  "Hello hello! Want to pop some ornaments with me?"
+ ],
+ "about": "I'm Juniper, but everyone calls me Juni. I polish the ornaments in Santa's workshop. Then Grimwick's blizzard swept every single one out of the windows, and Mrs. Claus asked me to bring them all home before Christmas Eve.",
+ "how": "Aim at the ornaments and shoot: three of a colour pop, and anything left hanging falls too! Point and click (or drag and let go on a phone), or use ← → and Space. Tap my tray to swap ornaments, and Q E R for power-ups.",
+ "tips": [
+  "Bank shots off the walls! The dotted line shows where the first bounce goes.",
+  "Pop the ornaments that hold others up. Everything below falls, and drops score double!",
+  "A shot that pops nothing brings the snowy ceiling down twice as fast. Watch the ❄ dots!",
+  "Pop something right next to a present and it opens: free power-up!",
+  "Coal never matches, so knock out whatever it's hanging from.",
+  "Frozen ornaments thaw when you pop something next to them. Hot Cocoa thaws them all at once!",
+  "Save the Jingle Bell for the colour that's everywhere. It rings them all away!"
+ ],
+ "chat": [
+  "Mrs. Claus made gingerbread. I may have eaten three. Four.",
+  "The gold-dotted ornaments are my favourite. Don't tell the plum ones.",
+  "Grimwick left coal in the gingerbread houses. Rude!",
+  "Twinkle Pond is so pretty at night. Slippery, though.",
+  "I think Grimwick is just lonely. Who steals ornaments if they already have a tree?",
+  "The reindeer cheer when I make a big drop. Well, they snort. Same thing."
+ ],
+ "nudge": [
+  "The tree's still missing ornaments! One more level? 🎄",
+  "Christmas Eve is getting closer... want to help?"
+ ],
+ "idle": [
+  "It's been {ago}! The ornaments are still out there. 🎄",
+  "{ago} without you, and Grimwick's been hoarding again..."
+ ],
+ "progress": [
+  "You've reached level {level}! Let's keep going! ⭐",
+  "Level {level} is open! Mrs. Claus is so proud.",
+  "Your best Blizzard is {best} points. Bet we can beat {best^}!"
+ ],
+ "questions": [
+  {
+   "q": "Which ornament colour is the best?",
+   "a": [
+    [
+     "Cranberry red",
+     "Classic! Red and white bands, like a candy cane."
+    ],
+    [
+     "Gold dots",
+     "My favourite too! Shhh."
+    ],
+    [
+     "Frost blue",
+     "The snowflake ones! So pretty."
+    ]
+   ]
+  },
+  {
+   "q": "Should Grimwick get a tree of his own?",
+   "a": [
+    [
+     "Yes!",
+     "I think so too. Everyone deserves sparkles at Christmas."
+    ],
+    [
+     "Not after this!",
+     "Hee. He did leave coal everywhere..."
+    ]
+   ]
+  }
+ ],
+ "update": "Jingle Pop is now v{version}! New things in the workshop. 🎄",
+ "bye": [
+  "Merry Christmas! 🎄",
+  "Back to polishing!"
+ ],
+ "save": {
+  "keys": [
+   "jingle-pop.v1.progress",
+   "jingle-pop.v1"
+  ],
+  "stats": {
+   "level": [
+    "unlocked"
+   ],
+   "best": [
+    "endless"
+   ]
+  }
+ },
+ "art": "fal"
+}

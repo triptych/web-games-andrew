@@ -136,6 +136,17 @@ export function buildLevel(G, def) {
     for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (G.grid[r][c]) cells.push([r, c]);
     for (let i = cells.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [cells[i], cells[j]] = [cells[j], cells[i]]; }
     const deep = (r) => r >= Math.floor(def.rows / 2);
+    // Coal never walls an ornament in: an ornament needs two neighbours that aren't coal, or nothing can ever be
+    // matched against it (game-146's perfect bot lost Treasure Heaps to a corner ornament boxed in by two coals).
+    const freeAround = (r, c) => neighbors(G, r, c).filter(([a, b]) => G.grid[a][b]?.k !== 'coal').length;
+    const coalOk = (r, c) => {
+        if (r < 2) return false;
+        const saved = G.grid[r][c];
+        G.grid[r][c] = { k: 'coal' };
+        const ok = neighbors(G, r, c).every(([a, b]) => !G.grid[a][b] || G.grid[a][b].k === 'coal' || freeAround(a, b) >= 2);
+        G.grid[r][c] = saved;
+        return ok;
+    };
     const take = (pred) => {
         const i = cells.findIndex(([r, c]) => G.grid[r][c].k === 'orn' && pred(r, c));
         return i < 0 ? null : cells.splice(i, 1)[0];
@@ -143,7 +154,8 @@ export function buildLevel(G, def) {
     const order = ['gift', 'bell', 'ice', 'coal', 'prism'];
     for (const kind of order) {
         for (let n = 0; n < (def.specials[kind] || 0); n++) {
-            const cell = take((r) => (kind === 'gift' || kind === 'bell' ? deep(r) : true)) || take(() => true);
+            const cell = kind === 'coal' ? take(coalOk)
+                : take((r) => (kind === 'gift' || kind === 'bell' ? deep(r) : true)) || take(() => true);
             if (!cell) break;
             const [r, c] = cell, b = G.grid[r][c];
             if (kind === 'ice') G.grid[r][c] = { id: b.id, k: 'ice', c: b.c };

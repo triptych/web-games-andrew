@@ -235,6 +235,11 @@ function land(G) {
         const b = { id: G.nextId++, k: 'orn', c: col };
         G.grid[r][c] = b;
         G.events.push({ type: 'stick', id: b.id, r, c, x: pos.x, y: pos.y, kind: s.kind, col });
+        // a shot that lands against a frozen ornament cracks the ice
+        for (const [a, d] of H.neighbors(G, r, c)) {
+            const nb = G.grid[a][d];
+            if (nb && nb.k === 'ice') { nb.k = 'orn'; G.events.push({ type: 'thaw', id: nb.id, x: H.cellX(G, a, d), y: H.cellY(G, a) }); }
+        }
         const g = group(G, r, c, col);
         if (g.length >= need) n += popCells(G, g, 'match');
     } else if (s.kind === 'bomb' && cell) {

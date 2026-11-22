@@ -131,6 +131,11 @@ if (want('rules')) {
     ok(D.unlockedPowers(1).includes(G.sack[0]), 'the present holds a power-up unlocked by this chapter');
 
     G = blank();
+    const ice2 = put(G, 0, 5, 'ice', 2); put(G, 0, 3, 'orn', 1);
+    ev = shoot(G, aimAt(G, 1, 5), { color: 0 });
+    ok(ice2.k === 'orn' && ev.some((e) => e.type === 'thaw'), 'a shot that lands against a frozen ornament cracks it');
+
+    G = blank();
     put(G, 0, 5, 'orn', 0); put(G, 0, 6, 'orn', 0); put(G, 0, 7, 'bell'); put(G, 0, 8, 'orn', 3); put(G, 1, 7, 'coal'); put(G, 0, 9, 'orn', 4);
     ev = shoot(G, aimAt(G, 1, 5), { color: 0 });
     ok(!G.grid[0][7] && !G.grid[0][8] && !G.grid[1][7] && ev.some((e) => e.type === 'ring'), 'a golden bell rings, popping everything around it, coal too');
@@ -279,6 +284,11 @@ if (want('levels')) {
             if (b.b.k !== 'orn') continue;
             const n = Gm.group(G, b.r, b.c, b.b.c).filter(([r, c]) => G.grid[r][c].k === 'orn').length;
             if (n > 6) { bad.push(`a group of ${n}`); break; }
+        }
+        for (const b of H.balls(G)) {
+            if (!Gm.TARGET_KINDS.has(b.b.k)) continue;
+            const free = H.neighbors(G, b.r, b.c).filter(([r, c]) => G.grid[r][c]?.k !== 'coal').length;
+            if (free < 2) { bad.push(`ornament at ${b.r},${b.c} walled in by coal`); break; }
         }
         for (const [k, n] of Object.entries(def.specials)) {
             const have = count(G, (b) => b.k === k);

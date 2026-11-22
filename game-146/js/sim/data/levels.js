@@ -19,7 +19,7 @@ export const GIFT_ICON = 8;
 export const SPECIALS = {
     gift: { name: 'Wrapped Present', desc: 'Pop or drop an ornament next to it and it opens: a power-up goes in your sack.' },
     coal: { name: 'Lump of Coal', desc: 'Never matches. Drop it by cutting what holds it up, or blast it.' },
-    ice: { name: 'Frozen Ornament', desc: 'Pop something next to it to thaw it; then it matches like any other.' },
+    ice: { name: 'Frozen Ornament', desc: 'Land a shot against it, or pop something next to it, to thaw it; then it matches like any other.' },
     bell: { name: 'Golden Bell', desc: 'Pop something next to it and it rings, popping everything around it.' },
     prism: { name: 'Prism Bauble', desc: 'A rainbow ornament that matches every colour.' },
 };
@@ -111,7 +111,7 @@ export const STORY = {
         [{ who: 'grimwick', vo: 'grim-2', text: 'I hid them in the gingerbread! And I left you some coal. Hee hee!' },
             { who: 'juni', text: "Coal never matches... but if I knock out what it hangs from, down it comes. And now I can juggle two ornaments!" }],
         [{ who: 'grimwick', vo: 'grim-3', text: 'Brrr! I froze the best ones solid. Good luck thawing those!' },
-            { who: 'juni', text: 'A pop right next to the ice should crack it open.' }],
+            { who: 'juni', text: 'A good knock or a pop right next to the ice should crack it open.' }],
         [{ who: 'grimwick', vo: 'grim-4', text: "Bells! Ringing, jingling bells! Even I can't resist them!" },
             { who: 'juni', text: 'Three ornaments in my tray now. Tap one to load it!' }],
         [{ who: 'grimwick', vo: 'grim-5', text: "Why do you even want them so badly? They're just... shiny." },
