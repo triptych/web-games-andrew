@@ -4648,6 +4648,11 @@ Its `dev/art/` and `dev/audio/` hold the scripts and READMEs to copy.
 - Big `wait_for_jobs` results are saved to a file when they overflow; parse that file with a script
   (`grab.py` pattern) instead of reading it into the conversation.
 
+**No fal credit?** The ElevenLabs connector makes images too (game-146): an `image-generation` node with `gemini-nano-banana-2.1`
+(`aspect_ratio`, `resolution`; ~200 credits at 1K, ~300 at 2K), the shared style at the top of every prompt (there is no
+system prompt field), and `creative_edit_image` from the base sprite for poses. Measure the key colour from the border: its
+"magenta" came back as about #d040d0.
+
 **ElevenLabs audio** (MCP `creative_*` tools; put everything on one flow)
 - Download every result as soon as its run finishes: the signed `elevenlabsusercontent.com` links expire in a few hours.
 - Music: `eleven_music_v2_5`. Add the node with `model_parameters: { duration_seconds, instrumental: true,

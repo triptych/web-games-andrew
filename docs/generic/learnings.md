@@ -7561,3 +7561,49 @@ buildings, every floor of every building walkable, with a ten-diary lock-and-key
   The instances share the model's geometry, so a block's disposer must free only their instance buffers. Resolve
   model URLs with `new URL(..., import.meta.url)`, or a dev gallery page in `dev/` 404s them
   ([vehicles.js](../../game-145/js/view/vehicles.js)).
+
+## Game 146: JINGLE POP — a bubble shooter with traced shots, a bot that previews every aim, and ElevenLabs for everything (2026-11-22)
+
+A Christmas bubble shooter in three.js ([game-146](../../game-146/)): a hex grid hanging from a ceiling, 36 generated
+levels, five grid specials, eight power-ups, a swap tray and an endless mode.
+
+- **Trace the shot when it is fired, then fly the path.** `hex.traceShot` solves the whole flight up front (ray against
+  circle for every ball, mirror at the walls, the nearest free cell that touches something), and the sim only moves
+  the ball along the stored polyline. Nothing on the board moves during a flight, so this is exact. The aim guide, the
+  bot and the real shot then agree by construction, and a save taken mid-flight round-trips (the path is in `G.shot`).
+  Use a hit radius a little under one ball (0.86 here), or shots stop on balls they visibly pass.
+- **A hex grid that can push rows in from the top** keeps a parity offset (`G.par`) instead of fixed even/odd rows.
+  `unshift` a row and flip the parity, and every existing ball keeps its x.
+- **The bot runs the real rules.** `game.preview(G, kind, colour, trace)` copies the grid, runs the real `land()` and
+  reports what happened. The bot scores ~100 aims × each tray option with it. It is exact (specials, chains, drops,
+  presents) and costs about 300 small copies per shot, fine in Node. Skill below 1 picks among the top few and
+  wobbles the aim, which produces realistic misses.
+- **What the bot found in generated levels.** Shapes with a thin stalk to the ceiling (a tree point-up, a star, a
+  wreath on a ribbon) were cleared in one to three shots by popping the stalk. So were boards painted in rows or big
+  clusters, where one pop at the top dropped half the board. Two generator rules fixed both: every shape hangs from a
+  full two-row band, and a post-pass breaks any colour group over six (four in the top rows). Check it with the
+  perfect bot over several seeds; a level the perfect bot clears in under five shots is broken. The opposite also
+  happened: a corner ornament boxed in by two lumps of coal (a top-row corner cell has only two neighbours) could never
+  be matched. Unmatchable blockers need a placement rule (no coal in the top rows, every ornament keeps two non-coal
+  neighbours) and a level proof for it.
+- **"The ceiling drops after N misses" never fires for a competent player.** Every bot at every skill cleared every
+  level, because the miss counter resets on any pop. The classic answer works: every shot adds pressure, a miss adds
+  double. Weaker bots then start losing in the last chapters while the early ones stay forgiving. Assert those bands in
+  the simtest.
+- **Power-ups that pierce need a cap.** A candy cane that passes through everything zig-zagged through whole boards
+  off the walls; nine ornaments, then it shatters.
+- **Par from the bot, baked.** `dev/balance.mjs` writes `js/sim/data/par.js` (the perfect bot's median × 1.35 + 2). A
+  formula from the ornament count was useless: the bot's shot counts vary 3× between levels of the same size.
+- **ElevenLabs can make the images too.** The fal account was out of credit, and the ElevenLabs connector's
+  `gemini-nano-banana-2.1` (an `image-generation` node with `aspect_ratio` and `resolution`) took the same prompts: 1K
+  images at about 200 credits, 2K at about 300. There is no system prompt field, so put the shared style paragraph at
+  the top of every prompt. Pose variants are `creative_edit_image` with the base sprite's node in `connect_from`. The
+  magenta key came back as about #d040d0, not #ff00ff: measure the key from the border, never assume it.
+- **The status poll is huge.** `creative_get_flow_run_status` returns every generation's full prompt twice and long
+  signed URLs. Poll a batch once it is surely done, and copy only the content URLs into a download list.
+- **A key or tap pressed during the shot's cool-down must survive.** `step()` returns `{ fired }` and the fire latch is
+  cleared only then (with a 0.5 s expiry so a stale press never fires a surprise shot).
+- **Test fixtures on a hex grid need real neighbours.** A "column" at c = 0 / 1 in alternating rows is not connected
+  (an odd row sits half a ball to the right), so the whole thing fell and the loss test passed for the wrong reason.
+  Build fixtures with `put(G, r, 0, …)` in every row, and assert the setup (`cellY(G, 14) > DEAD_Y`) before the
+  outcome.

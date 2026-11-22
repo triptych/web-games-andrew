@@ -1792,6 +1792,17 @@ h1 {
     box-shadow: 0 0 14px rgba(230, 74, 87, 0.6);
 }
 
+.game-preview.jingle-pop,
+.carousel-slide-bg.jingle-pop {
+    background: radial-gradient(circle at 30% 30%, rgba(224, 40, 58, 0.55), transparent 22%), radial-gradient(circle at 70% 40%, rgba(242, 182, 48, 0.5), transparent 20%), radial-gradient(circle at 50% 70%, rgba(47, 168, 90, 0.5), transparent 24%), linear-gradient(180deg, #13214a 0%, #1d3470 55%, #e8f0ff 100%);
+}
+
+.game-card.jingle-pop .play-button {
+    background: linear-gradient(135deg, #e0283a, #f2b630, #2fa85a);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(242, 182, 48, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

@@ -1,0 +1,39 @@
+{
+  "name": "JINGLE POP",
+  "short_name": "JINGLE POP",
+  "description": "JINGLE POP — a Christmas ornament-popping puzzle. You are Juniper, a junior elf: aim, bounce and match glittering baubles to win back every ornament Grimwick blew out of Santa",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0c1630",
+  "theme_color": "#0c1630",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -2267,6 +2267,23 @@ const games = [
             { emoji: '\uD83C\uDFA8', label: 'fal art' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-146',
+        title: 'JINGLE POP',
+        description: 'A Christmas ornament-popping puzzle. Grimwick, a lonely snow goblin who loves shiny things, blew every ornament out of Santa\'s workshop, and Juniper the junior elf has six nights to win them back with her candy-cane bauble blaster. Aim, bank shots off the walls and match three glass ornaments of a colour to pop them free; anything left hanging falls too. 36 levels across six painted chapters (the workshop, Gingerbread Lane, the Candy Cane Forest, Twinkle Pond, Reindeer Ridge and Grimwick\'s icy hoard) bring presents, coal, frozen ornaments, golden bells and prism baubles, a tray that grows to three ornaments you tap to swap, eight power-ups (Pudding Bomb, Rainbow Star, Candy Cane Striker, Jingle Bell, Tinsel Garland, Hot Cocoa, North Star, Gingerbread Break) and a snowy ceiling that creeps down with every shot. Then the endless Blizzard. Voiced story, ElevenLabs music and art.',
+        icon: '\uD83C\uDF84',
+        folder: 'game-146',
+        version: '1.0.0',
+        cssClass: 'jingle-pop',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83E\uDEE7', label: 'Bubble shooter' },
+            { emoji: '\uD83C\uDF85', label: 'Christmas' },
+            { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced story' },
+            { emoji: '\uD83C\uDFA8', label: 'ElevenLabs art' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
