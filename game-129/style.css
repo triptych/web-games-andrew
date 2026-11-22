@@ -209,8 +209,16 @@ td:first-child { color: var(--gold); white-space: nowrap; }
 #hud-buttons { position: absolute; left: calc(8px + var(--safe-l)); top: calc(52px + var(--safe-t)); display: flex; flex-direction: column; gap: 6px; pointer-events: auto; }
 
 #pad { position: fixed; z-index: 35; right: calc(8px + var(--safe-r)); bottom: calc(var(--party-h) + 10px + var(--safe-b)); display: grid; grid-template-columns: repeat(3, 56px); gap: 6px; }
-#pad button { width: 56px; height: 52px; font-size: 22px; border-radius: 10px; color: var(--text); background: rgba(16, 12, 22, 0.66); border: 1px solid var(--edge-dim); touch-action: none; }
+#pad button { --c: 46px; display: grid; place-items: center; padding: 0; width: 56px; height: 52px; border-radius: 10px; background: rgba(16, 12, 22, 0.66); border: 1px solid var(--edge-dim); touch-action: none; }
 #pad button:active { background: rgba(233, 196, 106, 0.35); }
+/* the painted arrows (fal): a 3x2 atlas in the buttons' order */
+#pad button::before { content: ''; width: var(--c); height: var(--c); background: url(art/icons/pad.webp) no-repeat; background-size: calc(var(--c) * 3) calc(var(--c) * 2); pointer-events: none; }
+#pad button:nth-child(2)::before { background-position: calc(var(--c) * -1) 0; }
+#pad button:nth-child(3)::before { background-position: calc(var(--c) * -2) 0; }
+#pad button:nth-child(4)::before { background-position: 0 calc(var(--c) * -1); }
+#pad button:nth-child(5)::before { background-position: calc(var(--c) * -1) calc(var(--c) * -1); }
+#pad button:nth-child(6)::before { background-position: calc(var(--c) * -2) calc(var(--c) * -1); }
+#pad button:active::before { filter: brightness(1.35) drop-shadow(0 0 4px rgba(233, 196, 106, 0.8)); }
 
 /* ---------------------------------------------------------------- battle */
 #battle { position: fixed; inset: 0; z-index: 25; pointer-events: none; background: radial-gradient(ellipse at 50% 55%, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.55)); }
@@ -302,7 +310,7 @@ td:first-child { color: var(--gold); white-space: nowrap; }
     #hud-gauge { width: 104px; }
     #hud-floor { left: calc(90px + var(--safe-l)); max-width: calc(100% - 210px); flex-direction: column; gap: 0; padding: 4px 8px; }
     #pad { grid-template-columns: repeat(3, 52px); }
-    #pad button { width: 52px; height: 48px; }
+    #pad button { --c: 42px; width: 52px; height: 48px; }
     #town-panel { left: calc(8px + var(--safe-l)); right: calc(8px + var(--safe-r)); width: auto; top: auto; height: 62%; }
     #foes { bottom: calc(var(--party-h) + 190px + var(--safe-b)); }
     .menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }

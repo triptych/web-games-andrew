@@ -41,6 +41,8 @@ POR_SHEETS = [['fighter_a', 'fighter_b', 'knight_a', 'knight_b', 'thief_a', 'thi
 NPCS = ['marta', 'odo', 'varga', 'elowen', 'pell', 'ansel']
 BG_SHEETS = [['square', 'inn', 'shop', 'guild'], ['temple', 'tavern', 'gate', 'deeps']]
 ICON_SHEETS = ['gear', 'misc']
+# the touch pad's arrows, 3x2 in the order of the pad's buttons (prompts.mjs PAD_ICONS)
+PAD_CELL = 96
 # longest side of a sprite in the game's files (CSS shows them smaller; the extra is for 2x screens)
 SIZE = {'normal': 380, 'boss': 640, 'icon': 64}
 # the townsfolk sheet came back with each role written above the portrait: cut that band off
@@ -340,6 +342,15 @@ def main(raw):
             ic = shrink(trim(cutout(cell)), n - 4)
             atlas.paste(ic, ((i % 4) * n + (n - ic.width) // 2, (i // 4) * n + (n - ic.height) // 2), ic)
         save(atlas, f'icons/{s}.webp', q=88)
+    if have('icons-pad.png'):
+        n = PAD_CELL
+        atlas = Image.new('RGBA', (n * 3, n * 2), (0, 0, 0, 0))
+        for i, (cell, _) in enumerate(grid_cells(op('icons-pad.png'), 3, 2)):
+            ic = shrink(trim(cutout(cell)), n - 8)
+            atlas.paste(ic, ((i % 3) * n + (n - ic.width) // 2, (i // 3) * n + (n - ic.height) // 2), ic)
+        save(atlas, 'icons/pad.webp')
+    if not meta['sprites']:
+        print('no monster sheets: sprites.json left as it is'); print('wrote', OUT); return
     with open(os.path.join(OUT, 'sprites.json'), 'w') as fh:
         json.dump(meta, fh, indent=0, sort_keys=True)
     print('wrote', OUT)

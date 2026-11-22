@@ -26,6 +26,7 @@ a 1K single image.
 | `bgs-1.png`, `bgs-2.png` | `bg/<place>.webp` ×8 | 2×2, 16:9. `bgs-1` came back with a cell number in each corner: a 5% margin is cropped. |
 | `bg-title.png` | `bg/title.webp` | The key art. |
 | `icons-gear.png`, `icons-misc.png` | `icons/gear.webp`, `icons/misc.webp` | 4×4 atlases of 64 px; the cell order is the `icon` index in `js/sim/data/items.js`. |
+| `icons-pad.png` | `icons/pad.webp` | 3×2, 2K, added 2026-11-14 (request `01a1db47-d14d-7213-9554-bb0d1001b1b7`, the first of two images): the touch pad's arrows as a 3×2 atlas of 96 px, in the pad's button order (`PAD_ICONS`); `style.css` shows one cell per button. A run of `export.py` with only this sheet leaves `sprites.json` alone. |
 
 Every request shared one system prompt:
 
