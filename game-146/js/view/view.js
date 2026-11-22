@@ -253,6 +253,10 @@ export class View {
         this.barrel.add(tip);
         // the loaded ornament and the flying shot are ordinary meshes sharing the instanced meshes' materials
         const sphere = new THREE.SphereGeometry(0.47, 32, 22);
+        // A dark silhouette separates the loaded ornament from the launcher beneath it.
+        this.loadedOutline = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0x10172b, toneMapped: false }));
+        this.loadedOutline.scale.setScalar(1.16);
+        this.scene.add(this.loadedOutline);
         this.loadedBall = new THREE.Mesh(sphere, this.colorMats[0]);
         this.scene.add(this.loadedBall);
         this.shotBall = new THREE.Mesh(sphere, this.colorMats[0]);
@@ -270,10 +274,10 @@ export class View {
         this.halo.scale.set(2, 2, 1);
         this.scene.add(this.halo);
         // the aim guide: little glowing beads, and a ghost of where the shot will land
-        this.guide = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, toneMapped: false }), 160);
+        this.guide = new THREE.InstancedMesh(new THREE.SphereGeometry(0.075, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, toneMapped: false }), 512);
         this.guide.frustumCulled = false;
         this.scene.add(this.guide);
-        this.ghost = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, depthWrite: false }));
+        this.ghost = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, depthWrite: false, wireframe: true, toneMapped: false }));
         this.scene.add(this.ghost);
     }
 
@@ -494,9 +498,11 @@ export class View {
         const cur = G.tray[0];
         const ready = G.phase === 'aim' && showLauncher;
         this.loadedBall.visible = ready && !kindLoaded && cur >= 0;
+        this.loadedOutline.visible = this.loadedBall.visible;
         if (this.loadedBall.visible) {
             this.loadedBall.material = this.colorMats[cur];
-            this.loadedBall.position.set(SHOOTER.x, -SHOOTER.y, 0.9);
+            this.loadedOutline.position.set(SHOOTER.x, -SHOOTER.y, 0.84);
+            this.loadedBall.position.set(SHOOTER.x, -SHOOTER.y, 0.92);
             this.loadedBall.rotation.set(0, time * 0.6, 0);
         }
         const icon = kindLoaded && this.icons[kindLoaded];
@@ -544,27 +550,24 @@ export class View {
             const tr = opts.trace;
             if (tr) {
                 const full = G.guide > 0;
-                const maxBounce = full ? 99 : this.guideMode === 'long' ? 2 : 1;
-                let budget = full ? 99 : this.guideMode === 'long' ? 15 : 7.5;
                 const phase = (time * 1.6) % 0.55;
-                for (let i = 1; i < tr.pts.length && i <= maxBounce + 1 && budget > 0 && n < 160; i++) {
+                for (let i = 1; i < tr.pts.length && n < 512; i++) {
                     const a = tr.pts[i - 1], b = tr.pts[i];
                     const L = Math.hypot(b.x - a.x, b.y - a.y);
-                    for (let s = (i === 1 ? 0.9 : 0) + phase; s < L && budget > 0 && n < 160; s += 0.55) {
+                    for (let s = (i === 1 ? 0.9 : 0) + phase; s < L && n < 512; s += 0.55) {
                         const k = s / L;
                         this.dummy.position.set(a.x + (b.x - a.x) * k, -(a.y + (b.y - a.y) * k), 0.7);
                         this.dummy.scale.setScalar(full ? 1.3 : 1);
                         this.dummy.rotation.set(0, 0, 0);
                         this.dummy.updateMatrix();
                         this.guide.setMatrixAt(n++, this.dummy.matrix);
-                        budget -= 0.55;
                     }
                 }
                 this.guide.material.color.set(full ? 0xffe070 : 0xffffff);
-                if (full && tr.cell) {
+                if (tr.cell) {
                     this.ghost.visible = true;
                     this.ghost.position.set(H.cellX(G, tr.cell[0], tr.cell[1]), -H.cellY(G, tr.cell[0]), 0.4);
-                    this.ghost.material.color.set(kindLoaded ? 0xffe070 : COLOR_HEX[cur]);
+                    this.ghost.material.color.set(kindLoaded ? 0xffe070 : COLOR_HEX[cur] ?? 0xffe070);
                 }
             }
         }
