@@ -279,6 +279,14 @@ async function phone(w, h) {
     await until(page, () => __hd.G.mode === 'dungeon' && !document.getElementById('pad').hidden, 'a tap enters the dungeon and the walking pad appears');
     const sizes = await Q(page, () => [...document.querySelectorAll('#pad button, #btn-camp, #btn-map')].map((b) => { const r = b.getBoundingClientRect(); return r.width >= 44 && r.height >= 44 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; }));
     check(sizes.length >= 8 && sizes.every(Boolean), 'the pad and the HUD buttons are at least 44 px and on screen');
+    check(await page.evaluate(async () => {
+        const bs = [...document.querySelectorAll('#pad button')];
+        const css = bs.map((b) => getComputedStyle(b, '::before'));
+        if (!css.every((c) => c.backgroundImage.includes('icons/pad.webp') && parseFloat(c.width) >= 36)) return false;
+        if (new Set(css.map((c) => c.backgroundPosition)).size !== 6) return false;
+        const img = new Image(); img.src = 'art/icons/pad.webp'; await img.decode();
+        return img.naturalWidth === 288 && img.naturalHeight === 192;
+    }), 'the pad shows the six painted arrows (fal), one cell each');
     await Q(page, () => { __hd.faceOpen(); __hd.G.danger = -5; });
     await page.waitForTimeout(300);
     const p0 = await Q(page, () => ({ ...__hd.G.pos }));

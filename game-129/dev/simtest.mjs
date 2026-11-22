@@ -70,7 +70,7 @@ if (want('data')) {
     for (const p of PORTRAITS) ok(has(`art/por/${p.id}.webp`) && CLASSES[p.cls], `portrait ${p.id}`);
     for (const id of Object.keys(NPCS)) ok(has(`art/por/${id}.webp`), `portrait for ${id}`);
     for (const id of Object.keys(PLACES)) ok(has(`art/bg/${id}.webp`), `backdrop for ${id}`);
-    ok(has('art/bg/title.webp') && has('art/icons/gear.webp') && has('art/icons/misc.webp'), 'title art and icon atlases');
+    ok(has('art/bg/title.webp') && has('art/icons/gear.webp') && has('art/icons/misc.webp') && has('art/icons/pad.webp'), 'title art and icon atlases (and the pad arrows)');
     // the Meshy props (js/view/models.js imports three, so read its table as text)
     const modelSrc = fs.readFileSync(path.join(ROOT, 'js/view/models.js'), 'utf8');
     const models = [...modelSrc.matchAll(/^ {4}(\w+): \{ (?:file: '(\w+)', )?fit:/gm)].map((m) => m[2] || m[1]);
