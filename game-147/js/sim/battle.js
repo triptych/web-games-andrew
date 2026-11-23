@@ -49,7 +49,8 @@ export function startBattle(G, boss = false) {
         // a boss brings one friend from the region
         enemies.push(makeEnemy(G.rng.pick(R.pool), R.lv[1], 1));
     } else {
-        const n = G.rng.int(R.size[0], R.size[1]);
+        // the group grows with the party: Maple alone meets one or two, a full party two or three
+        const n = Math.min(R.size[1], Math.max(1, G.rng.int(G.party.length >= 3 ? R.size[0] : 1, Math.min(R.size[1], G.party.length + 1))));
         const lvTop = Math.min(R.lv[1], R.lv[0] + Math.floor(ex.wins / 2) + 1);
         for (let i = 0; i < n; i++) enemies.push(makeEnemy(G.rng.pick(R.pool), G.rng.int(R.lv[0], lvTop), i));
     }

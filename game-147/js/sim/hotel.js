@@ -2,8 +2,8 @@
 // Everything here runs on the hotel clock, which keeps ticking during expeditions and battles (the idle half of the
 // game): staff work, guests tip, rooms gather dust and herbs grow while the party is away.
 
-import { DAY_LEN, HOTEL, COOK, LATE } from '../config.js';
-import { HEROES, ROOMS, GUESTS, GUEST_REQUESTS, RECIPES, RECIPE_ORDER, ITEMS, CRAFTS, TIERS, DAILIES, MARKET, RECRUITS, REGIONS } from './data.js';
+import { DAY_LEN, HOTEL, COOK } from '../config.js';
+import { HEROES, ROOMS, GUESTS, GUEST_REQUESTS, RECIPES, RECIPE_ORDER, ITEMS, CRAFTS, TIERS, LATE, DAILIES, MARKET, RECRUITS, REGIONS } from './data.js';
 import { clamp, has, give, take, hasAll, takeAll, joinedHeroes } from './util.js';
 import { addBond, bondLevel, dailyBonds } from './bonds.js';
 
@@ -271,6 +271,8 @@ export function checkRecruit(G, hero) {
         const t = RECRUITS[hero].task;
         if (t.kind === 'item') take(G, t.item, t.n);
         s.task = true;
+        // Ember cooks her grandmother's stew with the pepper you brought, and leaves it in the pantry for you to serve
+        if (hero === 'ember' && G.pantry.length < HOTEL.pantryMax + 1) { G.pantry.push({ r: 'emberStew', q: 1.25 }); G.events.push({ type: 'cooked', r: 'emberStew', q: 1.25, grade: 'gift', stars: 2, chef: 'ember' }); }
         G.events.push({ type: 'recruitTask', hero });
     }
     if (s.task && s.meal && s.stage === 'staying') {

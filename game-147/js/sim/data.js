@@ -336,17 +336,17 @@ export const VIGNETTES = {
 
 // Short story scenes the sim queues (main.js plays them through the dialogue box).
 export const SCENES = {
-    intro: [['goldmaw', 'Ahem! Miss Maple Hearthwood? Madame Goldmaw, of Goldmaw & Daughters Savings and Loan.'], ['goldmaw', 'Your Great-Aunt Marigold left you this charming inn. And a charming forty thousand gold of debt.'], ['maple', 'Forty THOUSAND?'], ['goldmaw', 'In five easy installments! The first, fifteen hundred, is due in six days. Do try to keep up, dear.'], ['maple', 'Then I\'ll restore every room, fill every bed and pay every coin. Watch me!']],
-    tier1: [['goldmaw', 'Fifteen hundred, on time! Marigold would be insufferably proud.'], ['goldmaw', 'I\'ll lend the kitchen a better stove. Interest-free. Don\'t tell anyone I\'m nice.']],
+    intro: [['goldmaw', 'Ahem! Miss Maple Hearthwood? Madame Goldmaw, of Goldmaw & Daughters Savings and Loan.'], ['goldmaw', 'Your Great-Aunt Marigold left you this charming inn. And forty thousand gold of debt! In five easy installments.'], ['maple', 'Forty THOUSAND?!'], ['goldmaw', 'The first, fifteen hundred, is due in six days. Do try to keep up, dear.'], ['maple', 'Then I\'ll restore every room, fill every bed and pay every coin. Watch me!']],
+    tier1: [['goldmaw', 'Paid on time! Marigold would be insufferably proud.'], ['goldmaw', 'I\'ll lend the kitchen a better stove. Interest-free. Don\'t tell anyone I\'m nice.']],
     tier2: [['goldmaw', 'The East Wing is yours to open. Mind the creaky stair, it bites.']],
     tier3: [['goldmaw', 'The Grand Reopening! I\'ve booked a table for myself. Purely to audit the soufflé.']],
     tier4: [['goldmaw', 'The Sunroom Suite! Marigold\'s favourite room. She used to read there all afternoon.']],
-    tier5: [['goldmaw', 'Paid. In full. Here is the deed.'], ['goldmaw', 'Between us: Marigold asked me to make the loan. She wanted the inn to go to someone who would fight for it.'], ['maple', 'You were her friend all along?'], ['goldmaw', 'Her best. Now, about a reservation... the Sunroom, for the rest of my days? I\'ll pay in advance.']],
-    late: [['goldmaw', 'Tut tut! The installment is late. A small fee, a little more time. Chin up, dear.']],
-    recruit_ember: [['ember', 'Hi! Sorry! Is there any room with a stove I\'m allowed to use?'], ['ember', 'Long story. Involves a soufflé. And a king. And a hole in a ceiling.'], ['maple', 'You can have a room. But first, I\'m out of Fire Peppers...'], ['ember', 'Bring me one from the meadow and I\'ll make you my grandma\'s Ember Stew!']],
-    recruit_kit: [['kit', 'Evening! I\'m returning this... uh, the suitcase I was carrying got lost. In the Mushroom Grove. Not by me.'], ['kit', 'Need a bellhop? I carry bags. Legally! Mostly.'], ['maple', 'Find that suitcase and we\'ll talk.']],
+    tier5: [['goldmaw', 'Paid. In full. Here is the deed.'], ['maple', 'It\'s ours. It\'s really ours!'], ['goldmaw', 'Between us: Marigold asked me to make the loan. She wanted the inn to go to someone who would fight for it.'], ['maple', 'You were her friend all along?'], ['goldmaw', 'I was her best friend. Now, about that reservation... the Sunroom, for the rest of my days?']],
+    late: [['goldmaw', 'Tut tut! The installment is late. A small fee, a little more time.'], ['maple', 'I\'ll pay it, Madame. Every coin!']],
+    recruit_ember: [['ember', 'Hi! Sorry! Is there any room with a stove I\'m allowed to use?'], ['ember', 'Long story. Involves a soufflé. And a king. And a hole in a ceiling.'], ['maple', 'You can have a room. But first, I\'m out of Fire Peppers...'], ['ember', 'Bring me one from the meadow and I\'ll cook my grandma\'s Ember Stew. Then you serve it to me. That\'s the deal!']],
+    recruit_kit: [['kit', 'Evening! Carry your bags? Legally, I mean.'], ['kit', 'The suitcase I was carrying got lost. In the Mushroom Grove. Not by me! Find it and I\'m all yours.'], ['maple', 'Find that suitcase, and a honey tart, and we\'ll talk.']],
     recruit_fern: [['fern', 'Hello... do you have a room with a sunny window? My sapling is very sad.'], ['fern', 'Your courtyard is... hm. It could be lovely. If someone harvested the overgrowth.']],
-    recruit_bru: [['bru', 'I read a review. "Dust bunnies attacked my luggage." UNACCEPTABLE.'], ['bru', 'Show me a four-star sparkle and I\'ll stay. Show me a speck and I\'ll mop it personally.']],
+    recruit_bru: [['bru', 'I read a review. Dust bunnies. UNACCEPTABLE!'], ['bru', 'Show me a four-star sparkle and I\'ll stay. Show me a speck and I\'ll mop it personally.']],
     joined: [['maple', 'Welcome to the Drowsy Dragonfly, for good!']],
     diary: [['maple', 'Marigold\'s diary... "To whoever runs my inn next: the debt was my idea. Goldmaw is a dear. Fight for this place."']],
 };
