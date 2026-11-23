@@ -241,9 +241,9 @@ export const CRAFTS = {
 
 // ------------------------------------------------------------------ guests
 export const GUESTS = {
-    adventurer: { name: 'Sleepy Adventurer', rate: 30, nights: [1, 2], minRep: 0, model: 'guest-adventurer', names: ['Rowan', 'Tobin', 'Ash', 'Perrin', 'Cass'] },
-    merchant: { name: 'Travelling Merchant', rate: 45, nights: [1, 3], minRep: 5, model: 'guest-merchant', names: ['Barnaby', 'Mortimer', 'Gus', 'Hollis', 'Quill'] },
-    noble: { name: 'Noble Lady', rate: 80, nights: [2, 3], minRep: 25, model: 'guest-noble', names: ['Lady Primrose', 'Lady Clementine', 'Lady Bellamy', 'Lady Tansy'] },
+    adventurer: { name: 'Sleepy Adventurer', rate: 30, nights: [1, 2], minRep: 0, model: 'guest-adventurer', names: ['Rowan', 'Tobin', 'Ash', 'Perrin', 'Cass', 'Wren', 'Linden', 'Bram', 'Ivo', 'Sorrel'] },
+    merchant: { name: 'Travelling Merchant', rate: 45, nights: [1, 3], minRep: 5, model: 'guest-merchant', names: ['Barnaby', 'Mortimer', 'Gus', 'Hollis', 'Quill', 'Fennick', 'Otto', 'Bartholomew', 'Crispin', 'Ambrose'] },
+    noble: { name: 'Noble Lady', rate: 80, nights: [2, 3], minRep: 25, model: 'guest-noble', names: ['Lady Primrose', 'Lady Clementine', 'Lady Bellamy', 'Lady Tansy', 'Lady Rosalind', 'Lady Marguerite', 'Lady Posy', 'Lady Ophelia'] },
 };
 export const GUEST_REQUESTS = [
     { id: 'clean', text: 'A spotless room, please (keep it under 2 dust bunnies)' },

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Inn Over My Head** (game-147) v1.0.1: the quest tracker's shortcut buttons (**Desk** for a waiting guest, Kitchen, Ledger, Adventure) did nothing when tapped or clicked; only buttons inside panels were listened for. They now open their panels, and the browser test clicks and taps the tracker's Desk button.
+- **Inn Over My Head** (game-147) v1.0.1: two guests could arrive with the same name (each kind of guest had four or five names), so one person seemed to be asking for two rooms. A new guest now always gets a name nobody at the inn is using, from pools of 8–10 names, and the sim test asserts it over whole games.
+
 ### Added
 - **Inn Over My Head** (game-147) v1.0.0: a cozy anime RPG and inn-management hybrid in three.js. Maple inherits the Drowsy Dragonfly Inn and 40,000 gold of debt to Madame Goldmaw, a fussy dragon banker ([game-plan.md](game-147/game-plan.md) is the full design document: GDD, starter cast, formulas, UI wireframes, technical plan).
   - **The inn** ([js/sim/hotel.js](game-147/js/sim/hotel.js)): rooms gather dust and dust bunnies you click to shoo; a Sparkle rating; walk-in guests with requests, nightly pay, tips while they stay and reputation; a cooking stir mini-game with quality; a courtyard; staff (Cook, Concierge, Gardener, Housekeeper) who keep working while the party adventures, and time-away earnings; a shop, decor and dailies; five debt installments that open rooms, regions and recipes, with gentle late fees.

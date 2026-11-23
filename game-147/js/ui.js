@@ -65,11 +65,15 @@ export class UI {
             this.dirty = true;
         });
         $('dock').addEventListener('click', (e) => { const b = e.target.closest('[data-panel]'); if (b) this.openPanel(b.dataset.panel); });
+        // [data-open] shortcut buttons live in the quest tracker as well as inside panels, so listen on the whole page
+        // (v1.0.0 listened on the panel body only, and the tracker's Desk / Kitchen / Ledger / Adventure did nothing)
+        document.body.addEventListener('click', (e) => {
+            const p = e.target.closest('[data-open]');
+            if (p && !p.disabled) { this.audio.ui('click'); this.openPanel(p.dataset.open); }
+        });
         $('panel-body').addEventListener('click', (e) => {
             const t = e.target.closest('[data-tab]');
             if (t) { this.panelTab[this.panel] = t.dataset.tab; this.dirty = true; }
-            const p = e.target.closest('[data-open]');
-            if (p) this.openPanel(p.dataset.open);
         });
         $('panel-body').addEventListener('change', (e) => {
             const s = e.target.closest('select[data-cmdsel]');

@@ -520,6 +520,11 @@ clip (`dev/rigshot.mjs` covers single models).
 
 ## Changelog
 
+### v1.0.1 (2026-11-23)
+
+- Fixed: the quest tracker's shortcut buttons (Desk, Kitchen, Ledger, Adventure) did nothing; they now open their panels.
+- Fixed: two guests could share a name and look like one person booking two rooms; names are now unique at the inn.
+
 ### v1.0.0 (2026-11-23)
 
 First release: the full loop described above, all media generated with ElevenLabs and Meshy.

@@ -120,6 +120,11 @@ if (want('hotel')) {
     const satIn = g2.sat;
     run(G, C.DAY_LEN);
     ok(G.events.length >= 0 && satIn < 70, 'a guest checked into a dirty room starts less happy');
+    // no two guests ever share a name (v1.0.0: a second Rowan looked like one guest asking for two rooms)
+    G = fresh(41);
+    for (let i = 0; i < 12; i++) H.newGuest(G);
+    const nm = Object.values(G.guests).map((x) => x.name);
+    ok(new Set(nm).size === nm.length, `twelve walk-ins at once all have different names (${nm.slice(0, 4).join(', ')}…)`);
     // the day and dailies
     G = fresh(5);
     ok(G.daily.tasks.length === 3, 'three errands a day');
@@ -441,6 +446,7 @@ if (want('bot')) {
                 else if (G.rooms.some((r) => !(r.dust >= 0 && r.dust <= 100))) bad = 'dust out of range';
                 else if (G.battle && G.battle.units.some((u) => !Number.isFinite(u.hp) || u.hp < 0 || u.hp > u.mhp)) bad = 'hp out of range';
                 else if (G.pantry.length > C.HOTEL.pantryMax + 1) bad = 'pantry overflow';
+                else { const names = Object.values(G.guests).map((g) => g.name); if (new Set(names).size < names.length) bad = 'two guests share a name: ' + names.join(', '); }
             }
             ok(!bad, `seed ${s} skill ${skill}: ${bad || 'invariants hold'}`);
             rows.push({ s, skill, won: G.won, day: G.day, late: G.late || 0, lv: G.heroes.maple.lv, joined: Object.values(G.heroes).filter((h) => h.joined).length });
