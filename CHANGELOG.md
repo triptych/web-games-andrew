@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Inn Over My Head** (game-147) v1.0.0: a cozy anime RPG and inn-management hybrid in three.js. Maple inherits the Drowsy Dragonfly Inn and 40,000 gold of debt to Madame Goldmaw, a fussy dragon banker ([game-plan.md](game-147/game-plan.md) is the full design document: GDD, starter cast, formulas, UI wireframes, technical plan).
+  - **The inn** ([js/sim/hotel.js](game-147/js/sim/hotel.js)): rooms gather dust and dust bunnies you click to shoo; a Sparkle rating; walk-in guests with requests, nightly pay, tips while they stay and reputation; a cooking stir mini-game with quality; a courtyard; staff (Cook, Concierge, Gardener, Housekeeper) who keep working while the party adventures, and time-away earnings; a shop, decor and dailies; five debt installments that open rooms, regions and recipes, with gentle late fees.
+  - **Guests become the party**: four strangers (Ember, Kit, Fern, Bru) each want a room, their favourite meal and a favour, then join as party, staff or both. Meals eaten before an adventure buff the party; a spotless inn gives Fresh Linens.
+  - **Battles** ([js/sim/battle.js](game-147/js/sim/battle.js)): 3/4 isometric turn-based fights on diorama islands; a speed timeline, five elements, poise and stagger, combo links between heroes, a chain gauge and 12 solo, duo and trio Chain Attacks, items, defend, a comic flee, and an auto-battle with Aggressive, Balanced and Conserve MP presets ([js/sim/ai.js](game-147/js/sim/ai.js)).
+  - **Bonds** ([js/sim/bonds.js](game-147/js/sim/bonds.js)) from cooking, cleaning and fighting together unlock vignettes, stat synergy, decor favourites and the duo and trio chains. A five-chapter voiced story.
+  - **Meshy for every 3D asset** ([dev/meshy/](game-147/dev/meshy/README.md)): 75 image-to-3D models (5 heroes, Goldmaw, 3 guests, 9 monsters, 57 items, weapons and furniture) from ElevenLabs reference art; 12 characters rigged by Meshy with 90 library animation clips (walk, run, idle, combat idle, attack, skill, chain leap, hit, victory, faint, wave), stripped to keyframes and bound by bone name; toon materials with skinned ink outlines; item icons rendered from the Meshy models. Ember was rebuilt from a cleaned-up reference after her glasses came out distorted; two guests were rebuilt in an A-pose so they could be rigged.
+  - **ElevenLabs for every image and sound** ([dev/art/](game-147/dev/art/README.md), [dev/audio/](game-147/dev/audio/README.md)): title, backdrops, ending, portraits, item sheets, avatar and icon (Nano Banana 2.1); 4 music tracks and 2 jingles; 22 effects; 63 voice lines for six characters.
+  - **Tests**: [simtest.mjs](game-147/dev/simtest.mjs) covers purity, every rule, every skill and chain, determinism and mid-battle save round trips, and the whole game played by a bot over many seeds with the balance band asserted (debt paid by day 40). [browsertest.mjs](game-147/dev/browsertest.mjs) covers desktop by real mouse and keys, touch-only phones in both orientations, and blocked storage.
+- Launcher: Inn Over My Head's entry, card style, preview, icons, PWA manifest and Pocket Garden character (Maple).
+- Docs: [learnings.md § Game 147](docs/generic/learnings.md#game-147-inn-over-my-head--meshy-rigs-for-every-character-elevenlabs-references-for-every-model-2026-11-23).
+
 ### Fixed
 - **Coppergate Lane** (game-030) v2.0.2: restoring a saved battle now restores battle mode, keeping the battle scene and mobile controls active.
 

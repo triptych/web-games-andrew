@@ -1803,6 +1803,17 @@ h1 {
     box-shadow: 0 0 14px rgba(242, 182, 48, 0.7);
 }
 
+.game-preview.inn-over-my-head,
+.carousel-slide-bg.inn-over-my-head {
+    background: radial-gradient(circle at 28% 62%, rgba(232, 84, 106, 0.5), transparent 22%), radial-gradient(circle at 72% 58%, rgba(255, 201, 77, 0.55), transparent 24%), linear-gradient(180deg, #8fc8ff 0%, #cfe8ff 45%, #9ed67a 72%, #c98f5a 100%);
+}
+
+.game-card.inn-over-my-head .play-button {
+    background: linear-gradient(135deg, #ff8a98, #e8546a, #ffc94d);
+    color: #fff;
+    box-shadow: 0 0 14px rgba(255, 201, 77, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

@@ -5,7 +5,8 @@ import { CHAPTERS, RECRUITS, REGIONS, TIERS } from './data.js';
 import { newGuest } from './hotel.js';
 
 function goalDone(G, [check, arg]) {
-    if (check === 'sweptRoom') return G.stats.swept >= 4 || G.rooms.some((r) => r.open && r.dust === 0);
+    // a room just swept clean starts gathering dust again in the same tick, so 'clean' is under 1, not exactly 0
+    if (check === 'sweptRoom') return G.stats.swept >= 4 || G.rooms.some((r) => r.open && r.dust < 1);
     if (check === 'checkedIn') return G.stats.checkins >= arg;
     if (check === 'cooked') return G.stats.cooked >= arg;
     if (check === 'recruited') return G.heroes[arg]?.joined;

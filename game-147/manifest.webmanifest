@@ -1,0 +1,39 @@
+{
+  "name": "Inn Over My Head",
+  "short_name": "Inn Over My H…",
+  "description": "Inn Over My Head — a cozy anime RPG and inn-management game. Inherit a rundown fantasy inn and 40,000 gold of debt, restore it, win over guests who become your party and your staff, cook meals that power your adventures, shoo dust bunnies, and fight cute monsters in 3/4 turn-based battles with chain attacks.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f6d9a8",
+  "theme_color": "#f6d9a8",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

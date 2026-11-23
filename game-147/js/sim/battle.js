@@ -472,6 +472,7 @@ export function battleAct(G, cmd) {
 export function battleStep(G, dt, hold, aiPick) {
     const B = G.battle;
     if (!B || B.phase !== 'ai' || hold) return;
+    if (checkEnd(G)) return;            // everyone on one side already down (a poison tick, a counter): end now
     B.aiT += dt;
     if (B.aiT < BATTLE.aiDelay) return;
     const a = unit(B, B.actor);

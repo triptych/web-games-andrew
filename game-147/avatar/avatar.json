@@ -1,0 +1,96 @@
+{
+ "id": "game-147",
+ "name": "Maple",
+ "role": "Innkeeper and Pastry Paladin",
+ "emoji": "🛎️",
+ "color": "#e8546a",
+ "bio": "Maple Hearthwood, seventeen and stubborn, inherited the Drowsy Dragonfly Inn from her Great-Aunt Marigold, along with 40,000 gold of debt to a very fussy dragon.",
+ "portrait": {
+  "subject": "Maple Hearthwood, a cheerful freckled 17-year-old innkeeper girl with honey-blonde hair in a messy bun with a wooden spoon stuck through it, warm brown eyes, a cream puff-sleeved blouse and a strawberry-red apron with a gold teacup emblem, holding a big brass room key",
+  "background": "a warm sunny inn lobby with soft golden bokeh and a dragonfly sign"
+ },
+ "request": "Hi! I'm Maple, I just inherited an inn. And a debt. A BIG debt. Could you lend me a hand? 🛎️",
+ "hello": [
+  "Welcome to the Drowsy Dragonfly! Mind the dust bunnies.",
+  "Oh good, you're here! The rooms won't sweep themselves."
+ ],
+ "about": "I'm Maple Hearthwood. My Great-Aunt Marigold ran the Drowsy Dragonfly for forty years, and now it's mine, with 40,000 gold owed to Madame Goldmaw, a dragon with a monocle and a ledger the size of a door. So I'm restoring the inn room by room, cooking, cleaning, and taking my rolling pin to the meadow when the pantry runs low.",
+ "how": "Click the dust bunnies to shoo them, check guests in at the Desk, and cook in the Kitchen: press Stir (or Space) when the needle's in the gold. Set off from Adventure for turn-based battles: Attack, Skills, Chain and Items, or switch on Auto. Keys 1–9 open the inn's panels.",
+ "tips": [
+  "Hit a monster's weakness (the icons under its name) to break its guard. A staggered monster gives you a free Chain Attack!",
+  "Eat a meal before an adventure: Ember Stew for attack, Puffcap Pie for defence, Glowmoss Tea against magic.",
+  "Get every room down to one dust bunny before you set off and the party gets Fresh Linens: faster and harder to hit.",
+  "Staff keep working while you're out. A Gardener forages and a Concierge checks guests in, even when the game's closed.",
+  "Hit a monster with one hero's element and then another's for a combo. Spice then Breeze makes a Firestorm!"
+ ],
+ "chat": [
+  "Ember set the toast on fire again. She says it's 'artisanal'.",
+  "Kit found my spoon. In his pocket. He says he's a 'returner' now.",
+  "Fern's sapling has three new leaves! The courtyard's coming back to life.",
+  "Bru inspected Room Two today. 'Acceptable.' I'll take it!",
+  "Madame Goldmaw winked at me. I think. It might have been the monocle."
+ ],
+ "nudge": [
+  "The dust bunnies are breeding again... come help? 🐇",
+  "A guest is waiting at the desk!"
+ ],
+ "idle": [
+  "It's been {ago}! The inn kept going, but I missed you. 🛎️",
+  "{ago} away... the staff saved you some tips!"
+ ],
+ "progress": [
+  "We've paid {tier} installments to Madame Goldmaw! 📒",
+  "Day {day} at the Drowsy Dragonfly, and the rooms have never looked better."
+ ],
+ "questions": [
+  {
+   "q": "Which do you like best: cooking or adventuring?",
+   "a": [
+    [
+     "Cooking",
+     "Me too! A perfect stir is the best feeling."
+    ],
+    [
+     "Adventuring",
+     "Rolling pin at the ready! Let's go."
+    ]
+   ]
+  },
+  {
+   "q": "Who's your favourite at the inn?",
+   "a": [
+    [
+     "Ember",
+     "She'd cook you a stew for saying that."
+    ],
+    [
+     "Kit",
+     "Don't tell him, he'll be insufferable."
+    ],
+    [
+     "Bru",
+     "She'd salute you. With the mop."
+    ]
+   ]
+  }
+ ],
+ "update": "Inn Over My Head is now v{version}! Come see what's new at the inn. 🛎️",
+ "bye": [
+  "Back to the front desk!",
+  "Sweet dreams, and no dust bunnies!"
+ ],
+ "save": {
+  "keys": [
+   "inn-over-my-head.v1"
+  ],
+  "stats": {
+   "tier": [
+    "data.debt.tier"
+   ],
+   "day": [
+    "data.day"
+   ]
+  }
+ },
+ "art": "fal"
+}

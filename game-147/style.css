@@ -127,6 +127,11 @@ button { font: inherit; color: inherit; }
 .pop.stagger { font-size: 24px; color: #ffe066; }
 @keyframes pop { 0% { opacity: 0; transform: translate(-50%, -30%) scale(0.6); } 15% { opacity: 1; transform: translate(-50%, -60%) scale(1.15); } 30% { transform: translate(-50%, -70%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -160%); } }
 
+/* the expedition card (between fights) and the battle result card */
+#exped { position: fixed; z-index: 30; right: calc(12px + var(--safe-r)); top: 50%; transform: translateY(-50%); width: min(380px, calc(100vw - 24px)); max-height: calc(100% - 120px); display: flex; }
+#exped .sheet { width: 100%; max-height: 100%; }
+@media (max-width: 560px) { #exped { top: auto; bottom: calc(10px + var(--safe-b)); transform: none; max-height: 70%; } }
+
 /* ---------------------------------------------------------------- the battle HUD */
 #bhud { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
 #timeline {
@@ -273,6 +278,10 @@ td:first-child { color: var(--berry); font-weight: 800; white-space: nowrap; }
     #commands { width: min(210px, 50vw); }
     .cmd { font-size: 13px; padding: 6px 8px; }
     #timeline .t { width: 32px; height: 32px; } #timeline .t.now { width: 40px; height: 40px; }
+    #timeline { top: calc(48px + var(--safe-t)); max-width: calc(100vw - 16px); overflow: hidden; }
+    #chain-gauge { top: calc(98px + var(--safe-t)); }
+    #auto-box { left: calc(8px + var(--safe-l)); right: auto; top: calc(124px + var(--safe-t)); flex-direction: row; }
+    #auto-box select, #auto-box button { font-size: 13px; }
     .chip { font-size: 12px; padding: 4px 8px; }
 }
 @media (max-height: 480px) {

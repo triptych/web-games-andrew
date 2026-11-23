@@ -24,7 +24,7 @@ export class Battle3D {
         this.stage = stage;
         this.audio = audio;
         this.scene = stage.makeScene('battle', { sky: 0xe6f2ff, ground: 0x9a8a7a });
-        this.cam = stage.makeIso('battle', { at: [0, 0.5, 0], dir: [0.55, 0.62, 1], span: 10.5, tall: 0.42 });
+        this.cam = stage.makeIso('battle', { at: [0, 0.5, 0], dir: [0.55, 0.62, 1], span: 10.5, tall: 0.42, narrow: 8.5 });
         this.fx = new FX(this.scene);
         this.island = new THREE.Group();
         this.scene.add(this.island);
@@ -121,7 +121,8 @@ export class Battle3D {
     // ------------------------------------------------------------------ the event queue
     onEvents(G, events) {
         for (const e of events) {
-            if (e.type === 'battleStart') { this.setup(G); continue; }
+            // a battleStart read late (many events flushed at once) may describe a fight that has already ended
+            if (e.type === 'battleStart') { if (G.battle) this.setup(G); continue; }
             if (['act', 'chain', 'fled', 'fleeFail', 'victory', 'defeat', 'recover', 'turn', 'regen'].includes(e.type)) this.queue.push(e);
         }
         if (!this.running) this._next();

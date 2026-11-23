@@ -40,9 +40,9 @@ export class Stage {
     }
 
     /** An orthographic 3/4 camera looking at `at` from direction `dir`, fitting `span` world units across. */
-    makeIso(name, { at = [0, 0, 0], dir = [1, 1.05, 1.25], span = 16, tall = 0.34 } = {}) {
+    makeIso(name, { at = [0, 0, 0], dir = [1, 1.05, 1.25], span = 16, tall = 0.34, narrow = null } = {}) {
         const c = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
-        c.userData = { at: new THREE.Vector3(...at), dir: new THREE.Vector3(...dir).normalize(), span, tall, zoom: 1 };
+        c.userData = { at: new THREE.Vector3(...at), home: new THREE.Vector3(...at), dir: new THREE.Vector3(...dir).normalize(), span, tall, narrow, zoom: 1, panX: 0 };
         this.cams[name] = c;
         this.fitCam(c);
         return c;
@@ -52,9 +52,14 @@ export class Stage {
         const u = c.userData;
         const aspect = this.w / this.h;
         // the whole span always fits across; on wide screens at least `tall` × span fits top to bottom
-        let halfW = u.span / 2 / u.zoom;
+        // narrow (portrait) screens may use a closer span and pan sideways instead of showing everything tiny
+        const span = aspect < 0.8 && u.narrow ? u.narrow : u.span;
+        u.panMax = Math.max(0, (u.span - span) / 2);
+        u.panX = Math.max(-u.panMax, Math.min(u.panMax, u.panX));
+        u.at.copy(u.home); u.at.x += u.panX;
+        let halfW = span / 2 / u.zoom;
         let halfH = halfW / aspect;
-        const minH = (u.tall || 0.34) * u.span / u.zoom;
+        const minH = (u.tall || 0.34) * span / u.zoom;
         if (halfH < minH) { halfH = minH; halfW = halfH * aspect; }
         c.left = -halfW; c.right = halfW; c.top = halfH; c.bottom = -halfH;
         c.position.copy(u.at).addScaledVector(u.dir, 40);
@@ -71,6 +76,14 @@ export class Stage {
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
         this.renderer.setSize(w, h);
         for (const c of Object.values(this.cams)) this.fitCam(c);
+    }
+
+    /** Pan a camera sideways by a drag of dx client px (only where its view is narrower than the scene). */
+    pan(camName, dxPx) {
+        const c = this.cams[camName], u = c.userData;
+        if (!u.panMax) return;
+        u.panX -= dxPx * (c.right - c.left) / this.w;
+        this.fitCam(c);
     }
 
     setBackdrop(name) {

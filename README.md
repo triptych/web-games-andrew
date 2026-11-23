@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-146 games, `game-001` through `game-146`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+147 games, `game-001` through `game-147`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -187,6 +187,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 144 | [NEBULA REQUIEM](game-144/) | A 3D side-scrolling bullet-hell shooter: three pilots with their own guns, supers and voiced anime storylines, capital ships you fly along and break, six colossal bosses, nine power-up synergies and an endless survival mode; fal art, ElevenLabs music and voices | three.js |
 | 145 | [VACANCY](game-145/) | A first-person walking simulator in a procedural abandoned city: enter every building floor by floor, find ten diaries of the missing with a compass, open the portal that took them; liminal backrooms, decay, fal textures | three.js |
 | 146 | [JINGLE POP](game-146/) | A Christmas bubble shooter: an elf wins back the stolen ornaments across 36 levels and an endless Blizzard, with presents, coal, ice, bells, a swap tray, eight power-ups and a voiced story; ElevenLabs art, music and voices | three.js |
+| 147 | [Inn Over My Head](game-147/) | A cozy anime RPG and inn manager: restore an inherited inn, recruit guests as party and staff, cook buffs, shoo dust bunnies and fight 3/4 turn-based battles with chain attacks; Meshy 3D models (rigged heroes), ElevenLabs art, music and voices | three.js |
 | 142 | [Kaboom Keep](game-142/) | A whimsical physics cannon game: blast toy-block castles to bits and knock over every little knight, prince and wizard; a rigid-body engine written for the game, five cannonballs, 48 castles from a proved generator plus Endless Siege; fal art, ElevenLabs music, effects and voices | three.js |
 
 ### Highlights

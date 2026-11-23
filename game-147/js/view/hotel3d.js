@@ -41,7 +41,7 @@ export class Hotel3D {
     constructor(stage) {
         this.stage = stage;
         this.scene = stage.makeScene('hotel');
-        this.cam = stage.makeIso('hotel', { at: [0.8, 3.2, 0], dir: [0.42, 0.5, 1], span: 19, tall: 0.44 });
+        this.cam = stage.makeIso('hotel', { at: [0.8, 3.2, 0], dir: [0.42, 0.5, 1], span: 19, tall: 0.44, narrow: 11 });
         this.fx = new FX(this.scene);
         this.actors = {};          // key → { actor, path: [Vector3], speed, home }
         this.bunnies = {};         // roomId → [Actor]

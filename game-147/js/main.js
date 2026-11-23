@@ -160,8 +160,14 @@ function handleKey() {
 // taps and clicks on the 3D view: dust bunnies and rooms at the inn, enemies in battle
 let downAt = null;
 $('view').addEventListener('pointerdown', (e) => { downAt = { x: e.clientX, y: e.clientY }; });
+// a drag pans the inn sideways on a narrow screen (a press that moved more than 12 px is a drag, not a tap)
+$('view').addEventListener('pointermove', (e) => {
+    if (!downAt || G.mode !== 'hotel' || mode !== 'play') return;
+    if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 12) downAt.dragged = true;
+    if (downAt.dragged) { view.stage.pan('hotel', e.clientX - (downAt.lx ?? downAt.x)); downAt.lx = e.clientX; }
+});
 $('view').addEventListener('pointerup', (e) => {
-    if (!downAt || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 12 || mode !== 'play' || ui.anyScreen() || ui.talking) return;
+    if (!downAt || downAt.dragged || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 12 || mode !== 'play' || ui.anyScreen() || ui.talking) { downAt = null; return; }
     downAt = null;
     if (G.mode === 'hotel') {
         const p = view.hotel.pick(e.clientX, e.clientY);
@@ -261,7 +267,7 @@ if (DEBUG) {
         ff(sec, skill = 1) {
             const b = makeBot({ skill });
             let t = 0, th = 0;
-            while (t < sec) { step(G, STEP); t += STEP; th += STEP; if (th > 0.3) { th = 0; const c = botCmd(G, b); if (c) act(G, c); } if (G.events.length > 400) flushEvents(true); }
+            while (t < sec) { step(G, STEP); t += STEP; th += STEP; if (th > 0.3) { th = 0; const c = botCmd(G, b); if (c) act(G, c); } if (G.events.length) flushEvents(true); }
             flushEvents(true);
         },
         save: () => saveGame(G), hasSave,

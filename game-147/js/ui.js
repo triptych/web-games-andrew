@@ -44,6 +44,7 @@ export class UI {
         this.bmenu = 'root'; this.pending = null; this.target = null;
         this.dlg = null;
         this.labels = {};
+        this.hideDaily = window.innerWidth < 560;      // on a phone the errands start folded away, so the rooms show
         $('version').textContent = 'v' + VERSION + ' · art, music & voices by ElevenLabs · 3D models by Meshy';
 
         this.downIn = null;
@@ -543,7 +544,7 @@ export class UI {
             if (!s) continue;
             const hp = Math.max(0, bv.shownHp[u.id] ?? u.hp);
             const poise = Array.from({ length: u.mpoise }, (_, i) => `<i class="${i < u.poise ? '' : 'off'}"></i>`).join('');
-            lab += `<div class="elabel ${u.stagger ? 'stag' : ''} ${this.target === u.id && this.pending ? 'target' : ''}" style="left:${s.x.toFixed(0)}px;top:${s.y.toFixed(0)}px"><button data-unit="${u.id}" ${myTurn ? '' : 'tabindex="-1"'} aria-label="${esc(u.name)}"><div class="nm">${esc(u.name)} Lv${u.lv}${u.stagger ? ' 💫' : ''}</div><div class="hp"><i style="width:${(100 * hp / u.mhp).toFixed(0)}%"></i></div><div class="poise">${poise}</div><div class="wk">${u.weak.map((e) => ELEMENTS[e].icon).join('')}</div></button></div>`;
+            lab += `<div class="elabel ${u.stagger ? 'stag' : ''} ${this.target === u.id && this.pending ? 'target' : ''}" style="left:${Math.min(innerWidth - 58, Math.max(58, s.x)).toFixed(0)}px;top:${s.y.toFixed(0)}px"><button data-unit="${u.id}" ${myTurn ? '' : 'tabindex="-1"'} aria-label="${esc(u.name)}"><div class="nm">${esc(u.name)} Lv${u.lv}${u.stagger ? ' 💫' : ''}</div><div class="hp"><i style="width:${(100 * hp / u.mhp).toFixed(0)}%"></i></div><div class="poise">${poise}</div><div class="wk">${u.weak.map((e) => ELEMENTS[e].icon).join('')}</div></button></div>`;
         }
         $('labels').innerHTML = lab;
         this.renderCommands(G, myTurn);
