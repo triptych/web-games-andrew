@@ -119,6 +119,15 @@ async function desktop() {
     // a walk-in at the desk (key 1)
     await Q(page, () => { __iomh.G.arriveT = 0; });
     await until(page, () => __iomh.G.queue.length > 0, 'a walk-in arrives');
+    // the quest tracker's own Desk button (v1.0.0: it did nothing, nothing listened for [data-open] outside panels).
+    // Finish the first goal (a room cleared) so the tracker moves on to "check in your first guest".
+    await Q(page, () => { for (let i = 0; i < 6; i++) __iomh.act({ t: 'sweep', room: 'r1' }); });
+    await until(page, () => !!document.querySelector('#tracker [data-open="desk"]'), 'the tracker offers a Desk button for the waiting guest');
+    const td = await center(page, '#tracker [data-open="desk"]');
+    await page.mouse.click(td.x, td.y);
+    await until(page, () => !document.getElementById('panel').hidden && document.getElementById('panel-title').textContent.includes('Desk'), 'clicking the tracker\'s Desk button opens the Desk');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('panel').hidden, 'Escape closes it');
     await page.keyboard.press('Digit1');
     await until(page, () => !document.getElementById('panel').hidden && document.getElementById('panel-title').textContent.includes('Desk'), 'key 1 opens the Desk');
     const room = await center(page, '#panel-body [data-cmd*="checkin"]:not([disabled])');
@@ -130,6 +139,9 @@ async function desktop() {
     await Q(page, () => document.getElementById('filler')?.remove());
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('panel').hidden, 'Escape closes the panel');
+    // the first check-in brings a stranger (Ember) to the desk, with her scene: read it
+    await page.waitForTimeout(800);
+    check(await readScenes(page, false), 'a stranger\'s scene, read with Enter');
     // cooking with a real Space press in the gold zone
     await page.keyboard.press('Digit2');
     await until(page, () => !document.getElementById('panel').hidden, 'key 2 opens the Kitchen');
@@ -201,6 +213,16 @@ async function phone(w, h) {
     if (b) await page.touchscreen.tap(b.x, b.y);
     await until(page, (n) => __iomh.G.stats.swept > n, 'a tapped dust bunny is shooed', 30000, swept0);
     await shot(page, `phone-${w}x${h}-inn`);
+    // the tracker's Desk button, by touch (only shown in portrait: landscape phones hide the tracker for room)
+    await Q(page, () => { __iomh.G.arriveT = 0; for (let i = 0; i < 6; i++) __iomh.act({ t: 'sweep', room: 'r1' }); });
+    await until(page, () => __iomh.G.queue.length > 0 && __iomh.G.stats.checkins === 0, 'a walk-in is waiting');
+    if (h > w) await until(page, () => { const b = document.querySelector('#tracker [data-open="desk"]'); return !!b && b.getClientRects().length > 0; }, 'the tracker shows its Desk button');
+    if (await Q(page, () => { const b = document.querySelector('#tracker [data-open="desk"]'); return !!b && b.getClientRects().length > 0; })) {
+        await tapSel('#tracker [data-open="desk"]');
+        await until(page, () => !document.getElementById('panel').hidden && document.getElementById('panel-title').textContent.includes('Desk'), 'tapping the tracker\'s Desk button opens the Desk');
+        await tapSel('#panel .sheet-head .x');
+        await until(page, () => document.getElementById('panel').hidden, 'the ✕ closes it');
+    }
     // a battle by touch
     await tapSel('#dock [data-panel="expedition"]');
     await until(page, () => !document.getElementById('panel').hidden, 'a tap opens the Adventure panel');

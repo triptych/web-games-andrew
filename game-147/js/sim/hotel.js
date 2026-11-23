@@ -68,6 +68,15 @@ function rateOf(G, g) {
     return Math.round(g.rate * mul * (1 + G.rep / 200));
 }
 
+/** A name no one at the inn is using: two guests with one name looked like one person booking two rooms (v1.0.0). */
+function freshName(G, names) {
+    const used = new Set(Object.values(G.guests).map((g) => g.name));
+    const free = names.filter((n) => !used.has(n));
+    if (free.length) return G.rng.pick(free);
+    const base = G.rng.pick(names);
+    for (let i = 2; ; i++) if (!used.has(`${base} ${'I'.repeat(i)}`)) return `${base} ${'I'.repeat(i)}`;
+}
+
 function newGuest(G, recruit = null) {
     const id = 'g' + G.nextGuest++;
     if (recruit) {
@@ -82,7 +91,7 @@ function newGuest(G, recruit = null) {
         const meals = RECIPE_ORDER.filter((r) => recipeUnlocked(G, r));
         const req = reqRoll < 0.4 ? 'clean' : reqRoll < 0.75 ? 'meal' : 'none';
         G.guests[id] = {
-            id, arch, recruit: null, name: G.rng.pick(A.names), rate: A.rate, nights: G.rng.int(A.nights[0], A.nights[1]),
+            id, arch, recruit: null, name: freshName(G, A.names), rate: A.rate, nights: G.rng.int(A.nights[0], A.nights[1]),
             sat: 55, room: null, req, reqMeal: req === 'meal' ? G.rng.pick(meals) : null, served: -1, stay: 0, reqMet: false,
         };
     }
