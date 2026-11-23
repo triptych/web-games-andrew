@@ -3,6 +3,19 @@
  * for the Node harnesses. They check the same invariants the real ones rely on:
  * a composer must be given a renderer, and it must be resized when the canvas is.
  */
+import { Vector2 } from './fake-three.mjs';
+
+function blurMaterial(radius, taps = radius) {
+    return {
+        defines: { KERNEL_RADIUS: radius },
+        uniforms: {
+            gaussianCoefficients: { value: Array(taps).fill(0) },
+            invSize: { value: new Vector2(1, 1) },
+        },
+        disposed: false,
+        dispose() { this.disposed = true; },
+    };
+}
 
 export class RenderPass {
     constructor(scene, camera) {
@@ -24,6 +37,10 @@ export class UnrealBloomPass {
         this.radius = radius;
         this.threshold = threshold;
         this.sized = 0;
+        this.separableBlurMaterials = [3, 5, 7, 9, 11].map((n) => blurMaterial(n));
+    }
+    getSeperableBlurMaterial(taps) {
+        return blurMaterial(taps, taps);
     }
     setSize(w, h) { this.sized++; this.width = w; this.height = h; }
 }

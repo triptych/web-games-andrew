@@ -78,22 +78,29 @@ const emptyCell = (sol) => { for (let r = 0; r < sol.length; r++) for (let c = 0
     const [er, ec] = emptyCell(PUZZLES[0].solution);
     let p = await cellScreen(page, vp, er, ec);
     await page.mouse.click(p.x, p.y, { button: 'right' });
+    await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 2, [er, ec], { timeout: 1000 });
     check(await px(page, ([r, c]) => window.__px.grid[r][c], [er, ec]) === 2, 'right click marks');
     await page.mouse.click(p.x, p.y, { button: 'right' });
+    await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 0, [er, ec], { timeout: 1000 });
     await page.keyboard.press('KeyX');
+    await page.waitForFunction(() => window.__px.markTool, null, { timeout: 1000 });
     check(await px(page, () => window.__px.markTool), 'X switches to the mark tool');
     await page.mouse.click(p.x, p.y);
+    await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 2, [er, ec], { timeout: 1000 });
     check(await px(page, ([r, c]) => window.__px.grid[r][c], [er, ec]) === 2, 'left click marks with the mark tool');
     await page.keyboard.press('KeyX');
+    await page.waitForFunction(() => !window.__px.markTool, null, { timeout: 1000 });
 
     for (let i = 0; i < PUZZLES.length; i++) {
         await waitFor(page, (n) => window.__px.scene === 'game' && window.__px.puzzle === n, i);
         for (const [r, c] of filledCells(PUZZLES[i].solution)) {
             p = await cellScreen(page, vp, r, c);
             await page.mouse.click(p.x, p.y);
+            await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 1 || window.__px.won, [r, c], { timeout: 1000 });
         }
         check(await waitFor(page, () => window.__px.won), `puzzle ${i + 1} (${PUZZLES[i].name}) solved by clicking`);
-        check((await page.evaluate(() => JSON.parse(localStorage.getItem('pixelPicross_solved')))).includes(i), `puzzle ${i + 1} saved as solved`);
+        const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('pixelPicross_solved')));
+        check(Array.isArray(saved) && saved.includes(i), `puzzle ${i + 1} saved as solved`);
         if (i === 0) await page.screenshot({ path: path.join(OUT, 'desktop-solved.png') });
         await sleep(250);
         await page.mouse.click(vp.width / 2, vp.height / 2);
@@ -125,6 +132,7 @@ for (const [name, vp] of [['portrait', { width: 390, height: 844 }], ['landscape
 
     const [r0, c0] = filledCells(sol)[0];
     await tapCell(r0, c0);
+    await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 1, [r0, c0], { timeout: 1000 });
     check(await px(page, ([r, c]) => window.__px.grid[r][c], [r0, c0]) === 1, `${name}: a tap fills`);
 
     // Drag along row 0 from the first to the last column
@@ -140,9 +148,11 @@ for (const [name, vp] of [['portrait', { width: 390, height: 844 }], ['landscape
     check(row0 === '1'.repeat(sol[0].length), `${name}: dragging fills a run of squares (${row0})`);
 
     await tapGame(W / 2 - 170, btnY);
+    await page.waitForFunction(() => window.__px.markTool, null, { timeout: 1000 });
     check(await px(page, () => window.__px.markTool), `${name}: the tool button switches to marking`);
     const [er, ec] = emptyCell(sol.slice(1)).map((v, i) => (i === 0 ? v + 1 : v));
     await tapCell(er, ec);
+    await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 2, [er, ec], { timeout: 1000 });
     check(await px(page, ([r, c]) => window.__px.grid[r][c], [er, ec]) === 2, `${name}: a tap marks with the mark tool`);
     await page.screenshot({ path: path.join(OUT, `phone-${name}-marking.png`) });
     await tapGame(W / 2 - 170, btnY);
@@ -150,13 +160,17 @@ for (const [name, vp] of [['portrait', { width: 390, height: 844 }], ['landscape
     await tapGame(W / 2 + 20, btnY);   // Restart
     check(await waitFor(page, () => window.__px.grid.every((row) => row.every((v) => v === 0))), `${name}: Restart clears the board`);
 
-    for (const [r, c] of filledCells(sol)) await tapCell(r, c);
+    for (const [r, c] of filledCells(sol)) {
+        await tapCell(r, c);
+        await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 1 || window.__px.won, [r, c], { timeout: 1000 });
+    }
     check(await waitFor(page, () => window.__px.won), `${name}: puzzle 1 solved by tapping`);
     await sleep(250);
     await tapGame(W / 2, H / 2);
     check(await waitFor(page, () => window.__px.scene === 'game' && window.__px.puzzle === 1), `${name}: a tap goes on to puzzle 2`);
     const [r1, c1] = filledCells(PUZZLES[1].solution)[0];
     await tapCell(r1, c1);
+    await page.waitForFunction(([r, c]) => window.__px.grid[r][c] === 1, [r1, c1], { timeout: 1000 });
     check(await px(page, ([r, c]) => window.__px.grid[r][c], [r1, c1]) === 1, `${name}: taps still register after the scene change`);
 
     const s = toScreen(vp, 0, 0).s;

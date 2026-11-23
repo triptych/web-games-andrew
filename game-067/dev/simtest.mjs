@@ -20,19 +20,20 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const JS = path.join(HERE, '../js');
 const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 
-const { N, T } = await import(path.join(JS, 'config.js'));
-const G = await import(path.join(JS, 'sim/grid.js'));
-const { World } = await import(path.join(JS, 'sim/world.js'));
-const { generateIsland, PRESETS } = await import(path.join(JS, 'sim/islands.js'));
-const { DEFAULT_SETS, trainLength } = await import(path.join(JS, 'sim/trainsets.js'));
-const { ITEMS } = await import(path.join(JS, 'sim/catalog.js'));
-const { STICKERS } = await import(path.join(JS, 'sim/stickers.js'));
+const moduleURL = (relativePath) => pathToFileURL(path.join(JS, relativePath)).href;
+const { N, T } = await import(moduleURL('config.js'));
+const G = await import(moduleURL('sim/grid.js'));
+const { World } = await import(moduleURL('sim/world.js'));
+const { generateIsland, PRESETS } = await import(moduleURL('sim/islands.js'));
+const { DEFAULT_SETS, trainLength } = await import(moduleURL('sim/trainsets.js'));
+const { ITEMS } = await import(moduleURL('sim/catalog.js'));
+const { STICKERS } = await import(moduleURL('sim/stickers.js'));
 
 let fails = 0, passes = 0;
 const ok = (c, m) => { if (c) passes++; else { fails++; console.log(`  ✗ ${m}`); } };

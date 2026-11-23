@@ -7,7 +7,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const JS = path.join(HERE, '../js');
@@ -19,17 +19,18 @@ const ok = (m) => console.log(`  ✓ ${m}`);
 const fail = (m) => { fails++; console.log(`  ✗ ${m}`); };
 const check = (c, m) => (c ? ok(m) : fail(m));
 
-const { generateFloor, bfs } = await import(`${JS}/sim/dungeon.js`);
-const { buildTown } = await import(`${JS}/sim/town.js`);
-const { T, walkable } = await import(`${JS}/sim/tiles.js`);
-const { createHero, computeStats, itemScore } = await import(`${JS}/sim/hero.js`);
-const { Game, loadHero } = await import(`${JS}/sim/game.js`);
-const { makeItem, rollKind, rollRarity } = await import(`${JS}/sim/items.js`);
-const { STAT_LABEL } = await import(`${JS}/sim/data/items.js`);
-const { RNG } = await import(`${JS}/rng.js`);
-const { Bot } = await import(`${JS}/sim/bot.js`);
-const { FLOORS } = await import(`${JS}/config.js`);
-const { MONSTERS } = await import(`${JS}/sim/data/monsters.js`);
+const moduleURL = (relativePath) => pathToFileURL(path.join(JS, relativePath)).href;
+const { generateFloor, bfs } = await import(moduleURL('sim/dungeon.js'));
+const { buildTown } = await import(moduleURL('sim/town.js'));
+const { T, walkable } = await import(moduleURL('sim/tiles.js'));
+const { createHero, computeStats, itemScore } = await import(moduleURL('sim/hero.js'));
+const { Game, loadHero } = await import(moduleURL('sim/game.js'));
+const { makeItem, rollKind, rollRarity } = await import(moduleURL('sim/items.js'));
+const { STAT_LABEL } = await import(moduleURL('sim/data/items.js'));
+const { RNG } = await import(moduleURL('rng.js'));
+const { Bot } = await import(moduleURL('sim/bot.js'));
+const { FLOORS } = await import(moduleURL('config.js'));
+const { MONSTERS } = await import(moduleURL('sim/data/monsters.js'));
 
 function listFiles(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? listFiles(path.join(dir, e.name)) : [path.join(dir, e.name)]));

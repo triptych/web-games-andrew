@@ -7,7 +7,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
@@ -20,20 +20,21 @@ const ok = (m) => console.log(`  ✓ ${m}`);
 const fail = (m) => { fails++; console.log(`  ✗ ${m}`); };
 const check = (c, m) => (c ? ok(m) : fail(m));
 
-const { SPECIES, SPECIES_TOTAL, BY_NAME, lineOf } = await import(`${JS}/sim/dex.js`);
-const { MOVES } = await import(`${JS}/sim/data/moves.js`);
-const { TRAITS } = await import(`${JS}/sim/data/traits.js`);
-const { TYPES, typeEff } = await import(`${JS}/sim/data/types.js`);
-const { PARTS } = await import(`${JS}/sim/data/parts.js`);
-const { ITEMS, RECIPES, BLUEPRINTS, CARDS } = await import(`${JS}/sim/data/items.js`);
-const { MAPS } = await import(`${JS}/sim/data/maps.js`);
-const { LEADERS, rivalTeam, OBJECTIVES, SCRIPTS } = await import(`${JS}/sim/data/story.js`);
-const { RNG } = await import(`${JS}/rng.js`);
-const { makeUnit, calcStats, evolve, evolutionTarget } = await import(`${JS}/sim/unit.js`);
-const { Battle } = await import(`${JS}/sim/battle.js`);
-const { chooseAction } = await import(`${JS}/sim/ai.js`);
-const { Game, newState, loadGame } = await import(`${JS}/sim/game.js`);
-const { Pilot } = await import(`${JS}/sim/pilot.js`);
+const moduleURL = (relativePath) => pathToFileURL(path.join(JS, relativePath)).href;
+const { SPECIES, SPECIES_TOTAL, BY_NAME, lineOf } = await import(moduleURL('sim/dex.js'));
+const { MOVES } = await import(moduleURL('sim/data/moves.js'));
+const { TRAITS } = await import(moduleURL('sim/data/traits.js'));
+const { TYPES, typeEff } = await import(moduleURL('sim/data/types.js'));
+const { PARTS } = await import(moduleURL('sim/data/parts.js'));
+const { ITEMS, RECIPES, BLUEPRINTS, CARDS } = await import(moduleURL('sim/data/items.js'));
+const { MAPS } = await import(moduleURL('sim/data/maps.js'));
+const { LEADERS, rivalTeam, OBJECTIVES, SCRIPTS } = await import(moduleURL('sim/data/story.js'));
+const { RNG } = await import(moduleURL('rng.js'));
+const { makeUnit, calcStats, evolve, evolutionTarget } = await import(moduleURL('sim/unit.js'));
+const { Battle } = await import(moduleURL('sim/battle.js'));
+const { chooseAction } = await import(moduleURL('sim/ai.js'));
+const { Game, newState, loadGame } = await import(moduleURL('sim/game.js'));
+const { Pilot } = await import(moduleURL('sim/pilot.js'));
 
 function listFiles(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap((e) => {

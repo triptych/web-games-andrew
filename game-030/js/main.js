@@ -123,6 +123,8 @@ $('btn-log').addEventListener('click', () => { vn.showLog(); ui.stack.push('logs
 function start(g) {
     G = g;
     screen = 'game';
+    inBattle = G.mode === 'battle';
+    pendingResult = null;
     $('title').hidden = true;
     $('ending').hidden = true;
     $('hud').hidden = false;

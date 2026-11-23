@@ -86,9 +86,13 @@ section('drop-in: lib/core matches every game copy');
     check(tally.makeRng[1] >= 60, `found the games' makeRng copies (${tally.makeRng[1]})`);
     // one of the two lib variants must reproduce each game from 057 on (older ones are a different API)
     const later = new Set([...(differ.makeRng || [])].filter((g) => +g.slice(5) >= 58));
-    const unmatched = [...later].filter((g) => (differ['makeRng {hashSeed}'] || []).includes(g));
+    // game-143 uses a distinct single-step initial seed mix. Keep it explicit
+    // until it can switch without changing that game's deterministic sequence.
+    const customSeedMix = new Set(['game-143']);
+    const unmatched = [...later].filter((g) => !customSeedMix.has(g) && (differ['makeRng {hashSeed}'] || []).includes(g));
     check(later.size > 0, 'some later games use the hashed-seed variant');
     check(unmatched.length === 0, `every makeRng from game-058 on is reproduced by one variant${unmatched.length ? ': not ' + unmatched.join(' ') : ''}`);
+    check(customSeedMix.has('game-143') && later.has('game-143') && (differ.makeRng || []).includes('game-143') && (differ['makeRng {hashSeed}'] || []).includes('game-143'), 'game-143 retains its documented custom seed mix');
     check(tally.hash3[0] >= tally.hash3[1] - 1, 'hash3 matches every copy but game-129 (which adds a mixing round)');
 }
 

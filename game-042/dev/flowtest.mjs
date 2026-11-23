@@ -8,8 +8,9 @@
  */
 import { chromium } from 'playwright';
 import { mkdirSync } from 'fs';
+import { fileURLToPath } from 'node:url';
 const BASE = process.env.BASE ?? 'http://127.0.0.1:8042';
-const OUT = new URL('./shots/', import.meta.url).pathname;
+const OUT = fileURLToPath(new URL('./shots/', import.meta.url));
 mkdirSync(OUT, { recursive: true });
 const browser = await chromium.launch({ executablePath: process.env.PW_CHROMIUM_PATH, args: ['--no-sandbox'] });
 const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });

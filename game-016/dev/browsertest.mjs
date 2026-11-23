@@ -120,8 +120,10 @@ function toScreen(vp, x, y) {
 
     // Undo and restart, with keys
     await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(() => window.__cp.moves === 1, null, { timeout: 1000 });
     check(await cp(page, () => window.__cp.moves) === 1, 'arrow moves');
     await page.keyboard.press('KeyU');
+    await page.waitForFunction(() => window.__cp.moves === 0, null, { timeout: 1000 });
     check(await cp(page, () => window.__cp.moves) === 0, 'U undoes');
     await page.keyboard.press('KeyA');
     await page.keyboard.press('KeyR');

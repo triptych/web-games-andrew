@@ -97,7 +97,7 @@ const waitFor = (page, fn, arg, timeout = 5000) => page.waitForFunction(fn, arg,
     const after = await ih(page, () => ({ ...window.__ih.dungeon.player.pos }));
     check(after.x < before.x - 10, `arrow keys move the knight (${before.x} → ${after.x})`);
     const swings = await ih(page, () => window.__ih.dungeon.swings);
-    await page.keyboard.press('Space');
+    await page.keyboard.down('Space'); await sleep(100); await page.keyboard.up('Space');
     check(await waitFor(page, (n) => window.__ih.dungeon.swings > n, swings, 2000), 'Space swings the sword');
     await page.screenshot({ path: path.join(OUT, 'desktop-floor1.png') });
 

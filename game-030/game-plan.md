@@ -2,7 +2,7 @@
 
 **Genre:** Cozy-fantasy RPG (tinker's tale)
 **Layout:** sim/view, plain HTML, CSS and JavaScript (Canvas 2D for the map and the battle stage, DOM for everything else)
-**Version:** 2.0.1
+**Version:** 2.0.2
 **Status:** Complete: one story arc to a boss, four quests, a party of three, painted, scored and fully voiced.
 
 ---
@@ -120,7 +120,7 @@ dev/              simtest, browsertest, play, shots, preview, serve; art/ and au
 
 - `node game-030/dev/simtest.mjs`: 965 checks. Purity, every map/person/event reachable, every dialogue reference, every quest
   given and completed, every picture and audio file, a test for each v1 gap, whole games by the bot at skill 1, 0.6 and 0.3.
-- `node game-030/dev/browsertest.mjs`: 44 checks. Chromium, desktop by real keys and clicks, two touch-only phones, blocked storage, and
+- `node game-030/dev/browsertest.mjs`: 51 checks. Chromium, desktop by real keys and clicks, two touch-only phones, blocked storage, and
   the bot autoplaying in the page. Screenshots in `dev/shots/`.
 
 ## Balance notes
@@ -135,6 +135,9 @@ about half, level 6 reliably, which is what the guide recommends.
 - One more companion, or a second boss, would suit the Gully's closed corner better than more random encounters.
 
 ## Changelog
+
+### v2.0.2 (2026-11-22)
+- Restoring a saved battle now restores battle mode, keeping its scene and controls active on mobile.
 
 ### v2.0.1 (2026-11-21)
 - Auto battle shows a Take control bar while it runs (it carries on from battle to battle, and the menu with its Auto button stayed hidden).

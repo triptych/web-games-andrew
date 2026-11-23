@@ -107,8 +107,9 @@ async function desktop() {
     await click(page, '#grim-grid .gcell');
     ok(await visible(page, '#detail'), 'a card opens its page');
     const id = await ev(page, () => window.__ap.ui.detailId);
-    await click(page, '#det-slots button:nth-child(2)');
-    ok(await ev(page, (id) => window.__ap.G.party[1] === id, id), 'placed in the second slot by click');
+    const slot = await ev(page, (id) => window.__ap.G.party.findIndex((card) => card !== id), id);
+    await click(page, `#det-slots button:nth-child(${slot + 1})`);
+    ok(await ev(page, ({ id, slot }) => window.__ap.G.party[slot] === id, { id, slot }), `placed in slot ${slot + 1} by click`);
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     ok(!(await visible(page, '#grimoire')) && !(await visible(page, '#detail')), 'Escape closes the sheets');

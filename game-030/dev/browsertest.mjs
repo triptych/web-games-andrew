@@ -127,7 +127,7 @@ console.log('\n# desktop');
     await page.waitForFunction(() => !document.getElementById('b-result').hidden, null, { timeout: 60000 });
     await page.click('#b-result-foot .gold');
     await idle(page);
-    await ea(page, `__.fight('cogs2')`);
+    await ea(page, `(__.battleView.speed = 0.2, __.fight('cogs2'))`);
     ok(await page.waitForSelector('#b-menu [data-b=manual]', { timeout: 5000 }).then(() => true, () => false), 'the next battle starts on Auto, with the bar showing');
     await shot(page, 'autobar');
     await page.click('#b-menu [data-b=manual]');
@@ -217,6 +217,24 @@ for (const [name, vp] of [['phone', { width: 390, height: 844 }], ['landscape', 
     await shot(page, name + '-menu');
     await page.tap('#menu .sheet-foot .btn');
     await shot(page, name + '-map');
+
+    // Restoring on a phone must bring back the HUD/touch pad and, when a
+    // background save catches a battle, resume the battle controls too.
+    await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+    await page.reload();
+    await page.waitForFunction(() => window.__cl && !document.getElementById('title').hidden, null, { timeout: 60000 });
+    await page.tap('#btn-continue');
+    await page.waitForFunction(() => window.__cl.mode() === 'explore' && !document.getElementById('hud').hidden && !document.getElementById('touch').hidden, null, { timeout: 10000 });
+    ok(true, 'Continue restores the mobile HUD and touch pad');
+
+    await ea(page, `(__.G.level = 5, __.fight('crab'))`);
+    await page.waitForFunction(() => document.querySelector('#b-menu [data-b=attack]'), null, { timeout: 10000 });
+    await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+    await page.reload();
+    await page.waitForFunction(() => window.__cl && document.getElementById('title').hidden === false, null, { timeout: 60000 });
+    await page.tap('#btn-continue');
+    await page.waitForFunction(() => window.__cl.mode() === 'battle' && !document.getElementById('battle').hidden && document.querySelector('#b-menu [data-b=attack]'), null, { timeout: 15000 });
+    ok(true, 'Continue restores mobile battle controls');
     await ctx.close();
 }
 

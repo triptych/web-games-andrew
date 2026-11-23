@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Coppergate Lane** (game-030) v2.0.2: restoring a saved battle now restores battle mode, keeping the battle scene and mobile controls active.
+
 ### Added
 - **JINGLE POP** (game-146) v1.0.0: a Christmas bubble shooter. Juniper the junior elf wins back the ornaments Grimwick the snow goblin blew out of Santa's workshop ([game-plan.md](game-146/game-plan.md)).
   - **Rules** ([js/sim/](game-146/js/sim/)): a pure, seeded simulation. A hex grid hangs from a ceiling; shots are traced exactly when fired (ray against circle with a slightly small hit radius, wall bounces) and flown along that path, so the guide, the bot and the flight agree. Three of a colour pop and anything left hanging falls. A streak multiplier. A ceiling that comes down under shot pressure (a miss counts double), and an endless mode whose new rows push in without shifting the columns below.

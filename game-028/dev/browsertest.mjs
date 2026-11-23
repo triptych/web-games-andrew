@@ -124,7 +124,7 @@ console.log('\n# desktop');
     await page.waitForFunction(() => !document.getElementById('b-result').hidden, null, { timeout: 60000 });
     await page.click('#b-result-foot .gold');
     await idle(page);
-    await ea(page, `__.fight('slimes2')`);
+    await ea(page, `(__.battleView.speed = 0.2, __.fight('slimes2'))`);
     ok(await page.waitForSelector('#b-menu [data-b=manual]', { timeout: 5000 }).then(() => true, () => false), 'the next battle starts on Auto, with the bar showing');
     await shot(page, 'autobar');
     await page.click('#b-menu [data-b=manual]');
