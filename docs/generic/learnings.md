@@ -7607,3 +7607,50 @@ levels, five grid specials, eight power-ups, a swap tray and an endless mode.
   (an odd row sits half a ball to the right), so the whole thing fell and the loss test passed for the wrong reason.
   Build fixtures with `put(G, r, 0, …)` in every row, and assert the setup (`cellY(G, 14) > DEAD_Y`) before the
   outcome.
+
+## Game 147: Inn Over My Head — Meshy rigs for every character, ElevenLabs references for every model (2026-11-23)
+
+A cozy RPG and inn manager whose every 3D asset is a Meshy model built from ElevenLabs art. See
+[game-147/dev/meshy/README.md](../../game-147/dev/meshy/README.md) for the pipeline.
+
+**Paint the reference, then model it.** ElevenLabs Nano Banana 2.1 painted each character and monster full-body on
+white (one shared style paragraph, "neutral A-pose, arms slightly away from the body"), and Meshy image-to-3D (smart
+topology, 1,800–9,000 triangles, textured, 2K) turned each into a GLB for **15 credits** in about a minute, half the
+price of text-to-3D (preview 20 + refine 10), and the models match the 2D portraits. Items came from 4×4 sheets at 2K
+(one image, 16 objects); cut each cell by its ink bounding box, ignoring rows and columns with only a few ink pixels
+(stray sparkles widened two crops). 75 models, no failures, 1,140 credits.
+
+**Thin features over the eyes don't survive.** Ember's wire glasses and a soot smudge came out as a smeared, warped
+face. An ElevenLabs edit of the reference ("same character, same pose; remove the glasses and the smudge") and one more
+15-credit model fixed it. Check every face at close range (crop the thumbnail) before building on a model.
+
+**Rigging needs a readable body.** Meshy auto-rigging (5 credits, 24 bones, walk and run included) worked first time on
+the chibi heroes despite their big heads, but failed with `Fail to invoke pose estimation` (a 500, `submission_unknown`)
+on a merchant with a huge backpack, a lady in a wide skirt and a stub-limbed mushroom. Rebuilding the two people with
+`image-to-3d --pose-mode a-pose` (arms clear of the body) let them rig. Creatures without humanoid limbs get
+procedural motion under the same clip names instead.
+
+**Library clips are 3 MB each until you strip them.** `animate` (3 credits per clip) returns the whole rigged character
+with one clip, and its armature-only output is FBX. `dev/meshy/clip.py` keeps only the nodes and the animation samplers'
+accessors: 3 MB to 30–120 KB. three.js binds the clip to the character loaded once, by bone name. Zero the Hips'
+horizontal translation (keep its vertical bob) so the game places characters, not the clip.
+
+**Redo with new operation ids.** The CLI journals `--operation-id` locally; resubmitting a failed rig under the same id
+with a different payload is refused (`operation_conflict`). Give pipelines a tag for redos.
+
+**Ink outlines on skinned meshes.** The inverted hull must be a `SkinnedMesh` bound to the same skeleton and bind
+matrix, or the outline stays in the bind pose while the character moves. `MeshBasicMaterial` has no `objectNormal`
+without skinning or an env map, so push the vertex along `normal`.
+
+**A 3/4 orthographic arena.** Two spots that differ only along the camera's view direction overlap on screen; place
+units by screen position as well as ground position. Keep tall scenery on the far rim only. Fighters facing straight at
+each other show the camera their backs on the side away from it; angle them toward the viewer.
+
+**Phones.** A whole dollhouse in 390 px makes dust bunnies a few pixels wide. On narrow screens the camera uses a closer
+span and a drag pans sideways (a press that moves 12 px is a drag, not a tap).
+
+**Bugs the tests found.** A story goal that checked `dust === 0` never fired, because the same tick that ran the check
+added dust again (now `< 1`). A battle where every hero was already down when an enemy's turn came never ended (the AI
+step now checks for the end first). A recruit who needed two of a scarce drop (one for her task, one for her favourite
+stew) could stall the story; she now cooks the stew herself from the one you bring. An unpositioned overlay `div` sat
+under the fixed canvas and swallowed no clicks at all: the canvas got them.

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Inn Over My Head · icon renderer</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style></head>
+<body>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+// window.renderIcon('item-honey') draws one Meshy model, toon shaded with an outline, three-quarter view from above,
+// on a transparent 128 px canvas, and returns a PNG data URL. dev/icons.mjs saves them as art/icons/<id>.webp.
+import * as THREE from 'three';
+import { toonify, fit } from '../js/view/assets.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const S = 128;
+const R = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+R.setSize(S, S); R.setClearColor(0, 0); R.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(R.domElement);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0xb59a7a, 1.5));
+const sun = new THREE.DirectionalLight(0xfff4e0, 2.0); sun.position.set(2, 4, 3); scene.add(sun);
+const cam = new THREE.OrthographicCamera(-0.62, 0.62, 0.62, -0.62, 0.1, 20);
+cam.position.set(1.6, 1.5, 2.6); cam.lookAt(0, 0.45, 0);
+const loader = new GLTFLoader();
+let cur = null;
+window.renderIcon = async (name) => {
+    if (cur) scene.remove(cur);
+    const g = await loader.loadAsync(`../models/${name}.glb`);
+    const m = g.scene;
+    // fit the largest dimension to 1, standing on y = 0
+    m.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(m), size = box.getSize(new THREE.Vector3());
+    const big = Math.max(size.x, size.y, size.z);
+    const s = fit(m, size.y / big);
+    toonify(m, 0.012 / s);
+    cur = new THREE.Group(); cur.add(m); scene.add(cur);
+    cur.rotation.y = -0.35;
+    // re-centre the view on the model
+    const b2 = new THREE.Box3().setFromObject(cur), c = b2.getCenter(new THREE.Vector3());
+    cam.position.set(c.x + 1.6, c.y + 1.2, c.z + 2.6); cam.lookAt(c);
+    R.render(scene, cam);
+    return R.domElement.toDataURL('image/png');
+};
+window.ready = true;
+</script>
+</body>
+</html>

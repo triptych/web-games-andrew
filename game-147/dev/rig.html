@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inn Over My Head · rig check</title>
+<style>html,body{margin:0;background:#c9d6e8;overflow:hidden}canvas{display:block}#lbl{position:fixed;left:8px;top:8px;font:14px system-ui;color:#123}</style>
+</head>
+<body>
+<div id="lbl"></div>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+// ?model=rig/maple.glb&clips=walk,run  (paths relative to dev/, clips from rig/<who>-<clip>.glb)
+// Shows the model in toon shading with an outline, plays one clip at a time; window.setClip(name, t) poses it.
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const P = new URLSearchParams(location.search);
+const R = new THREE.WebGLRenderer({ antialias: true }); R.setSize(innerWidth, innerHeight); R.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(R.domElement);
+const S = new THREE.Scene();
+const C = new THREE.PerspectiveCamera(30, innerWidth / innerHeight, 0.05, 50);
+C.position.set(2.2, 1.5, 3.6); C.lookAt(0, 0.55, 0);
+S.add(new THREE.HemisphereLight(0xffffff, 0x8899aa, 1.4));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(2, 4, 3); S.add(sun);
+const grid = new THREE.GridHelper(4, 8, 0x8899aa, 0xaabbcc); S.add(grid);
+const loader = new GLTFLoader();
+const g = await loader.loadAsync(P.get('model'));
+const root = g.scene; S.add(root);
+const box = new THREE.Box3().setFromObject(root);
+const h = box.max.y - box.min.y; root.scale.setScalar(1.1 / h); root.position.y = -box.min.y * 1.1 / h;
+const ramp = new THREE.DataTexture(new Uint8Array([90, 90, 90, 255, 200, 200, 200, 255, 255, 255, 255, 255]), 3, 1); ramp.needsUpdate = true;
+ramp.minFilter = ramp.magFilter = THREE.NearestFilter;
+root.traverse((o) => {
+    if (!o.isMesh) return;
+    const old = o.material;
+    o.material = new THREE.MeshToonMaterial({ map: old.map, color: 0xffffff, gradientMap: ramp });
+    const ol = o.isSkinnedMesh ? new THREE.SkinnedMesh(o.geometry, new THREE.MeshBasicMaterial({ color: 0x3a2a30, side: THREE.BackSide })) : new THREE.Mesh(o.geometry, new THREE.MeshBasicMaterial({ color: 0x3a2a30, side: THREE.BackSide }));
+    if (o.isSkinnedMesh) ol.bind(o.skeleton, o.bindMatrix);
+    ol.material.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <project_vertex>', 'transformed += normal * 0.012 / ' + (1.1 / h).toFixed(5) + ';\n#include <project_vertex>'); };
+    o.parent.add(ol); ol.position.copy(o.position); ol.quaternion.copy(o.quaternion); ol.scale.copy(o.scale);
+});
+const mixer = new THREE.AnimationMixer(root);
+const clips = {};
+for (const c of (P.get('clips') || '').split(',').filter(Boolean)) {
+    const a = await loader.loadAsync(P.get('model').replace(/[^/]*\.glb$/, '') + P.get('who') + '-' + c + '.glb');
+    clips[c] = a.animations[0];
+}
+let cur = null;
+window.setClip = (name, t = 0) => {
+    mixer.stopAllAction();
+    cur = name;
+    if (!clips[name]) return false;
+    const act = mixer.clipAction(clips[name]); act.play(); mixer.setTime(t);
+    document.getElementById('lbl').textContent = `${P.get('who')} · ${name} · t=${t.toFixed(2)} / ${clips[name].duration.toFixed(2)}`;
+    R.render(S, C);
+    return clips[name].duration;
+};
+window.clipNames = Object.keys(clips);
+window.boneCount = (() => { let n = 0; root.traverse((o) => { if (o.isBone) n++; }); return n; })();
+R.render(S, C);
+window.ready = true;
+</script>
+</body>
+</html>

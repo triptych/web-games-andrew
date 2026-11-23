@@ -1,0 +1,46 @@
+/**
+ * play.mjs — open the real game, run a snippet, take a screenshot. For iterating on visuals.
+ *
+ *   node game-147/dev/play.mjs <name> "<js run after boot>" [waitMs] [w h] [touch]
+ *   node game-147/dev/play.mjs inn "__iomh.start(3)" 2500
+ *   node game-147/dev/play.mjs fight "__iomh.start(3); __iomh.act({t:'depart',region:'meadow'}); __iomh.act({t:'fight'})" 4000
+ *
+ * The snippet runs with ?debug=1 (window.__iomh, see dev/README.md) as the body of an async function: `return` a value
+ * to print it. Q='&fast=4' adds URL parameters. Screenshot: game-147/dev/shots/<name>.png. Server: port 8147.
+ */
+import { chromium } from 'playwright';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = path.dirname(fileURLToPath(import.meta.url));
+const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
+const BASE = process.env.BASE ?? 'http://127.0.0.1:8147';
+const [name = 'shot', code = '', wait = '1500', w = '1280', h = '760', touch = ''] = process.argv.slice(2);
+fs.mkdirSync(path.join(HERE, 'shots'), { recursive: true });
+
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
+const isTouch = touch === 'touch';
+const page = await (await browser.newContext({ viewport: { width: +w, height: +h }, deviceScaleFactor: 1, hasTouch: isTouch, isMobile: isTouch })).newPage();
+if (PKG) {
+    await page.route('https://unpkg.com/**', (route) => {
+        const file = path.join(PKG, new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, ''));
+        if (!fs.existsSync(file)) return route.abort();
+        route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
+    });
+}
+await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log(`[${m.type()}]`, m.text().slice(0, 300)); });
+page.on('pageerror', (e) => console.log('[pageerror]', e.message));
+page.on('requestfailed', (r) => console.log('[requestfailed]', r.url()));
+await page.goto(`${BASE}/game-147/index.html?debug=1${process.env.Q || ''}`);
+await page.waitForFunction(() => window.__iomh, null, { timeout: 60000 });
+if (code) {
+    const out = await page.evaluate(`(async () => { ${code} })()`);
+    if (out !== undefined) console.log(JSON.stringify(out, null, 1));
+}
+await page.waitForTimeout(+wait);
+if (process.env.AFTER) { const out = await page.evaluate(`(async () => { ${process.env.AFTER} })()`); if (out !== undefined) console.log(JSON.stringify(out, null, 1)); await page.waitForTimeout(+(process.env.WAIT2 || 1500)); }
+await page.screenshot({ path: path.join(HERE, 'shots', `${name}.png`) });
+console.log('shot', path.join('dev/shots', `${name}.png`));
+await browser.close();
