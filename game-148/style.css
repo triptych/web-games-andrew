@@ -301,7 +301,7 @@ td:first-child { color: #8a5ad1; white-space: nowrap; padding-right: 10px; }
 .ending-card h2 { margin: 0 0 6px; font-family: 'Cinzel Decorative', Georgia, serif; color: #5b3d8a; }
 .ending-card .sheet-foot { justify-content: center; }
 
-#toasts { position: fixed; left: 50%; top: calc(150px + var(--safe-t)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+#toasts { position: fixed; left: 50%; bottom: calc(110px + var(--safe-b)); transform: translateX(-50%); z-index: 60; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .toast { background: rgba(255, 255, 255, 0.94); border-radius: 999px; padding: 8px 16px; box-shadow: 0 4px 14px rgba(60, 30, 100, 0.25); animation: toast 2.4s forwards; white-space: nowrap; }
 @keyframes toast { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; color: #fff; }

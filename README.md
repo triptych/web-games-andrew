@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-147 games, `game-001` through `game-147`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+148 games, `game-001` through `game-148`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -188,6 +188,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 145 | [VACANCY](game-145/) | A first-person walking simulator in a procedural abandoned city: enter every building floor by floor, find ten diaries of the missing with a compass, open the portal that took them; liminal backrooms, decay, fal textures | three.js |
 | 146 | [JINGLE POP](game-146/) | A Christmas bubble shooter: an elf wins back the stolen ornaments across 36 levels and an endless Blizzard, with presents, coal, ice, bells, a swap tray, eight power-ups and a voiced story; ElevenLabs art, music and voices | three.js |
 | 147 | [Inn Over My Head](game-147/) | A cozy anime RPG and inn manager: restore an inherited inn, recruit guests as party and staff, cook buffs, shoo dust bunnies and fight 3/4 turn-based battles with chain attacks; Meshy 3D models (rigged heroes), ElevenLabs art, music and voices | three.js |
+| 148 | [Glimmerglade](game-148/) | A gentle fairy sorting puzzle: tip glowing wisps between glass bell-flowers until each holds four of a colour and a creature wakes on top; 50 solver-proved levels with mist, brambles and acorn cups, a daily puzzle, ElevenLabs art, music and voices | Canvas 2D |
 | 142 | [Kaboom Keep](game-142/) | A whimsical physics cannon game: blast toy-block castles to bits and knock over every little knight, prince and wizard; a rigid-body engine written for the game, five cannonballs, 48 castles from a proved generator plus Endless Siege; fal art, ElevenLabs music, effects and voices | three.js |
 
 ### Highlights

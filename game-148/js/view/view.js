@@ -629,7 +629,7 @@ export class View {
         for (const p of this.popups) {
             p.t += dt;
             const a = p.t < 0.2 ? p.t / 0.2 : Math.max(0, 1 - (p.t - 1.2) / 0.6);
-            const y = p.y - ease(p.t / 1.8) * 24;
+            const y = Math.max((this.areaTop ?? 80) + 14, p.y - ease(p.t / 1.8) * 24);
             const size = Math.max(16, Math.min(26, this.tw * 0.42));
             ctx.font = `700 ${size}px Quicksand, system-ui, sans-serif`;
             ctx.textAlign = 'center'; ctx.textBaseline = 'middle';

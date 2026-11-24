@@ -1,0 +1,100 @@
+{
+ "id": "game-148",
+ "name": "Lumi",
+ "role": "Lantern fairy of the Glimmerglade",
+ "emoji": "🧚",
+ "color": "#c79cff",
+ "bio": "A young lantern fairy with dragonfly wings and a rose-petal dress, tipping the glade's lost wisps back into their bell-flowers so every creature can wake.",
+ "portrait": {
+  "subject": "Lumi, a small young fairy girl with rosy cheeks, big sea-green eyes, short wavy silver-lavender hair with tiny white star flowers, pointed ears, iridescent dragonfly wings, a pale pink rose-petal dress, holding a tiny glowing lantern",
+  "background": "soft pastel pink and lavender glow with a few floating colourful wisps of light"
+ },
+ "request": "Hello! I'm Lumi, the lantern fairy. The Tumble Wind mixed up every wisp in the glade. Will you help me sort them home? ✨",
+ "hello": [
+  "Oh, a friend! Bramble, look, a friend!",
+  "Hooray! The wisps will be home in no time now. 🌸"
+ ],
+ "about": "I keep the lanterns in Grandmother Willow's glade. Every creature here has a little heart-light, a wisp, and they sleep inside the glass bell-flowers. Last night the Tumble Wind blew them all into the wrong blossoms, so nobody can wake up until we sort them.",
+ "how": "Tap a blossom to lift its top wisps, then tap another to tip them in (or drag from one to the other). They only land on their own colour or in an empty blossom. Four of a colour make it bloom! Keys: arrows and Space, Z to undo, H for a firefly hint.",
+ "tips": [
+  "Keep an empty blossom free as long as you can. It's the best thinking space in the whole glade.",
+  "Undo is free! Only a bloom is forever, so try things.",
+  "In Mushroom Hollow, uncover the misty wisps early. Knowing what's underneath changes everything.",
+  "Count the petals on a bramble badge: that's how many blooms it needs before it lets go.",
+  "Acorn cups hold two wisps but never bloom. Park things there, don't leave them there!",
+  "Stuck? A sprout grows one more empty blossom. It caps you at two stars, but the creatures don't mind.",
+  "Three stars means matching Grandmother Willow's number of pours. She's very old and very clever."
+ ],
+ "chat": [
+  "Bramble ate all the blackberries off his own spines again. He looks very pleased with himself.",
+  "The Moonmoth dusted me with sleepy powder and I napped in a tulip for an hour.",
+  "Petal Fox sneezes pollen when it laughs. The whole meadow turns gold.",
+  "Did you know the Hush Owlet only ever whispers? I think it knows where the Tumble Wind lives.",
+  "The grotto gnomes keep leaving their acorn cups everywhere. I've started a collection.",
+  "Grandmother Willow says every wisp knows its way home. It just needs a little help sometimes."
+ ],
+ "nudge": [
+  "There are still sleepy creatures in the glade! One more puzzle? 🌸",
+  "Today's Daily Dewdrop is waiting, all sparkly and new! ✨"
+ ],
+ "idle": [
+  "It's been {ago}! The wisps have been drifting about without you.",
+  "{ago} already? Bramble's been keeping the fireflies warm for you."
+ ],
+ "progress": [
+  "Level {level+1} is open and waiting! Shall we? ✨",
+  "You've reached level {level+1}. The glade is glowing brighter already!",
+  "Your daily dewdrop streak is {streak}! Let's make it {streak+1}! 💧"
+ ],
+ "questions": [
+  {
+   "q": "Which creature is your favourite?",
+   "a": [
+    [
+     "Petal Fox",
+     "Me too! Its tail smells like roses. 🌹"
+    ],
+    [
+     "Starfoal",
+     "Clover grows wherever it steps. I follow it around all morning!"
+    ],
+    [
+     "Hush Owlet",
+     "Shhh... it might be listening. It's my favourite too."
+    ]
+   ]
+  },
+  {
+   "q": "Do you like the mist in Mushroom Hollow?",
+   "a": [
+    [
+     "Yes, it's mysterious!",
+     "It is! Every misty wisp is a little surprise."
+    ],
+    [
+     "Not really",
+     "Hee. It does hide things. But it always lifts in the end!"
+    ]
+   ]
+  }
+ ],
+ "update": "Glimmerglade is now v{version}! Something new is blooming in the glade. 🌸",
+ "bye": [
+  "Goodnight! See you at dawn! ✨",
+  "Back to the lanterns! Bye-bye!"
+ ],
+ "save": {
+  "keys": [
+   "glimmerglade.v1"
+  ],
+  "stats": {
+   "level": [
+    "unlocked"
+   ],
+   "streak": [
+    "daily.streak"
+   ]
+  }
+ },
+ "art": "fal"
+}

@@ -7654,3 +7654,36 @@ added dust again (now `< 1`). A battle where every hero was already down when an
 step now checks for the end first). A recruit who needed two of a scarce drop (one for her task, one for her favourite
 stew) could stall the story; she now cooks the stew herself from the one you bring. An unpositioned overlay `div` sat
 under the fixed canvas and swallowed no clicks at all: the canvas got them.
+
+## Game 148: Glimmerglade — a sort puzzle proved by its own pour rule, BiRefNet cut-outs, and a casual bot that remembers (2026-11-24)
+
+A fairy ball-sort puzzle in Canvas 2D with every picture and sound from ElevenLabs. What the next game should know:
+
+- **One rule function for the game, the hint, the bot and the generator.** `pour(tubes, blooms, from, to)` in
+  [rules.js](../../game-148/js/sim/rules.js) is pure and never mutates; `act()`, the DFS solver, the firefly hint
+  and both bots all go through it. A level the generator proves is therefore solvable by exactly the moves a player
+  makes, and the simtest replays each level's proof line through `act()` to win in par. Tube states as short strings
+  (`'aBc'`, uppercase = hidden under mist) make the memo key (sorted tube strings + bloom count) cheap: all 50 levels
+  generate and prove in under 0.1 s, and a hint from any position is instant.
+- **Par from a solver that isn't optimal still works for casual stars** if you tighten its line: `tighten()` drops
+  any pour whose removal still wins. Players can beat it, which feels good.
+- **A random casual bot is useless in a sort puzzle** (≈560 pours a level, failing late ones). A bot that refuses
+  positions it has already seen, prefers matching pours, undoes out of dead ends and restarts when a bloom seals it
+  in plays like a person (≈29 pours for a par of 24) and gives a meaningful stars-by-chapter table.
+- **ElevenLabs' BiRefNet node beats colour keys for sprites with translucent parts.** Paint on "plain flat solid
+  light grey studio background", wire a `birefnet-v2-bg-removal` node to the image node and run it (about 30 credits):
+  the result has real alpha and the fairy's dragonfly wings stay translucent. No key colour to choose around the
+  subject's palette, no despill. Grid sheets cut cleanly by equal cells when the prompt asks for "plenty of empty
+  space around" each figure.
+- **A provider filter can block a harmless prompt.** "A tree spirit… an elderly face formed in bark" was refused;
+  "a kindly old willow tree with a gentle friendly face naturally shaped in its bark, like a storybook tree character
+  for young children" went through. Rephrase toward the storybook framing instead of retrying the same text (a retry
+  is charged).
+- **A 1:1 2K backdrop crops well in both orientations** with `background-size: cover`; ask for "the whole center is
+  soft, hazy and out of focus, because a puzzle board sits in front of it" so the board reads on top.
+- **Landscape phones need the tool bar on the side.** At 844×390 a bottom tool bar left the board 228 px tall; a
+  right-hand rail (`@media (orientation: landscape) and (max-height: 520px)`) and a right margin in the view's layout
+  made blossoms about 40% bigger. The browser test checks blossom boxes against the tool bar's rectangle, not just its
+  top edge, so it is right for both layouts.
+- **Don't `finish()` an infinite CSS animation in a test helper**: it throws `InvalidStateError`. Skip animations
+  whose `getComputedTiming().endTime` is `Infinity`.
