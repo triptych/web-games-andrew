@@ -65,5 +65,19 @@
    "wakeform.slot.*"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute small round glowing probe robot with one big eye and a half blue, half red polarity glow, hovering on a little thruster"
+ }
 }

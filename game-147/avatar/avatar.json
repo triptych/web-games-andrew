@@ -92,5 +92,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cheerful freckled teenage innkeeper girl with honey-blonde hair in a messy bun with a wooden spoon stuck through it, a cream puff-sleeved blouse and a strawberry-red apron, holding a big brass room key"
+ }
 }

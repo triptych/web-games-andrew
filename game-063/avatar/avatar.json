@@ -67,5 +67,19 @@
    "teeandsorcery.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute anthropomorphic golf club character standing on little legs, with a shiny silver wedge head that has a face with big eyes and a mustache, wearing a tiny golf cap"
+ }
 }

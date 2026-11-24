@@ -64,5 +64,19 @@
    "nightline-log"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute sleepy lo-fi radio host girl with big headphones, an oversized hoodie, purple hair and a steaming cup of tea"
+ }
 }

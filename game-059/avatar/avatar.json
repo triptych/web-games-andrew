@@ -64,5 +64,19 @@
    "sister-circuit.save.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute small figure in a sleek neon combat suit whose helmet AI has a glowing magenta visor shaped into a smirking face and little cat-ear antennae"
+ }
 }

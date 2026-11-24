@@ -75,5 +75,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a super cute baby purple star-dragon standing on its hind legs, wearing a round glass fishbowl space helmet, with tiny wings"
+ }
 }

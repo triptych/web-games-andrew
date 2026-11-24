@@ -67,5 +67,19 @@
    "dragonroll.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute sleepy chubby red dragon standing on its hind legs, with a tiny nightcap, one eye half open, a curl of smoke from his nose and a little pair of dice on his belly"
+ }
 }

@@ -67,5 +67,19 @@
    "haven-road.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute kind young field nurse with a white headscarf with a small red heart, rolled sleeves, a satchel of bandages and a gentle smile"
+ }
 }

@@ -67,5 +67,19 @@
    "seedfall.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute nervous round ship AI hologram with a soft green glow, little arms and feet, big worried eyes and a tiny sprout growing from its top"
+ }
 }

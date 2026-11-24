@@ -99,5 +99,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a small young fairy girl with rosy cheeks, short wavy silver-lavender hair with tiny white star flowers, pointed ears, iridescent dragonfly wings, a pale pink rose-petal dress, holding a tiny glowing lantern"
+ }
 }

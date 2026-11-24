@@ -67,5 +67,19 @@
    "neon-arcana.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute cyber-mystic tarot character with a glowing neon cyan robe, a holographic tiara and circuit-pattern sleeves"
+ }
 }
