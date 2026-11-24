@@ -20,16 +20,23 @@ export class View {
         this.battle.onEvents(G, events);
     }
 
-    frame(G, dt) {
+    /** skipRender: update everything but don't draw (main skips some draws while a full-screen panel covers a phone). */
+    frame(G, dt, skipRender = false) {
         const inBattle = G.mode === 'battle' || (this.battle.busy && this.mode === 'battle');
-        this.mode = inBattle ? 'battle' : 'hotel';
+        const mode = inBattle ? 'battle' : 'hotel';
+        if (mode !== this.mode) {
+            // a soft wash over the switch between the inn and the arena
+            const f = document.getElementById('fade');
+            f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+        }
+        this.mode = mode;
         this.hotel.sync(G, dt);
         if (inBattle) {
             this.battle.update(G, dt);
-            this.battle.render();
+            if (!skipRender) this.battle.render();
         } else {
             this.stage.setBackdrop(G.mode === 'expedition' ? G.exp.region : 'hotel');
-            this.hotel.render();
+            if (!skipRender) this.hotel.render();
         }
     }
 }

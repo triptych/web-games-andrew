@@ -24,7 +24,7 @@ audio.setVolumes(settings.sfx, settings.music, settings.voice);
 const view = new View($('view'), audio);
 let G = newGame(1);
 let mode = 'title';          // title | play
-let acc = 0, time = 0, last = performance.now(), saveT = 0, labelT = 0, botT = 0;
+let acc = 0, time = 0, last = performance.now(), saveT = 0, labelT = 0, botT = 0, drawN = 0;
 let bot = null;
 const seen = {};
 const keys = [];             // key presses in order, one handled per frame
@@ -53,6 +53,7 @@ function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
 view.stage.setBackdrop('hotel');
+ui.onShowAll = () => view.hotel.showAll();
 
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { audio.init(); if (mode === 'title') audio.music('title'); }, { capture: true });
 
@@ -145,8 +146,10 @@ function handleKey() {
     }
     if (mode !== 'play') return;
     if (G.mode === 'battle') { if (ui.battleKey(k)) return; }
+    if (k === 'Escape' && G.mode === 'hotel' && view.hotel.zoomed) { view.hotel.showAll(); return; }
     if (k === 'Escape' || k === 'KeyP') { openPause(); return; }
     if (G.mode === 'hotel') {
+        if (k === 'Minus' || k === 'NumpadSubtract') view.hotel.showAll();
         if (k === 'Space' && G.cook) doAct({ t: 'stir' });
         const n = k.startsWith('Digit') ? +k.slice(5) : 0;
         if (n >= 1 && n <= PANELS.length) ui.openPanel(PANELS[n - 1]);
@@ -157,28 +160,75 @@ function handleKey() {
     }
 }
 
-// taps and clicks on the 3D view: dust bunnies and rooms at the inn, enemies in battle
-let downAt = null;
-$('view').addEventListener('pointerdown', (e) => { downAt = { x: e.clientX, y: e.clientY }; });
-// a drag pans the inn sideways on a narrow screen (a press that moved more than 12 px is a drag, not a tap)
-$('view').addEventListener('pointermove', (e) => {
-    if (!downAt || G.mode !== 'hotel' || mode !== 'play') return;
-    if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 12) downAt.dragged = true;
-    if (downAt.dragged) { view.stage.pan('hotel', e.clientX - (downAt.lx ?? downAt.x)); downAt.lx = e.clientX; }
+// taps and clicks on the 3D view: dust bunnies and rooms at the inn, enemies in battle.
+// At the inn: a tap on a room zooms to it (a second tap opens its panel), a drag pans, the wheel or a pinch zooms,
+// a double tap (or Esc, or the room card's button) shows the whole inn again.
+const pointers = new Map();      // pointerId → { x, y }
+let downAt = null, pinch = null, lastTap = 0;
+const view3d = $('view');
+const atInn = () => G && G.mode === 'hotel' && mode === 'play' && !ui.anyScreen() && !ui.talking;
+view3d.addEventListener('pointerdown', (e) => {
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        downAt = null;
+    } else if (pointers.size === 1) downAt = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY };
 });
-$('view').addEventListener('pointerup', (e) => {
+view3d.addEventListener('pointermove', (e) => {
+    if (pointers.has(e.pointerId)) pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (!atInn()) { view3d.style.cursor = ''; return; }
+    if (pinch && pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        const d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        view.stage.panBy('hotel', mx - pinch.x, my - pinch.y);
+        view.stage.zoomAt('hotel', d / Math.max(1, pinch.d), mx, my);
+        view.hotel.focused = null;
+        pinch = { d, x: mx, y: my };
+        return;
+    }
+    if (downAt) {
+        if (Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 12) downAt.dragged = true;
+        if (downAt.dragged) {
+            view.stage.panBy('hotel', e.clientX - downAt.lx, e.clientY - downAt.ly);
+            downAt.lx = e.clientX; downAt.ly = e.clientY;
+            view.hotel.focused = null;
+        }
+        return;
+    }
+    // hover: a pointer over anything clickable
+    if (e.pointerType === 'mouse') view3d.style.cursor = view.hotel.pick(e.clientX, e.clientY) ? 'pointer' : '';
+});
+const endPointer = (e) => {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinch = null;
+};
+view3d.addEventListener('pointercancel', (e) => { endPointer(e); downAt = null; });
+view3d.addEventListener('pointerup', (e) => {
+    endPointer(e);
     if (!downAt || downAt.dragged || Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 12 || mode !== 'play' || ui.anyScreen() || ui.talking) { downAt = null; return; }
     downAt = null;
     if (G.mode === 'hotel') {
+        const now = performance.now(), dbl = now - lastTap < 320;
+        lastTap = now;
         const p = view.hotel.pick(e.clientX, e.clientY);
+        if (p?.kind === 'bunny') { doAct({ t: 'sweep', room: p.room }); lastTap = 0; return; }
+        if (dbl && view.hotel.zoomed) { view.hotel.showAll(); lastTap = 0; return; }
         if (!p) return;
-        if (p.kind === 'bunny') doAct({ t: 'sweep', room: p.room });
-        else ui.openPanel({ lobby: 'desk', kitchen: 'kitchen', garden: 'garden' }[p.id] || 'rooms');
+        if (view.hotel.focused === p.id && !view.hotel.camMoving) ui.openRoom(p.id);
+        else { audio.ui('click'); view.hotel.focusRoom(p.id); }
     } else if (G.mode === 'battle') {
         const id = view.battle.pickUnit(e.clientX, e.clientY);
         if (id) ui.pickTarget(id);
     }
 });
+view3d.addEventListener('wheel', (e) => {
+    if (!atInn()) return;
+    e.preventDefault();
+    view.stage.zoomAt('hotel', Math.exp(-e.deltaY * (e.deltaMode === 1 ? 0.05 : 0.0018)), e.clientX, e.clientY);
+    view.hotel.focused = null;
+}, { passive: false });
+view3d.addEventListener('dblclick', (e) => e.preventDefault());
 
 // ------------------------------------------------------------------ events
 function flushEvents(quiet = false) {
@@ -234,9 +284,13 @@ function frame(now) {
     stories();
     const uiMode = mode !== 'play' ? 'none' : G.mode;
     if (uiMode !== lastMode) { ui.showMode(uiMode); lastMode = uiMode; }
-    view.frame(G, dt * (G.mode === 'battle' || view.busy ? spd * (DEBUG ? Math.min(4, FAST) : 1) : 1));
+    // a panel that covers a phone's screen: draw the 3D behind it only every third frame, so the panel (the stir needle
+    // above all) stays smooth
+    drawN++;
+    const covered = ui.top() === 'panel' && innerWidth < 700;
+    view.frame(G, dt * (G.mode === 'battle' || view.busy ? spd * (DEBUG ? Math.min(4, FAST) : 1) : 1), covered && drawN % 3 !== 0);
     if (mode === 'play') {
-        if (G.mode === 'hotel') { ui.hud(G, time); labelT += dt; if (labelT > 0.1 && !ui.anyScreen()) { labelT = 0; ui.roomLabels(G, view.hotel); } }
+        if (G.mode === 'hotel') { ui.hud(G, time); labelT += dt; if ((labelT > 0.1 || view.hotel.camMoving) && !ui.anyScreen()) { labelT = 0; ui.roomLabels(G, view.hotel); } }
         else if (G.mode === 'expedition') ui.expedCard(G, false);
         else if (G.mode === 'battle') {
             ui.G = G;

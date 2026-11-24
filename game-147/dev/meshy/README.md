@@ -25,6 +25,7 @@ Meshy** and play clips from Meshy's animation library.
 | Bosses | thistlehog, grandmorel, molequeen | 9,000 | The Grand Morel and Queen Gemma rigged. |
 | Items | 16 ingredients, battle items and tools; 7 meals; 10 weapons; 4 accessories; 5 decor; suitcase, diary, coins, chest, desk bell, feather duster | 1,800 | Shown in 3D (meals on the kitchen table, decor in the lobby, the pot on the stove) and as icons. |
 | Furniture | desk, bed, stove, table, planter, armchair, bookshelf, bathtub, wardrobe | 3,000–4,000 | The inn's rooms. |
+| Furniture 2 (v1.1.0) | fireplace, sofa, clock, coatRack, kitchenShelf, barrel, chair, nightstand, floorLamp, tree, hedge, lampPost, bench, pumpkins | 3,000 | Dressing for the rebuilt inn and its lawn. Two more (a flower bush, which came out as a flat disc, and stacked crates, whose top crate floated) were made and dropped. |
 
 **Rigged characters and clips** (`models/anim/<name>-<clip>.glb`):
 
@@ -54,7 +55,8 @@ Meshy** and play clips from Meshy's animation library.
 | Image-to-3D (15 each) | 75 + Ember + 2 A-pose rebuilds | 1,170 |
 | Rigging (5 each) | 12 | 60 |
 | Animation (3 each) | 70 | 210 |
-| **Total** | | **≈ 1,440** |
+| Image-to-3D, v1.1.0 props (15 each) | 16 | 240 |
+| **Total** | | **≈ 1,680** |
 
 ## In the game
 

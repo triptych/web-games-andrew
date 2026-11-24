@@ -3,7 +3,8 @@
 
     python3 -I game-147/dev/art/cut.py RAW OUT
 
-RAW holds sheet-ingredients.png, sheet-meals-gear.png, sheet-decor.png (4x4) and sheet-furniture.png (3x3).
+RAW holds sheet-ingredients.png, sheet-meals-gear.png, sheet-decor.png, sheet-furniture2.png (4x4) and
+sheet-furniture.png (3x3); a missing sheet is skipped.
 For each cell, the object is the bounding box of the non-white pixels inside the cell (with a margin, so an object
 that leans over a line is still whole); it is centred on a white square with 12% padding and saved at 512 px as
 OUT/<name>.png. Needs Pillow and numpy.
@@ -23,9 +24,14 @@ SHEETS = {
     'sheet-decor': (4, ['sunflowerVase', 'copperKettle', 'luggageCart', 'pottedFern', 'armorStand', 'suitcase', 'diary', 'featherDuster',
                         'oakPin', 'brassLadle', 'letterOpeners', 'gourdLute', 'mopHalberd', 'chest', 'coins', 'deskBell']),
     'sheet-furniture': (3, ['desk', 'bed', 'stove', 'table', 'planter', 'armchair', 'bookshelf', 'bathtub', 'wardrobe']),
+    # v1.1.0: dressing for the rebuilt inn (Meshy flattened the flower bush into a disc and split the crates: unused)
+    'sheet-furniture2': (4, ['fireplace', 'sofa', 'clock', 'coatRack', 'kitchenShelf', 'barrel', 'crates', 'chair',
+                             'nightstand', 'floorLamp', 'tree', 'hedge', 'lampPost', 'bench', 'flowerBush', 'pumpkins']),
 }
 
 for sheet, (n, names) in SHEETS.items():
+    if not os.path.exists(os.path.join(RAW, sheet + '.png')):
+        print('skip', sheet); continue
     im = Image.open(os.path.join(RAW, sheet + '.png')).convert('RGB')
     a = np.asarray(im).astype(int)
     ink = (a.min(axis=2) < 235)                       # anything not near-white

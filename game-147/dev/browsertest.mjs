@@ -2,7 +2,8 @@
  * browsertest.mjs — the real game in real Chromium (SwiftShader WebGL), driven by real mouse, keys and touch.
  *
  * desktop 1280×760: the title (back link on top, no sideways scroll); New Game; the intro scene by Enter; a dust bunny
- *   shooed by clicking it in the 3D view; a walk-in checked in from the Desk panel (key 1); a Honey Tart cooked with a
+ *   shooed by clicking it in the 3D view; a room zoomed to by a click (its card, Whole inn, a second click opens its
+ *   panel, Escape, the mouse wheel); a walk-in checked in from the Desk panel (key 1); a Honey Tart cooked with a
  *   real Space press in the gold zone; every Meshy model and animation clip loaded, rigged characters with their clips;
  *   music playing and ElevenLabs clips decoded; an adventure (key 9): a battle with an Attack by keyboard and a target;
  *   the auto-battle (T) to victory; the expedition card; home; Escape → Save & Quit → Continue restores the game; a
@@ -116,6 +117,36 @@ async function desktop() {
     const swept0 = await Q(page, () => __iomh.G.stats.swept);
     if (b) await page.mouse.click(b.x, b.y);
     await until(page, (n) => __iomh.G.stats.swept > n, 'clicking a dust bunny shoos it', 30000, swept0);
+    // v1.1.0: a click on a room zooms to it and shows its card; the card's Whole inn button, a second click opens the
+    // room's panel, Escape zooms back out, and the mouse wheel zooms toward the pointer
+    const kitchenAt = () => Q(page, () => { const s = __iomh.view.hotel.roomScreen('kitchen'); return { x: s.x, y: s.y + 70 }; });
+    const settled = () => until(page, () => !__iomh.view.hotel.camMoving, 'the camera settles');
+    let k = await kitchenAt();
+    await page.mouse.click(k.x, k.y);
+    await until(page, () => __iomh.view.hotel.focused === 'kitchen' && __iomh.view.hotel.zoomed && !document.getElementById('roomcard').hidden && document.getElementById('roomcard').textContent.includes('Kitchen'), 'clicking the kitchen zooms to it and shows its card');
+    await settled();
+    await shot(page, 'zoom-kitchen');
+    const all = await center(page, '#roomcard [data-inn="all"]');
+    await page.mouse.click(all.x, all.y);
+    await until(page, () => !__iomh.view.hotel.zoomed && __iomh.view.hotel.focused === null && document.getElementById('roomcard').hidden, 'the card\'s Whole inn button zooms back out');
+    await settled();
+    k = await kitchenAt();
+    await page.mouse.click(k.x, k.y);
+    await settled();
+    k = await kitchenAt();
+    await page.mouse.click(k.x, k.y);
+    await until(page, () => !document.getElementById('panel').hidden && document.getElementById('panel-title').textContent.includes('Kitchen'), 'a second click on the zoomed kitchen opens the Kitchen panel');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('panel').hidden && __iomh.view.hotel.zoomed, 'Escape closes the panel and keeps the zoom');
+    await page.keyboard.press('Escape');
+    await until(page, () => !__iomh.view.hotel.zoomed, 'a second Escape shows the whole inn');
+    await settled();
+    await page.mouse.move(640, 380);
+    await page.mouse.wheel(0, -500);
+    await until(page, () => __iomh.view.hotel.zoomed, 'the mouse wheel zooms in');
+    await page.keyboard.press('Escape');
+    await until(page, () => !__iomh.view.hotel.zoomed, 'and Escape zooms back out');
+    await settled();
     // a walk-in at the desk (key 1)
     await Q(page, () => { __iomh.G.arriveT = 0; });
     await until(page, () => __iomh.G.queue.length > 0, 'a walk-in arrives');
@@ -148,7 +179,23 @@ async function desktop() {
     const cook = await center(page, '#panel-body [data-cmd*="honeyTart"]');
     await page.mouse.click(cook.x, cook.y);
     await until(page, () => !!__iomh.G.cook, 'Cook puts a Honey Tart on the stove');
-    await page.waitForFunction(() => { const n = __iomh.G.cook && __iomh.view && (() => { const G = __iomh.G; const ph = ((G.t - G.cook.t0) * 0.8) % 1; return ph < 0.5 ? ph * 2 : 2 - ph * 2; })(); return n != null && Math.abs(n - 0.5) < 0.05; }, null, { timeout: 20000, polling: 'raf' }).catch(() => {});
+    // the needle a player sees is where the pot is, every frame (v1.0.1 drew it into the panel's HTML, which re-renders
+    // every 0.3 s, so it lagged by up to a third of a sweep and jumped between about three spots)
+    const lag = await Q(page, () => new Promise((res) => {
+        let worst = 0, n = 0;
+        const tick = () => {
+            const el = document.querySelector('#panel-body .stir .needle'), G = __iomh.G;
+            if (el && G.cook) {
+                const ph = ((G.t - G.cook.t0) * 0.8) % 1, p = (ph < 0.5 ? ph * 2 : 2 - ph * 2) * 100;
+                worst = Math.max(worst, Math.abs(parseFloat(el.style.left) - p)); n++;
+            }
+            if (n < 12) requestAnimationFrame(tick); else res(worst);
+        };
+        requestAnimationFrame(tick);
+    }));
+    check(lag < 6, `the stir needle on screen follows the pot every frame (worst lag ${lag.toFixed(1)}% of the bar)`);
+    // stir by eye: when the needle on screen is in the middle of the gold zone
+    await page.waitForFunction(() => { const el = document.querySelector('#panel-body .stir .needle'); return el && Math.abs(parseFloat(el.style.left) - 50) < 4; }, null, { timeout: 20000, polling: 'raf' }).catch(() => {});
     await page.keyboard.press('Space');
     await until(page, () => __iomh.G.pantry.length >= 1, 'Space stirs, and a meal is in the pantry');
     check(await Q(page, () => __iomh.G.pantry[0].q >= 1.1), `a well-timed stir makes a good meal (quality ${await Q(page, () => __iomh.G.pantry[0]?.q)})`);
