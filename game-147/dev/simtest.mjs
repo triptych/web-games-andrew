@@ -83,11 +83,29 @@ if (want('hotel')) {
     ok(G.stats.swept === 1 && G.events.some((e) => e.type === 'sweep'), 'and is counted');
     for (let i = 0; i < 5; i++) Gm.act(G, { t: 'sweep', room: 'r1' });
     ok(G.rooms[0].dust === 0 && !Gm.act(G, { t: 'sweep', room: 'r1' }), 'a clean room can\'t be swept');
+    // v1.1.1: the last bunny shooed stays gone (it came straight back: any dust at all counted as a bunny)
+    G.rooms[0].dust = C.HOTEL.dustOccupied * 10;
+    ok(H.bunnies(G.rooms[0]) === 0, 'the last bunny shooed doesn\'t come straight back: an occupied room\'s next 10 s of dust is no bunny yet');
+    G.rooms[0].dust = 0; run(G, 1);
+    ok(H.bunnies(G.rooms[0]) === 0, 'nor after a second of play');
+    G.rooms[0].dust = 5;
+    ok(H.bunnies(G.rooms[0]) === 0 && !Gm.act(G, { t: 'sweep', room: 'r1' }), 'a little dust is no bunny, and nothing to sweep');
+    G.rooms[0].dust = 21; Gm.act(G, { t: 'sweep', room: 'r1' });
+    ok(G.rooms[0].dust === 0, 'shooing the last bunny takes the leftover dust with it');
     ok(!Gm.act(G, { t: 'sweep', room: 'r3' }), 'a boarded room can\'t be swept');
     G.rooms[0].dust = 0; G.rooms[1].dust = 0;
     ok(H.sparkle(G) === 5, 'clean rooms are 5 sparkle');
     G.rooms[1].dust = 100;
     ok(H.sparkle(G) === 2.5, 'half dirty is 2.5');
+    // v1.1.1: the clock is frozen during a battle
+    {
+        const G2 = fresh(4);
+        Gm.act(G2, { t: 'depart', region: 'meadow' }); Gm.act(G2, { t: 'fight' });
+        const c0 = G2.clock, d0 = G2.rooms.map((r) => r.dust).join(), a0 = G2.arriveT, t0 = G2.t;
+        for (let i = 0; i < 90 && G2.battle && G2.battle.phase !== 'command'; i++) Gm.step(G2, 0.1);
+        for (let i = 0; i < 30; i++) Gm.step(G2, 0.1, { hold: true });
+        ok(!!G2.battle && G2.clock === c0 && G2.rooms.map((r) => r.dust).join() === d0 && G2.arriveT === a0 && G2.t > t0, 'the inn\'s clock, dust and arrivals stand still during a battle');
+    }
     // dust rates
     G = fresh(2);
     const e0 = G.rooms[0].dust; run(G, 10);
@@ -255,6 +273,29 @@ if (want('recruits')) {
     ok(G.recruits.ember.stage === 'staying', 'she takes a room');
     G.inv.pepper = 1; run(G, 0.1);
     ok(G.recruits.ember.task && !G.inv.pepper && G.pantry.some((m) => m.r === 'emberStew'), 'a pepper completes her task, and she cooks the stew herself');
+    // v1.1.1: her stew can't go missing for good (the pepper is used up, so a lost stew stuck her favour)
+    {
+        const G2 = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));
+        G2.pantry = G2.pantry.filter((m) => m.r !== 'emberStew'); run(G2, 0.1);
+        ok(G2.pantry.filter((m) => m.r === 'emberStew').length === 1, 'a stew sold or eaten before she was served: she cooks another');
+        G2.pantry = Array.from({ length: C.HOTEL.pantryMax }, () => ({ r: 'honeyTart', q: 1 })); run(G2, 0.1);
+        ok(G2.pantry.some((m) => m.r === 'emberStew'), 'and a full pantry doesn\'t stop her');
+        run(G2, 1);
+        ok(G2.pantry.filter((m) => m.r === 'emberStew').length === 1, 'but only ever one at a time');
+    }
+    // v1.1.1: her stew is kept for her, and she only eats it
+    {
+        const G2 = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));
+        const si = G2.pantry.findIndex((m) => m.r === 'emberStew');
+        ok(!Gm.act(G2, { t: 'sellMeal', meal: si }) && G2.pantry.some((m) => m.r === 'emberStew'), 'the stew she is waiting for can\'t be sold');
+        ok(!Gm.act(G2, { t: 'depart', region: 'meadow', meal: si }) && G2.mode === 'hotel', 'nor eaten on an adventure');
+        G2.pantry.push({ r: 'emberStew', q: 1 });
+        ok(Gm.act(G2, { t: 'sellMeal', meal: G2.pantry.length - 1 }), 'but a spare one can');
+        G2.pantry.push({ r: 'honeyTart', q: 1 });
+        ok(!Gm.act(G2, { t: 'serve', meal: G2.pantry.length - 1, guest: eid }) && G2.pantry.some((m) => m.r === 'honeyTart'), 'another dish served to her is refused and stays in the pantry');
+        G2.guests[eid].served = G2.day;
+        ok(Gm.act(G2, { t: 'serve', meal: G2.pantry.findIndex((m) => m.r === 'emberStew'), guest: eid }) && G2.recruits.ember.stage === 'ready', 'her own dish is always welcome, even after a meal today');
+    }
     const idx = G.pantry.findIndex((m) => m.r === 'emberStew');
     Gm.act(G, { t: 'serve', meal: idx, guest: eid });
     ok(G.recruits.ember.stage === 'ready', 'serving her stew: she is ready to join');

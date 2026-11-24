@@ -1,6 +1,6 @@
 // Inn Over My Head — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.1.1';
 export const SAVE_KEY = 'inn-over-my-head.v1';
 
 export const STEP = 1 / 30;               // fixed simulation step (s); the hotel is slow and the battle turn-based
@@ -13,6 +13,7 @@ export const HOTEL = {
     dustOccupied: 0.4,                    // dust per second in an occupied room (0..100)
     dustEmpty: 0.1,
     bunnyDust: 20,                        // one dust bunny per 20 dust
+    bunnyGrace: 6,                        // ...once there is more than this much (v1.1.0: any dust at all was a bunny)
     arriveBase: 48,                       // seconds between walk-in guests at reputation 0
     queueMax: 3,
     tipRate: 0.004,                       // tip per second = nightly rate × tipRate × sparkle / 5

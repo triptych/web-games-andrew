@@ -195,8 +195,8 @@ All the numbers live in [`js/config.js`](js/config.js) and [`js/sim/data.js`](js
 
 ### The clock
 
-One in-game day is **180 s** of real time (06:00 to 24:00). Everything at the inn runs on this clock, during battles
-too. **Time away** (a closed tab) runs the inn on for up to **2 days**, and the welcome-back card lists the earnings.
+One in-game day is **180 s** of real time (06:00 to 24:00). Everything at the inn runs on this clock, at home and on
+the expedition map between fights; it **stands still during a battle** (v1.1.1), so a long fight never eats the day. **Time away** (a closed tab) runs the inn on for up to **2 days**, and the welcome-back card lists the earnings.
 
 ### Debt tiers
 
@@ -519,6 +519,21 @@ decoration, a guest-request variety pass, controller support for the 3D picking,
 clip (`dev/rigshot.mjs` covers single models).
 
 ## Changelog
+
+### v1.1.1 (2026-11-24)
+
+- Fixed: the last dust bunny in a room came straight back (any dust at all was a bunny); bunnies now appear past a
+  little dust, and the last one shooed takes the leftover dust with it.
+- Fixed: dialogue portraits were cut off at the chin; people have a taller head-and-shoulders portrait.
+- Fixed: the inn's clock ran during battles; time now stands still mid-battle (it still runs between fights).
+- Added: a 3D model viewer from the Team panel's portraits (turn, zoom, play each animation clip).
+- Fixed: Ember's favour could get stuck (her stew skipped on a full pantry, or sold or eaten); she now cooks it again
+  whenever she's still waiting for it, and the tracker says where it is.
+- Added: a picture notice for every dish cooked (stars, stir grade, who wants it).
+- Added: battle speed 1×, 2×, 3× in the battle HUD (X cycles it).
+- Fixed: a stranger's dish could be sold, eaten on an adventure, or blocked by serving them something else; the last one
+  is now kept, and strangers only accept their own dish (any time).
+- Fixed: characters overlapped in guest rooms; rooms have claimable standing spots.
 
 ### v1.1.0 (2026-11-24)
 

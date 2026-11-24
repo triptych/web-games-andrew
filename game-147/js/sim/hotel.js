@@ -32,7 +32,9 @@ export function initHotel(G) {
 }
 
 export const openRooms = (G) => G.rooms.filter((r) => r.open);
-export const bunnies = (room) => Math.ceil(room.dust / HOTEL.bunnyDust - 1e-9);
+// dust bunnies in a room: one per 20 dust, counted only past a little grace, so the last one shooed stays gone a while
+// (v1.1.0 counted any dust at all: an occupied room gathers some on the very next tick, so the last bunny came straight back)
+export const bunnies = (room) => Math.max(0, Math.ceil((room.dust - HOTEL.bunnyGrace) / HOTEL.bunnyDust - 1e-9));
 
 /** 0–5 stars, in halves, from how dusty the open rooms are. */
 export function sparkle(G) {
@@ -193,10 +195,29 @@ export function cookCancel(G) {
     return true;
 }
 
+/**
+ * The stranger (if any) still waiting for this recipe: someone staying at the inn whose favour asks for it and who
+ * hasn't been served it yet.
+ */
+export function mealWantedBy(G, r) {
+    return Object.keys(G.recruits).find((h) => G.recruits[h].stage === 'staying' && !G.recruits[h].meal && RECRUITS[h].meal === r) || null;
+}
+/** The pantry's last dish of a recipe a waiting stranger needs: it can't be sold or eaten on an adventure. */
+export function mealReserved(G, idx) {
+    const m = G.pantry[idx];
+    if (!m) return null;
+    const who = mealWantedBy(G, m.r);
+    return who && G.pantry.filter((x) => x.r === m.r).length === 1 ? who : null;
+}
+
 export function serve(G, idx, gid) {
     const m = G.pantry[idx], g = G.guests[gid];
     if (!m || !g || !g.room) { G.events.push({ type: 'nope', text: 'Serve meals to guests in their rooms.' }); return false; }
-    if (g.served === G.day) { G.events.push({ type: 'nope', text: `${g.name} has already eaten today.` }); return false; }
+    // a stranger only wants their own dish (and always has room for it); anything else stays in the pantry. v1.1.0 fed
+    // them whatever was served, which used up their one meal a day and kept their dish waiting till tomorrow
+    const own = g.recruit && (RECRUITS[g.recruit].meal === m.r || HEROES[g.recruit].fav === m.r);
+    if (g.recruit && !own && !G.recruits[g.recruit].meal) { G.events.push({ type: 'nope', text: `${HEROES[g.recruit].short} only wants ${RECIPES[RECRUITS[g.recruit].meal].name}.` }); return false; }
+    if (g.served === G.day && !own) { G.events.push({ type: 'nope', text: `${g.name} has already eaten today.` }); return false; }
     const R = RECIPES[m.r];
     G.pantry.splice(idx, 1);
     g.served = G.day;
@@ -231,9 +252,9 @@ export function craft(G, item) {
 // ------------------------------------------------------------------ rooms and the courtyard
 export function sweep(G, rid, byStaff = false) {
     const room = G.rooms.find((r) => r.id === rid);
-    if (!room || !room.open || room.dust <= 0) return false;
+    if (!room || !room.open || bunnies(room) <= 0) return false;
     room.dust = Math.max(0, room.dust - HOTEL.bunnyDust);
-    if (room.dust < 0.5) room.dust = 0;
+    if (bunnies(room) === 0) room.dust = 0;     // the last bunny takes the leftover dust with it
     const fluffP = (byStaff ? 0.25 : 0.35) + (has(G, 'turboBroom') ? 0.2 : 0);
     const fluff = G.rng() < fluffP;
     if (fluff) give(G, 'fluff');
@@ -280,9 +301,15 @@ export function checkRecruit(G, hero) {
         const t = RECRUITS[hero].task;
         if (t.kind === 'item') take(G, t.item, t.n);
         s.task = true;
-        // Ember cooks her grandmother's stew with the pepper you brought, and leaves it in the pantry for you to serve
-        if (hero === 'ember' && G.pantry.length < HOTEL.pantryMax + 1) { G.pantry.push({ r: 'emberStew', q: 1.25 }); G.events.push({ type: 'cooked', r: 'emberStew', q: 1.25, grade: 'gift', stars: 2, chef: 'ember' }); }
         G.events.push({ type: 'recruitTask', hero });
+    }
+    // Ember cooks her grandmother's stew with the pepper you brought and leaves it in the pantry for you to serve back to
+    // her (you can't cook it yourself until she joins). Whenever she is still waiting for it and there is none in the
+    // pantry, she cooks it (again): v1.1.0 skipped it when the pantry was full, and a stew sold or eaten on an adventure
+    // was gone for good, so the pepper vanished and her favour could never be finished.
+    if (hero === 'ember' && s.task && !s.meal && !G.pantry.some((m) => m.r === 'emberStew')) {
+        G.pantry.push({ r: 'emberStew', q: 1.25 });
+        G.events.push({ type: 'cooked', r: 'emberStew', q: 1.25, grade: 'gift', stars: 2, chef: 'ember' });
     }
     if (s.task && s.meal && s.stage === 'staying') {
         s.stage = 'ready';
@@ -356,6 +383,8 @@ export function sell(G, item) {
 export function sellMeal(G, idx) {
     const m = G.pantry[idx];
     if (!m) return false;
+    const keep = mealReserved(G, idx);
+    if (keep) { G.events.push({ type: 'nope', text: `Keep it: ${HEROES[keep].short} is waiting for this ${RECIPES[m.r].name}.` }); return false; }
     G.pantry.splice(idx, 1);
     const g = Math.round(RECIPES[m.r].price * m.q * 0.5);
     G.gold += g;

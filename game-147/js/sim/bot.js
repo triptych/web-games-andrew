@@ -66,7 +66,9 @@ export function botCmd(G, bot) {
         return null;
     }
     // dust: an attentive bot sweeps whenever a room has two or more bunnies
-    const dirty = H.openRooms(G).filter((r) => H.bunnies(r) >= (bot.skill >= 1 ? 2 : 3)).sort((a, b) => b.dust - a.dust)[0];
+    // (any bunny at all while a Sparkle favour is open: Bru wants a 4★ inn)
+    const sparkleTask = Object.entries(G.recruits).some(([h, r]) => r.stage === 'staying' && !r.task && RECRUITS[h].task.kind === 'sparkle');
+    const dirty = H.openRooms(G).filter((r) => H.bunnies(r) >= (sparkleTask ? 1 : bot.skill >= 1 ? 2 : 3)).sort((a, b) => b.dust - a.dust)[0];
     if (dirty && rand(bot) < 0.5 + 0.5 * bot.skill) return { t: 'sweep', room: dirty.id };
     if (G.garden.herbs >= 3) return { t: 'harvest' };
 
@@ -117,7 +119,9 @@ export function botCmd(G, bot) {
         const region = (bossReg && H.regionUnlocked(G, bossReg) && lv >= REGIONS[bossReg].bossLv - 2 ? bossReg : null) || taskReg
             || REGION_ORDER.filter((r) => H.regionUnlocked(G, r) && lv >= REGIONS[r].lv[0] - 1).pop() || 'meadow';
         bot.lastTrip = G.day; bot.trips++;
-        const meal = G.pantry.length ? G.pantry.reduce((bi, m, i, a) => (RECIPES[m.r].price * m.q > RECIPES[a[bi].r].price * a[bi].q ? i : bi), 0) : -1;
+        // the dearest dish that isn't being kept for a stranger
+        let meal = -1;
+        G.pantry.forEach((m, i) => { if (!H.mealReserved(G, i) && (meal < 0 || RECIPES[m.r].price * m.q > RECIPES[G.pantry[meal].r].price * G.pantry[meal].q)) meal = i; });
         return { t: 'depart', region, meal };
     }
     return null;

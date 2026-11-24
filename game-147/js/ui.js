@@ -24,6 +24,7 @@ const HOTEL_ROOMS = {
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const g$ = (n) => Math.floor(n).toLocaleString('en-US');
 const por = (who) => `art/por-${who}.webp`;
+const DLG_PEOPLE = new Set(['maple', 'ember', 'kit', 'fern', 'bru', 'goldmaw', 'guest-merchant', 'guest-noble', 'guest-adventurer']);
 const EMOJI = { honey: '🍯', pepper: '🌶️', puffcap: '🍄', glowmoss: '🌿', sugar: '💎', fluff: '☁️', herbs: '🌱', flour: '🌾', honeyDrop: '🍬', mintTea: '🧪',
     smellingSalts: '⚗️', pepperBomb: '💥', luckyBell: '🔔', silkScarf: '🧣', copperRing: '💍', dragonflyPin: '🪲', copperPot: '🍲', goldenWhisk: '🥄', featherDuster: '🪶',
     turboBroom: '🧹', sparkleSpray: '✨', suitcase: '🧳', diary: '📔', sunflowerVase: '🌻', copperKettle: '🫖', luggageCart: '🛒', pottedFern: '🪴', armorStand: '🛡️',
@@ -106,7 +107,14 @@ export class UI {
         // (v1.0.0 listened on the panel body only, and the tracker's Desk / Kitchen / Ledger / Adventure did nothing)
         document.body.addEventListener('click', (e) => {
             const p = e.target.closest('[data-open]');
-            if (p && !p.disabled) { this.audio.ui('click'); this.openPanel(p.dataset.open); }
+            if (p && !p.disabled) { this.audio.ui('click'); if (p.dataset.opentab) this.panelTab[p.dataset.open] = p.dataset.opentab; this.openPanel(p.dataset.open); }
+        });
+        // a portrait in the Team panel opens the 3D model viewer; its buttons play the hero's animations
+        document.body.addEventListener('click', (e) => {
+            const m = e.target.closest('[data-model]');
+            if (m) { this.audio.ui('open'); this.openModel(m.dataset.model); return; }
+            const c = e.target.closest('[data-mvclip]');
+            if (c) { this.audio.ui('click'); for (const b of $('mv-clips').children) b.classList.toggle('on', b === c); this.onModelClip?.(c.dataset.mvclip); }
         });
         // the room card's "whole inn" button (main sets onShowAll to the camera's way home)
         document.body.addEventListener('click', (e) => { if (e.target.closest('[data-inn="all"]')) { this.audio.ui('click'); this.onShowAll?.(); } });
@@ -122,8 +130,16 @@ export class UI {
 
         const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed');
         sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = settings.speed;
-        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value }); onSettings(settings); };
+        // a save from before v1.1.1 may hold 1.5 (Brisk): round it to the nearest of 1×, 2×, 3×
+        settings.speed = Math.max(1, Math.min(3, Math.round(settings.speed || 1)));
+        speed.value = settings.speed;
+        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value }); onSettings(settings); this.showSpeed(); };
         for (const el of [sfx, music, voice, speed]) el.addEventListener('change', changed);
+        // battle speed, right in the battle HUD (1×, 2×, 3×; X cycles), kept in the settings
+        this.settings = settings;
+        this.setSpeed = (n) => { settings.speed = n; speed.value = n; onSettings(settings); this.showSpeed(); };
+        $('speed-seg').addEventListener('click', (e) => { const b = e.target.closest('[data-speed]'); if (b) { audio.ui('click'); this.setSpeed(+b.dataset.speed); } });
+        this.showSpeed();
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
         $('dlg-next').addEventListener('click', () => this.dlgNext());
         // battle HUD
@@ -147,6 +163,7 @@ export class UI {
         $(id).hidden = true;
         this.stack = this.stack.filter((s) => s !== id);
         if (id === 'panel') this.panel = null;
+        if (id === 'modelview') this.onModel?.(null);
         if (this.top()) this.focusFirst(this.top());
     }
     closeTop() { if (this.top()) this.closeScreen(this.top()); }
@@ -161,12 +178,20 @@ export class UI {
         list[(i + dir + list.length) % list.length].focus();
     }
 
-    toast(text, cls = '') {
+    showSpeed() {
+        for (const b of $('speed-seg').children) { const on = +b.dataset.speed === this.settings.speed; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }
+    }
+
+    /** A notice above the dock. With an item icon and a second line it is a bigger card that stays up longer. */
+    toast(text, cls = '', { item = null, sub = '', ms = 3200 } = {}) {
         const el = document.createElement('div');
-        el.className = 'toast ' + cls; el.textContent = text;
+        el.className = 'toast ' + cls + (item || sub ? ' card-toast' : '');
+        if (item || sub) el.innerHTML = `${item ? icon(item, 'ticon') : ''}<div><div>${esc(text)}</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div>`;
+        else el.textContent = text;
+        el.style.animationDuration = `${ms / 1000}s`;
         $('toasts').appendChild(el);
         while ($('toasts').children.length > 4) $('toasts').firstChild.remove();
-        setTimeout(() => el.remove(), 3300);
+        setTimeout(() => el.remove(), ms + 100);
     }
 
     // ------------------------------------------------------------------ dialogue (story scenes and bond vignettes)
@@ -178,7 +203,9 @@ export class UI {
     }
     dlgShow() {
         const d = this.dlg, [who, text] = d.lines[d.i];
-        $('dlg-img').src = por(who);
+        // people get the taller head-and-shoulders portrait (v1.1.0's square head crop stopped at the chin); creatures
+        // keep their whole-body picture
+        $('dlg-img').src = DLG_PEOPLE.has(who) ? `art/dlg-${who}.webp` : por(who);
         $('dlg-name').textContent = (d.title && d.i === 0 ? `💞 ${d.title} · ` : '') + (SPEAKERS[who] || who);
         $('dlg-text').textContent = text;
         $('dlg-next').textContent = d.i < d.lines.length - 1 ? 'Next ▸' : 'Close';
@@ -288,10 +315,15 @@ export class UI {
     recruitStatus(G, h) {
         const s = G.recruits[h], R = RECRUITS[h], g = Object.values(G.guests).find((x) => x.recruit === h);
         const ok = (b) => (b ? '✅' : '⬜');
+        // say where the meal they want comes from, and what became of a quest item (Ember turns the pepper into her stew)
+        const inPantry = G.pantry.some((m) => m.r === R.meal);
+        const mealHint = s.meal ? '' : inPantry ? ` <span class="hint">(it's in your pantry: serve it to ${esc(HEROES[h].short)})</span> <button class="btn small" data-open="kitchen" data-opentab="pantry">Pantry</button>`
+            : h === 'ember' ? ` <span class="hint">(${s.task ? 'she\'s cooking it' : 'she\'ll cook it with the pepper'})</span>` : '';
+        const taskText = h === 'ember' && s.task ? 'Brought a Fire Pepper (she cooked her stew with it)' : esc(R.task.text);
         return `<b>${esc(HEROES[h].short)} (stranger)</b>
             <div>${ok(g?.room)} A room${R.room === 'clean' ? ' (clean: 1 bunny at most)' : ''}</div>
-            <div>${ok(s.meal)} Serve ${esc(RECIPES[R.meal].name)}</div>
-            <div>${ok(s.task)} ${esc(R.task.text)}${R.task.kind === 'harvest' ? ` (${s.count || 0}/${R.task.n})` : ''}</div>`;
+            <div>${ok(s.task)} ${taskText}${R.task.kind === 'harvest' ? ` (${s.count || 0}/${R.task.n})` : ''}</div>
+            <div>${ok(s.meal)} Serve ${esc(RECIPES[R.meal].name)}${mealHint}</div>`;
     }
 
     stirBar(n) {
@@ -336,6 +368,19 @@ export class UI {
             $('roomcard').hidden = !html;
             $('roomcard').classList.toggle('mini', !id);
         }
+    }
+
+    /** The 3D model viewer for a hero (main sets onModel to start or stop the viewer, which resolves to its clips). */
+    async openModel(id) {
+        const D = HEROES[id];
+        $('mv-title').textContent = `${D.short}`;
+        $('mv-sub').textContent = `${D.cls} · ${ELEMENTS[D.el].icon} ${ELEMENTS[D.el].name || ''} · ${STAFF_ROLES[D.staff].icon} ${STAFF_ROLES[D.staff].name}`.replace(/ +·/g, ' ·');
+        $('mv-clips').innerHTML = '';
+        this.openScreen('modelview');
+        const clips = (await this.onModel?.(id)) || [];
+        if (this.top() !== 'modelview') return;
+        const NAMES = { idle: 'Idle', battleIdle: 'Ready', walk: 'Walk', run: 'Run', attack: 'Attack', skill: 'Skill', chain: 'Chain leap', hit: 'Ouch', victory: 'Victory', faint: 'Faint', wave: 'Wave' };
+        $('mv-clips').innerHTML = clips.map((c) => `<button class="opt ${c === 'idle' ? 'on' : ''}" data-mvclip="${c}">${NAMES[c] || c}</button>`).join('');
     }
 
     /** Open the panel for a room of the inn. */
@@ -420,10 +465,16 @@ export class UI {
             if (!G.pantry.length) h += '<p class="note">Nothing cooked yet.</p>';
             const guests = Object.values(G.guests).filter((g) => g.room);
             h += '<div class="grid">' + G.pantry.map((m, i) => {
-                const opts = guests.map((g) => `<option value="${g.id}" ${g.served === G.day ? 'disabled' : ''}>${esc(g.name)}${(g.recruit ? RECRUITS[g.recruit].meal === m.r : g.reqMeal === m.r) ? ' ★ wants this' : ''}${g.served === G.day ? ' (ate today)' : ''}</option>`).join('');
+                // a stranger only takes their own dish (any day); others eat once a day
+                const opts = guests.map((g) => {
+                    const own = g.recruit && RECRUITS[g.recruit].meal === m.r, picky = g.recruit && !own && !G.recruits[g.recruit].meal;
+                    const off = picky || (g.served === G.day && !own);
+                    return `<option value="${g.id}" ${off ? 'disabled' : ''}>${esc(g.name)}${(g.recruit ? own : g.reqMeal === m.r) ? ' ★ wants this' : ''}${picky ? ` (only wants ${esc(RECIPES[RECRUITS[g.recruit].meal].name)})` : off ? ' (ate today)' : ''}</option>`;
+                }).join('');
+                const keep = H.mealReserved(G, i);
                 return `<div class="card"><div class="top">${icon(m.r)}<div><div class="nm">${esc(RECIPES[m.r].name)}</div><div class="sub">${stars(H.mealStars(m.q))} · quality ${m.q.toFixed(2)}</div></div></div>
                     <select data-cmdsel='{"t":"serve","meal":${i}}' data-key="guest" style="min-height:44px"><option value="">Serve to…</option>${opts}</select>
-                    <button class="btn small" data-cmd='{"t":"sellMeal","meal":${i}}'>Sell to the village · ${Math.round(RECIPES[m.r].price * m.q * 0.5)} G</button></div>`;
+                    ${keep ? `<button class="btn small" disabled>Saved for ${esc(HEROES[keep].short)}</button>` : `<button class="btn small" data-cmd='{"t":"sellMeal","meal":${i}}'>Sell to the village · ${Math.round(RECIPES[m.r].price * m.q * 0.5)} G</button>`}</div>`;
             }).join('') + '</div><p class="note">Or eat one before an adventure for its party buff (Adventure panel).</p>';
         } else {
             h += '<div class="grid">' + Object.entries(CRAFTS).map(([it, need]) => `<div class="card"><div class="top">${icon(it)}<div><div class="nm">${esc(ITEMS[it].name)} ×${G.inv[it] || 0}</div><div class="sub">${esc(ITEMS[it].desc)}</div></div></div><div>${Object.entries(need).map(([k, n]) => `<span class="pill ${has(G, k, n) ? '' : 'warn'}">${esc(ITEMS[k].name)} ${G.inv[k] || 0}/${n}</span>`).join(' ')}</div>${whereNeeded(G, need)}<button class="btn small" ${H.hasAll(G, need) ? '' : 'disabled'} data-cmd='{"t":"craft","item":"${it}"}'>Craft</button></div>`).join('') + '</div>';
@@ -464,7 +515,7 @@ export class UI {
             };
             const roles = id === 'maple' ? '<span class="pill">🛎️ Innkeeper · always in the party</span>' : ['party', 'both', 'staff'].map((r) => `<button class="opt ${hh.role === r ? 'on' : ''}" data-cmd='{"t":"role","hero":"${id}","role":"${r}"}'>${ROLE_TEXT[r]}</button>`).join('');
             const inParty = G.party.includes(id);
-            h += `<div class="card ${inParty ? 'hl' : ''}"><div class="top"><img src="${por(id)}" alt=""><div><div class="nm">${esc(D.short)} · Lv ${hh.lv}</div><div class="sub">${esc(D.cls)} · ${ELEMENTS[D.el].icon} · ${STAFF_ROLES[D.staff].icon} ${STAFF_ROLES[D.staff].name}</div><div class="meter good"><i style="width:${(100 * hh.exp / expToNext(hh.lv)).toFixed(0)}%"></i></div></div></div>
+            h += `<div class="card ${inParty ? 'hl' : ''}"><div class="top"><button class="por-btn" data-model="${id}" title="See ${esc(D.short)} in 3D" aria-label="See ${esc(D.short)} in 3D"><img src="${por(id)}" alt=""><span class="por-3d">3D</span></button><div><div class="nm">${esc(D.short)} · Lv ${hh.lv}</div><div class="sub">${esc(D.cls)} · ${ELEMENTS[D.el].icon} · ${STAFF_ROLES[D.staff].icon} ${STAFF_ROLES[D.staff].name}</div><div class="meter good"><i style="width:${(100 * hh.exp / expToNext(hh.lv)).toFixed(0)}%"></i></div></div></div>
                 <div class="sub">HP ${s.hp} · MP ${s.mp} · ATK ${Math.round(s.atk)} · DEF ${Math.round(s.def)} · MAG ${Math.round(s.mag)} · SPD ${Math.round(s.spd)}${syn ? ` · 💞 +${Math.round(syn * 100)}%` : ''}</div>
                 <div class="acts">${roles}</div>
                 ${id !== 'maple' && hh.role !== 'staff' ? `<button class="btn small" data-cmd='{"t":"party","hero":"${id}"}'>${inParty ? 'Leave the party' : 'Join the party'}</button>` : ''}
@@ -534,8 +585,8 @@ export class UI {
             h += `<button class="card opt ${r === tab ? 'on' : ''}" ${un ? '' : 'disabled'} data-region="${r}" style="text-align:left"><div class="nm">${esc(R.name)} · Lv ${R.lv[0]}–${R.lv[1]}</div><div class="sub">${un ? esc(R.blurb) : `🔒 Opens with installment ${R.unlock}`}</div>${un ? `<div class="sub">Weak to: ${wk} · Boss: ${G.bossesBeaten.includes(R.boss) ? '✅' : bossOpen(G, r) ? '⚔️ ' : '🔒 '}${esc(MONSTERS[R.boss].name)}</div>` : ''}</button>`;
         }
         h += '</div><h3>Eat before you go</h3>';
-        const opts = G.pantry.map((m, i) => `<option value="${i}" ${this.expMeal === i ? 'selected' : ''}>${esc(RECIPES[m.r].name)} ${stars(H.mealStars(m.q))}: ${esc(RECIPES[m.r].buffText)}</option>`).join('');
-        if (this.expMeal != null && !G.pantry[this.expMeal]) this.expMeal = null;
+        const opts = G.pantry.map((m, i) => { const keep = H.mealReserved(G, i); return `<option value="${i}" ${keep ? 'disabled' : this.expMeal === i ? 'selected' : ''}>${esc(RECIPES[m.r].name)} ${stars(H.mealStars(m.q))}: ${keep ? `saved for ${esc(HEROES[keep].short)}` : esc(RECIPES[m.r].buffText)}</option>`; }).join('');
+        if (this.expMeal != null && (!G.pantry[this.expMeal] || H.mealReserved(G, this.expMeal))) this.expMeal = null;
         h += G.pantry.length ? `<select id="exp-meal" style="min-height:44px;width:100%"><option value="">No meal</option>${opts}</select>` : '<p class="note">The pantry is empty. Cook something in the kitchen for a party buff.</p>';
         const b = expeditionBuffs(G, this.expMeal != null ? G.pantry[this.expMeal] : null);
         h += `<p class="note">${freshLinens(G) ? '🛏️ Fresh Linens: +10% Speed & Evasion. ' : '🛏️ No Fresh Linens (rooms too dusty). '}${Object.keys(b).length ? 'Buffs: ' + Object.entries(b).map(([k, v]) => `${k} ${v < 1 && v > 0 ? '+' + Math.round(v * 100) + '%' : '+' + v}`).join(', ') : ''}</p>`;
@@ -721,6 +772,7 @@ export class UI {
     battleKey(key) {
         const map = { KeyA: 'attack', KeyS: 'skills', KeyC: 'chainmenu', KeyI: 'items', KeyD: 'defend', KeyF: 'flee' };
         if (key === 'KeyT') { this.onAct({ t: 'auto', on: !this.G.battle.auto, preset: $('sel-preset').value }); return true; }
+        if (key === 'KeyX') { this.setSpeed((this.settings.speed % 3) + 1); this.toast(`Battle speed ${this.settings.speed}×`); return true; }
         if (this.pending && (key === 'ArrowLeft' || key === 'ArrowUp')) return this.cycleTarget(-1);
         if (this.pending && (key === 'ArrowRight' || key === 'ArrowDown')) return this.cycleTarget(1);
         if (this.pending && (key === 'Enter' || key === 'Space')) { this.send({ ...this.pending, target: this.target }); return true; }
@@ -745,13 +797,26 @@ export class UI {
         clearTimeout(this._bt); this._bt = setTimeout(() => { b.hidden = true; }, 1700);
     }
 
+    /** Something came off the stove (yours, a cook's, or Ember's gift): what, how good, where it is, who wants it. */
+    cookedToast(G, e) {
+        const R = RECIPES[e.r];
+        if (e.grade === 'gift') {
+            this.toast(`🍲 ${HEROES[e.chef].short} cooked her ${R.name} ${stars(e.stars)}`, 'love', { item: e.r, sub: 'With the Fire Pepper you brought. It\'s in the pantry: serve it to her!', ms: 6000 });
+            return;
+        }
+        const wants = Object.values(G.guests).filter((g) => g.room && g.served !== G.day && (g.recruit ? RECRUITS[g.recruit].meal === e.r : g.reqMeal === e.r)).map((g) => g.name);
+        const sub = [e.grade === 'perfect' ? '✨ Perfect stir!' : e.grade === 'good' ? 'Good stir!' : '', e.chef ? `with ${HEROES[e.chef].short}` : '',
+            wants.length ? `${wants.join(', ')} ${wants.length > 1 ? 'want' : 'wants'} this!` : `In the pantry (${G.pantry.length})`].filter(Boolean).join(' · ');
+        this.toast(`🍳 ${R.name} ${stars(e.stars)}`, 'good', { item: e.r, sub, ms: 4500 });
+    }
+
     onEvents(G, events) {
         for (const e of events) {
             switch (e.type) {
                 case 'nope': this.toast(e.text, 'bad'); break;
                 case 'checkout': this.toast(`${e.name} checked out: ${'★'.repeat(e.stars)} · +${e.pay + e.tip} G${e.tip ? ` (${e.tip} tip)` : ''}`, 'good'); break;
                 case 'served': this.toast(e.recruit ? `${HEROES[e.recruit].short} loved the ${RECIPES[e.r].name}!` : `${e.name} enjoyed the ${RECIPES[e.r].name}${e.fav ? ' (just what they wanted!)' : ''} · +${e.gold} G`, 'good'); break;
-                case 'cooked': if (e.grade === 'gift') this.toast(`${HEROES[e.chef].short} cooked ${RECIPES[e.r].name} with your pepper! Serve it to her.`, 'love'); else this.toast(`${RECIPES[e.r].name} ${stars(e.stars)}${e.grade === 'perfect' ? ' · Perfect stir!' : ''}`, 'good'); break;
+                case 'cooked': this.cookedToast(G, e); break;
                 case 'levelUp': this.toast(`${HEROES[e.hero].short} reached level ${e.lv}!`, 'good'); break;
                 case 'bondUp': this.toast(`💞 ${HEROES[e.a].short} & ${HEROES[e.b].short}: bond level ${e.lv}!`, 'love'); break;
                 case 'goalDone': this.toast(`✅ ${e.text}`, 'good'); break;
@@ -761,7 +826,7 @@ export class UI {
                 case 'late': this.toast(`⏰ Late! Fee of ${e.fee} G added.`, 'bad'); break;
                 case 'newDay': this.toast(`☀️ Day ${e.day}`); break;
                 case 'forage': this.toast(`🌻 ${HEROES[e.hero].short} found ${ITEMS[e.item].name}`); break;
-                case 'recruitTask': this.toast(`${HEROES[e.hero].short}'s task is done!`, 'love'); break;
+                case 'recruitTask': if (e.hero !== 'ember') this.toast(`${HEROES[e.hero].short}'s task is done!`, 'love'); break;    // Ember's shows as her stew
                 case 'recruitReady': this.toast(`${HEROES[e.hero].short} wants a word at the desk!`, 'love'); break;
                 case 'stranger': this.toast('🚪 A stranger has come to the desk…', 'love'); break;
                 case 'bought': this.toast(`Bought ${ITEMS[e.item].name}`); break;
