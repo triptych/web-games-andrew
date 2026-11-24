@@ -270,6 +270,21 @@ td:first-child { color: var(--berry); font-weight: 800; white-space: nowrap; }
 .pill { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--line); }
 .where { margin: 6px 0 8px; padding: 6px 10px; border-radius: 10px; background: #fff3dc; border: 1px dashed var(--wood); font-size: 12px; line-height: 1.45; color: var(--ink-2); }
 .where b { color: var(--ink); }
+/* portraits that open the 3D model viewer */
+.por-btn { position: relative; padding: 0; border: 0; background: none; cursor: pointer; flex: none; border-radius: 12px; }
+.por-btn img { display: block; transition: transform 0.12s; }
+.por-btn:hover img, .por-btn:focus-visible img { transform: scale(1.06); }
+.por-btn:focus-visible { outline: 3px solid #ffc94d; outline-offset: 2px; }
+.por-btn .por-3d { position: absolute; right: -4px; bottom: -4px; font: 700 10px/1 var(--display); color: #fff; background: var(--berry); border: 2px solid #fff; border-radius: 999px; padding: 2px 5px; }
+.mv-sheet { width: min(560px, calc(100vw - 24px)); }
+.mv-stage { position: relative; height: min(56vh, 460px); border-radius: 16px; overflow: hidden; border: 2px solid var(--wood-d);
+    background: radial-gradient(circle at 50% 38%, #fffaf0, #ffe9cf 55%, #f3cfa9); }
+#mv-canvas { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#mv-canvas:active { cursor: grabbing; }
+.mv-hint { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-size: 12px; font-weight: 700; color: var(--ink-2); pointer-events: none; }
+.mv-sub { margin: 8px 2px 6px; font-size: 13px; font-weight: 700; color: var(--ink-2); text-align: center; }
+.mv-clips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.mv-clips .opt { min-height: 36px; }
 .icon { width: 40px; height: 40px; border-radius: 10px; background: #fff; display: inline-block; vertical-align: middle; object-fit: contain; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
 .tabs button { min-height: 40px; border-radius: 999px; border: 2px solid var(--wood-d); background: var(--paper); font-weight: 800; padding: 0 12px; cursor: pointer; font-size: 13px; }

@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Inn Over My Head** (game-147) v1.1.1: the last dust bunny in a room never went away. A sweep did clear the room's dust, but any dust at all counted as a bunny, and an occupied room gathers some on the very next tick, so the last one came straight back. A bunny now appears only once a room has gathered a little dust (about 15 s occupied, a minute empty), and shooing the last one takes the leftover dust with it. The sim test checks both, and the bot sweeps every bunny while Bru's 4★ Sparkle favour is open.
+- **Inn Over My Head** (game-147) v1.1.1: the inn's clock kept running during battles, so a long fight ate the day (and its dust, arrivals and due dates). Time now stands still while a battle is on; it still runs at the inn and on the expedition map between fights, where staff keep working. Balance is unchanged (the bot pays off the debt on day 29–30), and the sim test checks that the clock, dust and arrivals hold still mid-battle.
+- **Inn Over My Head** (game-147) v1.1.1: the dialogue portraits were cut off just below the chin (one square head crop served both the small icons and the dialogue). People now have a taller head-and-shoulders portrait for the dialogue (`art/dlg-<who>.webp`, made by `dev/art/export.py` with `DLG_ONLY=1`).
+
+### Added
+- **Inn Over My Head** (game-147) v1.1.1: tap a hero's portrait in the Team panel to see the full Meshy model on a turntable, in the game's toon shading. Drag to turn it, scroll or pinch to zoom, double-tap to reset, and play any of the hero's animation clips ([viewer.js](game-147/js/view/viewer.js)). It has its own small renderer, which runs only while the dialog is open, and the game's 3D view pauses behind it. The browser test drags, zooms, plays a clip and closes it.
+
 ### Changed
 - **Inn Over My Head** (game-147) v1.1.0: a polish pass on the inn, which was hard to read, hid its rooms, had paper-thin walls and tiny characters.
   - **The inn rebuilt** ([hotel3d.js](game-147/js/view/hotel3d.js)): seen almost straight on, so no floor hides the room below it. Walls are thick and timbered, with wallpapers, wainscots, rails, crown mouldings, curtained windows, pendant lamps and doorways that walkers use, on a fieldstone plinth under a shingled gable roof with a chimney, a roof terrace and the inn's sign. Closed rooms are dimmed behind a plaque that says which installment opens them (the boards across them are gone).

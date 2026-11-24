@@ -7,6 +7,9 @@
 - por-<who>.webp (256 square, transparent): a cut-out of the reference picture. The white background connected to the
   border is removed by flood fill (a soft edge where it meets the figure); people are cropped to head and shoulders
   (the top 42% of the figure), creatures are kept whole.
+- dlg-<who>.webp (300×360, transparent, people only; v1.1.1): the dialogue portrait, a taller crop down to the chest.
+  The square head crop ended just under the chin, which looked cut off beside the dialogue box.
+`DLG_ONLY=1` writes just the dialogue portraits.
 Needs Pillow and numpy.
 """
 import os, sys
@@ -22,10 +25,12 @@ def save(im, name, w=None, q=82):
         im = im.resize((w, round(im.height * w / im.width)), Image.LANCZOS)
     im.save(os.path.join(OUT, name), 'WEBP', quality=q, method=6)
 
-save(Image.open(os.path.join(RAW, 'title-v2.png')).convert('RGB'), 'title.webp', 1920)
-save(Image.open(os.path.join(RAW, 'ending-v2.png')).convert('RGB'), 'ending.webp', 1376)
-for p in ['meadow', 'grove', 'cave', 'hotel']:
-    save(Image.open(os.path.join(RAW, f'bg-{p}.png')).convert('RGB'), f'bg-{p}.webp', 1376, 78)
+DLG_ONLY = os.environ.get('DLG_ONLY') == '1'
+if not DLG_ONLY:
+    save(Image.open(os.path.join(RAW, 'title-v2.png')).convert('RGB'), 'title.webp', 1920)
+    save(Image.open(os.path.join(RAW, 'ending-v2.png')).convert('RGB'), 'ending.webp', 1376)
+    for p in ['meadow', 'grove', 'cave', 'hotel']:
+        save(Image.open(os.path.join(RAW, f'bg-{p}.png')).convert('RGB'), f'bg-{p}.webp', 1376, 78)
 
 def cutout(path):
     im = Image.open(path).convert('RGB')
@@ -53,7 +58,7 @@ def cutout(path):
 
 PEOPLE = ['maple', 'ember', 'kit', 'fern', 'bru', 'goldmaw', 'guest-merchant', 'guest-noble', 'guest-adventurer']
 CREATURES = ['dustbunny', 'honeyslime', 'thistlehog', 'puffcap', 'mosssnail', 'grandmorel', 'crystalbat', 'pebblegolem', 'molequeen']
-for who in PEOPLE + CREATURES:
+for who in (PEOPLE if DLG_ONLY else PEOPLE + CREATURES):
     rgba, x0, x1, y0, y1 = cutout(os.path.join(RAW, f'ref-{who}.png'))
     h = y1 - y0
     if who in PEOPLE:
@@ -65,6 +70,13 @@ for who in PEOPLE + CREATURES:
         w = band.sum(axis=0).astype(float) ** 2
         if w.sum(): cx = int((w * np.arange(len(w))).sum() / w.sum())
         box = (cx - side // 2, y0 - side // 20, cx + side // 2, y0 - side // 20 + side)
+        # the dialogue portrait: a little wider and 1.44× as tall as the head crop, so it reaches the chest
+        dw, dh = int(side * 1.2), int(side * 1.44)
+        dbox = (cx - dw // 2, y0 - side // 20, cx + dw // 2, y0 - side // 20 + dh)
+        dcrop = Image.new('RGBA', (dbox[2] - dbox[0], dbox[3] - dbox[1]), (0, 0, 0, 0))
+        dcrop.paste(rgba.crop(dbox), (0, 0))
+        save(dcrop.resize((300, 360), Image.LANCZOS), f'dlg-{who}.webp', None, 86)
+        if DLG_ONLY: continue
     else:
         side = int(max(x1 - x0, h) * 1.06)
         cx, cy = (x0 + x1) // 2, (y0 + y1) // 2

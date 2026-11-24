@@ -24,6 +24,7 @@ const HOTEL_ROOMS = {
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const g$ = (n) => Math.floor(n).toLocaleString('en-US');
 const por = (who) => `art/por-${who}.webp`;
+const DLG_PEOPLE = new Set(['maple', 'ember', 'kit', 'fern', 'bru', 'goldmaw', 'guest-merchant', 'guest-noble', 'guest-adventurer']);
 const EMOJI = { honey: '🍯', pepper: '🌶️', puffcap: '🍄', glowmoss: '🌿', sugar: '💎', fluff: '☁️', herbs: '🌱', flour: '🌾', honeyDrop: '🍬', mintTea: '🧪',
     smellingSalts: '⚗️', pepperBomb: '💥', luckyBell: '🔔', silkScarf: '🧣', copperRing: '💍', dragonflyPin: '🪲', copperPot: '🍲', goldenWhisk: '🥄', featherDuster: '🪶',
     turboBroom: '🧹', sparkleSpray: '✨', suitcase: '🧳', diary: '📔', sunflowerVase: '🌻', copperKettle: '🫖', luggageCart: '🛒', pottedFern: '🪴', armorStand: '🛡️',
@@ -108,6 +109,13 @@ export class UI {
             const p = e.target.closest('[data-open]');
             if (p && !p.disabled) { this.audio.ui('click'); this.openPanel(p.dataset.open); }
         });
+        // a portrait in the Team panel opens the 3D model viewer; its buttons play the hero's animations
+        document.body.addEventListener('click', (e) => {
+            const m = e.target.closest('[data-model]');
+            if (m) { this.audio.ui('open'); this.openModel(m.dataset.model); return; }
+            const c = e.target.closest('[data-mvclip]');
+            if (c) { this.audio.ui('click'); for (const b of $('mv-clips').children) b.classList.toggle('on', b === c); this.onModelClip?.(c.dataset.mvclip); }
+        });
         // the room card's "whole inn" button (main sets onShowAll to the camera's way home)
         document.body.addEventListener('click', (e) => { if (e.target.closest('[data-inn="all"]')) { this.audio.ui('click'); this.onShowAll?.(); } });
         $('panel-body').addEventListener('click', (e) => {
@@ -147,6 +155,7 @@ export class UI {
         $(id).hidden = true;
         this.stack = this.stack.filter((s) => s !== id);
         if (id === 'panel') this.panel = null;
+        if (id === 'modelview') this.onModel?.(null);
         if (this.top()) this.focusFirst(this.top());
     }
     closeTop() { if (this.top()) this.closeScreen(this.top()); }
@@ -178,7 +187,9 @@ export class UI {
     }
     dlgShow() {
         const d = this.dlg, [who, text] = d.lines[d.i];
-        $('dlg-img').src = por(who);
+        // people get the taller head-and-shoulders portrait (v1.1.0's square head crop stopped at the chin); creatures
+        // keep their whole-body picture
+        $('dlg-img').src = DLG_PEOPLE.has(who) ? `art/dlg-${who}.webp` : por(who);
         $('dlg-name').textContent = (d.title && d.i === 0 ? `💞 ${d.title} · ` : '') + (SPEAKERS[who] || who);
         $('dlg-text').textContent = text;
         $('dlg-next').textContent = d.i < d.lines.length - 1 ? 'Next ▸' : 'Close';
@@ -338,6 +349,19 @@ export class UI {
         }
     }
 
+    /** The 3D model viewer for a hero (main sets onModel to start or stop the viewer, which resolves to its clips). */
+    async openModel(id) {
+        const D = HEROES[id];
+        $('mv-title').textContent = `${D.short}`;
+        $('mv-sub').textContent = `${D.cls} · ${ELEMENTS[D.el].icon} ${ELEMENTS[D.el].name || ''} · ${STAFF_ROLES[D.staff].icon} ${STAFF_ROLES[D.staff].name}`.replace(/ +·/g, ' ·');
+        $('mv-clips').innerHTML = '';
+        this.openScreen('modelview');
+        const clips = (await this.onModel?.(id)) || [];
+        if (this.top() !== 'modelview') return;
+        const NAMES = { idle: 'Idle', battleIdle: 'Ready', walk: 'Walk', run: 'Run', attack: 'Attack', skill: 'Skill', chain: 'Chain leap', hit: 'Ouch', victory: 'Victory', faint: 'Faint', wave: 'Wave' };
+        $('mv-clips').innerHTML = clips.map((c) => `<button class="opt ${c === 'idle' ? 'on' : ''}" data-mvclip="${c}">${NAMES[c] || c}</button>`).join('');
+    }
+
     /** Open the panel for a room of the inn. */
     openRoom(id) { this.openPanel(HOTEL_ROOMS[id]?.panel || 'rooms'); }
 
@@ -464,7 +488,7 @@ export class UI {
             };
             const roles = id === 'maple' ? '<span class="pill">🛎️ Innkeeper · always in the party</span>' : ['party', 'both', 'staff'].map((r) => `<button class="opt ${hh.role === r ? 'on' : ''}" data-cmd='{"t":"role","hero":"${id}","role":"${r}"}'>${ROLE_TEXT[r]}</button>`).join('');
             const inParty = G.party.includes(id);
-            h += `<div class="card ${inParty ? 'hl' : ''}"><div class="top"><img src="${por(id)}" alt=""><div><div class="nm">${esc(D.short)} · Lv ${hh.lv}</div><div class="sub">${esc(D.cls)} · ${ELEMENTS[D.el].icon} · ${STAFF_ROLES[D.staff].icon} ${STAFF_ROLES[D.staff].name}</div><div class="meter good"><i style="width:${(100 * hh.exp / expToNext(hh.lv)).toFixed(0)}%"></i></div></div></div>
+            h += `<div class="card ${inParty ? 'hl' : ''}"><div class="top"><button class="por-btn" data-model="${id}" title="See ${esc(D.short)} in 3D" aria-label="See ${esc(D.short)} in 3D"><img src="${por(id)}" alt=""><span class="por-3d">3D</span></button><div><div class="nm">${esc(D.short)} · Lv ${hh.lv}</div><div class="sub">${esc(D.cls)} · ${ELEMENTS[D.el].icon} · ${STAFF_ROLES[D.staff].icon} ${STAFF_ROLES[D.staff].name}</div><div class="meter good"><i style="width:${(100 * hh.exp / expToNext(hh.lv)).toFixed(0)}%"></i></div></div></div>
                 <div class="sub">HP ${s.hp} · MP ${s.mp} · ATK ${Math.round(s.atk)} · DEF ${Math.round(s.def)} · MAG ${Math.round(s.mag)} · SPD ${Math.round(s.spd)}${syn ? ` · 💞 +${Math.round(syn * 100)}%` : ''}</div>
                 <div class="acts">${roles}</div>
                 ${id !== 'maple' && hh.role !== 'staff' ? `<button class="btn small" data-cmd='{"t":"party","hero":"${id}"}'>${inParty ? 'Leave the party' : 'Join the party'}</button>` : ''}

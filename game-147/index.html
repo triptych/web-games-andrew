@@ -131,6 +131,16 @@
         </div>
     </div>
 
+    <!-- a hero's 3D model, from the Team panel -->
+    <div id="modelview" class="screen" hidden>
+        <div class="sheet mv-sheet">
+            <div class="sheet-head"><h2 id="mv-title"></h2><button class="ibtn x" data-close aria-label="Close">✕</button></div>
+            <div class="mv-stage"><canvas id="mv-canvas" aria-label="3D model, drag to turn"></canvas><div class="mv-hint">Drag to turn · scroll or pinch to zoom · double-tap to reset</div></div>
+            <div class="mv-sub" id="mv-sub"></div>
+            <div class="mv-clips" id="mv-clips"></div>
+        </div>
+    </div>
+
     <div id="choice" class="screen" hidden>
         <div class="sheet"><div id="choice-body"></div></div>
     </div>

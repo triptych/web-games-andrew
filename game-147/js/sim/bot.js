@@ -66,7 +66,9 @@ export function botCmd(G, bot) {
         return null;
     }
     // dust: an attentive bot sweeps whenever a room has two or more bunnies
-    const dirty = H.openRooms(G).filter((r) => H.bunnies(r) >= (bot.skill >= 1 ? 2 : 3)).sort((a, b) => b.dust - a.dust)[0];
+    // (any bunny at all while a Sparkle favour is open: Bru wants a 4★ inn)
+    const sparkleTask = Object.entries(G.recruits).some(([h, r]) => r.stage === 'staying' && !r.task && RECRUITS[h].task.kind === 'sparkle');
+    const dirty = H.openRooms(G).filter((r) => H.bunnies(r) >= (sparkleTask ? 1 : bot.skill >= 1 ? 2 : 3)).sort((a, b) => b.dust - a.dust)[0];
     if (dirty && rand(bot) < 0.5 + 0.5 * bot.skill) return { t: 'sweep', room: dirty.id };
     if (G.garden.herbs >= 3) return { t: 'harvest' };
 

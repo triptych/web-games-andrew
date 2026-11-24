@@ -37,7 +37,9 @@ export function newGame(seed = 1) {
 /** Advance dt seconds. hold = the view is animating a battle action, so the AI waits. */
 export function step(G, dt, { hold = false } = {}) {
     G.t += dt;
-    H.hotelStep(G, dt);
+    // the inn's clock (and everything on it: dust, guests, staff, the day) stands still during a battle; it runs at the
+    // inn and on the expedition map between fights (v1.1.0 let a long battle eat the day)
+    if (!G.battle) H.hotelStep(G, dt);
     if (G.battle) battleStep(G, dt, hold, aiPick);
     questStep(G);
 }

@@ -8,7 +8,8 @@ import * as THREE from 'three';
 import { Actor, prop, RAMP, texMat } from './assets.js';
 import { FX } from './fx.js';
 import { HEROES, GUESTS, ROOMS, TIERS } from '../sim/data.js';
-import { HOTEL, DAY_LEN } from '../config.js';
+import { DAY_LEN } from '../config.js';
+import { bunnies } from '../sim/hotel.js';
 
 const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const FLOOR_H = 2.9;               // floor to floor
@@ -559,7 +560,7 @@ export class Hotel3D {
         }
         // dust bunnies: one per 20 dust in each open room
         for (const room of G.rooms) {
-            const want = room.open ? Math.ceil(room.dust / HOTEL.bunnyDust - 1e-9) : 0;
+            const want = room.open ? bunnies(room) : 0;
             const list = this.bunnies[room.id] ||= [];
             while (list.length < want) {
                 const b = new Actor('dustbunny', { height: 0.46, face: Math.random() * 6 });

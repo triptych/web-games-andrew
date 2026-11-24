@@ -32,7 +32,9 @@ export function initHotel(G) {
 }
 
 export const openRooms = (G) => G.rooms.filter((r) => r.open);
-export const bunnies = (room) => Math.ceil(room.dust / HOTEL.bunnyDust - 1e-9);
+// dust bunnies in a room: one per 20 dust, counted only past a little grace, so the last one shooed stays gone a while
+// (v1.1.0 counted any dust at all: an occupied room gathers some on the very next tick, so the last bunny came straight back)
+export const bunnies = (room) => Math.max(0, Math.ceil((room.dust - HOTEL.bunnyGrace) / HOTEL.bunnyDust - 1e-9));
 
 /** 0–5 stars, in halves, from how dusty the open rooms are. */
 export function sparkle(G) {
@@ -231,9 +233,9 @@ export function craft(G, item) {
 // ------------------------------------------------------------------ rooms and the courtyard
 export function sweep(G, rid, byStaff = false) {
     const room = G.rooms.find((r) => r.id === rid);
-    if (!room || !room.open || room.dust <= 0) return false;
+    if (!room || !room.open || bunnies(room) <= 0) return false;
     room.dust = Math.max(0, room.dust - HOTEL.bunnyDust);
-    if (room.dust < 0.5) room.dust = 0;
+    if (bunnies(room) === 0) room.dust = 0;     // the last bunny takes the leftover dust with it
     const fluffP = (byStaff ? 0.25 : 0.35) + (has(G, 'turboBroom') ? 0.2 : 0);
     const fluff = G.rng() < fluffP;
     if (fluff) give(G, 'fluff');

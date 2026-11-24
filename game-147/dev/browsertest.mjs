@@ -4,7 +4,7 @@
  * desktop 1280×760: the title (back link on top, no sideways scroll); New Game; the intro scene by Enter; a dust bunny
  *   shooed by clicking it in the 3D view; a room zoomed to by a click (its card, Whole inn, a second click opens its
  *   panel, Escape, the mouse wheel); a walk-in checked in from the Desk panel (key 1); a Honey Tart cooked with a
- *   real Space press in the gold zone; every Meshy model and animation clip loaded, rigged characters with their clips;
+ *   real Space press in the gold zone; a hero's 3D model from the Team panel (drag, wheel, a clip, Escape); every Meshy model and animation clip loaded, rigged characters with their clips;
  *   music playing and ElevenLabs clips decoded; an adventure (key 9): a battle with an Attack by keyboard and a target;
  *   the auto-battle (T) to victory; the expedition card; home; Escape → Save & Quit → Continue restores the game; a
  *   long panel's close button stays pinned in view.
@@ -201,6 +201,29 @@ async function desktop() {
     check(await Q(page, () => __iomh.G.pantry[0].q >= 1.1), `a well-timed stir makes a good meal (quality ${await Q(page, () => __iomh.G.pantry[0]?.q)})`);
     await page.keyboard.press('Escape');
     await shot(page, 'inn');
+    // v1.1.1: a portrait in the Team panel opens the 3D model viewer: turn it by dragging, zoom with the wheel, play a
+    // clip; Escape closes it and stops its renderer
+    await page.keyboard.press('Digit5');
+    await until(page, () => document.getElementById('panel-title').textContent.includes('Team'), 'key 5 opens the Team panel');
+    const por = await center(page, '#panel-body [data-model="maple"]');
+    await page.mouse.click(por.x, por.y);
+    await until(page, () => !document.getElementById('modelview').hidden && document.getElementById('mv-title').textContent.includes('Maple'), 'clicking Maple\'s portrait opens her 3D model');
+    await until(page, () => document.querySelectorAll('#mv-clips [data-mvclip]').length >= 10, 'the viewer lists her animation clips', 60000);
+    const mv = await center(page, '#mv-canvas');
+    const yaw0 = await Q(page, () => __iomh.viewer.yaw);
+    await page.mouse.move(mv.x, mv.y); await page.mouse.down(); await page.mouse.move(mv.x + 120, mv.y, { steps: 4 }); await page.mouse.up();
+    check(await Q(page, (y) => Math.abs(__iomh.viewer.yaw - y) > 0.8, yaw0), 'dragging turns the model');
+    const d0 = await Q(page, () => __iomh.viewer.dist);
+    await page.mouse.wheel(0, -400);
+    await until(page, (d) => __iomh.viewer.dist < d - 0.1, 'the wheel zooms in', 10000, d0);
+    const wave = await center(page, '#mv-clips [data-mvclip="wave"]');
+    await page.mouse.click(wave.x, wave.y);
+    await until(page, () => __iomh.viewer.actor.cur === __iomh.viewer.actor.actions.wave, 'a clip button plays that animation');
+    await shot(page, 'viewer');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('modelview').hidden && !__iomh.viewer.running && !document.getElementById('panel').hidden, 'Escape closes the viewer (back to the Team panel) and stops it');
+    await page.keyboard.press('Escape');
+    await until(page, () => document.getElementById('panel').hidden, 'and Escape closes the Team panel');
     // an adventure (key 9)
     await page.keyboard.press('Digit9');
     await until(page, () => document.getElementById('panel-title').textContent.includes('Adventure'), 'key 9 opens the Adventure panel');

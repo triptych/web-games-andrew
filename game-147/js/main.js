@@ -5,6 +5,7 @@
 
 import { STEP, MAX_FRAME } from './config.js';
 import { View } from './view/view.js';
+import { ModelViewer } from './view/viewer.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
 import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
@@ -54,6 +55,10 @@ refreshTitle();
 ui.openScreen('title');
 view.stage.setBackdrop('hotel');
 ui.onShowAll = () => view.hotel.showAll();
+// the 3D model viewer (Team panel portraits): its own small renderer, running only while its dialog is open
+const viewer = new ModelViewer($('mv-canvas'));
+ui.onModel = (id) => { if (!id) { viewer.close(); return null; } return viewer.open(id); };
+ui.onModelClip = (clip) => viewer.play(clip);
 
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => { audio.init(); if (mode === 'title') audio.music('title'); }, { capture: true });
 
@@ -288,7 +293,7 @@ function frame(now) {
     // above all) stays smooth
     drawN++;
     const covered = ui.top() === 'panel' && innerWidth < 700;
-    view.frame(G, dt * (G.mode === 'battle' || view.busy ? spd * (DEBUG ? Math.min(4, FAST) : 1) : 1), covered && drawN % 3 !== 0);
+    view.frame(G, dt * (G.mode === 'battle' || view.busy ? spd * (DEBUG ? Math.min(4, FAST) : 1) : 1), ui.top() === 'modelview' || (covered && drawN % 3 !== 0));
     if (mode === 'play') {
         if (G.mode === 'hotel') { ui.hud(G, time); labelT += dt; if ((labelT > 0.1 || view.hotel.camMoving) && !ui.anyScreen()) { labelT = 0; ui.roomLabels(G, view.hotel); } }
         else if (G.mode === 'expedition') ui.expedCard(G, false);
@@ -313,7 +318,7 @@ requestAnimationFrame((t) => { last = t; frame(t); });
 // ------------------------------------------------------------------ debug hooks (?debug=1)
 if (DEBUG) {
     window.__iomh = {
-        get G() { return G; }, get mode() { return mode; }, seen, view, ui, audio, keys,
+        get G() { return G; }, get mode() { return mode; }, seen, view, ui, audio, keys, viewer,
         start(seed = 1, skipIntro = true) { startGame(newGame(seed)); if (skipIntro) G.scenes.length = 0; return G; },
         act: (cmd) => doAct(cmd),
         autoplay(on = true, skill = 1) { bot = on ? makeBot({ skill }) : null; },
