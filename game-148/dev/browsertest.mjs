@@ -86,6 +86,31 @@ const legalPour = (page) => Q(page, () => {
     return L && { f: L[0], t: L[1], a: __gg.tubeCenter(L[0]), b: __gg.tubeCenter(L[1]) };
 });
 const reportErrors = (label) => { check(errors.length === 0, `${label}: no console errors, page errors or failed requests`); for (const e of errors.slice(0, 8)) console.log('    ', e); };
+/**
+ * Every possible pour's flight path, sampled through the view's own _flightPos(): inside a blossom (going up out of
+ * the source or down into the target) a wisp must stay within that blossom's glass walls and clear of every other
+ * blossom; out of the glass, wherever it overlaps any blossom it must be drawn behind it. Returns the failures.
+ */
+const flightAudit = (page) => Q(page, () => {
+    const v = __gg.view, n = v.layout.length, r = v.d / 2, bad = [];
+    const over = (p, L) => Math.abs(p.x - L.cx) < L.w / 2 + r && p.y + r > L.top - L.w * 0.2 && p.y - r < L.bottom + L.w * 0.6;
+    for (let a = 0; a < n; a++) for (let b = 0; b < n; b++) {
+        if (a === b) continue;
+        const path = v._path(a, b, v.slot(a, 0), v.slot(b, 0));
+        for (let i = 0; i <= 120; i++) {
+            const u = i / 120;
+            // _flightPos eases time into progress (1 − (1 − x)³); invert it to sample progress evenly
+            const p = v._flightPos({ path, from: a, to: b, t: 1 - Math.cbrt(1 - u), dur: 1 });
+            if (p.inside) {
+                const host = [a, b].find((k) => Math.abs(p.x - v.layout[k].cx) < 1);
+                const L = v.layout[host];
+                if (!L || Math.abs(p.x - L.cx) + r > L.w / 2) bad.push(`${a}→${b} leaves the glass of ${host}`);
+                v.layout.forEach((M, k) => { if (k !== a && k !== b && over(p, M)) bad.push(`${a}→${b} runs in front of ${k}`); });
+            } else if (v.layout.some((M) => over(p, M)) && !p.behind) bad.push(`${a}→${b} crosses ${v.layout.findIndex((M) => over(p, M))} in front`);
+        }
+    }
+    return [...new Set(bad)].slice(0, 6);
+});
 /** Does a sheet keep its foot buttons on screen at the top and after scrolling to the end? */
 const footVisible = (page, id) => Q(page, (sid) => {
     const sheet = document.querySelector(`#${sid} .sheet`);
@@ -119,6 +144,12 @@ async function desktop() {
     await until(page, () => /Leave it to me/.test(document.getElementById('story-text').textContent), 'Space steps to Lumi\'s line');
     await page.keyboard.press('Space');
     await until(page, () => __gg.mode === 'play' && __gg.G && __gg.G.n === 0 && !__gg.ui.anyScreen(), 'the story ends in level 1');
+    await settle(page);
+    await Q(page, () => __gg.start(38));            // 11 blossoms and a cup
+    await settle(page);
+    let fa = await flightAudit(page);
+    check(!fa.length, 'desktop: every flight goes up, over and down without passing through glass' + (fa.length ? ' — ' + fa.join('; ') : ''));
+    await Q(page, () => __gg.start(0));
     await settle(page);
 
     // real clicks: lift, then pour
@@ -243,6 +274,12 @@ async function phone(w, h) {
     await until(page, () => /Leave it to me/.test(document.getElementById('story-text').textContent), 'a tap on Next steps the story');
     await tapSel('#story-next');
     await until(page, () => __gg.mode === 'play' && !__gg.ui.anyScreen(), 'the story ends in play');
+    await settle(page);
+    await Q(page, () => __gg.start(38));
+    await settle(page);
+    const fa = await flightAudit(page);
+    check(!fa.length, `${w}×${h}: every flight goes up, over and down without passing through glass (${await Q(page, () => Math.ceil(__gg.view.layout.length / __gg.view.per))} rows)` + (fa.length ? ' — ' + fa.join('; ') : ''));
+    await Q(page, () => __gg.start(0));
     await settle(page);
     const L = await layout(page);
     check(L.noHScroll, 'no sideways scroll');

@@ -79,6 +79,9 @@
   }
  ],
  "update": "Glimmerglade is now v{version}! Something new is blooming in the glade. 🌸",
+ "updates": {
+  "1.0.1": "Good news! The wisps have learned their manners: they float up out of a blossom's mouth and dip back in, instead of zooming through the glass. So much prettier! ✨"
+ },
  "bye": [
   "Goodnight! See you at dawn! ✨",
   "Back to the lanterns! Bye-bye!"

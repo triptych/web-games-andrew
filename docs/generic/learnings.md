@@ -7687,3 +7687,9 @@ A fairy ball-sort puzzle in Canvas 2D with every picture and sound from ElevenLa
   top edge, so it is right for both layouts.
 - **Don't `finish()` an infinite CSS animation in a test helper**: it throws `InvalidStateError`. Skip animations
   whose `getComputedTiming().endTime` is `Infinity`.
+- **Things in a container travel the way the container allows.** v1.0.0's pour was one Bézier from slot to slot, and
+  the owner saw at once that the wisps passed through the glass. The fix is a path of segments (up the middle of the
+  source, an arc at the higher mouth's height, down to above the target, down its middle) plus a draw-order rule:
+  outside the glass, overlapping any blossom means behind it. Test it as geometry, not by eye: sample every
+  from→to pair through the view's own position function and assert containment and layering (`flightAudit` in
+  `game-148/dev/browsertest.mjs`); run it on a two-row phone layout too, where the only failures were.
