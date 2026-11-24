@@ -2303,6 +2303,22 @@ const games = [
             { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-148',
+        title: 'Glimmerglade',
+        description: "A gentle fairy sorting puzzle in vanilla JavaScript and Canvas 2D, with art, music, sound and voices made with ElevenLabs. The Tumble Wind blew through the glade overnight and every wisp of light landed in the wrong glass bell-flower. Help Lumi, a young lantern fairy, tip the glowing wisps between the blossoms (tap one, tap another, or drag) until each holds four of a colour: then it blooms, and the magical creature whose heart-light filled it wakes up and sits on top of its flower. Fifty levels across five painted glades, each proved solvable by a solver that uses the game's own rules: Dawnpetal Meadow, Mushroom Hollow (mist hides the wisps underneath), Moonpond (brambles that loosen after enough blooms), Crystal Grotto (acorn cups that hold two but never bloom) and the Starfall Canopy. Free undo, three firefly hints a level, one sprout for an extra blossom, three stars for matching Grandmother Willow's pours, a creature journal of nine friends, a daily dewdrop puzzle with a streak, endless dreams, and a voiced story told by Willow and Lumi. Made for phones first.",
+        icon: '\uD83E\uDDDA',
+        folder: 'game-148',
+        version: '1.0.0',
+        cssClass: 'glimmerglade',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83E\uDDEA', label: 'Sorting' },
+            { emoji: '\uD83E\uDDDA', label: 'Fairies' },
+            { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
+            { emoji: '\uD83C\uDFA8', label: 'Canvas 2D' }
+        ]
     }
 ];
 
