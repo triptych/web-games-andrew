@@ -2,7 +2,7 @@
 
 **Genre:** casual sorting puzzle (ball-sort family) with a cozy fantasy story and a collection
 **Engine:** Vanilla JS: Canvas 2D board, DOM screens; art, music, sound and voices generated with ElevenLabs
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -142,7 +142,11 @@ most once per level.
 
 - **Board** (`js/view/view.js`): glass bell-flowers on curling stems with a pool of light beneath, a petal crown
   that opens in the wisp colour when it blooms, wisps baked once per size into glowing sprites with a symbol, mist
-  puffs, bramble vines with tiny roses and a count badge, an acorn rim on cups, arcing pours with sparkle trails,
+  puffs, bramble vines with tiny roses and a count badge, an acorn rim on cups, pours that follow the glass (a
+  lifted run slides up the middle of its blossom; a pour rises out of the mouth, arcs over at the height of the
+  higher mouth, comes down to just above the target and drops down its middle; anywhere outside the glass that it
+  overlaps a blossom it is drawn behind it, so a top-row-to-bottom-row pour passes behind the flowers in between),
+  sparkle trails,
   petal bursts, the creature perched on its flower (hopping when the level is won), a hint firefly, drifting motes.
 - **Backdrops**: one painted glade per chapter, cross-faded behind the canvas with a slow drift.
 - **UI**: frosted-glass sheets and pills (Quicksand, Cinzel Decorative for headings), Lumi floating in the corner on
@@ -185,6 +189,12 @@ keys and tools; touch-only phones in both orientations; blocked storage; the gen
 - More chapters (the generator takes any spec); a gentle "Willow's garden" scene that fills with creatures.
 
 ## Changelog
+
+### v1.0.1 (2026-11-24)
+- Wisps no longer fly through the glass: a pour was one curve from slot to slot, so wisps left and entered their
+  blossoms diagonally through the walls, and lifting snapped them above the rim. Pours now go up, over and down the
+  middles, cross other blossoms behind them, and lifting slides. `browsertest.mjs` audits every possible pour's path
+  on desktop and both phone layouts (it finds 376 problems with the old curve).
 
 ### v1.0.0 (2026-11-24)
 - First release: 50 proven levels in five glades with mist, brambles and acorn cups; undo, fireflies, sprout,

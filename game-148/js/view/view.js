@@ -11,6 +11,7 @@ import { isHidden, colorOf, topRun } from '../sim/rules.js';
 const TAU = Math.PI * 2;
 const ease = (t) => 1 - Math.pow(1 - Math.max(0, Math.min(1, t)), 3);
 const lerp = (a, b, t) => a + (b - a) * t;
+const quad = (p, c, q, t) => ({ x: (1 - t) * (1 - t) * p.x + 2 * (1 - t) * t * c.x + t * t * q.x, y: (1 - t) * (1 - t) * p.y + 2 * (1 - t) * t * c.y + t * t * q.y });
 
 function hexToRgb(h) {
     const n = parseInt(h.slice(1), 16);
@@ -220,7 +221,7 @@ export class View {
     }
 
     // ------------------------------------------------------------------ events
-    tfx(i) { let f = this.fx.get(i); if (!f) { f = { shake: 0, bloom: 0, grow: 1, unlock: 0, perchT: 0 }; this.fx.set(i, f); } return f; }
+    tfx(i) { let f = this.fx.get(i); if (!f) { f = { shake: 0, bloom: 0, grow: 1, unlock: 0, perchT: 0, lift: 0, liftN: 0 }; this.fx.set(i, f); } return f; }
 
     reset(G) {
         this.flights.length = 0; this.parts.length = 0; this.popups.length = 0;
@@ -246,6 +247,7 @@ export class View {
             else if (e.type === 'sprout') { this.lastKey = ''; this.doLayout(G); this.tfx(e.tube).grow = 0; }
             else if (e.type === 'undo' || e.type === 'restart') {
                 this.flights.length = 0;
+                for (const fx of this.fx.values()) { fx.lift = 0; fx.liftN = 0; }
                 if (e.type === 'restart') { this.fx.clear(); this.lastKey = ''; this.doLayout(G); }
             }
             else if (e.type === 'hint') this.hint = e.from >= 0 ? { from: e.from, to: e.to, t: 0 } : null;
@@ -257,15 +259,62 @@ export class View {
         const target = G.tubes[e.to], source = G.tubes[e.from];
         const srcLenBefore = source.s.length + e.n;
         const dstLenBefore = target.s.length - e.n;
-        const lift = this.selected === e.from;
+        const fs = this.tfx(e.from);
+        const lifted = Math.min(fs.liftN || 0, srcLenBefore);
         for (let j = 0; j < e.n; j++) {
             const kFrom = srcLenBefore - 1 - j;
             const a = this.slot(e.from, kFrom);
-            if (lift) a.y = this._liftY(e.from, srcLenBefore, kFrom);
+            // a wisp already lifted starts where it is drawn, part-way up or above the rim
+            if (kFrom >= srcLenBefore - lifted && fs.lift > 0) a.y = lerp(a.y, this._liftY(e.from, srcLenBefore, kFrom), ease(fs.lift));
             const b = this.slot(e.to, dstLenBefore + j);
-            this.flights.push({ colour: e.colour, a, b, t: -j * 0.07, dur: this.calm ? 0.22 : 0.42, to: e.to, k: dstLenBefore + j, bloomAfter: target.done && j === e.n - 1 });
+            const path = this._path(e.from, e.to, a, b);
+            const dur = this.calm ? 0.25 : Math.max(0.38, Math.min(0.75, 0.22 + path.len / (this.tw * 26)));
+            this.flights.push({ colour: e.colour, path, b, from: e.from, t: -j * 0.08, dur, to: e.to, k: dstLenBefore + j, bloomAfter: target.done && j === e.n - 1 });
         }
+        // the poured wisps leave the lifted run; any left over sink back down
+        fs.liftN = Math.max(0, lifted - e.n);
+        if (!fs.liftN) fs.lift = 0;
         this.selected = -1;
+    }
+
+    /**
+     * The way a wisp travels between two blossoms without crossing glass: straight up the middle of the source to
+     * just above its mouth, an arc over to just above the target's mouth, then straight down into its slot.
+     */
+    _path(from, to, a, b) {
+        const A = this.layout[from], B = this.layout[to];
+        const mouth = this.tw * 0.75;
+        const E = { x: a.x, y: Math.min(a.y, A.top - mouth) };      // just above the source's mouth
+        const F = { x: b.x, y: B.top - mouth };                     // just above the target's mouth
+        // travel at the higher of the two mouths, so a pour from the top row into the bottom row arcs over to the
+        // target's column first and only then comes down (behind any top-row blossom in that column)
+        const G = { x: F.x, y: Math.min(E.y, F.y) };
+        const dx = Math.abs(G.x - E.x);
+        // the arc's crest stays below the HUD: a control point at the board's top edge keeps it on the board
+        const C = { x: (E.x + G.x) / 2, y: Math.max((this.areaTop ?? 80) - this.tw * 0.4, Math.min(E.y, G.y) - this.tw * 0.9 - dx * 0.12) };
+        const line = (p, q, inside) => ({ kind: 'line', p, q, inside, len: Math.hypot(q.x - p.x, q.y - p.y) });
+        let alen = 0, prev = E;
+        for (let i = 1; i <= 16; i++) { const q = quad(E, C, G, i / 16); alen += Math.hypot(q.x - prev.x, q.y - prev.y); prev = q; }
+        const segs = [
+            line(a, E, true),                                       // up the middle of the source
+            { kind: 'arc', p: E, c: C, q: G, len: alen },           // over
+            line(G, F, false),                                      // down between rows (may pass behind blossoms)
+            line(F, b, true),                                       // down the middle of the target
+        ];
+        return { segs, len: segs.reduce((n, sg) => n + sg.len, 0) };
+    }
+
+    _along(path, u) {
+        let s = path.len * u;
+        const last = path.segs[path.segs.length - 1];
+        for (const sg of path.segs) {
+            if (s <= sg.len || sg === last) {
+                const v = sg.len ? Math.min(1, s / sg.len) : 1;
+                return sg.kind === 'arc' ? { ...quad(sg.p, sg.c, sg.q, v), inside: false } : { x: lerp(sg.p.x, sg.q.x, v), y: lerp(sg.p.y, sg.q.y, v), inside: sg.inside };
+            }
+            s -= sg.len;
+        }
+        return { x: last.q.x, y: last.q.y, inside: true };
     }
 
     _liftY(i, len, k) {
@@ -329,10 +378,12 @@ export class View {
         this.flights = this.flights.filter((f) => !f.landed);
         const inbound = new Map();
         for (const f of this.flights) inbound.set(f.to, (inbound.get(f.to) || 0) + 1);
-        // the board
+        // the board; a wisp in flight that crosses another blossom is drawn behind it
+        const flying = this.flights.filter((f) => f.t >= 0).map((f) => [f, this._flightPos(f)]);
+        for (const [f, p] of flying) if (p.behind) this._flight(f, p);
         G.tubes.forEach((t, i) => this._tube(G, t, i, dt, inbound.get(i) || 0));
         if (this.hint) this._hint(dt);
-        for (const f of this.flights) this._flight(f);
+        for (const [f, p] of flying) if (!p.behind) this._flight(f, p);
         this._parts(dt);
         this._popups(dt);
         if (this.winT >= 0) this.winT += dt;
@@ -432,14 +483,18 @@ export class View {
         ctx.beginPath(); ctx.moveTo(x0 + L.w * 0.2, L.top + L.w * 0.4); ctx.lineTo(x0 + L.w * 0.2, L.bottom - r * 0.9); ctx.stroke();
         // the wisps (minus any still flying in, minus the lifted run)
         let show = t.s.length - inbound;
-        let liftN = 0;
-        if (sel && t.s.length) liftN = Math.min(topRun(t.s), show);
+        // the lifted run slides up the middle of the glass and out over the rim (and back down when put back)
+        if (sel && t.s.length) f.liftN = Math.min(topRun(t.s), show);
+        f.lift = sel ? Math.min(1, (f.lift || 0) + dt * (this.calm ? 12 : 6)) : Math.max(0, (f.lift || 0) - dt * (this.calm ? 12 : 6));
+        if (!f.lift) f.liftN = 0;
+        const liftN = f.lift > 0 ? Math.min(f.liftN || 0, show) : 0;
+        const lu = ease(f.lift || 0);
         for (let k = 0; k < show; k++) {
             const ch = t.s[k];
             const p = this.slot(i, k);
             if (k >= show - liftN) {
-                const bob = this.calm ? 0 : Math.sin(this.time * 4 + k) * 3;
-                p.y = this._liftY(i, show, k) + bob;
+                const bob = this.calm ? 0 : Math.sin(this.time * 4 + k) * 3 * lu;
+                p.y = lerp(p.y, this._liftY(i, show, k), lu) + bob;
             }
             const pulse = t.done ? 1 + 0.05 * Math.sin(this.time * 3 + k) : 1;
             this.drawWisp(colorOf(ch), p.x, p.y, d, isHidden(ch), 1, pulse);
@@ -566,14 +621,20 @@ export class View {
         ctx.globalAlpha = 1;
     }
 
-    _flight(f) {
-        if (f.t < 0) return;
-        const u = ease(f.t / f.dur);
-        const top = Math.min(f.a.y, f.b.y) - this.tw * 1.4;
-        const x = (1 - u) * (1 - u) * f.a.x + 2 * (1 - u) * u * ((f.a.x + f.b.x) / 2) + u * u * f.b.x;
-        const y = (1 - u) * (1 - u) * f.a.y + 2 * (1 - u) * u * top + u * u * f.b.y;
-        if (!this.calm && Math.random() < 0.7) this.parts.push({ x, y, vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20, life: 0.4, t: 0, r: 1.5 + Math.random() * 1.5, colour: WISPS[f.colour].glow, kind: 'spark' });
-        this.drawWisp(f.colour, x, y, this.d);
+    /** Where a flying wisp is now, and whether it is crossing another blossom (then it passes behind it). */
+    _flightPos(f) {
+        const p = this._along(f.path, ease(f.t / f.dur));
+        const r = this.d / 2;
+        // out of the glass (the arc, or the drop down between rows) and overlapping any blossom, the source
+        // included: it passes behind it. The mouths are clear of this, so leaving and entering stay in front.
+        p.behind = !p.inside && this.layout.some((L) =>
+            Math.abs(p.x - L.cx) < L.w / 2 + r && p.y + r > L.top - L.w * 0.2 && p.y - r < L.bottom + L.w * 0.6);
+        return p;
+    }
+
+    _flight(f, p) {
+        if (!this.calm && Math.random() < 0.7) this.parts.push({ x: p.x, y: p.y, vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20, life: 0.4, t: 0, r: 1.5 + Math.random() * 1.5, colour: WISPS[f.colour].glow, kind: 'spark' });
+        this.drawWisp(f.colour, p.x, p.y, this.d, false, p.behind ? 0.75 : 1);
     }
 
     _hint(dt) {
