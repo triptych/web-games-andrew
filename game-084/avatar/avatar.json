@@ -69,5 +69,19 @@
    "romancer.v1.studio"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute retro 1980s 8-bit game console character on little legs, with a pixel smiley face on a small CRT screen, a chunky joystick arm and a cartridge slot hat"
+ }
 }

@@ -4734,7 +4734,13 @@ built but never listed; game-038 shipped without its card style).
    ONLY=GAME_FOLDER python3 dev/make-avatars.py --src that-folder   # avatar/avatar.webp (256) + avatar-tiny.webp (64)
    ONLY=GAME_FOLDER node dev/check-avatars.mjs                       # fields, placeholders, save keys, pictures
    ```
-   Nothing else is needed: the next time a player opens Pocket Garden it notices the new game and its character **calls** with a friend request (the handheld shakes), and once they play it the character texts them. Commit the `avatar/` folder with the game.
+   Then give the character its **Lounge sprite** (the little walking figure in the Pocket Garden's bar): paint a turnaround with ElevenLabs (`recraft-v4.1-flash`, one generation) using the prompt in [dev/sprite-style.json](../../dev/sprite-style.json) with the `portrait.subject` filled in (magenta background if the character has green in it; if the subject doesn't suit a full-body figure, write one as `sprite.subject` in avatar.json), save it as `GAME_FOLDER.webp` in a folder, and run:
+   ```bash
+   python3 dev/make-sprites.py --src that-folder --only GAME_FOLDER   # avatar/sprite.png (5 facings × 3 walk frames)
+   python3 dev/make-sprites.py --cast                                  # console/lounge-cast.json
+   ONLY=GAME_FOLDER node dev/check-avatars.mjs                          # checks the sprite too
+   ```
+   Nothing else is needed: the next time a player opens Pocket Garden it notices the new game and its character **calls** with a friend request (the handheld shakes), once they play it the character texts them, and they start dropping by the Lounge. Commit the `avatar/` folder (and `console/lounge-cast.json`) with the game.
 
 ---
 

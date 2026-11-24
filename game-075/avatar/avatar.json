@@ -64,5 +64,19 @@
    "chromechalice.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute glowing yellow neon square character with little legs, simple big eyes and a happy smile, holding a tiny chrome chalice, synthwave glow"
+ }
 }

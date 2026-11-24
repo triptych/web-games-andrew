@@ -67,5 +67,19 @@
    "rttc.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute round watermelon knight character with green striped skin and little legs, a tiny steel helmet with a red plume, holding a butter knife like a sword, big brave eyes"
+ }
 }

@@ -108,5 +108,18 @@
  "art": "fal",
  "updates": {
   "2.0.0": "Big news: our story is painted now, every word of it is spoken, and the knight's sword actually works when you equip it! v2.0.0 ▶"
+ },
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3
  }
 }

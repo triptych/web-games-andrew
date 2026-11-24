@@ -111,6 +111,7 @@
             <nav class="menu" id="title-menu">
                 <button data-act="continue" id="btn-continue" class="btn primary" hidden>Continue</button>
                 <button data-act="new" class="btn primary">New Game</button>
+                <button data-act="cloud" class="btn" id="btn-cloud">☁️ Cloud Save</button>
                 <button data-act="howto" class="btn">How to Play</button>
                 <button data-act="settings" class="btn">Settings</button>
             </nav>
@@ -199,6 +200,16 @@
         </div>
     </div>
 
+    <!-- cloud saves (Supabase): sign in by an emailed link, save and load online -->
+    <div id="cloud" class="screen" hidden>
+        <div class="sheet">
+            <div class="sheet-head"><h2>☁️ Cloud Save</h2><button class="ibtn x" data-close aria-label="Close">✕</button></div>
+            <div id="cloud-body"></div>
+            <p id="cloud-msg" class="note" aria-live="polite"></p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
     <div id="pause" class="screen" hidden>
         <div class="sheet">
             <div class="sheet-head"><h2>Menu</h2><button class="ibtn x" data-close aria-label="Close">✕</button></div>
@@ -206,6 +217,7 @@
                 <button data-act="resume" class="btn primary">Back to the inn</button>
                 <button data-act="quests" class="btn">📜 Story &amp; dailies</button>
                 <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="cloud" class="btn">☁️ Cloud Save</button>
                 <button data-act="settings" class="btn">Settings</button>
                 <button data-act="quit" class="btn">Save &amp; Quit to Title</button>
             </nav>

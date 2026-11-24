@@ -67,5 +67,19 @@
    "bumble-basket.save.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a super cute round fuzzy bumblebee standing on two little legs, with tiny shiny wings, big friendly eyes, a little straw hat and a small woven basket of fruit"
+ }
 }

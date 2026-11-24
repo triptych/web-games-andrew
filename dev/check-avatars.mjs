@@ -8,7 +8,10 @@
  * knows, the update line names {version}, and each save key really appears in
  * the game's own code (a key that doesn't is a character that can never read
  * your save). Then that avatar.webp (256) and avatar-tiny.webp (64) exist, and
- * how many are still the icon stand-in rather than a fal painting.
+ * how many are still the icon stand-in rather than a fal painting. And each
+ * game's Lounge sprite: avatar/sprite.png is a 96×200 sheet (5 facings by 3
+ * walk frames, dev/make-sprites.py), avatar.json says so, and the character is
+ * in console/lounge-cast.json.
  *
  *   node dev/check-avatars.mjs            # exits 1 on any error
  *   ONLY=game-001,garden node dev/check-avatars.mjs
@@ -28,6 +31,13 @@ const LISTS = { hello: 1, tips: 2, chat: 3, nudge: 1, idle: 1, bye: 1 };
 let errors = 0;
 let warnings = 0;
 let painted = 0;
+let sprites = 0;
+const cast = JSON.parse(fs.readFileSync(path.join(ROOT, 'console/lounge-cast.json'), 'utf8'));
+/** A PNG's width and height, from its header. */
+function pngSize(file) {
+    const b = fs.readFileSync(file);
+    return b.toString('ascii', 1, 4) === 'PNG' ? [b.readUInt32BE(16), b.readUInt32BE(20)] : null;
+}
 let checked = 0;
 const err = (id, msg) => (errors++, console.log(`  ✗ ${id}: ${msg}`));
 const warn = (id, msg) => (warnings++, console.log(`  ! ${id}: ${msg}`));
@@ -105,7 +115,18 @@ for (const { id, dir } of targets) {
         if (!fs.existsSync(p) || fs.statSync(p).size < 200) err(id, `missing avatar/${pic} (python3 dev/make-avatars.py)`);
     }
     if (a.art === 'fal') painted++;
+    if (id !== 'garden') {
+        const sp = path.join(dir, 'avatar', 'sprite.png');
+        if (!fs.existsSync(sp)) err(id, 'missing avatar/sprite.png, its Lounge sprite (python3 dev/make-sprites.py)');
+        else {
+            const wh = pngSize(sp);
+            if (!wh || wh[0] !== 96 || wh[1] !== 200) err(id, `avatar/sprite.png is ${wh ? wh.join('×') : 'not a PNG'}, not 96×200`);
+            else sprites++;
+            if (a.sprite?.w !== 32 || a.sprite?.h !== 40 || a.sprite?.frames !== 3) err(id, 'avatar.json has no "sprite" entry (dev/make-sprites.py writes it)');
+            if (!cast[id]) err(id, 'not in console/lounge-cast.json (python3 dev/make-sprites.py --cast)');
+        }
+    }
 }
 
-console.log(`\n${checked} characters checked: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}; ${painted} painted with fal, ${checked - painted} still on their icon (python3 dev/make-avatars.py --pending).`);
+console.log(`\n${checked} characters checked: ${errors} error${errors === 1 ? '' : 's'}, ${warnings} warning${warnings === 1 ? '' : 's'}; ${painted} painted with fal, ${checked - painted} still on their icon (python3 dev/make-avatars.py --pending); ${sprites} Lounge sprites.`);
 process.exitCode = errors ? 1 : 0;

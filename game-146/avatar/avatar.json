@@ -97,5 +97,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cheerful young Christmas elf girl with freckles, rosy cheeks, two copper-red braids, pointed ears, a red-and-white striped scarf and a floppy green pointed hat with a little gold jingle bell, holding a shiny red Christmas ornament"
+ }
 }

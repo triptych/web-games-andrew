@@ -67,5 +67,19 @@
    "solder-and-rain.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute small round repair robot on little legs with a single big lens eye, a little umbrella antenna and a soldering iron arm"
+ }
 }

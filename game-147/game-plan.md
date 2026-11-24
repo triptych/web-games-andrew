@@ -520,6 +520,11 @@ clip (`dev/rigshot.mjs` covers single models).
 
 ## Changelog
 
+### v1.2.0 (2026-11-24)
+
+- Added: cloud saves with Supabase: sign in by an emailed link, save and load online, automatic cloud saves while signed
+  in ([dev/supabase/README.md](dev/supabase/README.md)).
+
 ### v1.1.1 (2026-11-24)
 
 - Fixed: the last dust bunny in a room came straight back (any dust at all was a bunny); bunnies now appear past a

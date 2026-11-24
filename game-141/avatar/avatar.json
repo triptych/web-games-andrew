@@ -74,5 +74,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute fussy brass clockwork owl standing upright, with round spectacles, little gear joints, a tiny notebook under one wing and a disapproving but sweet look"
+ }
 }

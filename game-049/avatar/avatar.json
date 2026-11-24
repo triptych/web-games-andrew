@@ -76,5 +76,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute tiny flame sprite with big round eyes and a little smile, with little arms and feet, carrying an old brass lantern, warm golden glow on its cheeks"
+ }
 }
