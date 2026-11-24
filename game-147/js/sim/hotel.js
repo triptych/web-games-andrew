@@ -195,10 +195,29 @@ export function cookCancel(G) {
     return true;
 }
 
+/**
+ * The stranger (if any) still waiting for this recipe: someone staying at the inn whose favour asks for it and who
+ * hasn't been served it yet.
+ */
+export function mealWantedBy(G, r) {
+    return Object.keys(G.recruits).find((h) => G.recruits[h].stage === 'staying' && !G.recruits[h].meal && RECRUITS[h].meal === r) || null;
+}
+/** The pantry's last dish of a recipe a waiting stranger needs: it can't be sold or eaten on an adventure. */
+export function mealReserved(G, idx) {
+    const m = G.pantry[idx];
+    if (!m) return null;
+    const who = mealWantedBy(G, m.r);
+    return who && G.pantry.filter((x) => x.r === m.r).length === 1 ? who : null;
+}
+
 export function serve(G, idx, gid) {
     const m = G.pantry[idx], g = G.guests[gid];
     if (!m || !g || !g.room) { G.events.push({ type: 'nope', text: 'Serve meals to guests in their rooms.' }); return false; }
-    if (g.served === G.day) { G.events.push({ type: 'nope', text: `${g.name} has already eaten today.` }); return false; }
+    // a stranger only wants their own dish (and always has room for it); anything else stays in the pantry. v1.1.0 fed
+    // them whatever was served, which used up their one meal a day and kept their dish waiting till tomorrow
+    const own = g.recruit && (RECRUITS[g.recruit].meal === m.r || HEROES[g.recruit].fav === m.r);
+    if (g.recruit && !own && !G.recruits[g.recruit].meal) { G.events.push({ type: 'nope', text: `${HEROES[g.recruit].short} only wants ${RECIPES[RECRUITS[g.recruit].meal].name}.` }); return false; }
+    if (g.served === G.day && !own) { G.events.push({ type: 'nope', text: `${g.name} has already eaten today.` }); return false; }
     const R = RECIPES[m.r];
     G.pantry.splice(idx, 1);
     g.served = G.day;
@@ -364,6 +383,8 @@ export function sell(G, item) {
 export function sellMeal(G, idx) {
     const m = G.pantry[idx];
     if (!m) return false;
+    const keep = mealReserved(G, idx);
+    if (keep) { G.events.push({ type: 'nope', text: `Keep it: ${HEROES[keep].short} is waiting for this ${RECIPES[m.r].name}.` }); return false; }
     G.pantry.splice(idx, 1);
     const g = Math.round(RECIPES[m.r].price * m.q * 0.5);
     G.gold += g;

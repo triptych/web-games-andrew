@@ -57,6 +57,8 @@ export const freshLinens = (G) => H.openRooms(G).every((r) => H.bunnies(r) <= 1)
 function depart(G, region, mealIdx) {
     if (G.mode !== 'hotel' || !REGIONS[region] || !H.regionUnlocked(G, region)) return false;
     const meal = mealIdx != null && mealIdx >= 0 ? G.pantry[mealIdx] : null;
+    const keep = meal && H.mealReserved(G, mealIdx);
+    if (keep) { G.events.push({ type: 'nope', text: `Keep it: ${HEROES[keep].short} is waiting for this ${RECIPES[meal.r].name}.` }); return false; }
     if (meal) G.pantry.splice(mealIdx, 1);
     for (const id of G.party) { G.heroes[id].hp = null; G.heroes[id].mp = null; }
     G.exp = { region, wins: 0, buffs: expeditionBuffs(G, meal), meal: meal?.r || null, mealQ: meal?.q || 0, linens: freshLinens(G), chain: 0 };

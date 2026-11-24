@@ -119,7 +119,9 @@ export function botCmd(G, bot) {
         const region = (bossReg && H.regionUnlocked(G, bossReg) && lv >= REGIONS[bossReg].bossLv - 2 ? bossReg : null) || taskReg
             || REGION_ORDER.filter((r) => H.regionUnlocked(G, r) && lv >= REGIONS[r].lv[0] - 1).pop() || 'meadow';
         bot.lastTrip = G.day; bot.trips++;
-        const meal = G.pantry.length ? G.pantry.reduce((bi, m, i, a) => (RECIPES[m.r].price * m.q > RECIPES[a[bi].r].price * a[bi].q ? i : bi), 0) : -1;
+        // the dearest dish that isn't being kept for a stranger
+        let meal = -1;
+        G.pantry.forEach((m, i) => { if (!H.mealReserved(G, i) && (meal < 0 || RECIPES[m.r].price * m.q > RECIPES[G.pantry[meal].r].price * G.pantry[meal].q)) meal = i; });
         return { t: 'depart', region, meal };
     }
     return null;

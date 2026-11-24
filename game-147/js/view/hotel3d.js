@@ -112,6 +112,15 @@ function boxGeo(w, h, d, T) {
     return g;
 }
 
+// standing spots in each guest room, in the open front half (the bed, nightstand and wardrobe are at the back)
+function roomSpots(id) {
+    const R = LAYOUT[id], y = R.lv * FLOOR_H;
+    if (id === 'r5') return [[-1.6, 0.6], [0.2, 0.5], [1.7, 0.9], [-0.7, 1.55], [0.9, 1.65], [-2.6, 1.45]].map(([x, z]) => V(x, y, z));
+    return [[0.8, 0.55], [2.4, 0.45], [1.6, 1.35], [3.0, 1.4], [0.7, 1.75]].map(([dx, z]) => V(R.x0 + dx, y, z));
+}
+// where heroes in the party rest in the lobby: the left side, clear of the queue at the desk and the armchair
+const LOBBY_HOME = [V(-6.35, 0, 1.75), V(-5.55, 0, 1.8), V(-4.75, 0, 1.75), V(-5.15, 0, 1.0)];
+
 export const roomCenter = (id) => {
     const R = LAYOUT[id];
     return V((R.x0 + R.x1) / 2, R.lv * FLOOR_H, 0.6);
@@ -137,6 +146,7 @@ export class Hotel3D {
         this.camMoving = false;
         this.time = 0;
         this.batches = {};
+        this.spots = {};           // roomId → [{ p: Vector3, key }]: who stands where in each guest room
         materials();
         this.build();
     }
@@ -483,6 +493,7 @@ export class Hotel3D {
 
     removeActor(key) {
         const r = this.actors[key];
+        this.releaseSpot(key);
         if (!r) return;
         this.scene.remove(r.actor.root);
         delete this.actors[key];
@@ -513,10 +524,26 @@ export class Hotel3D {
         r.actor.setBase('walk');
     }
 
-    _spotIn(roomId, i = 0) {
-        const R = LAYOUT[roomId];
-        const x = R.x0 + 0.9 + ((i * 0.9) % Math.max(0.5, R.x1 - R.x0 - 1.6));
-        return V(x + 0.6, R.lv * FLOOR_H, 0.3 + (i % 2) * 0.6);
+    /**
+     * A standing spot in a guest room for `key`, kept until released: each room has a few fixed spots clear of the bed,
+     * nightstand and wardrobe and at least 0.8 apart, and nobody takes a spot someone else holds. (v1.1.0 picked spots
+     * by a formula that wrapped round in the narrow rooms, so a stranger and Maple stood inside each other.)
+     */
+    spotFor(roomId, key) {
+        this.claimed?.add(key);
+        const list = this.spots[roomId] ||= roomSpots(roomId).map((p) => ({ p, key: null }));
+        let s = list.find((x) => x.key === key);
+        if (s) return s.p.clone();
+        this.releaseSpot(key);
+        // the first free one, preferring the middle of the room; if every spot is taken, a little apart from the last
+        s = list.find((x) => !x.key);
+        if (!s) return list[list.length - 1].p.clone().add(V(0.4, 0, 0.35));
+        s.key = key;
+        return s.p.clone();
+    }
+
+    releaseSpot(key) {
+        for (const list of Object.values(this.spots)) for (const x of list) if (x.key === key) x.key = null;
     }
 
     // ------------------------------------------------------------------ the camera
@@ -588,6 +615,8 @@ export class Hotel3D {
         }
         // staff at their stations, party at home in the lobby, recruits in their rooms
         const away = new Set(G.exp ? G.party : []);
+        this.claimed = new Set(['maple']);         // who stands in a room this frame (Maple keeps hers until she moves)
+        let home = 0;
         const stations = { cook: V(0.5, 0, -0.6), concierge: V(-2.9, 0, -0.5), gardener: V(6.6, 0, -0.1), housekeeper: null };
         for (const id of Object.keys(HEROES)) {
             const h = G.heroes[id], key = 'hero-' + id;
@@ -598,11 +627,11 @@ export class Hotel3D {
                 if (h.role !== 'party' && stations[role]) want = stations[role];
                 else if (role === 'housekeeper' && h.role !== 'party') {
                     const dirty = G.rooms.filter((r) => r.open).sort((a, b) => b.dust - a.dust)[0];
-                    want = this._spotIn(dirty?.id || 'r1', 2);
-                } else want = V(-5.8 + Object.keys(HEROES).indexOf(id) * 0.55, 0, 1.75);
+                    want = this.spotFor(dirty?.id || 'r1', key);
+                } else want = LOBBY_HOME[home++ % LOBBY_HOME.length].clone();
             } else if (!h.joined && G.recruits[id]?.stage !== 'none') {
                 const g = Object.values(G.guests).find((x) => x.recruit === id);
-                if (g?.room) want = this._spotIn(g.room, 1);
+                if (g?.room) want = this.spotFor(g.room, key);
                 else if (g) want = V(-2.2 - G.queue.indexOf(g.id) * 0.8, 0, 1.6);
             }
             this._place(key, id, want, 1.45);
@@ -616,9 +645,11 @@ export class Hotel3D {
             if (g.recruit) continue;
             const key = 'guest-' + g.id;
             seen.add(key);
-            const want = g.room ? this._spotIn(g.room, 0) : V(-2.0 - G.queue.indexOf(g.id) * 0.8, 0, 1.6);
+            const want = g.room ? this.spotFor(g.room, key) : V(-2.0 - G.queue.indexOf(g.id) * 0.8, 0, 1.6);
             this._place(key, GUESTS[g.arch].model, want, 1.5, ENTER);
         }
+        // spots held by anyone no longer standing in a room go back to the room
+        for (const list of Object.values(this.spots)) for (const x of list) if (x.key && !this.claimed.has(x.key)) x.key = null;
         for (const key of Object.keys(this.actors)) if (key.startsWith('guest-') && !seen.has(key)) {
             const r = this.actors[key];
             if (!r.leaving) { r.leaving = true; this.walkTo(key, ENTER.clone()); }
@@ -731,7 +762,7 @@ export class Hotel3D {
 
     mapleTo(roomId) {
         if (!LAYOUT[roomId]) return;
-        this.walkTo('maple', this._spotIn(roomId, 3));
+        this.walkTo('maple', this.spotFor(roomId, 'maple'));
     }
 
     // ------------------------------------------------------------------ input

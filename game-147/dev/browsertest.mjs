@@ -237,6 +237,12 @@ async function desktop() {
     await until(page, () => __iomh.G.battle.phase === 'command' && !__iomh.busy(), 'Maple\'s turn comes', 90000);
     await until(page, () => { const m = __iomh.view.battle.units.maple?.actor; return m?.model && m.has('attack') && m.has('battleIdle'); }, 'in battle Maple has her attack and combat-idle clips');
     check(await Q(page, () => document.querySelectorAll('#timeline .t').length === 8), 'the timeline shows 8 turns');
+    // v1.1.1: battle speed 1× 2× 3× in the HUD (and X), kept in the settings
+    const s3 = await center(page, '#speed-seg [data-speed="3"]');
+    await page.mouse.click(s3.x, s3.y);
+    check(await Q(page, () => __iomh.ui.settings.speed === 3 && document.querySelector('#speed-seg [data-speed="3"]').classList.contains('on') && document.getElementById('set-speed').value === '3'), 'the 3× button sets battle speed 3× (and the setting)');
+    await page.keyboard.press('KeyX');
+    check(await Q(page, () => __iomh.ui.settings.speed === 1 && document.querySelector('#speed-seg [data-speed="1"]').classList.contains('on')), 'X cycles it round to 1×');
     const acts0 = await Q(page, () => __iomh.seen.act || 0);
     await page.keyboard.press('KeyA');
     await until(page, () => !!__iomh.ui.pending, 'A picks Attack and asks for a target');

@@ -530,6 +530,10 @@ clip (`dev/rigshot.mjs` covers single models).
 - Fixed: Ember's favour could get stuck (her stew skipped on a full pantry, or sold or eaten); she now cooks it again
   whenever she's still waiting for it, and the tracker says where it is.
 - Added: a picture notice for every dish cooked (stars, stir grade, who wants it).
+- Added: battle speed 1×, 2×, 3× in the battle HUD (X cycles it).
+- Fixed: a stranger's dish could be sold, eaten on an adventure, or blocked by serving them something else; the last one
+  is now kept, and strangers only accept their own dish (any time).
+- Fixed: characters overlapped in guest rooms; rooms have claimable standing spots.
 
 ### v1.1.0 (2026-11-24)
 

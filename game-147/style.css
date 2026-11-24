@@ -202,6 +202,12 @@ option { font-family: var(--font); font-weight: 600; color: var(--ink); backgrou
 .cmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .cmd-hint { background: rgba(74, 51, 64, 0.85); color: #fff; border-radius: 12px; padding: 6px 10px; font-size: 13px; font-weight: 700; }
 #auto-box { position: absolute; right: calc(8px + var(--safe-r)); top: calc(50px + var(--safe-t)); display: flex; flex-direction: column; gap: 4px; pointer-events: auto; }
+/* battle speed: 1× 2× 3× */
+#speed-seg { display: flex; border: 2px solid var(--wood-d); border-radius: 12px; overflow: hidden; background: var(--paper); box-shadow: 0 3px 0 var(--wood-d); align-self: stretch; }
+#speed-seg button { flex: 1; min-height: 36px; min-width: 40px; border: 0; background: none; font: 700 15px var(--display); color: var(--ink); cursor: pointer; }
+#speed-seg button + button { border-left: 2px solid var(--wood-d); }
+#speed-seg button.on { background: linear-gradient(#ffe08a, #ffc94d); color: #6b3d00; }
+#speed-seg button:focus-visible { outline: 3px solid var(--berry); outline-offset: -3px; }
 .tbtn2 { padding: 4px 12px; font-size: 14px; }
 .tbtn2.on { background: linear-gradient(#a8f0c6, var(--mint)); }
 #sel-preset { min-height: 44px; border-radius: 12px; border: 2px solid var(--wood-d); font: inherit; font-weight: 700; background: var(--paper); }

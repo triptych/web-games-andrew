@@ -89,6 +89,9 @@
         <div id="party-cards"></div>
         <div id="commands"></div>
         <div id="auto-box">
+            <div id="speed-seg" role="group" aria-label="Battle speed (X)">
+                <button data-speed="1" aria-label="Normal speed">1×</button><button data-speed="2" aria-label="Double speed">2×</button><button data-speed="3" aria-label="Triple speed">3×</button>
+            </div>
             <button id="btn-auto" class="tbtn2">Auto: Off</button>
             <select id="sel-preset" aria-label="Auto-battle style">
                 <option value="balanced">⚖️ Balanced</option>
@@ -174,6 +177,7 @@
                     <tr><td>A · S · C · I · D · F</td><td>Battle: Attack, Skills, Chain, Items, Defend, Flee</td></tr>
                     <tr><td>← → ↑ ↓</td><td>Move through menus and targets</td></tr>
                     <tr><td>T</td><td>Battle: toggle Auto</td></tr>
+                    <tr><td>X</td><td>Battle: speed 1× → 2× → 3×</td></tr>
                     <tr><td>Esc</td><td>Close / menu</td></tr>
                 </table>
             </div>
@@ -188,7 +192,7 @@
             <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
             <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
             <label class="row">Battle speed
-                <select id="set-speed"><option value="1">Normal</option><option value="1.5">Brisk</option><option value="2">Quick</option></select>
+                <select id="set-speed"><option value="1">1× Normal</option><option value="2">2× Fast</option><option value="3">3× Fastest</option></select>
             </label>
             <button id="set-delete" class="btn danger">Delete saved game</button>
             <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>

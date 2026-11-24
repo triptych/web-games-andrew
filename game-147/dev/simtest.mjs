@@ -283,6 +283,19 @@ if (want('recruits')) {
         run(G2, 1);
         ok(G2.pantry.filter((m) => m.r === 'emberStew').length === 1, 'but only ever one at a time');
     }
+    // v1.1.1: her stew is kept for her, and she only eats it
+    {
+        const G2 = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));
+        const si = G2.pantry.findIndex((m) => m.r === 'emberStew');
+        ok(!Gm.act(G2, { t: 'sellMeal', meal: si }) && G2.pantry.some((m) => m.r === 'emberStew'), 'the stew she is waiting for can\'t be sold');
+        ok(!Gm.act(G2, { t: 'depart', region: 'meadow', meal: si }) && G2.mode === 'hotel', 'nor eaten on an adventure');
+        G2.pantry.push({ r: 'emberStew', q: 1 });
+        ok(Gm.act(G2, { t: 'sellMeal', meal: G2.pantry.length - 1 }), 'but a spare one can');
+        G2.pantry.push({ r: 'honeyTart', q: 1 });
+        ok(!Gm.act(G2, { t: 'serve', meal: G2.pantry.length - 1, guest: eid }) && G2.pantry.some((m) => m.r === 'honeyTart'), 'another dish served to her is refused and stays in the pantry');
+        G2.guests[eid].served = G2.day;
+        ok(Gm.act(G2, { t: 'serve', meal: G2.pantry.findIndex((m) => m.r === 'emberStew'), guest: eid }) && G2.recruits.ember.stage === 'ready', 'her own dish is always welcome, even after a meal today');
+    }
     const idx = G.pantry.findIndex((m) => m.r === 'emberStew');
     Gm.act(G, { t: 'serve', meal: idx, guest: eid });
     ok(G.recruits.ember.stage === 'ready', 'serving her stew: she is ready to join');

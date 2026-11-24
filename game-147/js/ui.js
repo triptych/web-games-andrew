@@ -130,8 +130,16 @@ export class UI {
 
         const sfx = $('set-sfx'), music = $('set-music'), voice = $('set-voice'), speed = $('set-speed');
         sfx.value = settings.sfx; music.value = settings.music; voice.value = settings.voice; speed.value = settings.speed;
-        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value }); onSettings(settings); };
+        // a save from before v1.1.1 may hold 1.5 (Brisk): round it to the nearest of 1×, 2×, 3×
+        settings.speed = Math.max(1, Math.min(3, Math.round(settings.speed || 1)));
+        speed.value = settings.speed;
+        const changed = () => { Object.assign(settings, { sfx: +sfx.value, music: +music.value, voice: +voice.value, speed: +speed.value }); onSettings(settings); this.showSpeed(); };
         for (const el of [sfx, music, voice, speed]) el.addEventListener('change', changed);
+        // battle speed, right in the battle HUD (1×, 2×, 3×; X cycles), kept in the settings
+        this.settings = settings;
+        this.setSpeed = (n) => { settings.speed = n; speed.value = n; onSettings(settings); this.showSpeed(); };
+        $('speed-seg').addEventListener('click', (e) => { const b = e.target.closest('[data-speed]'); if (b) { audio.ui('click'); this.setSpeed(+b.dataset.speed); } });
+        this.showSpeed();
         $('set-delete').addEventListener('click', () => { onDeleteSave(); this.toast('Saved game deleted.'); });
         $('dlg-next').addEventListener('click', () => this.dlgNext());
         // battle HUD
@@ -168,6 +176,10 @@ export class UI {
         if (!list.length) return;
         const i = list.indexOf(document.activeElement);
         list[(i + dir + list.length) % list.length].focus();
+    }
+
+    showSpeed() {
+        for (const b of $('speed-seg').children) { const on = +b.dataset.speed === this.settings.speed; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }
     }
 
     /** A notice above the dock. With an item icon and a second line it is a bigger card that stays up longer. */
@@ -453,10 +465,16 @@ export class UI {
             if (!G.pantry.length) h += '<p class="note">Nothing cooked yet.</p>';
             const guests = Object.values(G.guests).filter((g) => g.room);
             h += '<div class="grid">' + G.pantry.map((m, i) => {
-                const opts = guests.map((g) => `<option value="${g.id}" ${g.served === G.day ? 'disabled' : ''}>${esc(g.name)}${(g.recruit ? RECRUITS[g.recruit].meal === m.r : g.reqMeal === m.r) ? ' ★ wants this' : ''}${g.served === G.day ? ' (ate today)' : ''}</option>`).join('');
+                // a stranger only takes their own dish (any day); others eat once a day
+                const opts = guests.map((g) => {
+                    const own = g.recruit && RECRUITS[g.recruit].meal === m.r, picky = g.recruit && !own && !G.recruits[g.recruit].meal;
+                    const off = picky || (g.served === G.day && !own);
+                    return `<option value="${g.id}" ${off ? 'disabled' : ''}>${esc(g.name)}${(g.recruit ? own : g.reqMeal === m.r) ? ' ★ wants this' : ''}${picky ? ` (only wants ${esc(RECIPES[RECRUITS[g.recruit].meal].name)})` : off ? ' (ate today)' : ''}</option>`;
+                }).join('');
+                const keep = H.mealReserved(G, i);
                 return `<div class="card"><div class="top">${icon(m.r)}<div><div class="nm">${esc(RECIPES[m.r].name)}</div><div class="sub">${stars(H.mealStars(m.q))} · quality ${m.q.toFixed(2)}</div></div></div>
                     <select data-cmdsel='{"t":"serve","meal":${i}}' data-key="guest" style="min-height:44px"><option value="">Serve to…</option>${opts}</select>
-                    <button class="btn small" data-cmd='{"t":"sellMeal","meal":${i}}'>Sell to the village · ${Math.round(RECIPES[m.r].price * m.q * 0.5)} G</button></div>`;
+                    ${keep ? `<button class="btn small" disabled>Saved for ${esc(HEROES[keep].short)}</button>` : `<button class="btn small" data-cmd='{"t":"sellMeal","meal":${i}}'>Sell to the village · ${Math.round(RECIPES[m.r].price * m.q * 0.5)} G</button>`}</div>`;
             }).join('') + '</div><p class="note">Or eat one before an adventure for its party buff (Adventure panel).</p>';
         } else {
             h += '<div class="grid">' + Object.entries(CRAFTS).map(([it, need]) => `<div class="card"><div class="top">${icon(it)}<div><div class="nm">${esc(ITEMS[it].name)} ×${G.inv[it] || 0}</div><div class="sub">${esc(ITEMS[it].desc)}</div></div></div><div>${Object.entries(need).map(([k, n]) => `<span class="pill ${has(G, k, n) ? '' : 'warn'}">${esc(ITEMS[k].name)} ${G.inv[k] || 0}/${n}</span>`).join(' ')}</div>${whereNeeded(G, need)}<button class="btn small" ${H.hasAll(G, need) ? '' : 'disabled'} data-cmd='{"t":"craft","item":"${it}"}'>Craft</button></div>`).join('') + '</div>';
@@ -567,8 +585,8 @@ export class UI {
             h += `<button class="card opt ${r === tab ? 'on' : ''}" ${un ? '' : 'disabled'} data-region="${r}" style="text-align:left"><div class="nm">${esc(R.name)} · Lv ${R.lv[0]}–${R.lv[1]}</div><div class="sub">${un ? esc(R.blurb) : `🔒 Opens with installment ${R.unlock}`}</div>${un ? `<div class="sub">Weak to: ${wk} · Boss: ${G.bossesBeaten.includes(R.boss) ? '✅' : bossOpen(G, r) ? '⚔️ ' : '🔒 '}${esc(MONSTERS[R.boss].name)}</div>` : ''}</button>`;
         }
         h += '</div><h3>Eat before you go</h3>';
-        const opts = G.pantry.map((m, i) => `<option value="${i}" ${this.expMeal === i ? 'selected' : ''}>${esc(RECIPES[m.r].name)} ${stars(H.mealStars(m.q))}: ${esc(RECIPES[m.r].buffText)}</option>`).join('');
-        if (this.expMeal != null && !G.pantry[this.expMeal]) this.expMeal = null;
+        const opts = G.pantry.map((m, i) => { const keep = H.mealReserved(G, i); return `<option value="${i}" ${keep ? 'disabled' : this.expMeal === i ? 'selected' : ''}>${esc(RECIPES[m.r].name)} ${stars(H.mealStars(m.q))}: ${keep ? `saved for ${esc(HEROES[keep].short)}` : esc(RECIPES[m.r].buffText)}</option>`; }).join('');
+        if (this.expMeal != null && (!G.pantry[this.expMeal] || H.mealReserved(G, this.expMeal))) this.expMeal = null;
         h += G.pantry.length ? `<select id="exp-meal" style="min-height:44px;width:100%"><option value="">No meal</option>${opts}</select>` : '<p class="note">The pantry is empty. Cook something in the kitchen for a party buff.</p>';
         const b = expeditionBuffs(G, this.expMeal != null ? G.pantry[this.expMeal] : null);
         h += `<p class="note">${freshLinens(G) ? '🛏️ Fresh Linens: +10% Speed & Evasion. ' : '🛏️ No Fresh Linens (rooms too dusty). '}${Object.keys(b).length ? 'Buffs: ' + Object.entries(b).map(([k, v]) => `${k} ${v < 1 && v > 0 ? '+' + Math.round(v * 100) + '%' : '+' + v}`).join(', ') : ''}</p>`;
@@ -754,6 +772,7 @@ export class UI {
     battleKey(key) {
         const map = { KeyA: 'attack', KeyS: 'skills', KeyC: 'chainmenu', KeyI: 'items', KeyD: 'defend', KeyF: 'flee' };
         if (key === 'KeyT') { this.onAct({ t: 'auto', on: !this.G.battle.auto, preset: $('sel-preset').value }); return true; }
+        if (key === 'KeyX') { this.setSpeed((this.settings.speed % 3) + 1); this.toast(`Battle speed ${this.settings.speed}×`); return true; }
         if (this.pending && (key === 'ArrowLeft' || key === 'ArrowUp')) return this.cycleTarget(-1);
         if (this.pending && (key === 'ArrowRight' || key === 'ArrowDown')) return this.cycleTarget(1);
         if (this.pending && (key === 'Enter' || key === 'Space')) { this.send({ ...this.pending, target: this.target }); return true; }
