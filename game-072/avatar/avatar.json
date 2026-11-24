@@ -63,5 +63,19 @@
    "frosty-fling-v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a super cute round snowman with little twig arms, a carrot nose, a red knitted scarf, a little top hat and coal button eyes full of excitement"
+ }
 }

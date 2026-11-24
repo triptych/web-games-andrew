@@ -98,5 +98,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a friendly late-night radio DJ man in his forties with dark brown skin, big chunky headphones around his neck, a warm hopeful smile, a corduroy jacket, holding a vintage studio microphone"
+ }
 }

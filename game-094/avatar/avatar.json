@@ -64,5 +64,19 @@
    "the-long-helix.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute retro computer terminal character on little legs, with a glowing amber monochrome screen showing a simple smiling face, chunky keyboard body"
+ }
 }

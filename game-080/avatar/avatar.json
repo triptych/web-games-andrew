@@ -74,5 +74,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute little fire sprite with a round flame body, little arms and feet, rosy glowing cheeks and a happy face, carrying a small book"
+ }
 }

@@ -71,5 +71,19 @@
    "starsling.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute round grey rock asteroid character with craters, little arms and feet, big determined eyes and a tiny scarf"
+ }
 }

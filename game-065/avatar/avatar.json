@@ -72,5 +72,19 @@
    "worldroot-save"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute glowing forest seedling spirit child with a little sprout growing on its head, leafy hair and soft green glowing skin"
+ }
 }
