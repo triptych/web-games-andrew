@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Hurray LA's Fairy Lamp Adventure** (game-149) v1.0.0 scaffold: a cozy memory game about antique pressed-glass fairy lamps, in vanilla JavaScript and Canvas 2D on the sim/view layout. Turn over two tiles at a time and match each glass shade to its own base; a finished lamp lights up.
+  - **Design** ([game-plan.md](game-149/game-plan.md)): flipping, matching and star rules, boards growing from 4 to 8 lamps.
+  - **Lamps** ([js/sim/data/lamps.js](game-149/js/sim/data/lamps.js)): eight lamps painted from a real collection (cobalt and amber hobnail, clear diamond point, green starburst, amber star crown, blue moon and star, pink blossom, amethyst diamond), each with an `art` description the painted sprites are made from.
+  - **Tests**: the scaffold's `dev/simtest.mjs` and `dev/browsertest.mjs` (desktop, touch-only phones, blocked storage).
+  - Launcher entry in [js/gamedata.js](js/gamedata.js) and its card style in [css/styles.css](css/styles.css).
+
 ### Fixed
 - **Glimmerglade** (game-148) v1.0.1: the glowing wisps flew straight through the glass walls of the bell-flowers when poured, and jumped above the rim when lifted, which broke the look of glass blossoms. A pour was a single curve from one slot to the other. Now a lifted run slides up the middle of its blossom, and a pour rises out of the mouth, arcs over at the height of the higher mouth, comes down above the target and drops down its middle; wherever it crosses a blossom outside the glass (a top-row-to-bottom-row pour on a phone) it is drawn behind it ([view.js](game-148/js/view/view.js) `_path`, `_flightPos`). `dev/browsertest.mjs` now samples every possible pour's path on desktop and both phone layouts and fails if one leaves the glass or runs in front of another blossom (the old curve fails it 376 ways).
 - **Inn Over My Head** (game-147) v1.1.1: the last dust bunny in a room never went away. A sweep did clear the room's dust, but any dust at all counted as a bunny, and an occupied room gathers some on the very next tick, so the last one came straight back. A bunny now appears only once a room has gathered a little dust (about 15 s occupied, a minute empty), and shooing the last one takes the leftover dust with it. The sim test checks both, and the bot sweeps every bunny while Bru's 4★ Sparkle favour is open.

@@ -1334,7 +1334,7 @@ const NONE = { x: 0, y: 0, a: false };
 
 if (want('purity')) {
     section('purity');
-    const files = ['js/rng.js', 'js/config.js', ...fs.readdirSync(path.join(ROOT, 'js/sim')).map((f) => 'js/sim/' + f)];
+    const files = ['js/rng.js', 'js/config.js', ...fs.readdirSync(path.join(ROOT, 'js/sim'), { recursive: true }).filter((f) => f.endsWith('.js')).map((f) => 'js/sim/' + f)];
     for (const f of files) {
         const src = fs.readFileSync(path.join(ROOT, f), 'utf8').replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
         ok(!/\bdocument\.|\bwindow\.|from 'three'|Math\.random|localStorage|performance\.now|Date\.now|requestAnimationFrame/.test(src), `${f} is pure`);
