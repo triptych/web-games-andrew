@@ -11,10 +11,12 @@
  * phones (touch only, real touches) at 390×844 and 844×390: taps through the title and the intro, the dock fits with
  *   44 px buttons and no sideways scroll, a tapped dust bunny, a battle won by tapping Attack and an enemy.
  * nostorage: localStorage throws; the game still boots and plays.
+ * cloud: cloud saves against a mock Supabase: a sign-in link asked for, the return from it, save, load on a "new
+ *   device", the replace-this-game confirmation, sign out.
  * Fails on any page error, console error or failed request.
  *
  *   python3 -m http.server 8147          # from the REPO ROOT
- *   node game-147/dev/browsertest.mjs     # ONLY=desktop,phones,nostorage
+ *   node game-147/dev/browsertest.mjs     # ONLY=desktop,phones,nostorage,cloud
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -32,7 +34,7 @@ fs.mkdirSync(OUT, { recursive: true });
 let fails = 0, errors = [], browser = null;
 const check = (c, m) => { if (!c) { fails++; console.log('  FAIL', m); } else console.log('  ok', m); return c; };
 
-async function open(viewport, { touch = false, nostorage = false, keepStorage = false } = {}) {
+async function open(viewport, { touch = false, nostorage = false, keepStorage = false, setup = null } = {}) {
     if (browser && !keepStorage) await browser.close();
     if (!browser || !keepStorage) {
         browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox', '--autoplay-policy=no-user-gesture-required'] });
@@ -42,21 +44,44 @@ async function open(viewport, { touch = false, nostorage = false, keepStorage = 
         if (ns) Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } });
     }, nostorage);
     const page = await ctx.newPage();
+    await prep(page, setup);
+    await page.goto(`${BASE}/game-147/index.html?debug=1&fast=3`);
+    await page.waitForFunction(() => window.__iomh && __iomh.mode === 'title', null, { timeout: 90000 });
+    return page;
+}
+
+/** Routes for a page: three.js from the local copy, no web fonts, and any test's own (setup). */
+async function prep(page, setup) {
     if (PKG) {
         await page.route('https://unpkg.com/**', (route) => {
             const file = path.join(PKG, new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, ''));
             if (!fs.existsSync(file)) return route.abort();
-            route.fulfill({ status: 200, contentType: 'application/javascript', body: fs.readFileSync(file) });
+            // (with CORS allowed: module scripts from another origin need it, which shows on a second load of the page)
+            route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'Access-Control-Allow-Origin': '*' }, body: fs.readFileSync(file) });
         });
     }
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    if (setup) await setup(page);
     errors = [];
     page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
     page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
     page.on('requestfailed', (r) => { if (!r.url().includes('favicon')) errors.push(`requestfailed: ${r.url()} ${r.failure()?.errorText}`); });
-    await page.goto(`${BASE}/game-147/index.html?debug=1&fast=3`);
-    await page.waitForFunction(() => window.__iomh && __iomh.mode === 'title', null, { timeout: 90000 });
-    return page;
+}
+
+/**
+ * The game opened afresh with the same browser storage, at `query` (+ #hash), as a link from an email would. A second
+ * load in the same browser context misses the three.js routes (the module requests fail before Playwright sees them).
+ */
+async function newTab(page, setup, query = '') {
+    // a fresh browser context carrying this one's storage (a new page in the same context still misses the routes)
+    const ctx = await browser.newContext({ viewport: page.viewportSize(), deviceScaleFactor: 1, storageState: await page.context().storageState() });
+    const tab = await ctx.newPage();
+    await prep(tab, setup);
+    await page.context().close();
+    await tab.goto(`${BASE}/game-147/index.html?debug=1&fast=3${query}`);
+    await tab.waitForFunction(() => window.__iomh && __iomh.mode === 'title', null, { timeout: 90000 })
+        .catch((e) => { console.log('     new tab:', JSON.stringify(errors.slice(0, 4))); throw e; });
+    return tab;
 }
 
 const Q = (page, fn, arg) => page.evaluate(fn, arg);
@@ -325,6 +350,83 @@ async function phone(w, h) {
 }
 
 // ======================================================================
+// v1.1.2: cloud saves against a mock Supabase (Auth and PostgREST answered here; nothing leaves the machine): ask for
+// a sign-in link, come back from it signed in, save to the cloud, load the cloud save on a "new device", sign out
+async function cloudTest() {
+    console.log('\n== cloud saves (mock Supabase)');
+    const SB = 'https://zhjcfwrgvwfmjhfibkjc.supabase.co';
+    const log = [];
+    let row = null, refuseNext = true;
+    const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+    const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: '0b7c6c1e-1111-4a4a-9999-0123456789ab', email: 'player@example.com', exp: Math.floor(Date.now() / 1000) + 3600, role: 'authenticated' })}.sig`;
+    const setup = (page) => page.route(`${SB}/**`, async (route) => {
+        const req = route.request(), url = new URL(req.url());
+        log.push({ method: req.method(), path: url.pathname, query: url.search, auth: req.headers().authorization || '', apikey: req.headers().apikey || '', body: req.postData() });
+        const json = (status, body) => route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
+        if (url.pathname === '/auth/v1/otp') {
+            // the first try: the built-in email service refuses an address outside the project's team
+            if (refuseNext) { refuseNext = false; return json(400, { code: 400, error_code: 'email_address_not_authorized', msg: 'Email address not authorized' }); }
+            return json(200, {});
+        }
+        if (url.pathname === '/auth/v1/logout') return route.fulfill({ status: 204, body: '' });
+        if (url.pathname === '/rest/v1/game_saves' && req.method() === 'GET') return json(200, row ? [row] : []);
+        if (url.pathname === '/rest/v1/game_saves' && req.method() === 'POST') { const b = JSON.parse(req.postData()); row = { data: b.data, version: b.version, summary: b.summary, updated_at: new Date().toISOString() }; return route.fulfill({ status: 201, body: '' }); }
+        return json(404, { message: 'not mocked' });
+    });
+    let page = await open({ width: 1280, height: 760 }, { setup });
+    await click(page, '#title-menu [data-act="cloud"]');
+    await until(page, () => !document.getElementById('cloud').hidden && !!document.getElementById('cloud-email'), 'the title\'s Cloud Save opens the sign-in form');
+    await page.fill('#cloud-email', 'player@example.com');
+    await click(page, '[data-cloud="signin"]');
+    await until(page, () => document.getElementById('cloud-msg').textContent.includes('invite-only'), 'an address Supabase won\'t email yet gets a plain explanation');
+    await click(page, '[data-cloud="signin"]');
+    await until(page, () => document.getElementById('cloud-msg').textContent.includes('Check your inbox'), 'asking for a link says to check the inbox');
+    const otp = log.find((r) => r.path === '/auth/v1/otp');
+    check(!!otp && JSON.parse(otp.body).email === 'player@example.com' && decodeURIComponent(otp.query).includes('redirect_to=http://127.0.0.1:8147/game-147/index.html') && otp.apikey.startsWith('sb_publishable_'),
+        'it asks Supabase to email a link back to this page, with the publishable key');
+    // the email's link opens the game in a new tab with the session in the address
+    page = await newTab(page, setup, `#access_token=${jwt}&refresh_token=rt1&expires_in=3600&token_type=bearer&type=magiclink`);
+    await until(page, () => !document.getElementById('cloud').hidden && document.getElementById('cloud-body').textContent.includes('player@example.com') && !location.hash, 'back from the link: signed in, the Cloud Save screen open, the tokens gone from the address');
+    await until(page, () => document.getElementById('cloud-body').textContent.includes('No cloud save yet'), 'it checks the cloud: no save yet');
+    // play a little, then save to the cloud from the menu
+    await Q(page, () => { for (const id of [...__iomh.ui.stack]) __iomh.ui.closeScreen(id); });
+    await click(page, '#title-menu [data-act="new"]');
+    await until(page, () => __iomh.mode === 'play', 'a new game');
+    await Q(page, () => { __iomh.G.scenes.length = 0; __iomh.ui.closeTop?.(); __iomh.G.day = 7; __iomh.G.gold = 4321; });
+    await page.waitForTimeout(500);
+    await Q(page, () => { if (__iomh.ui.talking) __iomh.ui.dlg = null; document.getElementById('dialog').hidden = true; });
+    await page.keyboard.press('Escape');
+    await until(page, () => !document.getElementById('pause').hidden, 'Escape opens the menu');
+    await click(page, '#pause-menu [data-act="cloud"]');
+    await until(page, () => !document.getElementById('cloud').hidden && !!document.querySelector('[data-cloud="up"]:not([disabled])'), 'the menu\'s Cloud Save offers Save to cloud');
+    await click(page, '[data-cloud="up"]');
+    await until(page, () => document.getElementById('cloud-msg').textContent.includes('Saved to the cloud'), 'Save to cloud says it saved');
+    const up = log.filter((r) => r.path === '/rest/v1/game_saves' && r.method === 'POST').pop();
+    const ub = up && JSON.parse(up.body);
+    check(!!ub && up.auth === `Bearer ${jwt}` && ub.game === 'game-147' && ub.slot === 'main' && ub.data?.data?.day === 7 && ub.summary.startsWith('Day 7') && up.query.includes('on_conflict=user_id,game,slot'),
+        'the upload carries the player\'s token and this game\'s save (day 7) as an upsert');
+    // a "new device": same sign-in, no local save; load the cloud save
+    await Q(page, () => { localStorage.removeItem('inn-over-my-head.v1'); });
+    page = await newTab(page, setup);
+    check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no local save on the "new device"');
+    await until(page, () => document.getElementById('btn-cloud').textContent.includes('Day 7'), 'the title\'s Cloud Save button shows the cloud save (Day 7)');
+    await click(page, '#title-menu [data-act="cloud"]');
+    await until(page, () => !!document.querySelector('[data-cloud="down"]:not([disabled])'), 'Load from cloud is offered');
+    await click(page, '[data-cloud="down"]');
+    await until(page, () => __iomh.mode === 'play' && __iomh.G.day === 7 && __iomh.G.gold >= 4321, 'Load from cloud starts the cloud game (day 7, the gold)');
+    await page.keyboard.press('Escape');
+    await Q(page, () => { for (const id of [...__iomh.ui.stack]) __iomh.ui.closeScreen(id); });
+    await Q(page, () => document.querySelector('#pause-menu [data-act="cloud"]').click());
+    await until(page, () => !!document.querySelector('[data-cloud="down"]:not([disabled])'), 'the menu\'s Cloud Save again');
+    await click(page, '[data-cloud="down"]');
+    check(await Q(page, () => __iomh.mode === 'play' && document.querySelector('[data-cloud="down"]').textContent.includes('Tap again')), 'with a game going, Load from cloud asks to be tapped again first');
+    await click(page, '[data-cloud="signout"]');
+    await until(page, () => !!document.getElementById('cloud-email') && document.getElementById('cloud-msg').textContent.includes('Signed out'), 'Sign out: back to the sign-in form, the game still here');
+    check(log.some((r) => r.path === '/auth/v1/logout'), 'and it tells Supabase');
+    reportErrors('cloud');
+}
+
+// ======================================================================
 async function nostorage() {
     console.log('\n== blocked storage');
     const page = await open({ width: 1280, height: 760 }, { nostorage: true });
@@ -339,6 +441,7 @@ try {
     if (want('desktop')) await desktop();
     if (want('phones')) { await phone(390, 844); await phone(844, 390); }
     if (want('nostorage')) await nostorage();
+    if (want('cloud')) await cloudTest();
 } catch (err) {
     fails++;
     console.log('  FAIL threw:', err.message.split('\n')[0]);

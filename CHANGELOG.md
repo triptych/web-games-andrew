@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Inn Over My Head** (game-147) v1.2.0: cloud saves with Supabase. Sign in with a link emailed to you (no password) from **☁️ Cloud Save** on the title screen or in the menu, then save your inn online and load it on another device or browser. While you're signed in, the game also saves to the cloud by itself every two minutes and when you quit or close the page (you can switch this off). Loading over a game on this device asks you to tap twice. Plain `fetch` against Supabase's REST endpoints, no client library ([js/cloud.js](game-147/js/cloud.js)). A new Supabase project, `web-games`, holds a `game_saves` table shared by game id, with row-level security so each player sees and changes only their own saves ([dev/supabase/](game-147/dev/supabase/README.md)). The browser test runs the whole flow against a mock Supabase.
+
 ### Fixed
 - **Inn Over My Head** (game-147) v1.1.1: the last dust bunny in a room never went away. A sweep did clear the room's dust, but any dust at all counted as a bunny, and an occupied room gathers some on the very next tick, so the last one came straight back. A bunny now appears only once a room has gathered a little dust (about 15 s occupied, a minute empty), and shooing the last one takes the leftover dust with it. The sim test checks both, and the bot sweeps every bunny while Bru's 4★ Sparkle favour is open.
 - **Inn Over My Head** (game-147) v1.1.1: the inn's clock kept running during battles, so a long fight ate the day (and its dust, arrivals and due dates). Time now stands still while a battle is on; it still runs at the inn and on the expedition map between fights, where staff keep working. Balance is unchanged (the bot pays off the debt on day 29–30), and the sim test checks that the clock, dust and arrivals hold still mid-battle.

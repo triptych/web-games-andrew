@@ -3,12 +3,13 @@
 //
 // ?debug=1 exposes window.__iomh for the dev/ harnesses; &fast=N runs N× simulation per frame.
 
-import { STEP, MAX_FRAME } from './config.js';
+import { STEP, MAX_FRAME, VERSION } from './config.js';
 import { View } from './view/view.js';
 import { ModelViewer } from './view/viewer.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
-import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave } from './save.js';
+import { loadSettings, saveSettings, hasSave, saveGame, loadGame, clearSave, readSave, writeSave } from './save.js';
+import { Cloud } from './cloud.js';
 import { newGame, step, act } from './sim/game.js';
 import { idleCatchUp } from './sim/hotel.js';
 import { SCENES, VIGNETTES, ITEMS } from './sim/data.js';
@@ -20,6 +21,8 @@ const FAST = DEBUG ? Math.max(1, Math.min(40, +(params.get('fast') || 1))) : 1;
 const $ = (id) => document.getElementById(id);
 
 const settings = loadSettings();
+const cloud = new Cloud();       // cloud saves (Supabase); a magic link back to the game is read below, once the UI is up
+let cloudInfo;                // the online save ({ data, version, summary, updated_at }), null if none, undefined if unknown
 const audio = new Audio();
 audio.setVolumes(settings.sfx, settings.music, settings.voice);
 const view = new View($('view'), audio);
@@ -50,9 +53,19 @@ function doAct(cmd) {
 }
 
 // ------------------------------------------------------------------ menus
-function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
+function refreshTitle() {
+    $('btn-continue').hidden = !hasSave();
+    $('btn-cloud').textContent = cloud.signedIn && cloudInfo ? `☁️ Cloud Save · ${cloudInfo.summary?.split(' · ')[0] || 'saved'}` : '☁️ Cloud Save';
+}
 refreshTitle();
 ui.openScreen('title');
+// back from a magic link: signed in (show the Cloud Save screen), or the link had expired
+{
+    const r = cloud.consumeRedirect();
+    if (r === 'signed-in') { ui.toast(`☁️ Signed in as ${cloud.email || 'you'}`, 'good'); setTimeout(openCloud); }
+    else if (r) ui.toast(`Sign-in didn't work: ${r}`, 'bad');
+    else if (cloud.signedIn) setTimeout(cloudFetch);
+}
 view.stage.setBackdrop('hotel');
 ui.onShowAll = () => view.hotel.showAll();
 // the 3D model viewer (Team panel portraits): its own small renderer, running only while its dialog is open
@@ -68,6 +81,7 @@ $('title-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'new') startGame(newGame((Date.now() % 1e9) | 0));
+    else if (a === 'cloud') openCloud();
     else if (a === 'continue') {
         const s = loadGame();
         if (!s) { ui.toast('That save could not be read.', 'bad'); return; }
@@ -81,12 +95,126 @@ $('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'resume') ui.closeScreen('pause');
-    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else if (a === 'quit') { saveGame(G); cloudAuto(); toTitle(); }
+    else if (a === 'cloud') { saveGame(G); openCloud(); }
     else if (a === 'quests') { ui.closeScreen('pause'); ui.openPanel('quests'); }
     else ui.openScreen(a);
 });
 $('btn-pause').addEventListener('click', () => openPause());
 $('ending-go').addEventListener('click', () => { ui.closeScreen('ending'); doAct({ t: 'seenEnding' }); });
+
+// ------------------------------------------------------------------ cloud saves (Supabase, js/cloud.js)
+// Sign in by an emailed link; the Cloud Save screen saves and loads one online copy. While signed in, the game also
+// uploads by itself every couple of minutes and as the page closes (settings.cloudAuto).
+const CLOUD_EVERY = 120000;
+let cloudAt = 0, cloudBusy = false, loadArmed = 0;
+const summaryOf = (g) => `Day ${g.day} · Maple Lv ${g.heroes?.maple?.lv ?? 1} · ${Math.floor(g.gold || 0).toLocaleString('en-US')} G`;
+const ago = (iso) => {
+    const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+    return s < 90 ? 'just now' : s < 5400 ? `${Math.round(s / 60)} min ago` : s < 129600 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} days ago`;
+};
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function cloudMsg(text, cls = '') { $('cloud-msg').textContent = text; $('cloud-msg').className = 'note ' + cls; }
+
+function renderCloud() {
+    const b = $('cloud-body');
+    if (!cloud.signedIn) {
+        const v = $('cloud-email')?.value || '';
+        b.innerHTML = `<p class="note">Sign in to keep a copy of your inn online and carry on from another device or browser. You'll get an email with a sign-in link: no password.</p>
+            <form id="cloud-form" class="row"><input type="email" id="cloud-email" required autocomplete="email" placeholder="you@example.com" aria-label="Email" value="${esc(v)}"></form>
+            <div class="acts"><button class="btn primary" data-cloud="signin">✉️ Email me a sign-in link</button></div>`;
+        return;
+    }
+    const has = !!cloudInfo, local = mode === 'play' || hasSave();
+    b.innerHTML = `<p>Signed in as <b>${esc(cloud.email || 'you')}</b></p>
+        <div class="card cloud-save"><span style="font-size:28px">☁️</span><div>${cloudInfo === undefined ? '<b>Checking the cloud…</b>'
+            : has ? `<b>${esc(cloudInfo.summary || 'A saved game')}</b><small>Saved ${ago(cloudInfo.updated_at)}${cloudInfo.version ? ` · v${esc(cloudInfo.version)}` : ''}</small>` : '<b>No cloud save yet</b>'}</div></div>
+        <div class="acts">
+            <button class="btn primary" data-cloud="up" ${local ? '' : 'disabled'}>⬆️ Save to cloud</button>
+            <button class="btn" data-cloud="down" ${has ? '' : 'disabled'}>⬇️ Load from cloud</button>
+        </div>
+        <label class="check"><input type="checkbox" data-cloud="auto" ${settings.cloudAuto ? 'checked' : ''}> Save to the cloud by itself while I play</label>
+        <button class="btn" data-cloud="signout">Sign out</button>`;
+}
+
+async function cloudFetch() {
+    if (!cloud.signedIn) return;
+    try { cloudInfo = await cloud.download(); }
+    catch (e) { cloudMsg(e.message, 'bad'); }
+    if (!ui.top() || ui.top() === 'cloud' || ui.top() === 'title') { if (ui.top() === 'cloud') renderCloud(); refreshTitle(); }
+}
+
+function openCloud() {
+    cloudMsg('');
+    loadArmed = 0;
+    renderCloud();
+    ui.openScreen('cloud');
+    if (cloud.signedIn) cloudFetch();
+}
+
+/** Upload the local save quietly (autosave, quitting, the page closing). */
+function cloudAuto(keepalive = false) {
+    if (!cloud.signedIn || !settings.cloudAuto || mode !== 'play' || cloudBusy) return;
+    const save = readSave();
+    if (!save) return;
+    cloudBusy = true;
+    cloudAt = Date.now();
+    cloud.upload(save, { version: VERSION, summary: summaryOf(G), keepalive })
+        .then(() => { cloudInfo = { data: save, version: VERSION, summary: summaryOf(G), updated_at: new Date().toISOString() }; })
+        .catch((e) => console.warn('[cloud]', e.message))
+        .finally(() => { cloudBusy = false; });
+}
+
+async function cloudAction(what, el) {
+    if (what === 'auto') { settings.cloudAuto = el.checked; saveSettings(settings); return; }
+    if (cloudBusy && what !== 'signout') return;
+    cloudBusy = true;
+    try {
+        if (what === 'signin') {
+            const email = $('cloud-email').value.trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { cloudMsg('Type your email address first.', 'bad'); return; }
+            cloudMsg('Sending…');
+            await cloud.signIn(email);
+            cloudMsg(`Check your inbox at ${email} and tap the link: it brings you back here, signed in. (It can take a minute; look in spam too.)`, 'good');
+        } else if (what === 'up') {
+            if (mode === 'play') saveGame(G);
+            const save = readSave();
+            if (!save) { cloudMsg('There is no game to save yet.', 'bad'); return; }
+            cloudMsg('Saving…');
+            const summary = summaryOf(save.data);
+            await cloud.upload(save, { version: VERSION, summary });
+            cloudAt = Date.now();
+            cloudInfo = { data: save, version: VERSION, summary, updated_at: new Date().toISOString() };
+            renderCloud(); refreshTitle();
+            cloudMsg('Saved to the cloud. ☁️', 'good');
+        } else if (what === 'down') {
+            if (!cloudInfo?.data?.data) return;
+            if ((mode === 'play' || hasSave()) && Date.now() - loadArmed > 5000) {
+                loadArmed = Date.now();
+                el.textContent = '⚠️ Tap again to replace this game';
+                cloudMsg(`This replaces your game on this device with the cloud save (${cloudInfo.summary || 'saved ' + ago(cloudInfo.updated_at)}).`);
+                return;
+            }
+            writeSave(cloudInfo.data);
+            const s = loadGame();
+            if (!s) { cloudMsg('That cloud save could not be read.', 'bad'); return; }
+            startGame(s.G);
+            welcomeBack(s.away);
+            ui.toast('☁️ Loaded your cloud save', 'good');
+        } else if (what === 'signout') {
+            await cloud.signOut();
+            cloudInfo = undefined;
+            renderCloud(); refreshTitle();
+            cloudMsg('Signed out. Your game on this device is still here.');
+        }
+    } catch (e) {
+        cloudMsg(e.message || 'Something went wrong.', 'bad');
+        if (!cloud.signedIn) { renderCloud(); refreshTitle(); }
+    } finally { cloudBusy = false; }
+}
+$('cloud-body').addEventListener('click', (e) => { const b = e.target.closest('[data-cloud]'); if (b && !b.disabled && b.tagName === 'BUTTON') { audio.ui('click'); cloudAction(b.dataset.cloud, b); } });
+$('cloud-body').addEventListener('change', (e) => { if (e.target.dataset?.cloud === 'auto') cloudAction('auto', e.target); });
+$('cloud-body').addEventListener('submit', (e) => { e.preventDefault(); cloudAction('signin'); });
 
 function startGame(g) {
     G = g;
@@ -283,7 +411,7 @@ function frame(now) {
         }
         if (bot) { botT += dt * FAST; if (botT > 0.25) { botT = 0; const c = botCmd(G, bot); if (c) doAct(c); } }
         saveT += dt;
-        if (saveT > 15) { saveT = 0; saveGame(G); }
+        if (saveT > 15) { saveT = 0; saveGame(G); if (Date.now() - cloudAt > CLOUD_EVERY) cloudAuto(); }
     } else acc = 0;
     flushEvents();
     stories();
@@ -308,10 +436,10 @@ function frame(now) {
 
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
-    if (document.hidden) { hiddenAt = Date.now(); if (mode === 'play') saveGame(G); }
+    if (document.hidden) { hiddenAt = Date.now(); if (mode === 'play') { saveGame(G); cloudAuto(true); } }
     else if (hiddenAt && mode === 'play') { const away = (Date.now() - hiddenAt) / 1000; hiddenAt = 0; welcomeBack(away); }
 });
-window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'play') { saveGame(G); cloudAuto(true); } });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 
