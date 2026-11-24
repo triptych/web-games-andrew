@@ -3,7 +3,7 @@
 // game): staff work, guests tip, rooms gather dust and herbs grow while the party is away.
 
 import { DAY_LEN, HOTEL, COOK } from '../config.js';
-import { HEROES, ROOMS, GUESTS, GUEST_REQUESTS, RECIPES, RECIPE_ORDER, ITEMS, CRAFTS, TIERS, LATE, DAILIES, MARKET, RECRUITS, REGIONS } from './data.js';
+import { HEROES, ROOMS, GUESTS, GUEST_REQUESTS, RECIPES, RECIPE_ORDER, ITEMS, CRAFTS, TIERS, LATE, DAILIES, MARKET, RECRUITS, REGIONS, FORAGE } from './data.js';
 import { clamp, has, give, take, hasAll, takeAll, joinedHeroes } from './util.js';
 import { addBond, bondLevel, dailyBonds } from './bonds.js';
 
@@ -529,9 +529,9 @@ export function hotelStep(G, dt) {
         G.staffT.forage += dt;
         if (G.staffT.forage >= HOTEL.forageEvery) {
             G.staffT.forage = 0;
-            const pool = ['honey', 'herbs', 'pepper'];
-            if (regionUnlocked(G, 'grove')) pool.push('puffcap', 'glowmoss');
-            if (regionUnlocked(G, 'cave') && G.rng() < 0.4) pool.push('sugar');
+            const pool = [...FORAGE.home];
+            if (regionUnlocked(G, 'grove')) pool.push(...FORAGE.grove);
+            if (regionUnlocked(G, 'cave') && G.rng() < 0.4) pool.push(...FORAGE.cave);
             const it = G.rng.pick(pool);
             give(G, it);
             G.events.push({ type: 'forage', item: it, hero: gardener });

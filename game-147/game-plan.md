@@ -520,6 +520,21 @@ clip (`dev/rigshot.mjs` covers single models).
 
 ## Changelog
 
+### v1.1.0 (2026-11-24)
+
+- Changed: the inn rebuilt as a readable, textured dollhouse seen almost head on (thick timbered walls, wallpapers,
+  windows, lamps, a shingled roof); closed rooms dimmed behind a plaque.
+- Added: zoom to a room by click or tap (a room card, a second click opens the panel), wheel and pinch zoom, drag
+  pan, and Esc, a double tap or **Whole inn** to go back.
+- Added: 16 ElevenLabs surface textures; 14 more Meshy props; sharper sun shadows, contact shadows, corner shading,
+  tone mapping; textured battle islands with a closer camera; a fade between inn and battle; styled dropdowns.
+- Fixed: the stir needle in the Kitchen panel updated only every 0.3 s (about three positions a sweep); it now moves
+  every frame.
+- Fixed: battle damage landed before the swing connected; each clip's moment of impact is now found from its bones,
+  and slow clips are sped up so blows land within 0.8 s.
+- Added: where to find each missing ingredient (shop, courtyard, monster drops by region, foraging, workshop).
+- Changed: the inn's architecture merged into one mesh per material, lamp lights replaced by glows, darker nights.
+
 ### v1.0.1 (2026-11-23)
 
 - Fixed: the quest tracker's shortcut buttons (Desk, Kitchen, Ledger, Adventure) did nothing; they now open their panels.

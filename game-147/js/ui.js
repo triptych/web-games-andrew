@@ -4,7 +4,7 @@
 
 import { VERSION, DAY_LEN, DAY_START, BATTLE, BOND_LEVELS } from './config.js';
 import { HEROES, HERO_ORDER, SKILLS, CHAINS, MONSTERS, REGIONS, REGION_ORDER, ITEMS, CATEGORIES, MARKET, RECIPES, RECIPE_ORDER,
-    CRAFTS, GUESTS, TIERS, ROOMS, RECRUITS, DAILIES, CHAPTERS, ELEMENTS, STAFF_ROLES, SCENES, VIGNETTES, SPEAKERS } from './sim/data.js';
+    CRAFTS, GUESTS, TIERS, ROOMS, FORAGE, RECRUITS, DAILIES, CHAPTERS, ELEMENTS, STAFF_ROLES, SCENES, VIGNETTES, SPEAKERS } from './sim/data.js';
 import * as H from './sim/hotel.js';
 import { bondLevel, bondPts, bondNext, synergy, pairKey } from './sim/bonds.js';
 import { heroStats, expToNext, has } from './sim/util.js';
@@ -14,6 +14,13 @@ import { expeditionBuffs, freshLinens } from './sim/game.js';
 import { PRESETS } from './sim/ai.js';
 
 const $ = (id) => document.getElementById(id);
+// the inn's places, for the room card (names of guest rooms come from ROOMS)
+const HOTEL_ROOMS = {
+    lobby: { name: 'Lobby & Front Desk', icon: '🛎️', panel: 'desk', open: 'Front Desk' },
+    kitchen: { name: 'Kitchen', icon: '🍳', panel: 'kitchen', open: 'Cook' },
+    garden: { name: 'Courtyard Garden', icon: '🌻', panel: 'garden', open: 'Garden' },
+    ...Object.fromEntries(ROOMS.map((r) => [r.id, { name: r.name, icon: '🛏️', panel: 'rooms', open: 'Rooms' }])),
+};
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const g$ = (n) => Math.floor(n).toLocaleString('en-US');
 const por = (who) => `art/por-${who}.webp`;
@@ -23,6 +30,36 @@ const EMOJI = { honey: '🍯', pepper: '🌶️', puffcap: '🍄', glowmoss: '�
     honeyTart: '🥧', herbSalad: '🥗', emberStew: '🍲', puffcapPie: '🥧', glowTea: '🍵', crystalParfait: '🍨', cloudSouffle: '🍮' };
 // item icons are renders of the Meshy models (dev/icons.mjs); an emoji stands in if one is missing
 const icon = (id, cls = 'icon') => `<img class="${cls}" src="art/icons/${id}.webp" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'${cls}',textContent:'${EMOJI[id] || '📦'}',style:'display:inline-grid;place-items:center;font-size:24px'}))">`;
+/**
+ * Where an item can be found, from the game's own data: the peddler's catalogue (at the Front Desk), the courtyard,
+ * monsters' drops by region (with the chance), the gardener's foraging, the workshop. v1.0.1 listed the ingredients a
+ * recipe needed with no hint of where to get them.
+ */
+function whereFrom(id) {
+    const out = [];
+    if (MARKET.includes(id)) out.push(`🛒 the peddler's catalogue at the Front Desk (${ITEMS[id].price} G)`);
+    if (id === 'herbs') out.push('🌱 the courtyard garden (Harvest)');
+    for (const r of REGION_ORDER) {
+        const R = REGIONS[r], mons = [];
+        for (const m of new Set([...R.pool, R.boss])) {
+            const d = MONSTERS[m].drops?.find(([it]) => it === id);
+            if (d) mons.push(`${MONSTERS[m].name}${d[1] < 1 ? ` ${Math.round(d[1] * 100)}%` : ''}`);
+        }
+        if (mons.length) out.push(`⚔️ ${R.name}: ${mons.join(', ')}`);
+    }
+    const forage = Object.entries(FORAGE).find(([, l]) => l.includes(id));
+    if (forage) out.push(`🌻 a Gardener on staff forages it${forage[0] === 'home' ? '' : ` (once the ${REGIONS[forage[0]].name} is open)`}`);
+    if (CRAFTS[id]) out.push('🔨 the Workshop (Kitchen)');
+    return out;
+}
+/** A "where to find it" note for each ingredient a recipe or craft is short of. */
+function whereNeeded(G, need) {
+    const lines = Object.entries(need).filter(([k, n]) => !has(G, k, n)).map(([k]) => {
+        const w = whereFrom(k);
+        return `<div>${EMOJI[k] || ''} <b>${esc(ITEMS[k].name)}</b>: ${w.length ? w.map(esc).join(' · ') : 'not found anywhere yet'}</div>`;
+    });
+    return lines.length ? `<div class="where">${lines.join('')}</div>` : '';
+}
 const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 const clockText = (G) => {
     const h = (DAY_START + (G.clock / DAY_LEN) * 0.75) * 24;
@@ -71,6 +108,8 @@ export class UI {
             const p = e.target.closest('[data-open]');
             if (p && !p.disabled) { this.audio.ui('click'); this.openPanel(p.dataset.open); }
         });
+        // the room card's "whole inn" button (main sets onShowAll to the camera's way home)
+        document.body.addEventListener('click', (e) => { if (e.target.closest('[data-inn="all"]')) { this.audio.ui('click'); this.onShowAll?.(); } });
         $('panel-body').addEventListener('click', (e) => {
             const t = e.target.closest('[data-tab]');
             if (t) { this.panelTab[this.panel] = t.dataset.tab; this.dirty = true; }
@@ -180,6 +219,7 @@ export class UI {
         $('exped').hidden = mode !== 'expedition';
         $('bhud').hidden = mode !== 'battle';
         if (mode !== 'battle') { $('labels').innerHTML = ''; this.labels = {}; }
+        this._labelHtml = null;
     }
 
     hud(G, time) {
@@ -213,9 +253,6 @@ export class UI {
             this._trackerHtml = html;
             $('tracker').innerHTML = html;
             $('tg-daily').onclick = () => { this.hideDaily = !this.hideDaily; this._trackerHtml = null; };
-        } else if (G.cook) {
-            const el = $('tracker').querySelector('.stir');
-            if (el) el.outerHTML = this.stirBar(H.needle(G));
         }
         // dock badges
         const badge = (p, n) => { const b = $('dock').querySelector(`[data-panel="${p}"]`); let d = b.querySelector('.dot'); if (n) { if (!d) { d = document.createElement('i'); d.className = 'dot'; b.appendChild(d); } d.textContent = n; } else d?.remove(); };
@@ -225,6 +262,18 @@ export class UI {
         badge('kitchen', G.cook ? '!' : 0);
         badge('ledger', T && G.gold >= H.owed(G) ? '✓' : 0);
         if (this.panel && (this.dirty || time - (this.lastPanel || 0) > 0.3)) { this.renderPanel(G); this.lastPanel = time; this.dirty = false; }
+        this.needleTick(G);
+    }
+
+    /**
+     * Move every stir needle on screen to where the pot is now, every frame. The needle's position is not part of the
+     * panel's HTML (v1.0.1 baked it in, and the panel re-renders only every 0.3 s, so the needle jumped between about
+     * three spots per sweep and the gold zone was nearly impossible to hit).
+     */
+    needleTick(G) {
+        const n = G.cook && H.needle(G);
+        if (!n) return;
+        for (const el of document.querySelectorAll('.stir .needle')) el.style.left = `${(n.p * 100).toFixed(2)}%`;
     }
 
     goalHint(G, goal) {
@@ -247,19 +296,50 @@ export class UI {
 
     stirBar(n) {
         if (!n) return '';
-        return `<div class="stir"><div class="good" style="left:${(50 - n.good * 100).toFixed(1)}%;width:${(n.good * 200).toFixed(1)}%"></div><div class="perfect" style="left:${(50 - n.perfect * 100).toFixed(1)}%;width:${(n.perfect * 200).toFixed(1)}%"></div><div class="needle" style="left:${(n.p * 100).toFixed(1)}%"></div></div>`;
+        return `<div class="stir"><div class="good" style="left:${(50 - n.good * 100).toFixed(1)}%;width:${(n.good * 200).toFixed(1)}%"></div><div class="perfect" style="left:${(50 - n.perfect * 100).toFixed(1)}%;width:${(n.perfect * 200).toFixed(1)}%"></div><div class="needle"></div></div>`;
     }
 
     roomLabels(G, hotel3d) {
-        // small labels over each open room with its dust count (so it reads on a phone)
+        // small labels over each open room with its guest and dust (so it reads on a phone)
         let html = '';
         for (const r of G.rooms) {
-            if (!r.open) continue;
+            if (!r.open || hotel3d.focused === r.id) continue;
             const s = hotel3d.roomScreen(r.id), b = H.bunnies(r), g = r.guest && G.guests[r.guest];
-            html += `<div class="rlabel ${b >= 3 ? 'dirty' : ''}" style="left:${s.x}px;top:${s.y}px">${g ? '🛌 ' + esc(g.name) : 'Free'}${b ? ' · 🐰' + b : ' · ✨'}</div>`;
+            if (s.x < -60 || s.x > innerWidth + 60 || s.y < 0 || s.y > innerHeight) continue;
+            html += `<div class="rlabel ${b >= 3 ? 'dirty' : ''}" style="left:${s.x.toFixed(0)}px;top:${s.y.toFixed(0)}px">${g ? '🛌 ' + esc(g.name) : 'Free'}${b ? ' · 🐰' + b : ' · ✨'}</div>`;
         }
-        $('labels').innerHTML = html;
+        if (html !== this._labelHtml) { this._labelHtml = html; $('labels').innerHTML = html; }
+        this.roomCard(G, hotel3d);
     }
+
+    /** The card for the room the camera is zoomed to: what's going on there, a way in, a way back. */
+    roomCard(G, hotel3d) {
+        const id = hotel3d.focused;
+        let html = '';
+        if (id) {
+            const L = HOTEL_ROOMS[id];
+            let sub = '';
+            const room = G.rooms.find((r) => r.id === id);
+            if (room) {
+                const def = ROOMS.find((x) => x.id === id), g = room.guest && G.guests[room.guest], b = H.bunnies(room);
+                sub = !room.open ? `🔒 Closed until installment ${def.tier} (“${esc(TIERS[def.tier - 1].name)}”)`
+                    : `${g ? `🛌 ${esc(g.name)}${g.recruit ? '' : ` · ${g.nights} night${g.nights > 1 ? 's' : ''} left`}` : 'Free'} · ${b ? `🐰 ${b} dust bunn${b > 1 ? 'ies' : 'y'}: tap them!` : '✨ spotless'}`;
+            } else if (id === 'lobby') sub = G.queue.length ? `🛎️ ${G.queue.length} guest${G.queue.length > 1 ? 's' : ''} waiting at the desk` : '🛎️ Nobody waiting at the desk';
+            else if (id === 'kitchen') sub = G.cook ? '🍳 Something is cooking…' : `🍽️ ${G.pantry.length} meal${G.pantry.length === 1 ? '' : 's'} in the pantry`;
+            else if (id === 'garden') sub = `🌱 ${Math.floor(G.garden.herbs)} / 10 herbs ready`;
+            html = `<div class="rc-name">${L.icon} ${esc(L.name)}</div><div class="rc-sub">${sub}</div>
+                <div class="rc-acts"><button class="btn small primary" data-open="${L.panel}">${L.open}</button><button class="btn small" data-inn="all">⤢ Whole inn</button></div>`;
+        } else if (hotel3d.zoomed) html = '<div class="rc-acts"><button class="btn small" data-inn="all">⤢ Whole inn</button></div>';
+        if (html !== this._cardHtml) {
+            this._cardHtml = html;
+            $('roomcard').innerHTML = html;
+            $('roomcard').hidden = !html;
+            $('roomcard').classList.toggle('mini', !id);
+        }
+    }
+
+    /** Open the panel for a room of the inn. */
+    openRoom(id) { this.openPanel(HOTEL_ROOMS[id]?.panel || 'rooms'); }
 
     // ------------------------------------------------------------------ panels
     openPanel(id) {
@@ -333,7 +413,7 @@ export class UI {
             for (const r of RECIPE_ORDER) {
                 const R = RECIPES[r], un = H.recipeUnlocked(G, r);
                 const need = Object.entries(R.need).map(([k, n]) => `<span class="pill ${has(G, k, n) ? '' : 'warn'}">${EMOJI[k] || ''} ${esc(ITEMS[k].name)} ${G.inv[k] || 0}/${n}</span>`).join(' ');
-                h += `<div class="card"><div class="top">${icon(r)}<div><div class="nm">${un ? esc(R.name) : '???'}</div><div class="sub">${un ? `Sells ~${R.price} G · Party: ${esc(R.buffText)}` : 'Not learned yet'}</div></div></div>${un ? `<div>${need}</div><button class="btn small primary" ${G.cook || !H.hasAll(G, R.need) ? 'disabled' : ''} data-cmd='{"t":"cook","r":"${r}"}'>Cook</button>` : ''}</div>`;
+                h += `<div class="card"><div class="top">${icon(r)}<div><div class="nm">${un ? esc(R.name) : '???'}</div><div class="sub">${un ? `Sells ~${R.price} G · Party: ${esc(R.buffText)}` : 'Not learned yet'}</div></div></div>${un ? `<div>${need}</div>${whereNeeded(G, R.need)}<button class="btn small primary" ${G.cook || !H.hasAll(G, R.need) ? 'disabled' : ''} data-cmd='{"t":"cook","r":"${r}"}'>Cook</button>` : ''}</div>`;
             }
             h += '</div>';
         } else if (tab === 'pantry') {
@@ -346,7 +426,7 @@ export class UI {
                     <button class="btn small" data-cmd='{"t":"sellMeal","meal":${i}}'>Sell to the village · ${Math.round(RECIPES[m.r].price * m.q * 0.5)} G</button></div>`;
             }).join('') + '</div><p class="note">Or eat one before an adventure for its party buff (Adventure panel).</p>';
         } else {
-            h += '<div class="grid">' + Object.entries(CRAFTS).map(([it, need]) => `<div class="card"><div class="top">${icon(it)}<div><div class="nm">${esc(ITEMS[it].name)} ×${G.inv[it] || 0}</div><div class="sub">${esc(ITEMS[it].desc)}</div></div></div><div>${Object.entries(need).map(([k, n]) => `<span class="pill ${has(G, k, n) ? '' : 'warn'}">${esc(ITEMS[k].name)} ${G.inv[k] || 0}/${n}</span>`).join(' ')}</div><button class="btn small" ${H.hasAll(G, need) ? '' : 'disabled'} data-cmd='{"t":"craft","item":"${it}"}'>Craft</button></div>`).join('') + '</div>';
+            h += '<div class="grid">' + Object.entries(CRAFTS).map(([it, need]) => `<div class="card"><div class="top">${icon(it)}<div><div class="nm">${esc(ITEMS[it].name)} ×${G.inv[it] || 0}</div><div class="sub">${esc(ITEMS[it].desc)}</div></div></div><div>${Object.entries(need).map(([k, n]) => `<span class="pill ${has(G, k, n) ? '' : 'warn'}">${esc(ITEMS[k].name)} ${G.inv[k] || 0}/${n}</span>`).join(' ')}</div>${whereNeeded(G, need)}<button class="btn small" ${H.hasAll(G, need) ? '' : 'disabled'} data-cmd='{"t":"craft","item":"${it}"}'>Craft</button></div>`).join('') + '</div>';
         }
         return h;
     }
@@ -428,7 +508,7 @@ export class UI {
             let acts = '';
             if (I.cat === 'decor') acts += `<button class="btn small" data-cmd='{"t":"decor","item":"${k}"}'>${G.decor.includes(k) ? 'Take down' : `Display (${G.decor.length}/${G.decorSlots})`}</button>`;
             if (I.price && I.cat !== 'quest' && I.cat !== 'tools') acts += `<button class="btn small" ${H.freeCount(G, k) <= 0 && I.cat === 'gear' ? 'disabled' : ''} data-cmd='{"t":"sell","item":"${k}"}'>Sell · ${Math.floor(I.price / 2)} G</button>`;
-            h += `<div class="card"><div class="top">${icon(k)}<div><div class="nm">${esc(I.name)} ×${n}</div><div class="sub">${esc(I.desc)}${I.stats ? ' · ' + Object.entries(I.stats).map(([s, v]) => s.toUpperCase() + '+' + v).join(' ') : ''}${worn.length ? ' · worn by ' + worn.join(', ') : ''}</div></div></div><div class="acts">${acts}</div></div>`;
+            h += `<div class="card"><div class="top">${icon(k)}<div><div class="nm">${esc(I.name)} ×${n}</div><div class="sub">${esc(I.desc)}${I.cat === 'ingredient' && whereFrom(k).length ? '<br><small>Found: ' + whereFrom(k).map(esc).join(' · ') + '</small>' : ''}${I.stats ? ' · ' + Object.entries(I.stats).map(([s, v]) => s.toUpperCase() + '+' + v).join(' ') : ''}${worn.length ? ' · worn by ' + worn.join(', ') : ''}</div></div></div><div class="acts">${acts}</div></div>`;
         }
         return h + '</div>';
     }

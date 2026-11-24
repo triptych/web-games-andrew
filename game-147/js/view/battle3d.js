@@ -4,27 +4,39 @@
 // It also keeps the HP each unit *shows*, so the bars drop when a blow lands, not when the sim decided it.
 
 import * as THREE from 'three';
-import { Actor, RAMP } from './assets.js';
+import { Actor, RAMP, texMat } from './assets.js';
 import { FX } from './fx.js';
 import { MONSTERS, HEROES, SKILLS, REGIONS, CHAINS } from '../sim/data.js';
 
 const mat = (c) => new THREE.MeshToonMaterial({ color: c, gradientMap: RAMP });
+const STRIKE = 0.8;     // a blow lands at most this long after the swing starts (slower clips are played faster)
 const HERO_SPOTS = [[-2.3, 1.7], [-3.4, 0.5], [-2.1, -0.6], [-3.3, -1.7]];
 // spread across the screen as well as the ground: the camera looks along (0.55, 0.62, 1), so spots that differ only
 // along that line overlap in the picture
 const ENEMY_SPOTS = [[1.7, -2.2], [3.7, -0.9], [2.0, 1.0], [4.1, 1.7]];
+// each island is painted with the ElevenLabs surface textures (art/tex): a top and a cliff, tinted per region
 const THEMES = {
-    meadow: { top: 0x93d66d, side: 0xb4875a, props: 'flowers' },
-    grove: { top: 0x6cbf86, side: 0x8a6a8f, props: 'mushrooms' },
-    cave: { top: 0xa5b2e0, side: 0x7c80b0, props: 'crystals' },
+    meadow: { top: 0x93d66d, side: 0xb4875a, props: 'flowers', topTex: 'grass', topTint: 0xffffff, sideTint: 0xffffff, rep: 5 },
+    grove: { top: 0x6cbf86, side: 0x8a6a8f, props: 'mushrooms', topTex: 'moss', topTint: 0xffffff, sideTint: 0xd8c0e0, rep: 4 },
+    cave: { top: 0xa5b2e0, side: 0x7c80b0, props: 'crystals', topTex: 'cave', topTint: 0xffffff, sideTint: 0xb8b4e8, rep: 3 },
 };
+/** Scale the texture coordinates of one geometry group (by its index range) so a texture repeats. */
+function repeatGroup(geo, group, su, sv) {
+    const uv = geo.attributes.uv, idx = geo.index, g = geo.groups[group], done = new Set();
+    for (let i = g.start; i < g.start + g.count; i++) {
+        const k = idx.getX(i);
+        if (done.has(k)) continue;
+        done.add(k);
+        uv.setXY(k, uv.getX(k) * su, uv.getY(k) * sv);
+    }
+}
 
 export class Battle3D {
     constructor(stage, audio) {
         this.stage = stage;
         this.audio = audio;
         this.scene = stage.makeScene('battle', { sky: 0xe6f2ff, ground: 0x9a8a7a });
-        this.cam = stage.makeIso('battle', { at: [0, 0.5, 0], dir: [0.55, 0.62, 1], span: 10.5, tall: 0.42, narrow: 8.5 });
+        this.cam = stage.makeIso('battle', { at: [0.5, 0.3, -1.0], dir: [0.55, 0.62, 1], span: 9.6, tall: 0.39, narrow: 10.4 });
         this.fx = new FX(this.scene);
         this.island = new THREE.Group();
         this.scene.add(this.island);
@@ -50,9 +62,14 @@ export class Battle3D {
         this.region = region;
         this.island.clear();
         const T = THEMES[region];
-        const top = new THREE.Mesh(new THREE.CylinderGeometry(6, 5.6, 0.5, 48), mat(T.top));
+        const cliff = texMat('cliff', T.sideTint), ground = texMat(T.topTex, T.topTint);
+        const topGeo = new THREE.CylinderGeometry(6, 5.6, 0.5, 48);
+        repeatGroup(topGeo, 0, 10, 0.25); repeatGroup(topGeo, 1, T.rep, T.rep);
+        const top = new THREE.Mesh(topGeo, [cliff, ground, cliff]);
         top.position.y = -0.25; top.receiveShadow = true; this.island.add(top);
-        const rock = new THREE.Mesh(new THREE.ConeGeometry(5.6, 3.2, 40), mat(T.side));
+        const rockGeo = new THREE.ConeGeometry(5.6, 3.2, 40);
+        repeatGroup(rockGeo, 0, 9, 1.6);
+        const rock = new THREE.Mesh(rockGeo, [cliff, cliff]);
         rock.rotation.x = Math.PI; rock.position.y = -2.1; this.island.add(rock);
         const r = (a) => { let x = Math.sin(a * 12.9898) * 43758.5453; return x - Math.floor(x); };
         // scenery stays on the rim, and anything tall stays on the far side, so nothing stands between the camera and
@@ -241,33 +258,36 @@ export class Battle3D {
             await this.moveTo(a, stop, 6);
             a.actor.root.rotation.y = Math.atan2(dir.x, dir.z);
             const clip = e.skill === 'attack' ? 'attack' : a.actor.has('skill') ? 'skill' : 'attack';
-            const d = a.actor.play(clip);
+            // the blow lands when the swing connects (found in the clip; slow clips are sped up to land by 0.8 s)
+            const d = a.actor.play(clip, { maxImpact: STRIKE }), imp = a.actor.lastImpact;
+            await this.wait(Math.max(0, imp - 0.12));
             this.audio?.sfx(e.el && e.el !== 'none' ? e.el : 'slash');
-            await this.wait(Math.min(0.55, d * 0.45));
+            await this.wait(Math.min(imp, 0.12));
             const per = Math.max(1, hits.length);
             for (let i = 0; i < hits.length; i++) { this._hitAt(hits[i], e.el); if (i < hits.length - 1) await this.wait(0.18); }
             if (e.stole) this.pop(tgt.actor.root.position.clone().setY(1.5), 'Got it!', 'tag');
             if (e.stoleGold) this.pop(tgt.actor.root.position.clone().setY(1.5), `+${e.stoleGold} G`, 'heal');
-            await this.wait(Math.max(0.2, d * 0.55 - 0.18 * (per - 1)));
+            // let the follow-through and the target's flinch play before running home
+            await this.wait(Math.max(0.45, Math.min(0.8, d - imp) - 0.18 * (per - 1)));
             if (a.alive !== false) await this.moveTo(a, a.home, 6);
             return;
         }
         // in place: a cast, a buff, a heal, an item, a monster's breath
         const clip = e.kind === 'item' ? 'wave' : (e.skill === 'attack' ? 'attack' : a.actor.has('skill') ? 'skill' : 'attack');
-        const d = a.actor.play(clip);
+        const d = a.actor.play(clip, { maxImpact: STRIKE }), imp = a.actor.lastImpact;
         this.audio?.sfx(e.kind === 'heal' ? 'heal' : e.kind === 'buff' ? 'buff' : e.el && e.el !== 'none' ? e.el : 'slash');
-        if (a.side === 'enemy' && !a.actor.rigged) await this.wait(0.25);
-        else await this.wait(Math.min(0.7, d * 0.5));
-        // a projectile of the element towards each target
-        if (e.kind === 'dmg' || e.kind === 'debuff' || e.kind === 'item') {
+        // the cast is released at the clip's moment of impact, then the bolt flies to its targets
+        const fly = e.kind === 'dmg' || e.kind === 'debuff' || e.kind === 'item';
+        await this.wait(Math.max(0.2, imp - (fly ? 0.1 : 0)));
+        if (fly) {
             for (const id of new Set(hits.map((h) => h.id))) {
                 const t = this.units[id];
                 if (t) this.fx.burst(a.actor.root.position.clone().lerp(t.actor.root.position, 0.5).setY(1), e.el || 'none', 0.7);
             }
-            await this.wait(0.15);
+            await this.wait(0.22);
         }
         for (const h of hits) this._hitAt(h, e.el);
-        await this.wait(Math.max(0.25, d * 0.4));
+        await this.wait(Math.max(0.5, Math.min(0.8, d - imp)));
     }
 
     async playChain(e) {
@@ -288,11 +308,13 @@ export class Battle3D {
             const t = this.units[hs[0].id];
             const stop = t ? t.actor.root.position.clone().lerp(u.home, 0.35) : u.home;
             await this.moveTo(u, stop, 9);
-            const d = u.actor.play(u.actor.has('chain') ? 'chain' : 'attack');
+            // the chain clip is a leap: the hits land as it comes down (sped up so it lands within 1.1 s)
+            const d = u.actor.play(u.actor.has('chain') ? 'chain' : 'attack', { maxImpact: 1.1 }), imp = u.actor.lastImpact;
+            await this.wait(Math.max(0, imp - 0.1));
             this.audio?.sfx(hs[0].el || 'slash');
-            await this.wait(Math.min(0.6, d * 0.5));
+            await this.wait(Math.min(imp, 0.1));
             for (const h of hs) this._hitAt(h, h.el);
-            await this.wait(0.35);
+            await this.wait(Math.max(0.45, Math.min(0.7, d - imp)));
             this.moveTo(u, u.home, 8);
         }
         await this.wait(0.5);

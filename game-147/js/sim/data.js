@@ -215,6 +215,8 @@ export const CATEGORIES = [
     ['gear', 'Weapons & Gear', '⚔️'], ['tools', 'Cookware & Cleaning', '🧹'], ['ingredient', 'Ingredients', '🍯'],
     ['meal', 'Meals', '🍲'], ['battle', 'Battle Items', '🧪'], ['quest', 'Quest Items', '📜'], ['decor', 'Hotel Decor', '🪴'],
 ];
+// what a Gardener on staff forages now and then (cave sugar only some of the time); the region lists join when unlocked
+export const FORAGE = { home: ['honey', 'herbs', 'pepper'], grove: ['puffcap', 'glowmoss'], cave: ['sugar'] };
 export const MARKET = ['flour', 'herbs', 'honey', 'honeyDrop', 'mintTea', 'luckyBell', 'silkScarf', 'copperRing', 'dragonflyPin',
     'copperPot', 'goldenWhisk', 'turboBroom', 'sparkleSpray', 'sunflowerVase', 'copperKettle', 'luggageCart', 'pottedFern', 'armorStand'];
 

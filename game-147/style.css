@@ -46,6 +46,18 @@ button { font: inherit; color: inherit; }
 }
 .btn:active, .ibtn:active, #dock button:active, .cmd:active, .opt:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-d); }
 .btn { padding: 10px 18px; font-size: 16px; font-family: var(--display); }
+/* dropdowns: the same paper-and-wood look as the buttons, with a drawn chevron (browsers' own selects looked unstyled) */
+select {
+    appearance: none; -webkit-appearance: none; min-height: 40px; padding: 6px 38px 6px 12px; border-radius: 12px;
+    border: 2px solid var(--wood-d); box-shadow: 0 3px 0 var(--wood-d); color: var(--ink); cursor: pointer;
+    font-family: var(--display); font-size: 15px; font-weight: 600; line-height: 1.2; text-overflow: ellipsis;
+    background: var(--paper) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1.5 1.5 7 7l5.5-5.5' fill='none' stroke='%238d5d35' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 13px center;
+}
+select:hover { background-color: #fffdf7; }
+select:focus-visible { outline: 3px solid #ffc94d; outline-offset: 2px; }
+select:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--wood-d); }
+select:disabled { opacity: 0.55; cursor: default; }
+option { font-family: var(--font); font-weight: 600; color: var(--ink); background: var(--paper); }
 .btn.primary { background: linear-gradient(#ff8a98, var(--berry)); color: #fff; border-color: #a8344a; box-shadow: 0 3px 0 #a8344a; }
 .btn.go { background: linear-gradient(#a8f0c6, var(--mint)); border-color: #3c8f63; box-shadow: 0 3px 0 #3c8f63; }
 .btn.danger { border-color: #c0394f; color: #a8344a; }
@@ -96,7 +108,24 @@ button { font: inherit; color: inherit; }
 #dock button .dot { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; border-radius: 9px; background: var(--berry); color: #fff; font-size: 11px; display: grid; place-items: center; padding: 0 4px; }
 
 /* room labels over the dollhouse */
-.rlabel { position: absolute; transform: translate(-50%, -100%); background: rgba(255, 248, 236, 0.9); border: 2px solid var(--wood-d); border-radius: 10px; padding: 2px 8px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.rlabel { position: absolute; transform: translate(-50%, -100%); background: rgba(255, 248, 236, 0.92); border: 2px solid var(--wood-d); border-radius: 10px; padding: 2px 8px; font-size: 12px; font-weight: 800; white-space: nowrap; box-shadow: 0 2px 0 rgba(141, 93, 53, 0.35); }
+/* the card for the room the camera is zoomed to */
+#roomcard {
+    position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(88px + var(--safe-b)); pointer-events: auto;
+    width: min(420px, calc(100vw - 24px)); box-sizing: border-box; padding: 10px 12px; text-align: center;
+    background: rgba(255, 248, 236, 0.96); border: 2px solid var(--wood-d); border-radius: 16px; box-shadow: var(--shadow);
+    animation: card-in 0.25s ease-out;
+}
+#roomcard.mini { width: auto; padding: 6px; }
+#roomcard .rc-name { font-family: var(--display); font-weight: 700; font-size: 17px; color: var(--berry); }
+#roomcard .rc-sub { font-size: 13px; font-weight: 700; color: var(--ink-2); margin: 2px 0 8px; }
+#roomcard .rc-acts { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+#roomcard .btn { min-height: 40px; }
+@keyframes card-in { from { opacity: 0; transform: translate(-50%, 10px); } }
+/* a soft wash when the view switches between the inn and a battle */
+#fade { position: fixed; inset: 0; pointer-events: none; z-index: 4; opacity: 0; background: radial-gradient(circle at 50% 50%, rgba(255, 250, 238, 0.6), #fff6e4 75%); }
+#fade.go { animation: fade-out 0.6s ease-out; }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
 .rlabel.dirty { border-color: #b98ad8; }
 .elabel { position: absolute; transform: translate(-50%, -100%); min-width: 110px; text-align: center; }
 .elabel .nm { font-size: 12px; font-weight: 800; color: #fff; text-shadow: 0 0 3px #000, 0 1px 2px #000; white-space: nowrap; }
@@ -239,6 +268,8 @@ td:first-child { color: var(--berry); font-weight: 800; white-space: nowrap; }
 .meter i { display: block; height: 100%; background: linear-gradient(90deg, #b39dff, #d9a1ff); }
 .meter.good i { background: linear-gradient(90deg, var(--mint), #b7f07a); }
 .pill { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--line); }
+.where { margin: 6px 0 8px; padding: 6px 10px; border-radius: 10px; background: #fff3dc; border: 1px dashed var(--wood); font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.where b { color: var(--ink); }
 .icon { width: 40px; height: 40px; border-radius: 10px; background: #fff; display: inline-block; vertical-align: middle; object-fit: contain; }
 .tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
 .tabs button { min-height: 40px; border-radius: 999px; border: 2px solid var(--wood-d); background: var(--paper); font-weight: 800; padding: 0 12px; cursor: pointer; font-size: 13px; }

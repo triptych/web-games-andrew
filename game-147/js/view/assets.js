@@ -35,6 +35,41 @@ const RAMP = (() => {
 })();
 const INK = 0x3b2a33;
 
+// Painted surface textures (art/tex, an ElevenLabs material sheet cut by dev/art/tex.py). Regular patterns (planks,
+// tiles, stripes, damask, cave flags) were cut as they are and tile mirrored; the organic ones were made seamless.
+const texLoader = new THREE.TextureLoader();
+const texCache = new Map();
+const MIRROR = new Set(['wood-honey', 'wood-walnut', 'tiles', 'paper-mint', 'paper-rose', 'cave', 'rug']);
+export function tex(name) {
+    if (!texCache.has(name)) {
+        const t = texLoader.load(`art/tex/${name}.webp`);
+        t.colorSpace = THREE.SRGBColorSpace;
+        t.wrapS = t.wrapT = MIRROR.has(name) ? THREE.MirroredRepeatWrapping : THREE.RepeatWrapping;
+        t.anisotropy = 4;
+        texCache.set(name, t);
+    }
+    return texCache.get(name);
+}
+/** A toon material with a painted texture, tinted by color. */
+export const texMat = (name, color = 0xffffff, extra = {}) => new THREE.MeshToonMaterial({ map: tex(name), color, gradientMap: RAMP, ...extra });
+
+// A soft round contact shadow under characters, so they sit on the floor even where the sun's shadow falls behind them.
+const BLOB = (() => {
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(40,24,40,0.55)'); g.addColorStop(0.6, 'rgba(40,24,40,0.28)'); g.addColorStop(1, 'rgba(40,24,40,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    return new THREE.CanvasTexture(c);
+})();
+const BLOB_GEO = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2);
+export function blobShadow(r) {
+    const m = new THREE.Mesh(BLOB_GEO, new THREE.MeshBasicMaterial({ map: BLOB, transparent: true, depthWrite: false }));
+    m.scale.set(r * 2, 1, r * 2);
+    m.position.y = 0.015;
+    m.renderOrder = 1;
+    return m;
+}
+
 export function loadModel(name) {
     if (!cache.has(name)) {
         cache.set(name, loader.loadAsync(`models/${name}.glb`).catch((e) => { console.warn('[model]', name, e.message); return null; }));
@@ -56,10 +91,39 @@ function loadClip(name, clip) {
                     for (let i = 0; i < v.length; i += 3) { v[i] = x0; v[i + 2] = z0; }
                 }
             }
+            if (['attack', 'skill', 'chain'].includes(clip)) c.userData = { impact: impactTime(c) };
             return c;
         }).catch(() => null));
     }
     return clipCache.get(key);
+}
+
+/**
+ * When a strike lands in an attack clip: the moment the arms and spine turn fastest (summed angular speed of their
+ * bones, lightly smoothed, ignoring the first 8% and the last 10%). Meshy's library clips run 1.5–7 s with the blow
+ * anywhere from 0.5 s to 2.4 s in, so a fixed delay put the damage before most swings connected.
+ */
+function impactTime(clip) {
+    const tracks = clip.tracks.filter((t) => /(Arm|ForeArm|Hand|Spine\d*)\.quaternion$/.test(t.name));
+    const base = tracks[0];
+    if (!base) return clip.duration * 0.4;
+    const n = base.times.length, sp = new Float32Array(n - 1);
+    for (const t of tracks) {
+        if (t.times.length !== n) continue;
+        const v = t.values;
+        for (let i = 0; i < n - 1; i++) {
+            const d = Math.min(1, Math.abs(v[i * 4] * v[i * 4 + 4] + v[i * 4 + 1] * v[i * 4 + 5] + v[i * 4 + 2] * v[i * 4 + 6] + v[i * 4 + 3] * v[i * 4 + 7]));
+            sp[i] += 2 * Math.acos(d) / Math.max(1e-4, t.times[i + 1] - t.times[i]);
+        }
+    }
+    let best = -1, bt = clip.duration * 0.4;
+    for (let i = 1; i < n - 2; i++) {
+        const tm = (base.times[i] + base.times[i + 1]) / 2;
+        if (tm < clip.duration * 0.08 || tm > clip.duration * 0.9) continue;
+        const v = (sp[i - 1] + sp[i] + sp[i + 1]) / 3;
+        if (v > best) { best = v; bt = tm; }
+    }
+    return bt;
 }
 
 /** Toon materials and an outline on every mesh under root. thickness is in the model's own units. */
@@ -127,6 +191,8 @@ export class Actor {
         this.proc = { t: 0, kind: 'idle', k: 0, dur: 0 };
         this.rigged = !!RIGGED[name];
         this.flash = 0;
+        this.shadow = blobShadow(height * 0.3);
+        this.root.add(this.shadow);
         this.ready = this._load();
     }
 
@@ -171,19 +237,26 @@ export class Actor {
         if (!this.rigged) this.proc.kind = clip === 'walk' || clip === 'run' ? 'walk' : 'idle';
     }
 
-    /** A one-shot: 'attack', 'skill', 'chain', 'hit', 'victory', 'faint', 'wave'. Returns its length in seconds. */
-    play(clip, { hold = false } = {}) {
+    /**
+     * A one-shot: 'attack', 'skill', 'chain', 'hit', 'victory', 'faint', 'wave'. Returns its length in seconds and sets
+     * lastImpact (when the blow lands, in seconds from now). maxImpact speeds a slow clip up so its blow lands by then.
+     */
+    play(clip, { hold = false, maxImpact = 0 } = {}) {
         const a = this.actions[clip];
         if (a) {
-            a.reset(); a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; a.play();
+            const c = a.getClip(), impact = c.userData?.impact ?? c.duration * 0.4;
+            const ts = maxImpact && impact > maxImpact ? impact / maxImpact : 1;
+            a.reset(); a.timeScale = ts; a.setLoop(THREE.LoopOnce, 1); a.clampWhenFinished = true; a.play();
             if (this.cur && this.cur !== a) this.cur.crossFadeTo(a, 0.12, false);
             this.cur = a;
             this.oneShot = hold ? null : a;
-            return a.getClip().duration;
+            this.lastImpact = impact / ts;
+            return c.duration / ts;
         }
-        // procedural stand-ins
+        // procedural stand-ins (the lunge is furthest forward half way through)
         const dur = { attack: 0.55, skill: 0.7, chain: 0.7, hit: 0.35, victory: 1.0, faint: 0.6, wave: 0.8 }[clip] || 0.5;
         this.proc = { t: 0, kind: clip, dur, hold, k: 0 };
+        this.lastImpact = dur * 0.5;
         return dur;
     }
 
@@ -237,6 +310,7 @@ export function prop(name, height, { color = 0xd8c3a5 } = {}) {
         const m = gl.scene.clone(true);
         const s = fit(m, height);
         toonify(m, 0.012 * height / s);
+        m.traverse((o) => { if (o.isMesh && !o.userData.outline) o.receiveShadow = true; });
         g.remove(ph);
         g.add(m);
         return true;
