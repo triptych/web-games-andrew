@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#2a1c46">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="description" content="Glimmerglade — a gentle fairy sorting puzzle. Tip glowing wisps between glass bell-flowers until each holds four of a colour, and every bloom wakes a magical creature.">
+    <title>Glimmerglade</title>
+    <script src="../lib/page-audio.js"></script>
+    <script src="../lib/ios-audio.js"></script>
+    <script src="../lib/a11y.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Quicksand:wght@500;600;700&display=swap">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <a id="back-link" href="../index.html">← Games</a>
+
+    <div id="bg" aria-hidden="true"><div class="bg-img" id="bg-a"></div><div class="bg-img" id="bg-b"></div><div class="bg-veil"></div></div>
+    <canvas id="view" aria-label="Glimmerglade puzzle board"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" hidden>
+        <div id="hud-place"><span id="hud-level">1</span><span id="hud-chapter">Dawnpetal Meadow</span></div>
+        <div id="hud-right">
+            <div id="hud-moves" aria-live="polite"><b id="hud-mv">0</b><small>moves</small></div>
+            <div id="hud-stars" aria-label="Stars"><i></i><i></i><i></i></div>
+            <button id="btn-pause" class="ibtn" aria-label="Pause">❚❚</button>
+        </div>
+    </div>
+    <div id="toolbar" hidden>
+        <button class="tool" id="tool-undo" data-tool="undo" aria-label="Undo"><img src="art/icon-undo.webp" alt=""><span>Undo</span></button>
+        <button class="tool" id="tool-hint" data-tool="hint" aria-label="Hint"><img src="art/icon-hint.webp" alt=""><span>Firefly</span><em id="hint-count">3</em></button>
+        <button class="tool" id="tool-sprout" data-tool="sprout" aria-label="Grow an extra blossom"><img src="art/icon-sprout.webp" alt=""><span>Sprout</span></button>
+        <button class="tool" id="tool-restart" data-tool="restart" aria-label="Restart level"><img src="art/icon-restart.webp" alt=""><span>Restart</span></button>
+    </div>
+    <img id="companion" src="art/lumi.webp" alt="" hidden>
+    <div id="caption" aria-live="polite" hidden><img id="caption-face" src="art/por-lumi.webp" alt=""><span id="caption-text"></span></div>
+    <div id="banner" hidden></div>
+
+    <!-- Screens -->
+    <div id="title" class="screen title-screen">
+        <div class="title-art" aria-hidden="true"></div>
+        <div class="title-inner">
+            <h1 class="logo">Glimmerglade</h1>
+            <p class="tagline">a fairy sorting puzzle</p>
+            <nav class="menu" id="title-menu">
+                <button data-act="play" id="btn-play" class="btn primary big">Play</button>
+                <button data-act="map" class="btn">Glade Map</button>
+                <button data-act="daily" id="btn-daily" class="btn">Daily Dewdrop <small id="daily-note"></small></button>
+                <button data-act="journal" class="btn">Creature Journal</button>
+                <div class="menu-row">
+                    <button data-act="howto" class="btn">How to Play</button>
+                    <button data-act="settings" class="btn">Settings</button>
+                </div>
+            </nav>
+            <div class="version" id="version"></div>
+        </div>
+    </div>
+
+    <div id="map" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>The Glade</h2>
+            <p class="dim" id="map-total"></p>
+            <div id="chapters"></div>
+            <div id="dream-row" hidden>
+                <button id="btn-dream" class="btn">✨ Endless Dreams <small id="dream-note"></small></button>
+            </div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Back</button></div>
+        </div>
+    </div>
+
+    <div id="journal" class="screen" hidden>
+        <div class="sheet wide">
+            <h2>Creature Journal</h2>
+            <p class="dim" id="journal-note">Every bloom wakes the creature whose heart-light filled it.</p>
+            <div id="creatures"></div>
+            <div class="sheet-foot"><button class="btn primary" data-close>Close</button></div>
+        </div>
+    </div>
+
+    <div id="howto" class="screen" hidden>
+        <div class="sheet">
+            <h2>How to Play</h2>
+            <div class="howto-list">
+                <p><b>Tap a blossom</b> to lift its top wisps, then <b>tap another</b> to tip them in. You can also drag from one to the other.</p>
+                <p>Wisps only land on <b>their own colour</b> or in an <b>empty</b> blossom, and every wisp of one colour on top travels together.</p>
+                <p>Fill a blossom with <b>four of one colour</b> and it <b>blooms</b>: a creature wakes and sits on top. Bloom every colour to finish the level.</p>
+                <p><b>Mist</b> <span class="dim">(Mushroom Hollow)</span>: hidden wisps show when the ones above them move away.</p>
+                <p><b>Brambles</b> <span class="dim">(Moonpond)</span>: a wrapped blossom opens after the number of blooms on its badge.</p>
+                <p><b>Acorn cups</b> <span class="dim">(Crystal Grotto)</span>: hold two wisps, never bloom.</p>
+                <p><b>Undo</b> is free (a bloom can't be undone), the <b>Firefly</b> shows a good pour (three per level), and a <b>Sprout</b> grows one extra empty blossom (once a level; it caps you at two stars).</p>
+                <p>Finish in as few pours as Grandmother Willow did for <b>three stars</b>.</p>
+            </div>
+            <table>
+                <tr><td>Tap / click</td><td>Lift, then pour</td></tr>
+                <tr><td>← → ↑ ↓ + Space</td><td>Pick a blossom, lift, pour</td></tr>
+                <tr><td>1–9, 0</td><td>Pick blossom 1–10</td></tr>
+                <tr><td>Z / U / Backspace</td><td>Undo</td></tr>
+                <tr><td>H · G · R</td><td>Firefly · Sprout · Restart</td></tr>
+                <tr><td>P / Esc</td><td>Pause</td></tr>
+                <tr><td>Gamepad</td><td>D-pad, A lift/pour, B undo, X firefly, Y sprout, Start</td></tr>
+            </table>
+            <div class="sheet-foot"><button class="btn primary" data-close>Got it</button></div>
+        </div>
+    </div>
+
+    <div id="settings" class="screen" hidden>
+        <div class="sheet">
+            <h2>Settings</h2>
+            <label class="row">Sound <input type="range" id="set-sfx" min="0" max="1" step="0.05"></label>
+            <label class="row">Music <input type="range" id="set-music" min="0" max="1" step="0.05"></label>
+            <label class="row">Voices <input type="range" id="set-voice" min="0" max="1" step="0.05"></label>
+            <label class="row">Symbols on wisps <input type="checkbox" id="set-glyphs"></label>
+            <label class="row">Calm motion <input type="checkbox" id="set-calm"></label>
+            <button id="set-delete" class="btn danger">Forget all progress</button>
+            <p class="dim credits">Art, music, sound and voices: generated with ElevenLabs (Nano Banana 2.1, Eleven Music, Sound Effects, Eleven v4: Libby as Lumi, Nan as Grandmother Willow). Code: vanilla JavaScript and Canvas 2D.</p>
+            <div class="sheet-foot"><button class="btn primary" data-close>Done</button></div>
+        </div>
+    </div>
+
+    <div id="pause" class="screen" hidden>
+        <div class="sheet">
+            <h2>Resting</h2>
+            <nav class="menu" id="pause-menu">
+                <button data-act="resume" class="btn primary">Resume</button>
+                <button data-act="restart" class="btn">Restart Level</button>
+                <button data-act="map" class="btn">Glade Map</button>
+                <button data-act="howto" class="btn">How to Play</button>
+                <button data-act="settings" class="btn">Settings</button>
+                <button data-act="quit" class="btn">Back to Title</button>
+            </nav>
+        </div>
+    </div>
+
+    <div id="win" class="screen" hidden>
+        <div class="sheet win-sheet">
+            <img id="win-lumi" src="art/lumi-cheer.webp" alt="">
+            <h2 id="win-head">Bloomed!</h2>
+            <div id="win-stars"><i></i><i></i><i></i></div>
+            <p id="win-text"></p>
+            <div id="win-creatures"></div>
+            <div class="sheet-foot">
+                <button id="win-map" class="btn">Map</button>
+                <button id="win-again" class="btn">Replay</button>
+                <button id="win-next" class="btn primary">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="story" class="screen story-screen" hidden>
+        <div class="story-card">
+            <img id="story-face" src="art/por-willow.webp" alt="">
+            <div class="story-body">
+                <div id="story-name">Grandmother Willow</div>
+                <p id="story-text"></p>
+            </div>
+            <div class="sheet-foot story-foot"><button id="story-next" class="btn primary">Next</button></div>
+        </div>
+    </div>
+
+    <div id="ending" class="screen ending-screen" hidden>
+        <div class="ending-card">
+            <h2>The Glade Glows</h2>
+            <p>Every wisp is home and every creature is awake. Thank you for helping Lumi.</p>
+            <div class="sheet-foot"><button id="ending-done" class="btn primary">Goodnight, glade</button></div>
+        </div>
+    </div>
+
+    <div id="toasts"></div>
+    <noscript><p class="noscript">Glimmerglade needs JavaScript.</p></noscript>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
