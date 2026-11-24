@@ -107,7 +107,7 @@ export class UI {
         // (v1.0.0 listened on the panel body only, and the tracker's Desk / Kitchen / Ledger / Adventure did nothing)
         document.body.addEventListener('click', (e) => {
             const p = e.target.closest('[data-open]');
-            if (p && !p.disabled) { this.audio.ui('click'); this.openPanel(p.dataset.open); }
+            if (p && !p.disabled) { this.audio.ui('click'); if (p.dataset.opentab) this.panelTab[p.dataset.open] = p.dataset.opentab; this.openPanel(p.dataset.open); }
         });
         // a portrait in the Team panel opens the 3D model viewer; its buttons play the hero's animations
         document.body.addEventListener('click', (e) => {
@@ -170,12 +170,16 @@ export class UI {
         list[(i + dir + list.length) % list.length].focus();
     }
 
-    toast(text, cls = '') {
+    /** A notice above the dock. With an item icon and a second line it is a bigger card that stays up longer. */
+    toast(text, cls = '', { item = null, sub = '', ms = 3200 } = {}) {
         const el = document.createElement('div');
-        el.className = 'toast ' + cls; el.textContent = text;
+        el.className = 'toast ' + cls + (item || sub ? ' card-toast' : '');
+        if (item || sub) el.innerHTML = `${item ? icon(item, 'ticon') : ''}<div><div>${esc(text)}</div>${sub ? `<small>${esc(sub)}</small>` : ''}</div>`;
+        else el.textContent = text;
+        el.style.animationDuration = `${ms / 1000}s`;
         $('toasts').appendChild(el);
         while ($('toasts').children.length > 4) $('toasts').firstChild.remove();
-        setTimeout(() => el.remove(), 3300);
+        setTimeout(() => el.remove(), ms + 100);
     }
 
     // ------------------------------------------------------------------ dialogue (story scenes and bond vignettes)
@@ -299,10 +303,15 @@ export class UI {
     recruitStatus(G, h) {
         const s = G.recruits[h], R = RECRUITS[h], g = Object.values(G.guests).find((x) => x.recruit === h);
         const ok = (b) => (b ? '✅' : '⬜');
+        // say where the meal they want comes from, and what became of a quest item (Ember turns the pepper into her stew)
+        const inPantry = G.pantry.some((m) => m.r === R.meal);
+        const mealHint = s.meal ? '' : inPantry ? ` <span class="hint">(it's in your pantry: serve it to ${esc(HEROES[h].short)})</span> <button class="btn small" data-open="kitchen" data-opentab="pantry">Pantry</button>`
+            : h === 'ember' ? ` <span class="hint">(${s.task ? 'she\'s cooking it' : 'she\'ll cook it with the pepper'})</span>` : '';
+        const taskText = h === 'ember' && s.task ? 'Brought a Fire Pepper (she cooked her stew with it)' : esc(R.task.text);
         return `<b>${esc(HEROES[h].short)} (stranger)</b>
             <div>${ok(g?.room)} A room${R.room === 'clean' ? ' (clean: 1 bunny at most)' : ''}</div>
-            <div>${ok(s.meal)} Serve ${esc(RECIPES[R.meal].name)}</div>
-            <div>${ok(s.task)} ${esc(R.task.text)}${R.task.kind === 'harvest' ? ` (${s.count || 0}/${R.task.n})` : ''}</div>`;
+            <div>${ok(s.task)} ${taskText}${R.task.kind === 'harvest' ? ` (${s.count || 0}/${R.task.n})` : ''}</div>
+            <div>${ok(s.meal)} Serve ${esc(RECIPES[R.meal].name)}${mealHint}</div>`;
     }
 
     stirBar(n) {
@@ -769,13 +778,26 @@ export class UI {
         clearTimeout(this._bt); this._bt = setTimeout(() => { b.hidden = true; }, 1700);
     }
 
+    /** Something came off the stove (yours, a cook's, or Ember's gift): what, how good, where it is, who wants it. */
+    cookedToast(G, e) {
+        const R = RECIPES[e.r];
+        if (e.grade === 'gift') {
+            this.toast(`🍲 ${HEROES[e.chef].short} cooked her ${R.name} ${stars(e.stars)}`, 'love', { item: e.r, sub: 'With the Fire Pepper you brought. It\'s in the pantry: serve it to her!', ms: 6000 });
+            return;
+        }
+        const wants = Object.values(G.guests).filter((g) => g.room && g.served !== G.day && (g.recruit ? RECRUITS[g.recruit].meal === e.r : g.reqMeal === e.r)).map((g) => g.name);
+        const sub = [e.grade === 'perfect' ? '✨ Perfect stir!' : e.grade === 'good' ? 'Good stir!' : '', e.chef ? `with ${HEROES[e.chef].short}` : '',
+            wants.length ? `${wants.join(', ')} ${wants.length > 1 ? 'want' : 'wants'} this!` : `In the pantry (${G.pantry.length})`].filter(Boolean).join(' · ');
+        this.toast(`🍳 ${R.name} ${stars(e.stars)}`, 'good', { item: e.r, sub, ms: 4500 });
+    }
+
     onEvents(G, events) {
         for (const e of events) {
             switch (e.type) {
                 case 'nope': this.toast(e.text, 'bad'); break;
                 case 'checkout': this.toast(`${e.name} checked out: ${'★'.repeat(e.stars)} · +${e.pay + e.tip} G${e.tip ? ` (${e.tip} tip)` : ''}`, 'good'); break;
                 case 'served': this.toast(e.recruit ? `${HEROES[e.recruit].short} loved the ${RECIPES[e.r].name}!` : `${e.name} enjoyed the ${RECIPES[e.r].name}${e.fav ? ' (just what they wanted!)' : ''} · +${e.gold} G`, 'good'); break;
-                case 'cooked': if (e.grade === 'gift') this.toast(`${HEROES[e.chef].short} cooked ${RECIPES[e.r].name} with your pepper! Serve it to her.`, 'love'); else this.toast(`${RECIPES[e.r].name} ${stars(e.stars)}${e.grade === 'perfect' ? ' · Perfect stir!' : ''}`, 'good'); break;
+                case 'cooked': this.cookedToast(G, e); break;
                 case 'levelUp': this.toast(`${HEROES[e.hero].short} reached level ${e.lv}!`, 'good'); break;
                 case 'bondUp': this.toast(`💞 ${HEROES[e.a].short} & ${HEROES[e.b].short}: bond level ${e.lv}!`, 'love'); break;
                 case 'goalDone': this.toast(`✅ ${e.text}`, 'good'); break;
@@ -785,7 +807,7 @@ export class UI {
                 case 'late': this.toast(`⏰ Late! Fee of ${e.fee} G added.`, 'bad'); break;
                 case 'newDay': this.toast(`☀️ Day ${e.day}`); break;
                 case 'forage': this.toast(`🌻 ${HEROES[e.hero].short} found ${ITEMS[e.item].name}`); break;
-                case 'recruitTask': this.toast(`${HEROES[e.hero].short}'s task is done!`, 'love'); break;
+                case 'recruitTask': if (e.hero !== 'ember') this.toast(`${HEROES[e.hero].short}'s task is done!`, 'love'); break;    // Ember's shows as her stew
                 case 'recruitReady': this.toast(`${HEROES[e.hero].short} wants a word at the desk!`, 'love'); break;
                 case 'stranger': this.toast('🚪 A stranger has come to the desk…', 'love'); break;
                 case 'bought': this.toast(`Bought ${ITEMS[e.item].name}`); break;

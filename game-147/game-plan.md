@@ -527,6 +527,9 @@ clip (`dev/rigshot.mjs` covers single models).
 - Fixed: dialogue portraits were cut off at the chin; people have a taller head-and-shoulders portrait.
 - Fixed: the inn's clock ran during battles; time now stands still mid-battle (it still runs between fights).
 - Added: a 3D model viewer from the Team panel's portraits (turn, zoom, play each animation clip).
+- Fixed: Ember's favour could get stuck (her stew skipped on a full pantry, or sold or eaten); she now cooks it again
+  whenever she's still waiting for it, and the tracker says where it is.
+- Added: a picture notice for every dish cooked (stars, stir grade, who wants it).
 
 ### v1.1.0 (2026-11-24)
 

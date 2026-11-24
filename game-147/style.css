@@ -91,6 +91,8 @@ option { font-family: var(--font); font-weight: 600; color: var(--ink); backgrou
 }
 #tracker .card { background: rgba(255, 248, 236, 0.94); border: 2px solid var(--wood-d); border-radius: 14px; padding: 8px 10px; box-shadow: var(--shadow); font-size: 13px; }
 #tracker .card b { font-family: var(--display); font-size: 13px; color: var(--berry); display: block; }
+#tracker .card .hint { color: var(--ink-2); font-size: 12px; }
+#tracker .card .btn.small { min-height: 30px; padding: 3px 10px; font-size: 12px; margin-top: 2px; }
 #tracker .card.daily { font-size: 12px; }
 #tracker .card .done { text-decoration: line-through; opacity: 0.6; }
 #tracker .card.cook { border-color: #e88b1e; }
@@ -313,6 +315,9 @@ td:first-child { color: var(--berry); font-weight: 800; white-space: nowrap; }
 
 #toasts { position: fixed; left: 50%; bottom: calc(100px + var(--safe-b)); transform: translateX(-50%); z-index: 80; pointer-events: none; display: flex; flex-direction: column; gap: 6px; align-items: center; width: min(90vw, 420px); }
 .toast { background: rgba(255, 248, 236, 0.97); border: 2px solid var(--wood-d); border-radius: 12px; padding: 8px 14px; font-weight: 800; font-size: 14px; animation: toast 3.2s forwards; box-shadow: var(--shadow); text-align: center; }
+.toast.card-toast { display: flex; align-items: center; gap: 10px; text-align: left; font-family: var(--display); font-size: 16px; padding: 8px 14px 8px 8px; border-width: 3px; }
+.toast.card-toast small { display: block; font-family: var(--font); font-size: 12px; font-weight: 700; color: var(--ink-2); margin-top: 1px; }
+.toast .ticon { width: 44px; height: 44px; flex: none; border-radius: 10px; background: #fff; }
 .toast.good { border-color: #3c8f63; } .toast.bad { border-color: #c0394f; } .toast.love { border-color: #ff8ab0; }
 @keyframes toast { 0% { opacity: 0; transform: translateY(10px); } 8%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
 .noscript { position: fixed; inset: 0; display: grid; place-items: center; }

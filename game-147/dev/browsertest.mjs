@@ -198,6 +198,7 @@ async function desktop() {
     await page.waitForFunction(() => { const el = document.querySelector('#panel-body .stir .needle'); return el && Math.abs(parseFloat(el.style.left) - 50) < 4; }, null, { timeout: 20000, polling: 'raf' }).catch(() => {});
     await page.keyboard.press('Space');
     await until(page, () => __iomh.G.pantry.length >= 1, 'Space stirs, and a meal is in the pantry');
+    await until(page, () => [...document.querySelectorAll('#toasts .card-toast')].some((t) => t.textContent.includes('Honey Tart') && t.querySelector('.ticon')), 'a notice with the dish\'s picture says it was cooked', 5000);
     check(await Q(page, () => __iomh.G.pantry[0].q >= 1.1), `a well-timed stir makes a good meal (quality ${await Q(page, () => __iomh.G.pantry[0]?.q)})`);
     await page.keyboard.press('Escape');
     await shot(page, 'inn');

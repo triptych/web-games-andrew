@@ -282,9 +282,15 @@ export function checkRecruit(G, hero) {
         const t = RECRUITS[hero].task;
         if (t.kind === 'item') take(G, t.item, t.n);
         s.task = true;
-        // Ember cooks her grandmother's stew with the pepper you brought, and leaves it in the pantry for you to serve
-        if (hero === 'ember' && G.pantry.length < HOTEL.pantryMax + 1) { G.pantry.push({ r: 'emberStew', q: 1.25 }); G.events.push({ type: 'cooked', r: 'emberStew', q: 1.25, grade: 'gift', stars: 2, chef: 'ember' }); }
         G.events.push({ type: 'recruitTask', hero });
+    }
+    // Ember cooks her grandmother's stew with the pepper you brought and leaves it in the pantry for you to serve back to
+    // her (you can't cook it yourself until she joins). Whenever she is still waiting for it and there is none in the
+    // pantry, she cooks it (again): v1.1.0 skipped it when the pantry was full, and a stew sold or eaten on an adventure
+    // was gone for good, so the pepper vanished and her favour could never be finished.
+    if (hero === 'ember' && s.task && !s.meal && !G.pantry.some((m) => m.r === 'emberStew')) {
+        G.pantry.push({ r: 'emberStew', q: 1.25 });
+        G.events.push({ type: 'cooked', r: 'emberStew', q: 1.25, grade: 'gift', stars: 2, chef: 'ember' });
     }
     if (s.task && s.meal && s.stage === 'staying') {
         s.stage = 'ready';

@@ -273,6 +273,16 @@ if (want('recruits')) {
     ok(G.recruits.ember.stage === 'staying', 'she takes a room');
     G.inv.pepper = 1; run(G, 0.1);
     ok(G.recruits.ember.task && !G.inv.pepper && G.pantry.some((m) => m.r === 'emberStew'), 'a pepper completes her task, and she cooks the stew herself');
+    // v1.1.1: her stew can't go missing for good (the pepper is used up, so a lost stew stuck her favour)
+    {
+        const G2 = Gm.deserialize(JSON.parse(JSON.stringify(Gm.serialize(G))));
+        G2.pantry = G2.pantry.filter((m) => m.r !== 'emberStew'); run(G2, 0.1);
+        ok(G2.pantry.filter((m) => m.r === 'emberStew').length === 1, 'a stew sold or eaten before she was served: she cooks another');
+        G2.pantry = Array.from({ length: C.HOTEL.pantryMax }, () => ({ r: 'honeyTart', q: 1 })); run(G2, 0.1);
+        ok(G2.pantry.some((m) => m.r === 'emberStew'), 'and a full pantry doesn\'t stop her');
+        run(G2, 1);
+        ok(G2.pantry.filter((m) => m.r === 'emberStew').length === 1, 'but only ever one at a time');
+    }
     const idx = G.pantry.findIndex((m) => m.r === 'emberStew');
     Gm.act(G, { t: 'serve', meal: idx, guest: eid });
     ok(G.recruits.ember.stage === 'ready', 'serving her stew: she is ready to join');
