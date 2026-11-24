@@ -305,8 +305,12 @@ async function phone(w, h) {
     await until(page, () => !document.getElementById('panel').hidden, 'a tap opens the Adventure panel');
     await tapSel('#exp-go');
     await until(page, () => __iomh.G.mode === 'expedition', 'a tap sets off');
+    // the expedition card appears on the next frame after the sim sets off (a third of a second under SwiftShader):
+    // tap its button once it's on screen, not before
+    await until(page, () => { const b = document.querySelector('#exped-card [data-cmd*="fight"]'); return !document.getElementById('exped').hidden && b && b.getBoundingClientRect().height > 0; }, 'the expedition card shows its Explore button');
     await tapSel('#exped-card [data-cmd*="fight"]');
     await until(page, () => __iomh.G.battle?.phase === 'command' && !__iomh.busy(), 'a battle, Maple\'s turn', 120000);
+    if (!(await Q(page, () => __iomh.G.battle?.phase === 'command'))) console.log('     state:', await Q(page, () => JSON.stringify({ mode: __iomh.G.mode, phase: __iomh.G.battle?.phase, actor: __iomh.G.battle?.actor, auto: __iomh.G.battle?.auto, busy: __iomh.busy(), q: __iomh.view.battle.queue.length, run: __iomh.view.battle.running, ev: __iomh.G.events.length, exped: document.getElementById('exped-card')?.textContent.slice(0, 120), hit: (() => { const b = document.querySelector('#exped-card [data-cmd*="fight"]'); if (!b) return 'no fight button'; const r = b.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return [JSON.stringify(r), e?.id, e?.className, e?.parentElement?.id, e?.textContent?.slice(0, 40)]; })() })));
     check(await Q(page, () => [...document.querySelectorAll('#commands .cmd')].every((b) => { const r = b.getBoundingClientRect(); return r.height >= 44 && r.right <= innerWidth && r.bottom <= innerHeight; })), 'the command buttons are 44 px and on screen');
     const acts0 = await Q(page, () => __iomh.seen.act || 0);
     await tapSel('#commands [data-b="attack"]');
