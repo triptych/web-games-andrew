@@ -1825,6 +1825,17 @@ h1 {
     box-shadow: 0 0 14px rgba(199, 162, 255, 0.8);
 }
 
+.game-preview.echoheart-academy,
+.carousel-slide-bg.echoheart-academy {
+    background: linear-gradient(160deg, #7fb6ff 0%, #ffb6d6 45%, #b48cff 75%, #3a1f6a 100%);
+}
+
+.game-card.echoheart-academy .play-button {
+    background: linear-gradient(135deg, #ffe38f, #ff9cc2, #b48cff);
+    color: #2a1640;
+    box-shadow: 0 0 14px rgba(255, 156, 194, 0.75);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

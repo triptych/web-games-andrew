@@ -1,0 +1,26 @@
+{
+  "_note": "One eleven_v4 take per character, lines in this order separated by [long pause]; process.py splits the take at its longest pauses into audio/vo/<who>-<key>.mp3.",
+  "kai": { "voice": "S0ypc51SmsvcKXTWvjqJ", "voiceName": "Kai - Energetic Anime Hero", "lines": [
+    ["start", "[excited] Let's do this!"], ["echo", "[shouting] Echo!"], ["cover", "I've got your back!"], ["hear", "[softly, amazed] Your magic... I can hear it."],
+    ["coming", "[urgent] Hang on, I'm coming!"], ["win", "[cheering] We did it!"], ["hurt", "[pained] Ow, ow, ow!"], ["finale", "[determined, rising] Everyone... lend me your light!"] ] },
+  "hana": { "voice": "W3C2vBPukr5b5jvoXhPK", "voiceName": "Kira X - Video Game, Bold & Cinematic", "lines": [
+    ["start", "[confident] Let's burn bright!"], ["skill", "[shouting] Blaze Burst!"], ["win", "[laughs] Hah! Too easy!"], ["hurt", "[annoyed] Hey! Watch it!"],
+    ["cheer", "[fierce] Don't you dare give up on me, Kai!"], ["thanks", "[shy] Heh... thanks, partner."], ["hi", "[cheerful] Yo! Ready for a rematch?"] ] },
+  "lys": { "voice": "Wu9A8zlwvFHoEpuX7MGo", "voiceName": "Libby-Animated", "lines": [
+    ["start", "[softly] The stars are with us."], ["skill", "[calling out] Starfall!"], ["win", "[surprised, happy] I... I did it!"], ["worry", "[worried] Please, be careful..."],
+    ["brave", "[resolute] I'm not afraid anymore."], ["hurt", "[startled] Eek!"], ["hi", "[shy] Oh! H-hello, Kai."] ] },
+  "pip": { "voice": "b8JMPeNuVrqqWExQc8e9", "voiceName": "Ayla - Bubbly, Cute & Expressive", "lines": [
+    ["start", "[excited] Experiment time!"], ["skill", "[cheerful] Tidal Tonic, coming right up!"], ["win", "[giggles] Kaboom! In a good way!"], ["hi", "[bubbly] Ooh, perfect timing! Hold this!"],
+    ["heal", "Hold still, this'll sting a teeny bit!"], ["hurt", "[pained] Oof!"], ["yay", "[squealing] Best. Day. Ever!"] ] },
+  "ren": { "voice": "OwEAPhTFInN6VSRT9QXm", "voiceName": "Jordan - Warm & Gritty", "lines": [
+    ["start", "[grinning] Catch the wind!"], ["skill", "[shouting] Cyclone!"], ["win", "[laughs] Ha! Did you see that?"], ["support", "[gently] Easy, buddy. I'm right here."],
+    ["angry", "[angry] Nobody messes with my roommate!"], ["hurt", "[surprised] Whoa!"], ["hi", "[excited] Kai! My man!"] ] },
+  "veymont": { "voice": "HAvvFKatz0uu0Fv55Riy", "voiceName": "Matthew Schmitz - Ancient Sage Dragon Wizard", "lines": [
+    ["welcome", "[warmly] Welcome, welcome! Have a lemon candy."], ["curious", "[thoughtfully] Such a curious gift you have, young man."], ["wasted", "[coldly] Magic is wasted on the young."],
+    ["moon", "[triumphant] The Hollow Moon rises, and with it, my eternity!"], ["impossible", "[shocked] Impossible! You echo them all?"], ["fade", "[weakening] No... my light... it's fading..."],
+    ["laugh", "[laughs darkly] Ah ha ha ha!"] ] },
+  "graves": { "voice": "jTAlT4VvvXlYNDrxqpNQ", "voiceName": "Andrea - British female character voice", "lines": [
+    ["attention", "[dryly] Pay attention, Mr. Amano."], ["glyph", "[commanding] Warding Glyph!"], ["well", "[grudgingly] Hmph. Well done."], ["behind", "[urgent] Stand behind me, children!"] ] },
+  "mochi": { "voice": "rBkiq5ZQ43ogwd6i4uIQ", "voiceName": "Peanut – Tiny & Peppy", "lines": [
+    ["happy", "[excited] Kyuu!"], ["chatter", "[happy] Kyu kyu kyu!"], ["sad", "[sad] Kyuu..."] ] }
+}
