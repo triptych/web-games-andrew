@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Hurray LA's Fairy Lamp Adventure** (game-149) v1.0.0 scaffold: a cozy memory game about antique pressed-glass fairy lamps, in vanilla JavaScript and Canvas 2D on the sim/view layout. Turn over two tiles at a time and match each glass shade to its own base; a finished lamp lights up.
+  - **Design** ([game-plan.md](game-149/game-plan.md)): flipping, matching and star rules, boards growing from 4 to 8 lamps.
+  - **Lamps** ([js/sim/data/lamps.js](game-149/js/sim/data/lamps.js)): eight lamps painted from a real collection (cobalt and amber hobnail, clear diamond point, green starburst, amber star crown, blue moon and star, pink blossom, amethyst diamond), each with an `art` description the painted sprites are made from.
+  - **Art** ([art/README.md](game-149/art/README.md)): 32 painterly sprites, a shade, a base, an unlit and a lit lamp for each of the eight, painted with fal from a photo of the real collection and cut out to transparent WebP (1.3 MB). Each lamp has one master painting and its other three sprites are edits of it, so the bases are the same short cups in every state and all four line up pixel for pixel; a first pass that painted each part separately gave bases taller than the cups under the shades. Prompts, edits and the cut-out are in [dev/art/](game-149/dev/art/).
+  - **Tests**: the scaffold's `dev/simtest.mjs` and `dev/browsertest.mjs` (desktop, touch-only phones, blocked storage).
+  - Launcher entry in [js/gamedata.js](js/gamedata.js) and its card style in [css/styles.css](css/styles.css).
 - **Inn Over My Head** (game-147) v1.2.0: cloud saves with Supabase. Sign in with a link emailed to you (no password) from **☁️ Cloud Save** on the title screen or in the menu, then save your inn online and load it on another device or browser. While you're signed in, the game also saves to the cloud by itself every two minutes and when you quit or close the page (you can switch this off). Loading over a game on this device asks you to tap twice. Plain `fetch` against Supabase's REST endpoints, no client library ([js/cloud.js](game-147/js/cloud.js)). A new Supabase project, `web-games`, holds a `game_saves` table shared by game id, with row-level security so each player sees and changes only their own saves ([dev/supabase/](game-147/dev/supabase/README.md)). The browser test runs the whole flow against a mock Supabase.
 
 ### Fixed

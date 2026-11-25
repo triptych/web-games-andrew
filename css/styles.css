@@ -1825,6 +1825,20 @@ h1 {
     box-shadow: 0 0 14px rgba(199, 162, 255, 0.8);
 }
 
+.game-preview.fairy-lamp-adventure,
+.carousel-slide-bg.fairy-lamp-adventure {
+    background: radial-gradient(circle at 30% 60%, rgba(255, 196, 92, 0.55), transparent 35%),
+        radial-gradient(circle at 70% 45%, rgba(64, 130, 230, 0.5), transparent 32%),
+        radial-gradient(circle at 52% 30%, rgba(201, 138, 160, 0.45), transparent 30%),
+        linear-gradient(160deg, #2a1730 0%, #4a2a22 60%, #6b3f1f 100%);
+}
+
+.game-card.fairy-lamp-adventure .play-button {
+    background: linear-gradient(135deg, #ffb85c, #c98aa0, #2a8fd0);
+    color: #1a1220;
+    box-shadow: 0 0 14px rgba(255, 184, 92, 0.7);
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

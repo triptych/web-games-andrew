@@ -2319,6 +2319,21 @@ const games = [
             { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
             { emoji: '\uD83C\uDFA8', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-149',
+        title: "Hurray LA's Fairy Lamp Adventure",
+        description: "A cozy memory game about antique pressed-glass fairy lamps, in vanilla JavaScript and Canvas 2D with painted lamp art. Hurray LA's shelf of fairy lamps has tumbled over and every lamp has come apart. Turn over two tiles at a time and match each glass shade to its own base: cobalt and amber hobnail, clear diamond point, green starburst, blue moon and star, pink blossom and more. Every lamp you put back together lights up, its candle glowing through the coloured glass. In development: the scaffold is up and all 32 lamp paintings are done.",
+        icon: '\uD83D\uDD6F\uFE0F',
+        folder: 'game-149',
+        version: '1.0.0',
+        cssClass: 'fairy-lamp-adventure',
+        genre: 'puzzle',
+        tags: [
+            { emoji: '\uD83E\uDDE0', label: 'Memory' },
+            { emoji: '\uD83D\uDD6F\uFE0F', label: 'Fairy Lamps' },
+            { emoji: '\uD83C\uDFA8', label: 'Canvas 2D' }
+        ]
     }
 ];
 

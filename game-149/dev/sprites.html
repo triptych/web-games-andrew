@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fairy lamp sprites</title>
+    <style>
+        :root { --bg: #2a1730; --line: rgba(255, 255, 255, 0.15); --text: #f4ecf6; --dim: #b9a6bf; }
+        * { box-sizing: border-box; }
+        body { margin: 0; padding: 16px; background: var(--bg); color: var(--text); font: 14px system-ui, sans-serif; }
+        h1 { font-size: 20px; margin: 0 0 4px; }
+        p { color: var(--dim); margin: 0 0 16px; }
+        label { display: inline-flex; gap: 6px; align-items: center; min-height: 44px; margin-right: 16px; }
+        .grid { display: grid; grid-template-columns: 140px repeat(5, minmax(0, 1fr)); gap: 8px; align-items: center; }
+        .head { color: var(--dim); text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .name { font-weight: 600; }
+        .cell { position: relative; aspect-ratio: 1; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+        .cell img { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); object-fit: contain; }
+        body.light { --bg: #efe6d8; --text: #2a1730; --dim: #6b5a70; --line: rgba(0, 0, 0, 0.15); }
+        @media (max-width: 640px) { .grid { grid-template-columns: 80px repeat(5, minmax(0, 1fr)); } }
+    </style>
+</head>
+<body>
+    <h1>Fairy lamp sprites</h1>
+    <p>Every sprite of a lamp is the same size and aligned; the last column draws the shade over the base.</p>
+    <label><input type="checkbox" id="light"> Light background</label>
+    <div class="grid" id="grid"></div>
+    <script type="module">
+        import { LAMPS } from '../js/sim/data/lamps.js';
+        const grid = document.getElementById('grid');
+        const add = (cls, html) => { const d = document.createElement('div'); d.className = cls; d.innerHTML = html; grid.append(d); };
+        add('head', '');
+        for (const h of ['shade', 'base', 'unlit', 'lit', 'shade on base']) add('head', h);
+        const img = (id, part) => `<img src="../art/lamps/${id}-${part}.webp" alt="${id} ${part}">`;
+        for (const l of LAMPS) {
+            add('name', l.name);
+            for (const p of ['shade', 'base', 'unlit', 'lit']) add('cell', img(l.id, p));
+            add('cell', img(l.id, 'base') + img(l.id, 'shade'));
+        }
+        document.getElementById('light').addEventListener('change', (e) => document.body.classList.toggle('light', e.target.checked));
+    </script>
+</body>
+</html>

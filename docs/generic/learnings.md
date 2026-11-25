@@ -7693,3 +7693,20 @@ A fairy ball-sort puzzle in Canvas 2D with every picture and sound from ElevenLa
   outside the glass, overlapping any blossom means behind it. Test it as geometry, not by eye: sample every
   from→to pair through the view's own position function and assert containment and layering (`flightAudit` in
   `game-148/dev/browsertest.mjs`); run it on a two-row phone layout too, where the only failures were.
+
+## Game 149: Hurray LA's Fairy Lamp Adventure — scaffold notes (2026-11-24)
+
+- **The scaffold's purity scan didn't look in subfolders.** `dev/simtest.mjs` listed `js/sim/` with a plain `readdirSync`, so the first
+  `js/sim/data/` folder (the layout the scaffold itself recommends) made it crash with `EISDIR`, and a file in a subfolder would never
+  have been checked. It now reads `js/sim/` recursively and keeps the `.js` files; the template in `.claude/commands/scaffold-game.md`
+  is fixed too.
+- **Art from a reference photo.** When the art has to look like real objects (here, a photo of the owner's antique glass lamps), put the
+  photo in `image_urls` of an *edit* model (`google/nano-banana-2.1/edit`) and write each sprite's prompt from an `art` field in the sim's
+  data table (`game-149/dev/art/prompts.mjs`), so data and art can't drift. Pick the key colour per object: pink and purple glass go on
+  green, not magenta.
+- **Paint the parts of one object as edits of one master.** Asked separately for "the base alone", "the shade alone" and
+  "the whole lamp", the model drew three different bases (the stand-alone ones much taller). Paint the whole object once,
+  then make every part and state an edit of that picture ("remove the shade, leave the cup exactly as it is; keep the
+  camera, framing and scale"); cut all of them out with one shared crop box and they line up pixel for pixel. Check
+  with a contact sheet that also draws part-over-part: it caught a shade that grew longer and a scrap of shade left
+  floating over a cup. Measure the key from the border each time: "#ff00ff" came back anywhere from #fe1ff8 to #d72dcb.
