@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **Coppergate Lane** (game-030) v2.0.3: the same two bugs as Echoes of Aethermoor 2.0.2. Opening a chest by walking into it gave the loot and then the "nothing left" line at once (the still-held arrow key bumped the opened chest again the next frame); walking into an opened chest now just stops you, and Space at one shows a short note instead of a dialogue. Closing a dialogue now clears the portrait, so narrator lines no longer show a speaker from an earlier conversation.
+
+### Fixed
 - **Echoes of Aethermoor** (game-028) v2.0.2: opening a chest by walking into it gave the loot and then "The chest is empty." at once, because an opened chest stays solid and the still-held arrow key (or a repeating Space) bumped it again the next frame; closing that line could start it a second time. Walking into an opened chest now just stops you, and Space at one shows a short note instead of a voiced dialogue. Narrator lines kept whatever portrait was last on screen, even from an earlier conversation, so Elder Varec turned up for a chest; closing a dialogue now clears the portrait.
 - Launcher: Coppergate Lane's entry in [js/gamedata.js](js/gamedata.js) now says v2.0.2 (its 2.0.2 bump had changed Echoes of Aethermoor's entry instead).
 

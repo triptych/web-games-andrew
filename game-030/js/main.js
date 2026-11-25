@@ -183,6 +183,7 @@ function onEvent(e, fromBattle) {
             break;
         }
         case 'bonk': break;
+        case 'say': ui.say(e.text); break;
         case 'blocked': ui.say(e.msg || 'You can\'t go that way yet.'); audio.ui('deny'); path = []; break;
         case 'chest': audio.sfx('chest'); if (e.gold) ui.toast(`+${e.gold} gold`, '', null); break;
         case 'item': ui.toast(`+${e.n} ${ITEMS[e.id].name}`, '', itemUrl(e.id)); break;

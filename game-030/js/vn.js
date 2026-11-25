@@ -38,6 +38,7 @@ export class VN {
 
     hide() {
         $('vn').hidden = true;
+        $('vn-por').hidden = true;   // the narrator keeps a speaker on screen within a scene, never into the next one
         $('card').hidden = true; this.card = 0;
         this.key = null; this.typing = false; this.who = null;
         this.setSkip(false);

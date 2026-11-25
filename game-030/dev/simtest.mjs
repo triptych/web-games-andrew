@@ -442,7 +442,14 @@ section('rules: events live in the save (v1 forgot chests and fights)');
     const H = deserialize(serialize(G));
     H.x = 23; H.y = 3;
     act(H, { t: 'move', dir: 'right' });
-    ok(H.inv.oilcan === 2 && currentLine(H)?.tree === 'chest_empty', 'it stays empty after loading');
+    ok(H.inv.oilcan === 2 && H.done.wl_chest && H.x === 23 && !currentLine(H), 'it stays opened after loading');
+    // walking into it again (a held key does, the next frame) just stops; Space gets a short note, not a dialogue
+    H.events.length = 0;
+    act(H, { t: 'move', dir: 'right' });
+    ok(H.mode === 'explore' && !H.dialog && H.events.some((e) => e.type === 'bonk') && H.inv.oilcan === 2, 'walking into an opened chest again just stops: no "empty" dialogue');
+    H.events.length = 0;
+    act(H, { t: 'interact' });
+    ok(H.mode === 'explore' && !H.dialog && H.events.some((e) => e.type === 'say' && /cobwebs/.test(e.text)), 'Space at an opened chest gives a short note, not a dialogue');
     // the kettle crab
     G.map = 'gully'; G.x = 6; G.y = 14; G.face = 'left'; G.mode = 'explore'; G.dialog = null;
     act(G, { t: 'move', dir: 'left' }); skipDialog(G);

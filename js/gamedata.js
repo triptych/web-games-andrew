@@ -453,7 +453,7 @@ const games = [
         description: "A cozy-fantasy tinker's RPG in plain HTML, CSS and JavaScript, painted with fal and voiced with ElevenLabs. You are Wick, the handy newcomer on Coppergate Lane. Fetch scrap for Trina, find Mabel's kettle, run errands for Bertram, and gather a party of three through those quests, then fight clockwork critters in turn-based battles that each play differently: Cog Sprites swarm, Rust Crabs shell up and rust your armour, Lane Bandits pick your pocket, Gear-Wolves hunt the weakest. Win the Mayor's Golden Gear back from Big Bertha, who telegraphs a slam, calls her cogs and loses her temper. Saves itself, with a hint arrow, tap-to-walk, a touch pad and a bot that tuned the balance. Painted places, characters and creatures, ElevenLabs music, sound effects and every line of dialogue voiced.",
         icon: '⚙️',
         folder: 'game-030',
-        version: '2.0.2',
+        version: '2.0.3',
         cssClass: 'coppergate-lane',
         genre: 'rpg',
         tags: [

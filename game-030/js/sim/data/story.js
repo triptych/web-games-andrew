@@ -140,7 +140,6 @@ export const TREES = {
     kettle_found: { start: 'a', nodes: {
         a: { who: 'n', text: 'Dented, a little rusty, but whole. Mabel will be thrilled.', next: 'end' },
     } },
-    chest_empty: { start: 'a', nodes: { a: { who: 'n', text: 'Nothing left but a few cobwebs and a lonely cog.', next: 'end' } } },
 
     bertha_meet: { start: 'a', nodes: {
         a: { who: 'n', bg: 'lair', text: 'The iron door groans open on a cavern of humming pipes and heaped scrap. In the middle sits a huge clanking figure, hugging something gold to its chest.', next: 'b' },
