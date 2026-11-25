@@ -2323,7 +2323,7 @@ const games = [
     {
         id: 'game-149',
         title: "Hurray LA's Fairy Lamp Adventure",
-        description: "A cozy memory game about antique pressed-glass fairy lamps, in vanilla JavaScript and Canvas 2D with painted lamp art. Hurray LA's shelf of fairy lamps has tumbled over and every lamp has come apart. Turn over two tiles at a time and match each glass shade to its own base: cobalt and amber hobnail, clear diamond point, green starburst, blue moon and star, pink blossom and more. Every lamp you put back together lights up, its candle glowing through the coloured glass. In development: the scaffold is up and the lamp art is being painted.",
+        description: "A cozy memory game about antique pressed-glass fairy lamps, in vanilla JavaScript and Canvas 2D with painted lamp art. Hurray LA's shelf of fairy lamps has tumbled over and every lamp has come apart. Turn over two tiles at a time and match each glass shade to its own base: cobalt and amber hobnail, clear diamond point, green starburst, blue moon and star, pink blossom and more. Every lamp you put back together lights up, its candle glowing through the coloured glass. In development: the scaffold is up and all 32 lamp paintings are done.",
         icon: '\uD83D\uDD6F\uFE0F',
         folder: 'game-149',
         version: '1.0.0',

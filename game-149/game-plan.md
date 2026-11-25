@@ -54,7 +54,7 @@ Hurray LA restores her shelf one board at a time; the last board relights the wh
 
 ## Look and sound
 
-Painterly: visible brushwork, soft glazes, warm candlelight through coloured glass, on a dark plum wood-panelled backdrop. The lamp sprites are painted with fal (nano-banana), cut out to transparent PNGs; a code-drawn glass silhouette in each lamp's `glass` colour is the fallback if an image fails to load. Sound is Web Audio: soft glass chimes on flips, a warm swell on each lit lamp.
+Painterly: visible brushwork, soft glazes, warm candlelight through coloured glass, on a dark plum wood-panelled backdrop. The lamp sprites are painted with fal (nano-banana 2.1 edit) from a reference photo, cut out to transparent WebP: one master painting per lamp, and the shade, base and other candle state edited from it, so all four line up (see [art/README.md](art/README.md)). A code-drawn glass silhouette in each lamp's `glass` colour is the fallback if an image fails to load. Sound is Web Audio: soft glass chimes on flips, a warm swell on each lit lamp.
 
 ## Module overview
 

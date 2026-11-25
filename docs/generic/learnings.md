@@ -7704,3 +7704,9 @@ A fairy ball-sort puzzle in Canvas 2D with every picture and sound from ElevenLa
   photo in `image_urls` of an *edit* model (`google/nano-banana-2.1/edit`) and write each sprite's prompt from an `art` field in the sim's
   data table (`game-149/dev/art/prompts.mjs`), so data and art can't drift. Pick the key colour per object: pink and purple glass go on
   green, not magenta.
+- **Paint the parts of one object as edits of one master.** Asked separately for "the base alone", "the shade alone" and
+  "the whole lamp", the model drew three different bases (the stand-alone ones much taller). Paint the whole object once,
+  then make every part and state an edit of that picture ("remove the shade, leave the cup exactly as it is; keep the
+  camera, framing and scale"); cut all of them out with one shared crop box and they line up pixel for pixel. Check
+  with a contact sheet that also draws part-over-part: it caught a shade that grew longer and a scrap of shade left
+  floating over a cup. Measure the key from the border each time: "#ff00ff" came back anywhere from #fe1ff8 to #d72dcb.

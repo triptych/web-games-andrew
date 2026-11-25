@@ -40,7 +40,7 @@ for (const l of LAMPS) {
         out.push({
             file: `${l.id}-${part}.png`,
             key: key.hex,
-            prompt: `Using the reference photo of a real antique fairy lamp collection for accuracy, paint: ${text(l)} `
+            prompt: `The reference photo shows a real antique fairy lamp collection. For accuracy, paint ${l.ref} in that photo. ${text(l)} `
                 + `Background: plain flat solid ${key.name} (${key.hex}) everywhere.`,
         });
     }
