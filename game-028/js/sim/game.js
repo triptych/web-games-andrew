@@ -153,7 +153,7 @@ function move(G, dir) {
     const who = personAt(G, nx, ny);
     if (who) { talk(G, who); return null; }
     const bump = bumpAt(G, nx, ny);
-    if (bump) { bumpEvent(G, bump); return null; }
+    if (bump) { bumpEvent(G, bump, 'walk'); return null; }
     if (!walkable(G, nx, ny)) { G.events.push({ type: 'bonk' }); return null; }
     const ex = exitAt(m, nx, ny);
     if (ex && !cond(G, ex.cond)) { G.events.push({ type: 'blocked', msg: ex.msg }); return null; }
@@ -194,9 +194,12 @@ function talk(G, person) {
     startTree(G, person.talk);
 }
 
-function bumpEvent(G, ev) {
+/** Walking into an event, or pressing Space at it (how: 'walk' | 'use'). */
+function bumpEvent(G, ev, how = 'use') {
     if (ev.type === 'chest') {
-        if (G.done[ev.id]) { startTree(G, 'chest_empty'); return; }
+        // an opened chest stays solid: walking into it again (a held key does, the next frame) just stops you;
+        // Space at it gets a short note, not a dialogue
+        if (G.done[ev.id]) { G.events.push(how === 'walk' ? { type: 'bonk' } : { type: 'say', text: 'The chest is empty.' }); return; }
         G.done[ev.id] = true;
         G.events.push({ type: 'chest', id: ev.id, items: ev.items, gold: ev.gold || 0 });
         if (ev.gold) G.gold += ev.gold;

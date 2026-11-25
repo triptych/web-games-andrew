@@ -349,6 +349,15 @@ section('rules: exits are gated, people and chests block');
     G.map = 'thornwood'; G.x = 3; G.y = 15;
     act(G, { t: 'move', dir: 'down' });
     ok(G.done.tw_chest && G.y === 15 && G.inv.antidote >= 1, 'walking into a chest opens it and doesn\'t walk through it');
+    skipDialog(G);
+    const n = G.inv.antidote;
+    G.events.length = 0;
+    act(G, { t: 'move', dir: 'down' });
+    ok(G.mode === 'explore' && !G.dialog && G.events.some((e) => e.type === 'bonk') && G.inv.antidote === n && G.y === 15,
+        'walking into an opened chest again (a held key does, the next frame) just stops: no "empty" dialogue');
+    G.events.length = 0;
+    act(G, { t: 'interact' });
+    ok(G.mode === 'explore' && !G.dialog && G.events.some((e) => e.type === 'say' && /empty/.test(e.text)), 'Space at an opened chest gives a short note, not a dialogue');
 }
 
 section('rules: the party levels together, late recruits join at the party level');

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Echoes of Aethermoor** (game-028) v2.0.2: opening a chest by walking into it gave the loot and then "The chest is empty." at once, because an opened chest stays solid and the still-held arrow key (or a repeating Space) bumped it again the next frame; closing that line could start it a second time. Walking into an opened chest now just stops you, and Space at one shows a short note instead of a voiced dialogue. Narrator lines kept whatever portrait was last on screen, even from an earlier conversation, so Elder Varec turned up for a chest; closing a dialogue now clears the portrait.
+- Launcher: Coppergate Lane's entry in [js/gamedata.js](js/gamedata.js) now says v2.0.2 (its 2.0.2 bump had changed Echoes of Aethermoor's entry instead).
+
 ### Added
 - **Inn Over My Head** (game-147) v1.2.0: cloud saves with Supabase. Sign in with a link emailed to you (no password) from **☁️ Cloud Save** on the title screen or in the menu, then save your inn online and load it on another device or browser. While you're signed in, the game also saves to the cloud by itself every two minutes and when you quit or close the page (you can switch this off). Loading over a game on this device asks you to tap twice. Plain `fetch` against Supabase's REST endpoints, no client library ([js/cloud.js](game-147/js/cloud.js)). A new Supabase project, `web-games`, holds a `game_saves` table shared by game id, with row-level security so each player sees and changes only their own saves ([dev/supabase/](game-147/dev/supabase/README.md)). The browser test runs the whole flow against a mock Supabase.
 
