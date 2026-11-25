@@ -2319,6 +2319,22 @@ const games = [
             { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
             { emoji: '\uD83C\uDFA8', label: 'Canvas 2D' }
         ]
+    },
+    {
+        id: 'game-149',
+        title: 'Echoheart Academy',
+        description: "An upbeat anime visual novel RPG in three.js. Kai's only magic is that he can hear other people's spells as songs and sing them back. At Lumina Academy, a castle school on a floating island, he makes four friends (fiery Hana, shy star mage Lys, explosive alchemist Pip and his wind-mage roommate Ren), plays their six magical mini-games, collects twelve hidden Echo Charms, gives gifts, and grows close to one of them through heart events that end in romance or best friendship. But students are falling into a magicless sleep, and the trail leads from an archive full of cult marks to the kindly, candy-giving principal. On the night of the Starfall Festival the Hollow Moon rises, your closest friend is taken, and you race the moon across the island to free every caged student before facing the Hollow Choir's master, where Kai's Echo turns every stolen spell back on him. Five chapters, 74 scenes, turn-based battles with Meshy-modelled and animated characters on a 3D campus, fal-painted art, and ElevenLabs music, sound and voices.",
+        icon: '\uD83C\uDF19',
+        folder: 'game-149',
+        version: '1.0.0',
+        cssClass: 'echoheart-academy',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83D\uDC9E', label: 'Visual novel' },
+            { emoji: '\u2728', label: 'Magic school' },
+            { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 

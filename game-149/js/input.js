@@ -1,4 +1,6 @@
-// Keyboard, gamepad and touch merged into one state, { x, y, a }, plus an ordered queue of presses.
+// Keyboard, gamepad and touch merged into one state, { x, y, a, dir }, plus an ordered queue of presses.
+// dir: direction presses (arrow keys, WASD, the d-pad, the mini-game pad, swipes) are queued too, one consumed per
+// simulation step, so a quick tap in a mini-game is never lost and two quick taps never merge.
 //
 // - Held directions are read every frame.
 // - Action presses are *edges* that stay set until a simulation step consumes them: a frame
@@ -6,15 +8,18 @@
 // - Menu presses go into a FIFO, one consumed per frame: at 2 fps "Down, Down, Enter" must not
 //   collapse into one frame's worth of keys.
 
-const ACTION_KEYS = ['Space', 'KeyZ', 'KeyJ'];
+const ACTION_KEYS = ['Space', 'KeyZ', 'Enter'];
+const DIR_KEYS = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
 const NO_SCROLL = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'];
-const PAD_KEYS = { 0: 'Enter', 1: 'Escape', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown' };
+const PAD_KEYS = { 0: 'Enter', 1: 'Escape', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
+const PAD_DIR = { 12: 'up', 13: 'down', 14: 'left', 15: 'right' };
 
 export class Input {
     constructor() {
         this.keys = new Set();
         this.queue = [];                    // { key } in the order they were pressed
         this.edges = { a: false };
+        this.dirs = [];                     // direction presses, oldest first
         this.stick = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
         this.pad = { x: 0, y: 0, prev: [] };
         this.lastDevice = 'keys';
@@ -31,6 +36,7 @@ export class Input {
             if (e.repeat) return;
             this.queue.push({ key: e.code });
             if (ACTION_KEYS.includes(e.code)) this.edges.a = true;
+            if (DIR_KEYS[e.code]) this.pushDir(DIR_KEYS[e.code]);
             this.keys.add(e.code);
         });
         window.addEventListener('keyup', (e) => this.keys.delete(e.code));
@@ -91,6 +97,9 @@ export class Input {
     }
 
     pressA() { this.edges.a = true; }
+    pushDir(d) { if (this.dirs.length < 6) this.dirs.push(d); }
+    /** The oldest unconsumed direction press, or null. */
+    takeDir() { return this.dirs.shift() || null; }
 
     _pollPad() {
         const pads = navigator.getGamepads ? navigator.getGamepads() : [];
@@ -101,7 +110,7 @@ export class Input {
         this.pad.x = b(14) ? -1 : b(15) ? 1 : dead(gp.axes[0] || 0);
         this.pad.y = b(12) ? -1 : b(13) ? 1 : dead(gp.axes[1] || 0);
         for (const i in PAD_KEYS) {
-            if (b(+i) && !this.pad.prev[i]) { this.queue.push({ key: PAD_KEYS[i], pad: true }); this.lastDevice = 'pad'; }
+            if (b(+i) && !this.pad.prev[i]) { this.queue.push({ key: PAD_KEYS[i], pad: true }); this.lastDevice = 'pad'; if (PAD_DIR[i]) this.pushDir(PAD_DIR[i]); }
             this.pad.prev[i] = b(+i);
         }
         if (b(0) && !this.pad.prev.a) this.edges.a = true;
@@ -119,14 +128,14 @@ export class Input {
             const sx = this.stick.x, sy = this.stick.y;
             if (Math.hypot(sx, sy) > 0.2) { x = sx; y = sy; }
         }
-        return { x, y, a: this.edges.a };
+        return { x, y, a: this.edges.a, dir: this.dirs[0] || null };
     }
 
     consumeEdges() { this.edges.a = false; }
     /** The next queued press, or null. Menus take one per frame. */
     next() { return this.queue.shift() || null; }
     /** Drop queued presses, so a mashed key can't fall through into the next screen. */
-    flush() { this.queue.length = 0; this.edges.a = false; }
+    flush() { this.queue.length = 0; this.edges.a = false; this.dirs.length = 0; }
     clear() {
         this.keys.clear();
         this.flush();

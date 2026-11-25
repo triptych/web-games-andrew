@@ -1,0 +1,111 @@
+{
+ "id": "game-149",
+ "name": "Ren",
+ "role": "Wind mage and your roommate at Lumina Academy",
+ "emoji": "🌀",
+ "color": "#8fe07a",
+ "bio": "Ren Takeda, second year, wind magic, fastest broom on the floating island and its worst prankster. Your roommate. He has a hunch the kindly principal isn't as kind as he looks.",
+ "portrait": {
+  "subject": "a cheerful teenage boy wind mage with spiky sandy-blond hair, a green headband, bright green eyes and a lopsided cheeky grin, wearing a navy school blazer with gold piping and a light green scarf, a little swirl of green wind by his shoulder",
+  "background": "soft sky blue with fluffy white clouds"
+ },
+ "request": "Hey, new kid! Ren Takeda, your roommate. Fastest broom on the island. Add me? 🌀",
+ "hello": [
+  "Roomie! You're back! Did you bring snacks?",
+  "Hey hey! The wind says you've got free time. Let's fly!"
+ ],
+ "about": "I'm Ren: second year, wind magic, your roommate. You're the transfer who can echo other people's spells, the coolest magic I've ever seen. Students keep falling asleep and not waking up. We'll figure it out together.",
+ "how": "Read with Space or a tap; choices change how friends feel. In free time, walk the campus and press A at a place. In battle, Echo copies the last spell anyone cast!",
+ "tips": [
+  "Echo copies the LAST spell cast, even an enemy's. Wait for Lys's Starfall or the Choir's Requiem, then echo it back at them!",
+  "Gifts don't take up your afternoon. Hana loves spicy chestnuts, Lys loves star charts, Pip loves gears, and I love wind chimes. Just saying.",
+  "Twelve Echo Charms are hidden around the island. Find them all and your Echo stops costing MP.",
+  "On the night of the Hollow Moon the clock only runs while you're moving. Plan your route: Library, Wood, Sky Tower, Great Hall, then the Principal's Tower.",
+  "Lost a battle? Try again. Every retry, the enemy's stolen magic wears a little thinner."
+ ],
+ "chat": [
+  "Graves found the rubber ducks. All four hundred of them. Worth it.",
+  "Pip's new potion turned my scarf pink. I'm keeping it.",
+  "Lys read me the good bits of a 400-page book about stars. Honestly? Not bad.",
+  "Hana challenged me to a broom race. I won. Don't let her tell you otherwise.",
+  "Mochi stole my honey bun again. That cloud is a menace. A cute menace."
+ ],
+ "nudge": [
+  "The Sky Rings are open and I'm bored. Come fly! 🌀",
+  "Hey roomie, the festival won't plan itself!"
+ ],
+ "idle": [
+  "It's been {ago}! I kept your bed warm. Okay, I napped on it.",
+  "{ago} and no word? The wind was getting worried."
+ ],
+ "progress": [
+  "Day {day} at Lumina! Still the best roommate you've ever had, right?",
+  "Your Echo's at level {level} now. Show-off."
+ ],
+ "questions": [
+  {
+   "q": "Be honest: who's the best flyer at Lumina?",
+   "a": [
+    [
+     "You, obviously",
+     "Correct answer! You get a free broom lesson."
+    ],
+    [
+     "Me",
+     "Ha! Race you to the Sky Tower. Loser buys honey buns."
+    ]
+   ]
+  },
+  {
+   "q": "Which mini-game is your favourite?",
+   "a": [
+    [
+     "Sky Rings",
+     "Best taste on the whole island."
+    ],
+    [
+     "Fireball Gallery",
+     "Don't tell Hana. She'll be smug for a week."
+    ],
+    [
+     "Star Catcher",
+     "Lys will be so happy. She practises it in her sleep."
+    ]
+   ]
+  }
+ ],
+ "update": "Echoheart Academy is now v{version}! The wind's carrying news, come see. 🌀",
+ "bye": [
+  "Catch the wind, roomie!",
+  "Night! Don't let Mochi steal your pillow."
+ ],
+ "save": {
+  "keys": [
+   "echoheart-academy.v1"
+  ],
+  "stats": {
+   "day": [
+    "day",
+    "data.day"
+   ],
+   "level": [
+    "data.heroes.kai.lv"
+   ]
+  }
+ },
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cheerful teenage boy with spiky sandy-blond hair, a green headband, a navy school blazer with gold piping, a light green scarf, grey trousers and white and green sneakers"
+ }
+}
