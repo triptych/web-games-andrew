@@ -2,7 +2,7 @@
 
 **Genre:** Visual novel / fantasy RPG
 **Layout:** sim/view, plain HTML, CSS and JavaScript (Canvas 2D for the map and battles, DOM for everything else)
-**Version:** 2.0.2
+**Version:** 2.0.3
 **Status:** Complete: four chapters, two endings, every line voiced
 
 ---
@@ -158,6 +158,9 @@ about 85%; one level lower drops the Lich to under 50%.
 - A New Game+ or harder mode would use the existing balance knobs.
 
 ## Changelog
+
+### v2.0.3 (2026-11-25)
+- No freeze when changing places: ground masks are blurred small and scaled up (50–170× faster), the last three places stay painted, and a loading veil with the place's name shows while a new one is painted. Space works on the map right after clicking a battle's Continue.
 
 ### v2.0.2 (2026-11-25)
 - An opened chest no longer says it is empty right after it is opened (a held key bumped it again); Space at one shows a short note. Closing a dialogue clears the portrait, so narrator lines no longer show an earlier speaker.

@@ -137,6 +137,7 @@ about half, level 6 reliably, which is what the guide recommends.
 ## Changelog
 
 ### v2.0.3 (2026-11-25)
+- No freeze when changing places: ground masks are blurred small and scaled up, the last three places stay painted, and a loading veil with the place's name shows while a new one is painted. Space works on the map right after clicking a battle's Continue.
 - An opened chest no longer says it is empty right after it is opened (a held key bumped it again); Space at one shows a short note. Closing a dialogue clears the portrait, so narrator lines no longer show an earlier speaker.
 
 ### v2.0.2 (2026-11-22)

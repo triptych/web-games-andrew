@@ -170,6 +170,28 @@ console.log('\n# desktop');
     ok(await ea(page, `__.mode() === 'explore' && document.getElementById('vn').hidden`), 'and no "empty" dialogue follows');
     await page.keyboard.press('Space'); await page.waitForTimeout(200);
     ok(await ea(page, `__.mode() === 'explore' && !document.getElementById('hint').hidden && /cobwebs/.test(document.getElementById('hint-text').textContent)`), 'Space at the opened chest shows a short note');
+    // a place not painted yet: a veil with its name while it is painted, then the map; a place painted a moment ago: no veil
+    await ea(page, `(__.warp('wilds', 12, 20), __.G.face = 'down', __.G.grace = 99, true)`);
+    await idle(page);
+    await page.evaluate(() => {
+        window.__veil = [];
+        new MutationObserver(() => { const v = document.getElementById('mapload'); if (!v.hidden) window.__veil.push(document.getElementById('mapload-name').textContent); })
+            .observe(document.getElementById('mapload'), { attributes: true });
+    });
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(() => window.__cl.G.map === 'gully', null, { timeout: 20000 });
+    await talkThrough(page);
+    await page.waitForFunction(() => window.__cl.mapView.mapId === 'gully' && document.getElementById('mapload').hidden, null, { timeout: 20000 });
+    ok(await page.evaluate(() => window.__veil.includes('Gutter Gully')), `entering the gully shows a loading veil with its name (${await page.evaluate(() => JSON.stringify(window.__veil))})`);
+    await idle(page);
+    await page.evaluate(() => { window.__veil.length = 0; });
+    await ea(page, `(__.G.grace = 99, true)`);
+    await page.keyboard.press('ArrowUp');
+    await page.waitForFunction(() => window.__cl.G.map === 'wilds' && window.__cl.mapView.mapId === 'wilds', null, { timeout: 20000 });
+    await page.waitForTimeout(200);
+    ok(await page.evaluate(() => window.__veil.length === 0), 'walking back to the wilds needs no veil (it is kept painted)');
+    await talkThrough(page);
+    await idle(page);
     // continue after a reload
     await ea(page, `__.warp('lane', 12, 13)`);
     await page.reload();

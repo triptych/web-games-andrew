@@ -144,7 +144,10 @@ console.log('\n# desktop');
     await ea(page, `(__.G.gold = 500, __.warp('forge', 3, 3), __.G.face = 'up')`);
     await page.keyboard.press('Space');
     await talkThrough(page, [1]);
-    await page.waitForFunction(() => !document.getElementById('shop').hidden, null, { timeout: 5000 });
+    await page.waitForFunction(() => !document.getElementById('shop').hidden, null, { timeout: 5000 }).catch(async (e) => {
+        console.log('  at the forge:', await ea(page, `JSON.stringify({ mode: __.mode(), map: __.G.map, painted: __.mapView.mapId, at: [__.G.x, __.G.y, __.G.face], sheets: __.ui.stack, busy: __.busy(), dialog: __.G.dialog?.tree })`));
+        throw e;
+    });
     await page.click('[data-buy=mage_staff]');
     await page.waitForTimeout(200);
     ok(await page.evaluate(() => !document.getElementById('picker').hidden), 'buying a staff offers to equip it');
@@ -165,6 +168,24 @@ console.log('\n# desktop');
     ok(await ea(page, `__.mode() === 'explore' && document.getElementById('vn').hidden`), 'and no "the chest is empty" dialogue follows');
     await page.keyboard.press('Space'); await page.waitForTimeout(200);
     ok(await ea(page, `__.mode() === 'explore' && !document.getElementById('hint').hidden && /empty/.test(document.getElementById('hint-text').textContent)`), 'Space at the opened chest shows a short note');
+    // a place not painted yet: a veil with its name while it is painted, then the map; a place painted a moment ago: no veil
+    await ea(page, `(__.warp('thornhaven', 16, 5), __.G.face = 'up', true)`);
+    await idle(page);
+    await page.evaluate(() => {
+        window.__veil = [];
+        new MutationObserver(() => { const v = document.getElementById('mapload'); if (!v.hidden) window.__veil.push(document.getElementById('mapload-name').textContent); })
+            .observe(document.getElementById('mapload'), { attributes: true });
+    });
+    await page.keyboard.press('ArrowUp');
+    await page.waitForFunction(() => window.__ea.G.map === 'inn' && window.__ea.mapView.mapId === 'inn' && document.getElementById('mapload').hidden, null, { timeout: 20000 });
+    ok(await page.evaluate(() => window.__veil.includes('Ember Hearth Inn')), `entering the inn shows a loading veil with its name (${await page.evaluate(() => JSON.stringify(window.__veil))})`);
+    await idle(page);
+    await page.evaluate(() => { window.__veil.length = 0; });
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(() => window.__ea.G.map === 'thornhaven' && window.__ea.mapView.mapId === 'thornhaven', null, { timeout: 20000 });
+    await page.waitForTimeout(200);
+    ok(await page.evaluate(() => window.__veil.length === 0), 'walking back out to the village needs no veil (it is kept painted)');
+    await idle(page);
     // continue after a reload
     await ea(page, `__.warp('thornhaven', 9, 7)`);
     await page.reload();

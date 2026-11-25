@@ -421,7 +421,7 @@ const games = [
         description: 'A fantasy visual-novel RPG in plain HTML, CSS and JavaScript, with every scene and character painted by fal and every line voiced with ElevenLabs. Lyra fled the burning Aethermoor Academy with a prophecy that names her as the key to the Lich sealed below it. Gather a knight, an elf ranger and a warlock across four chapters of voiced story; explore a painted village, forest, grove and ruins; take quests, buy and equip gear, and fight turn-based battles where every status effect counts and the bosses act twice a round. Your choice at the end decides how the story is remembered.',
         icon: '📖',
         folder: 'game-028',
-        version: '2.0.2',
+        version: '2.0.3',
         cssClass: 'echoes-of-aethermoor',
         genre: 'story',
         tags: [

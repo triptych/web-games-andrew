@@ -28,6 +28,7 @@ export class MapView {
         this.ctx = canvas.getContext('2d');
         this.mapId = null;
         this.T = 48;
+        this.cache = new Map();           // painted grounds of the last few maps, by map and tile size (newest last)
         this.px = 0; this.py = 0;        // the leader's drawn position, in tiles
         this.from = null; this.t = 1;     // the current step's tween
         this.trail = [];                  // tiles the leader walked through, newest first
@@ -42,7 +43,7 @@ export class MapView {
     resize(w, h, dpr) {
         this.w = w; this.h = h; this.dpr = dpr;
         const T = Math.round(Math.max(34, Math.min(72, Math.min(w / 11, h / 9))) * dpr);
-        if (T !== this.T) { this.T = T; this.mapId = null; }
+        if (T !== this.T) { this.T = T; this.mapId = null; this.cache.clear(); }
     }
 
     get busy() { return this.t < 1; }
@@ -64,38 +65,65 @@ export class MapView {
         this.lx = G.x; this.ly = G.y; this.lmap = G.map;
     }
 
+    /** Is this map's ground already painted at the current size? (Then entering it needs no loading screen.) */
+    isBaked(id) { return this.mapId === id || this.cache.has(`${id}|${this.T}`); }
+
+    /** Switch to the map G is on: its painted ground from the cache, or paint it (the slow part of changing maps). */
     bake(G) {
         const m = MAPS[G.map];
         this.mapId = G.map;
         this.m = m;
+        this.motes = [];
+        const key = `${G.map}|${this.T}`;
+        let c = this.cache.get(key);
+        if (c) this.cache.delete(key);   // re-added below as the newest
+        else c = this.paint(m);
+        this.cache.set(key, c);
+        while (this.cache.size > 3) this.cache.delete(this.cache.keys().next().value);   // a full map is tens of MB on a phone
+        this.ground = c;
+    }
+
+    paint(m) {
         const T = this.T, W = m.grid[0].length, H = m.grid.length;
         const c = document.createElement('canvas');
         c.width = W * T; c.height = H * T;
         const x = c.getContext('2d');
         const base = TEX[m.ground] || 'grass';
         const layerOf = (ch) => ch === 'T' ? base : ch === 'V' ? null : TEX[ch];
-        const blur = Math.round(T * 0.3);
+        // Each ground texture shows through a soft-edged mask of its tiles. The masks are drawn at S px a tile and
+        // blurred there, then scaled up: the same soft edges as blurring at full size, for a small fraction of the cost
+        // (blurring a full-size canvas per texture took seconds on big maps and froze the step into a new map).
+        const S = 8;
+        const sm = document.createElement('canvas'), sb = document.createElement('canvas');
+        sm.width = sb.width = W * S; sm.height = sb.height = H * S;
+        const smx = sm.getContext('2d'), sbx = sb.getContext('2d');
+        const layer = document.createElement('canvas');
+        layer.width = c.width; layer.height = c.height;
+        const lx = layer.getContext('2d');
+        lx.imageSmoothingEnabled = true; lx.imageSmoothingQuality = 'high';
         for (const name of LAYERS) {
             const tex = img('tex', name);
             if (!tex) continue;
-            const mask = document.createElement('canvas');
-            mask.width = c.width; mask.height = c.height;
-            const mx = mask.getContext('2d');
+            smx.clearRect(0, 0, sm.width, sm.height);
+            smx.fillStyle = '#fff';
             let any = false;
-            mx.fillStyle = '#fff';
-            mx.filter = `blur(${name === 'water' ? Math.round(blur / 3) : blur}px)`;
             for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) {
                 const ch = m.grid[j][i];
-                if (layerOf(ch) === name || (name === base && ch !== 'V' && ch !== '#' && ch !== '~')) { mx.fillRect(i * T - 1, j * T - 1, T + 2, T + 2); any = true; }
+                if (layerOf(ch) === name || (name === base && ch !== 'V' && ch !== '#' && ch !== '~')) { smx.fillRect(i * S, j * S, S, S); any = true; }
             }
             if (!any) continue;
-            mx.filter = 'none';
-            mx.globalCompositeOperation = 'source-in';
-            const pat = mx.createPattern(tex, 'repeat');
+            sbx.clearRect(0, 0, sb.width, sb.height);
+            sbx.filter = `blur(${name === 'water' ? 0.6 : 0.3 * S}px)`;
+            sbx.drawImage(sm, 0, 0);
+            sbx.filter = 'none';
+            lx.globalCompositeOperation = 'copy';
+            lx.drawImage(sb, 0, 0, layer.width, layer.height);
+            lx.globalCompositeOperation = 'source-in';
+            const pat = lx.createPattern(tex, 'repeat');
             pat.setTransform(new DOMMatrix().scale((T * 4) / tex.width));
-            mx.fillStyle = pat;
-            mx.fillRect(0, 0, c.width, c.height);
-            x.drawImage(mask, 0, 0);
+            lx.fillStyle = pat;
+            lx.fillRect(0, 0, layer.width, layer.height);
+            x.drawImage(layer, 0, 0);
         }
         // water: a darker rim
         x.save();
@@ -128,8 +156,7 @@ export class MapView {
             g.addColorStop(0, 'rgba(60,40,90,0.9)'); g.addColorStop(1, 'rgba(5,3,11,0)');
             x.fillStyle = g; x.fillRect(i * T, j * T, T, T * 0.6);
         }
-        this.ground = c;
-        this.motes = [];
+        return c;
     }
 
     /** Tile under a point on the canvas (CSS px). */

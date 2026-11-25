@@ -37,6 +37,7 @@ let screen = 'loading';         // loading · title · game · ending
 let bot = null, autoBattle = false;
 let path = [];                  // queued steps from a tap
 let dialogBg = null;            // the painting behind the current scene
+let veil = 0;                   // frames the "entering a new place" veil has been up
 let swallow = 0;                // ignore Space/Enter for a moment after a dialogue closes
 const counts = {};
 
@@ -133,7 +134,7 @@ function start(g) {
     path = [];
     dialogBg = null;
     mapView.lx = undefined;
-    mapView.sync(G);
+    mapView.sync(G);                // the first place is painted now, behind the title or the prologue (no veil)
     if (G.mode === 'battle') { battleView.begin(G); ui.battleOpen(G, battleView); audio.play(G.battle.boss ? 'boss' : 'battle'); }
     else audio.play(MAPS[G.map].music);
     if (G.mode === 'shop') ui.openShop(G);
@@ -170,10 +171,10 @@ let inBattle = false;
 
 function onEvent(e, fromBattle) {
     switch (e.type) {
-        case 'step': mapView.sync(G); if (G.stats.steps % 2) audio.sfx('step', 0.35); break;
+        case 'step': syncMap(); if (G.stats.steps % 2) audio.sfx('step', 0.35); break;
         case 'map': {
             const was = mapView.mapId;
-            mapView.sync(G);
+            syncMap();
             const m = MAPS[G.map];
             if (m.interior || (was && MAPS[was]?.interior)) audio.sfx('door', 0.7);
             if (G.mode !== 'battle') audio.play(m.music);
@@ -207,7 +208,7 @@ function onEvent(e, fromBattle) {
         case 'battleEnd': {
             inBattle = false;
             battleView.queue.length = 0;
-            if (e.result !== 'lose') { ui.battleClose(); if (G.mode !== 'ending') audio.play(MAPS[G.map].music); saveGame(G); mapView.sync(G); }
+            if (e.result !== 'lose') { ui.battleClose(); if (G.mode !== 'ending') audio.play(MAPS[G.map].music); saveGame(G); syncMap(); }
             break;
         }
         case 'retry': break;
@@ -216,10 +217,15 @@ function onEvent(e, fromBattle) {
     }
 }
 
+/** Follow the sim on the map: at once if this place is already painted; if not, draw() paints it behind the veil. */
+function syncMap() { if (mapView.isBaked(G.map)) mapView.sync(G); }
+/** The map is still moving (a step's tween) or still being painted: no new steps yet. */
+const mapBusy = () => !inBattle && (mapView.busy || mapView.mapId !== G.map);
+
 // ------------------------------------------------------------------ input
 canvas.addEventListener('pointerdown', (e) => {
     audio.init();
-    if (!G || G.mode !== 'explore' || ui.sheetOpen) return;
+    if (!G || G.mode !== 'explore' || ui.sheetOpen || mapBusy()) return;
     const r = canvas.getBoundingClientRect();
     const [tx, ty] = mapView.tileAt(e.clientX - r.left, e.clientY - r.top);
     const target = personAt(G, tx, ty) || bumpAt(G, tx, ty);
@@ -248,8 +254,8 @@ function handlePress(p) {
         return;
     }
     if (G.mode === 'explore') {
-        if (p.t === 'dir') { if (!mapView.busy) { path = []; send({ t: 'move', dir: p.dir }); } }   // a tap shorter than a frame still steps
-        else if (p.t === 'ok') { if (swallow <= 0) { path = []; send({ t: 'interact' }); } }   // not the Space that closed a dialogue
+        if (p.t === 'dir') { if (!mapBusy()) { path = []; send({ t: 'move', dir: p.dir }); } }   // a tap shorter than a frame still steps
+        else if (p.t === 'ok') { if (swallow <= 0 && !mapBusy()) { path = []; send({ t: 'interact' }); } }   // not the Space that closed a dialogue
         else if (p.t === 'menu') ui.openMenu(G);
         else if (p.t === 'journal') ui.openMenu(G, 'journal');
         else if (p.t === 'hint') ui.hint(G);
@@ -288,20 +294,20 @@ function frame(now) {
 
 function update(dt) {
     if (bot && G.mode !== 'ending') {
-        if (!(inBattle && battleView.busy) && !(!inBattle && G.mode !== 'dialog' && mapView.busy) && (!ui.sheetOpen || G.mode === 'shop')) {
+        if (!(inBattle && battleView.busy) && !(!inBattle && G.mode !== 'dialog' && mapView.busy) && !(G.mode === 'explore' && mapBusy()) && (!ui.sheetOpen || G.mode === 'shop')) {
             for (let k = 0; k < FAST; k++) {
                 const cmd = botCommand(G, bot);
                 if (!cmd) break;
                 if (G.mode === 'battle' && G.battle.over && cmd.t === 'end') { $('b-result').hidden = true; }
                 act(G, cmd);
                 pump();
-                if (G.mode === 'battle' || G.mode === 'dialog' || (G.mode !== 'dialog' && mapView.busy)) break;
+                if (G.mode === 'battle' || G.mode === 'dialog' || (G.mode !== 'dialog' && mapView.busy) || (G.mode === 'explore' && mapBusy())) break;
             }
         }
         vn.tick(dt);
         return;
     }
-    if (G.mode === 'explore' && !ui.sheetOpen && !mapView.busy) {
+    if (G.mode === 'explore' && !ui.sheetOpen && !mapBusy()) {
         const dir = input.dir;
         if (dir) { path = []; send({ t: 'move', dir }); }
         else if (path.length) {
@@ -346,6 +352,15 @@ function draw(dt) {
         }
         return;
     }
+    if (G.map !== mapView.mapId) {
+        // a place not painted yet: put the veil up, let it reach the screen (two frames), then paint behind it
+        if (!mapView.isBaked(G.map)) {
+            if (!veil) { $('mapload-name').textContent = MAPS[G.map].name; $('mapload').hidden = false; $('mapload').classList.remove('out'); }
+            if (veil++ < 2) return;
+        }
+        mapView.sync(G);
+    }
+    if (veil) { veil = 0; $('mapload').classList.add('out'); setTimeout(() => { if (!veil) $('mapload').hidden = true; }, 250); }
     mapView.draw(G, dt);
 }
 
@@ -359,7 +374,7 @@ if (DEBUG) {
         start: (seed = 1) => { audio.init(); start(newGame(seed)); },
         load: (g) => start(g),
         autoplay: (on = true, opts = {}) => { bot = on ? newBot({ skill: 1, ...opts }) : null; if (on) { vn.setSkip(true); } },
-        busy: () => !!G && ((inBattle && battleView.busy) || (!inBattle && G.mode !== 'dialog' && mapView.busy) || G.events.length > 0),
+        busy: () => !!G && ((inBattle && battleView.busy) || (!inBattle && G.mode !== 'dialog' && mapView.busy) || (G.mode === 'explore' && mapBusy()) || G.events.length > 0),
         send,
         path: (x, y, adj = false) => findPath(G, G.map, G.x, G.y, x, y, adj),
         mode: () => G?.mode,
