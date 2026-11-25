@@ -2,7 +2,7 @@
 
 **Genre:** Cozy-fantasy RPG (tinker's tale)
 **Layout:** sim/view, plain HTML, CSS and JavaScript (Canvas 2D for the map and the battle stage, DOM for everything else)
-**Version:** 2.0.2
+**Version:** 2.0.3
 **Status:** Complete: one story arc to a boss, four quests, a party of three, painted, scored and fully voiced.
 
 ---
@@ -135,6 +135,10 @@ about half, level 6 reliably, which is what the guide recommends.
 - One more companion, or a second boss, would suit the Gully's closed corner better than more random encounters.
 
 ## Changelog
+
+### v2.0.3 (2026-11-25)
+- No freeze when changing places: ground masks are blurred small and scaled up, the last three places stay painted, and a loading veil with the place's name shows while a new one is painted. Space works on the map right after clicking a battle's Continue.
+- An opened chest no longer says it is empty right after it is opened (a held key bumped it again); Space at one shows a short note. Closing a dialogue clears the portrait, so narrator lines no longer show an earlier speaker.
 
 ### v2.0.2 (2026-11-22)
 - Restoring a saved battle now restores battle mode, keeping its scene and controls active on mobile.
