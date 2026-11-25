@@ -67,5 +67,19 @@
    "starbase-spooky.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a super cute round floating helper robot with one big friendly blue eye, little propeller ears, two little arms and a tiny star sticker, hovering"
+ }
 }

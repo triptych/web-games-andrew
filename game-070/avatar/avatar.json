@@ -63,5 +63,19 @@
    "phosphor-patrol.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute grateful space colonist girl in a green glowing vector-style spacesuit with a bubble helmet, drawn with bright phosphor green outlines"
+ }
 }

@@ -68,5 +68,19 @@
    "kaboom-keep.progress.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute chibi cannoneer kid with a big round helmet, a toy-soldier jacket with brass buttons, sooty cheeks and a little match, carrying a small bronze cannonball"
+ }
 }

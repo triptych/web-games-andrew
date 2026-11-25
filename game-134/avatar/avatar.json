@@ -67,5 +67,19 @@
    "ufoops.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute little one-eyed green alien with a bent antenna and a big goofy grin, wearing a small dented flying saucer like a hoop around its waist with a duct-tape patch"
+ }
 }

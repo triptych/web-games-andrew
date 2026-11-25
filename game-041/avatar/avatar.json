@@ -63,5 +63,19 @@
    "burrowguard.hi"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute chubby mole with a tiny mining helmet with a lamp, little round glasses and a shovel, with dirt on his nose, standing upright"
+ }
 }

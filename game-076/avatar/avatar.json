@@ -64,5 +64,19 @@
    "talewright.meta.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute old enchanted feather quill character standing on a little ink-dripping nib like a foot, with spectacles, kind wrinkly eyes and a tiny bow tie"
+ }
 }
