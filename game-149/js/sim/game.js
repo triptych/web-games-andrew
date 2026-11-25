@@ -263,6 +263,39 @@ export function placeActions(G, place) {
 
 const metFlag = (G, f) => !!G.flags['met' + f[0].toUpperCase() + f.slice(1)];
 
+/**
+ * Where the campus guide arrow points: the place the story wants Kai at next, or null when there's nothing to point at.
+ * The climax: the nearest student still caged, then the Principal's Tower. Day 1: the nearest classmate not yet met,
+ * then the Dormitory. Free time: a quest turn-in, then a friend with a heart event waiting, then the friend Kai is
+ * closest to.
+ */
+export function guidePlace(G) {
+    if (G.mode !== 'map' || G.ended) return null;
+    const nearest = (ids) => {
+        let b = null, bd = Infinity;
+        for (const id of ids) { const d = Math.hypot(PLACES[id].x - G.pos.x, PLACES[id].z - G.pos.z); if (d < bd) { bd = d; b = id; } }
+        return b;
+    };
+    const C = G.climax;
+    if (C) {
+        if (C.late) return 'tower';
+        const left = RESCUES.filter((r) => !C.freed.includes(r.id)).map((r) => r.place);
+        return left.length ? nearest(left) : 'tower';
+    }
+    if (G.slot < 1 || G.slot > 2) return null;
+    if (G.day === 1) {
+        if (G.quests.meet === 2) return 'dorm';
+        const unmet = FRIENDS.filter((f) => f !== 'ren' && !metFlag(G, f)).map((f) => CAST[f].home);
+        return unmet.length ? nearest(unmet) : 'dorm';
+    }
+    if (has(G, 'librarybook')) return 'library';
+    if (G.quests.petals === 1 && has(G, 'moonpetal', 5)) return 'lab';
+    if (G.day >= 3 && !G.quests.petals) return 'lab';
+    const ready = FRIENDS.filter((f) => heartEventReady(G, f));
+    if (ready.length) return CAST[ready.reduce((a, f) => ((G.bonds[f] || 0) > (G.bonds[a] || 0) ? f : a))].home;
+    return CAST[best(G)].home;
+}
+
 function doAction(G, cmd) {
     const place = G.panel;
     if (!place) return false;
