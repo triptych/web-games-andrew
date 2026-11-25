@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Echoheart Academy** (game-149) v1.1.1: Lys's surprised sprite (her first line, when the book slips) had four hands: two raised palms in front of her chest and two more beside them. It was repainted from her character reference with fal Nano Banana 2 (edit), asking for exactly two arms and two hands in the same "oh no, sorry!" pose, and cut out with the same `dev/art/export.py` code as the other sprites. The other 32 sprites were checked by eye on a contact sheet and have the right number of hands.
+
 ### Added
 - **Echoheart Academy** (game-149) v1.1.0: finding your way on the campus. A gold arrow on the ground at Kai's feet points to where the story wants you next, and a matching arrow bobs over that place's door. On the first day it points to the nearest classmate you haven't met, then to the Dormitory. In free time it points to a quest you can hand in, then a friend with a heart event waiting, then the friend you're closest to. On the night of the Hollow Moon it turns violet and points to the nearest caged student, then to the Principal's Tower. The target comes from a pure `guidePlace(G)` in [js/sim/game.js](game-149/js/sim/game.js), so the sim test checks it (including that a whole bot game always has a real place to point at in free time). Buildings, trees, the gate arch and the fountain now fade to a ghost while they stand between the camera and Kai, and come back when he walks out ([js/view/campus.js](game-149/js/view/campus.js)); the browser test walks Kai behind the Great Hall to check it.
 

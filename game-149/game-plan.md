@@ -173,6 +173,9 @@ touches, and with storage blocked.
 
 ## Changelog
 
+### v1.1.1 (2026-11-25)
+- Lys's surprised sprite had four hands; repainted (fal `nano-banana-2/edit` from her reference) with two.
+
 ### v1.1.0 (2026-11-25)
 - A guide arrow on the campus: a chevron at Kai's feet and a marker over the door, pointing at `guidePlace(G)` (pure,
   in `js/sim/game.js`): unmet classmates then the dorm on day one; quest turn-ins, waiting heart events, then the

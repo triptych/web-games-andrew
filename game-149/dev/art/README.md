@@ -6,7 +6,7 @@ about 70 images at $0.08 each (≈ $5.70). The shared style prompts are in [styl
 | Set | How | Files |
 |---|---|---|
 | Character references | `nano-banana-2`, 2:3, 1K: full body in an A-pose on flat light grey, one per character (Kai, Hana, Lys, Pip, Ren, Veymont, Hollow Veymont, Graves, Theo, Yuki, the acolyte, the armor; Mochi, the wisp and the gargoyle at 1:1). They are the identity for everything else, and Meshy's input. | not shipped (in the scratch folder) |
-| Expression sprites | `nano-banana-2/edit` from each reference: "redraw this exact character as a waist-up visual novel sprite … expression and pose: …", 3:4. 32 sprites. | `art/spr/<who>-<expr>.webp` (960 px tall), `art/spr/mochi.webp` |
+| Expression sprites | `nano-banana-2/edit` from each reference: "redraw this exact character as a waist-up visual novel sprite … expression and pose: …", 3:4. 32 sprites. `lys-surprised` was painted again in v1.1.1: the first one had four hands; the new prompt also says "exactly two arms and exactly two hands, each with five fingers". | `art/spr/<who>-<expr>.webp` (960 px tall), `art/spr/mochi.webp` |
 | Backgrounds | `nano-banana-2`, 16:9, 1K, the background style prompt ("never draw any people"). 17 places. | `art/bg/*.webp` |
 | CGs | `nano-banana-2/edit` with the characters' references as inputs (the title used six, the ending eight): the title, four heart events, the reveal, the ending. The Hana CG came back with two Chinese characters on the chestnut bag; one more edit removed them. | `art/cg/*.webp` |
 | Item icons | two 4 × 4 sheets at 2K (`icons-a`, `icons-b`), cut per cell. | `art/icons/*.webp` (128 px) |
