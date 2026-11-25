@@ -82,6 +82,7 @@ console.log('\n# desktop');
     await shot(page, 'varec');
     await talkThrough(page, [1, 1]);
     ok(await ea(page, `__.G.quests.the_missing_merchant?.s === 'active'`), 'choices by number keys took the quest');
+    ok(await page.evaluate(() => document.getElementById('vn').hidden && document.getElementById('vn-por').hidden), 'closing the talk clears Varec\'s portrait');
     // the hint and the menu
     await page.waitForTimeout(400);
     await page.keyboard.press('KeyH');
@@ -154,6 +155,16 @@ console.log('\n# desktop');
     await page.click('#shop-close');
     await idle(page);
     ok(await ea(page, `__.mode() === 'explore'`), 'Leave closes the shop');
+    // a chest, opened by holding an arrow key into it: the loot, and no "empty" line straight after
+    await ea(page, `(__.warp('thornwood', 3, 15), __.G.face = 'down', true)`);
+    await idle(page);
+    const potions = await ea(page, '__.G.inv.potion || 0');
+    await page.keyboard.down('ArrowDown'); await page.waitForTimeout(700); await page.keyboard.up('ArrowDown');
+    await page.waitForTimeout(300);
+    ok(await ea(page, `__.G.done.tw_chest && (__.G.inv.potion || 0) === ${potions} + 2`), 'holding an arrow into a chest opens it');
+    ok(await ea(page, `__.mode() === 'explore' && document.getElementById('vn').hidden`), 'and no "the chest is empty" dialogue follows');
+    await page.keyboard.press('Space'); await page.waitForTimeout(200);
+    ok(await ea(page, `__.mode() === 'explore' && !document.getElementById('hint').hidden && /empty/.test(document.getElementById('hint-text').textContent)`), 'Space at the opened chest shows a short note');
     // continue after a reload
     await ea(page, `__.warp('thornhaven', 9, 7)`);
     await page.reload();
