@@ -16,6 +16,7 @@
  * map        every place, charm, petal and marshmallow is reachable by the real mover (flood fill); walls hold.
  * calendar   a day's slots; free actions cost a slot and gifts don't; sleeping; the night scene; the festival.
  * climax     the moon clock, battles cost time, a late moon seals the cages and strengthens the boss.
+ * guide      the campus arrow's target: classmates on day one, quests, heart events, the closest friend, the cages.
  * determinism  same seed and inputs → same game; a save round trip mid-battle and mid-mini-game plays on identically.
  * bot        whole games over SEEDS seeds at three skills and four favourites: every one reaches the ending, with
  *            per-step invariants; the balance table is printed and its bands are asserted.
@@ -476,6 +477,62 @@ if (want('climax')) {
     readThrough(H);
     ok(!Gm.placeActions(H, 'forest').find((a) => a.id === 'rescue').ok, 'the remaining cages are sealed');
     ok(Gm.placeActions(H, 'tower').find((a) => a.id === 'undercroft').ok, 'and the Undercroft opens anyway');
+}
+
+// ======================================================================
+if (want('guide')) {
+    section('guide');
+    const at = (G, id) => { G.pos = { x: D.PLACES[id].x, z: D.PLACES[id].z, face: 0 }; };
+    const G = fresh(13);
+    ok(Gm.guidePlace(G) === null, 'no arrow during a scene');
+    const bot = Bt.makeBot({ seed: 13 });
+    drive(G, bot, (g) => g.mode === 'map' && g.day === 1);
+    G.quests.meet = 1; G.flags = {};
+    at(G, 'lab');
+    ok(Gm.guidePlace(G) === 'lab', 'day one: the nearest classmate not yet met');
+    G.flags.metPip = true;
+    ok(['library', 'arena'].includes(Gm.guidePlace(G)), 'then the next classmate');
+    G.flags.metLys = G.flags.metHana = true; G.quests.meet = 2;
+    ok(Gm.guidePlace(G) === 'dorm', 'everyone met: back to the dorm');
+    // free time
+    const F = fresh(14);
+    F.mode = 'map'; F.vn = null; F.day = 5; F.slot = 1; F.quests = { meet: 2, petals: 2, treats: 2 };
+    for (const f of D.FRIENDS) F.heartSeen[f] = 3;
+    F.bonds.pip = 30;
+    ok(Gm.guidePlace(F) === 'lab', 'free time: the closest friend');
+    F.inv.librarybook = 1;
+    ok(Gm.guidePlace(F) === 'library', 'a quest turn-in comes first');
+    delete F.inv.librarybook;
+    F.heartSeen.hana = 0; F.bonds.hana = C.BOND.perHeart * 2;
+    ok(Gm.guidePlace(F) === 'arena', 'a waiting heart event beats the closest friend');
+    F.slot = 3;
+    ok(Gm.guidePlace(F) === null, 'no arrow at night');
+    // the climax
+    const X = fresh(15);
+    X.mode = 'map'; X.vn = null; X.day = 11; X.captive = 'hana';
+    X.climax = { time: 200, freed: [], late: false, inside: false };
+    at(X, 'forest');
+    ok(Gm.guidePlace(X) === 'forest', 'the climax: the nearest cage');
+    X.climax.freed.push('yuki');
+    ok(Gm.guidePlace(X) === 'library', 'then the next nearest');
+    X.climax.freed.push('theo', 'firsties', 'best');
+    ok(Gm.guidePlace(X) === 'tower', 'everyone free: the Principal\'s Tower');
+    X.climax.freed = []; X.climax.late = true;
+    ok(Gm.guidePlace(X) === 'tower', 'a risen moon: straight to the tower');
+    // every free-time step of a whole bot game points at a real place
+    const W = fresh(16), wb = Bt.makeBot({ seed: 16 });
+    let bad = 0, pointed = 0;
+    for (let k = 0; k < 120 * 60 * 25 && !W.ended; k++) {
+        const d = Bt.botDecide(W, wb);
+        if (d.cmd) Gm.act(W, d.cmd);
+        Gm.step(W, d.inp || NONE, DT);
+        W.events.length = 0;
+        if (k % 60) continue;
+        const g = Gm.guidePlace(W);
+        if (W.mode === 'map' && W.slot >= 1 && W.slot <= 2 || W.mode === 'map' && W.climax) { if (!g || !D.PLACES[g]) bad++; else pointed++; }
+        else if (g) bad++;
+    }
+    ok(bad === 0 && pointed > 50, `the arrow always points at a real place in free time, never elsewhere (${pointed} samples)`);
 }
 
 // ======================================================================

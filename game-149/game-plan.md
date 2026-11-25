@@ -173,6 +173,13 @@ touches, and with storage blocked.
 
 ## Changelog
 
+### v1.1.0 (2026-11-25)
+- A guide arrow on the campus: a chevron at Kai's feet and a marker over the door, pointing at `guidePlace(G)` (pure,
+  in `js/sim/game.js`): unmet classmates then the dorm on day one; quest turn-ins, waiting heart events, then the
+  closest friend in free time; the nearest cage, then the tower, on the Hollow Moon night (violet).
+- Buildings, trees, the gate arch and the fountain fade while they hide Kai from the camera (rays from the camera to
+  his feet, chest and head; a bounding-box test first, then the meshes).
+
 ### v1.0.0 (2026-11-25)
 - First release: 11 days in 5 chapters, 74 scenes, four friends with five hangouts and three heart events each,
   romance or friendship, six mini-games, turn-based battles with Echo, 12 Echo Charms and four side quests, the Hollow

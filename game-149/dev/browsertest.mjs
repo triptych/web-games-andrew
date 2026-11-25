@@ -3,7 +3,7 @@
  *
  * desktop (1280×760), by real keys and clicks: the title and the ← Games link; New Game and a typed name; the chapter
  * card and lines read with Space; the Resonance exam played with the arrow keys; music playing and clips decoded;
- * walking with held arrows; Space at the library opens its sheet; a hangout from it; Escape pauses and closes;
+ * walking with held arrows; the guide arrow and a building fading while it hides Kai; Space at the library opens its sheet; a hangout from it; Escape pauses and closes;
  * a battle with Meshy models loaded, a Strike chosen with Enter; the Fireball Gallery fired with arrow keys; the
  * journal and bag; Save & Quit then Continue; the climax clock; the ending screen. A long sheet keeps its buttons
  * pinned. No sideways scroll; the canvas fills the window.
@@ -164,6 +164,14 @@ async function desktop() {
     await page.keyboard.up('ArrowLeft');
     check((await layout(page)).canvas, 'the canvas fills the window');
     await shot(page, 'desktop-campus');
+    // the guide arrow points at a classmate not yet met, and a building between the camera and Kai fades out
+    await until(page, () => { const c = __ea.view.campus; return ['library', 'lab', 'arena'].includes(c.guideAt) && c.guide.visible && c.pin.visible; }, 'the guide arrow points at a classmate to meet');
+    await Q(page, () => { __ea.G.pos = { x: 0.5, z: -27, face: 0 }; });
+    await until(page, () => __ea.view.campus.occluders.find((o) => o.name === 'hall').fade < 0.5, 'the Great Hall fades while it hides Kai');
+    check(await Q(page, () => __ea.view.campus.occluders.filter((o) => o.name !== 'hall' && o.name !== 'tree').every((o) => o.fade > 0.9)), 'buildings that don\'t hide Kai stay solid');
+    await shot(page, 'desktop-occluded');
+    await Q(page, () => { __ea.G.pos = { x: 0, z: 30, face: 0 }; });
+    await until(page, () => __ea.view.campus.occluders.find((o) => o.name === 'hall').fade === 1, 'and comes back when Kai walks out');
     // the library: Space at the door opens it, and meeting Lys plays her scene
     await Q(page, () => { __ea.place('library'); });
     await until(page, () => __ea.G.near === 'library' && !document.getElementById('hud-prompt').hidden, 'the door prompt appears');

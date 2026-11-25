@@ -2,11 +2,13 @@
 // trees, the fountain, the sky bridge) with Meshy characters walking it. Kai follows G.pos; friends wait at their
 // places; Echo Charms, moonpetals and marshmallows float where they lie. Day turns to evening and night with the
 // slot; on the night of the Hollow Moon the sky goes violet and crystal cages hold the captured students.
+// A guide arrow on the ground at Kai's feet, and another bobbing over the door, point at guidePlace(G). Buildings,
+// trees, the gate arch and the fountain fade out while they stand between the camera and Kai.
 
 import * as THREE from 'three';
 import { MAP } from '../config.js';
 import { PLACES, PLACE_IDS, CHARMS, PETALS, TREATS, RESCUES, FRIENDS, CAST } from '../sim/data.js';
-import { SOLIDS } from '../sim/game.js';
+import { SOLIDS, guidePlace } from '../sim/game.js';
 import { hash3 } from '../rng.js';
 import { Actor, RAMP, blobShadow } from './assets.js';
 
@@ -40,7 +42,10 @@ export class Campus {
         this.camAt = new THREE.Vector3(0, 0, 30);
         this.lightKey = null;
         this.lamps = [];
+        this.occluders = [];
         this.build();
+        this.buildGuide();
+        this.ray = new THREE.Raycaster();
         this.kai = new Actor('kai', { height: 2.5, color: 0x9fb6ff });
         this.scene.add(this.kai.root);
         this.mochi = new Actor('mochi', { height: 0.9, color: 0xffffff });
@@ -167,6 +172,7 @@ export class Campus {
         f.add(base, water, mid, bowl, this.spray);
         for (const m of [base, mid, bowl]) m.castShadow = true;
         f.position.set(0, 0, 8); S.add(f);
+        this.occluder(f, 'fountain');
         // buildings
         for (const s of SOLIDS) if (s.id) this.building(s.id, s);
         // trees: cherry blossoms around campus, the dark wood to the west
@@ -261,6 +267,7 @@ export class Campus {
         g.position.set(x, 0, z);
         g.rotation.y = hash3(i, 90) * 6;
         this.scene.add(g);
+        this.occluder(g, 'tree');
     }
 
     lamp(x, z, y0 = 0) {
@@ -273,10 +280,121 @@ export class Campus {
     }
 
     arch(x, z) {
-        const m = toon(STONE);
-        for (const sx of [-3.4, 3.4]) { const p = new THREE.Mesh(new THREE.BoxGeometry(1.2, 6, 1.2), m); p.position.set(x + sx, 3, z); p.castShadow = true; this.scene.add(p); }
-        const top = new THREE.Mesh(new THREE.BoxGeometry(8.4, 1, 1.4), m); top.position.set(x, 6.4, z); this.scene.add(top);
-        const crest = new THREE.Mesh(new THREE.OctahedronGeometry(0.8), new THREE.MeshToonMaterial({ color: GOLD, gradientMap: RAMP, emissive: 0x5a4010 })); crest.position.set(x, 7.6, z); this.scene.add(crest);
+        const m = toon(STONE), g = new THREE.Group();
+        for (const sx of [-3.4, 3.4]) { const p = new THREE.Mesh(new THREE.BoxGeometry(1.2, 6, 1.2), m); p.position.set(sx, 3, 0); p.castShadow = true; g.add(p); }
+        const top = new THREE.Mesh(new THREE.BoxGeometry(8.4, 1, 1.4), m); top.position.set(0, 6.4, 0); g.add(top);
+        const crest = new THREE.Mesh(new THREE.OctahedronGeometry(0.8), new THREE.MeshToonMaterial({ color: GOLD, gradientMap: RAMP, emissive: 0x5a4010 })); crest.position.set(0, 7.6, 0); g.add(crest);
+        g.position.set(x, 0, z);
+        this.scene.add(g);
+        this.occluder(g, 'arch');
+    }
+
+    /** Something that may stand between the camera and Kai: it fades while it does. */
+    occluder(obj, name) {
+        const mats = [];
+        obj.traverse((o) => {
+            if (!o.isMesh) return;
+            const list = Array.isArray(o.material) ? o.material : [o.material];
+            for (const m of list) if (!mats.some((x) => x.m === m)) mats.push({ m, opacity: m.opacity, transparent: m.transparent, depthWrite: m.depthWrite });
+        });
+        obj.updateMatrixWorld(true);
+        this.occluders.push({ obj, name, mats, box: new THREE.Box3().setFromObject(obj), fade: 1, hit: false });
+    }
+
+    // ------------------------------------------------------------------ the guide arrow
+    buildGuide() {
+        // a flat chevron on the ground that circles Kai, pointing the way; drawn over everything so it's never lost
+        const sh = new THREE.Shape();
+        sh.moveTo(0, 1.1); sh.lineTo(0.85, 0.05); sh.lineTo(0.42, 0.05); sh.lineTo(0.42, -0.9);
+        sh.lineTo(-0.42, -0.9); sh.lineTo(-0.42, 0.05); sh.lineTo(-0.85, 0.05); sh.closePath();
+        const geo = new THREE.ShapeGeometry(sh);
+        geo.rotateX(-Math.PI / 2);                              // lying flat, its tip toward -z
+        this.guideMat = new THREE.MeshBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 0.95, depthTest: false, depthWrite: false, fog: false, toneMapped: false, side: THREE.DoubleSide });
+        const edgeMat = new THREE.MeshBasicMaterial({ color: 0x3a2a10, transparent: true, opacity: 0.7, toneMapped: false, depthTest: false, depthWrite: false, fog: false, side: THREE.DoubleSide });
+        const arrow = new THREE.Mesh(geo, this.guideMat);
+        const edge = new THREE.Mesh(geo, edgeMat);
+        edge.scale.setScalar(1.22); edge.position.y = -0.01;
+        arrow.renderOrder = 21; edge.renderOrder = 20;
+        this.guide = new THREE.Group();
+        this.guideTip = new THREE.Group();
+        this.guideTip.add(edge, arrow);
+        this.guideTip.scale.setScalar(1.25);
+        this.guide.add(this.guideTip);
+        this.guide.visible = false;
+        this.scene.add(this.guide);
+        // a bobbing arrow over the target's door, pointing down
+        const pin = new THREE.Group();
+        this.pinMat = new THREE.MeshBasicMaterial({ color: 0xffe08a, fog: false, toneMapped: false });
+        const head = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.3, 4), this.pinMat);
+        head.rotation.x = Math.PI; head.position.y = 0.65;
+        const shaft = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.1, 0.5), this.pinMat);
+        shaft.position.y = 1.85;
+        pin.add(head, shaft);
+        pin.visible = false;
+        this.pin = pin;
+        this.scene.add(pin);
+        this.guideAt = null;
+    }
+
+    guideFrame(G, time) {
+        const id = guidePlace(G);
+        const P = id && PLACES[id];
+        const k = this.kai.root.position;
+        const far = P && Math.hypot(P.x - k.x, P.z - k.z) > P.r + 1;
+        this.guideAt = P && far && !G.panel ? id : null;
+        const rescue = G.climax && id !== 'tower';
+        const col = !G.climax ? 0xffe08a : rescue ? 0xd090ff : 0xff70c0;
+        this.guideMat.color.set(col); this.pinMat.color.set(col);
+        this.guide.visible = !!this.guideAt;
+        this.pin.visible = !!(P && !G.panel && G.near !== id);
+        if (this.guide.visible) {
+            const a = Math.atan2(P.x - k.x, P.z - k.z);         // heading from Kai to the door
+            this.guide.position.set(k.x, 0.15, k.z);
+            this.guide.rotation.y = a + Math.PI;                 // the chevron's tip is local -z
+            this.guideTip.position.set(0, 0, -(2.6 + Math.sin(time * 5) * 0.25));
+        }
+        if (this.pin.visible) {
+            this.pin.position.set(P.x, 6.2 + Math.sin(time * 3) * 0.4, P.z);
+            this.pin.rotation.y = time * 1.5;
+        }
+    }
+
+    // ------------------------------------------------------------------ fading what hides Kai
+    fadeFrame(dt) {
+        const cam = this.camera.position, k = this.kai.root.position;
+        const pts = [0.4, 1.3, 2.3].map((y) => new THREE.Vector3(k.x, y, k.z));
+        for (const o of this.occluders) o.hit = false;
+        const hitPt = new THREE.Vector3(), dir = new THREE.Vector3();
+        for (const p of pts) {
+            dir.subVectors(p, cam);
+            const dist = dir.length() - 0.6;
+            dir.normalize();
+            this.ray.set(cam, dir);
+            this.ray.far = dist;
+            for (const o of this.occluders) {
+                if (o.hit || !this.ray.ray.intersectBox(o.box, hitPt) || hitPt.distanceTo(cam) > dist) continue;
+                if (this.ray.intersectObject(o.obj, true).length) o.hit = true;
+            }
+        }
+        const rate = 1 - Math.exp(-dt * 10);
+        for (const o of this.occluders) {
+            const want = o.hit ? 0.28 : 1;
+            if (Math.abs(o.fade - want) < 0.002) { if (o.fade !== want) { o.fade = want; this.applyFade(o); } continue; }
+            o.fade += (want - o.fade) * rate;
+            if (Math.abs(o.fade - want) < 0.01) o.fade = want;
+            this.applyFade(o);
+        }
+    }
+
+    applyFade(o) {
+        const faded = o.fade < 0.999;
+        for (const x of o.mats) {
+            x.m.opacity = x.opacity * o.fade;
+            const tr = faded || x.transparent;
+            if (x.m.transparent !== tr) { x.m.transparent = tr; x.m.needsUpdate = true; }
+            x.m.depthWrite = faded ? false : x.depthWrite;
+        }
+        o.obj.traverse((m) => { if (m.isMesh) m.renderOrder = faded ? 5 : 0; });
     }
 
     /** A castle building facing the courtyard. Shapes differ by place. */
@@ -335,6 +453,7 @@ export class Campus {
         g.position.set(s.x, 0, s.z);
         g.lookAt(0, 0, 8);
         this.scene.add(g);
+        this.occluder(g, id);
     }
 
     // ------------------------------------------------------------------ events and frames
@@ -428,7 +547,7 @@ export class Campus {
             const hot = G.near === id;
             m.ring.material.opacity = hot ? 1 : 0.55 + Math.sin(time * 3 + id.length) * 0.15;
             m.ring.scale.setScalar((id === 'courtyard' ? 2.4 : 1) * (hot ? 1.15 + Math.sin(time * 6) * 0.05 : 1));
-            m.beam.material.opacity = hot ? 0.28 : 0.1;
+            m.beam.material.opacity = hot ? 0.28 : id === this.guideAt ? 0.22 : 0.1;
             const rescue = G.climax && RESCUES.find((r) => r.place === id && !G.climax.freed.includes(r.id));
             m.ring.material.color.set(rescue ? 0xd090ff : id === 'tower' && G.climax ? 0xff70c0 : 0xffe08a);
         }
@@ -457,5 +576,8 @@ export class Campus {
         this.skyDome.position.copy(this.camera.position);
         this.sun.position.set(this.camAt.x + 18, 40, this.camAt.z + 14);
         this.sun.target.position.copy(this.camAt);
+        this.camera.updateMatrixWorld();
+        this.guideFrame(G, time);
+        this.fadeFrame(dt);
     }
 }
