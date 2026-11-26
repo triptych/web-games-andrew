@@ -14,7 +14,8 @@ const FOLK_H = { child: 0.62 };
 // the glass of the backdrop's three windows (fractions of the painting), measured from art/bg-shop.webp
 const WINDOWS = [[0.141, 0.246], [0.449, 0.551], [0.755, 0.859]];
 const GLASS = { top: 0.22, sill: 0.643 };
-const PASSERS = ['adult', 'adult', 'hat', 'bonnet', 'basket', 'child', 'cane', 'dog', 'pair'];
+// who walks past: the townsfolk sprites themselves, as dark silhouettes ('pair' is two of them side by side)
+const PASSERS = [...Object.keys(FOLK), 'pair'];
 
 const s3 = (v) => v.s;
 function img(src) { const i = new Image(); i.src = src; return i; }
@@ -202,7 +203,7 @@ export class ShopView {
                 const near = Math.random() < 0.45;
                 this.walkers.push({
                     x: dir > 0 ? lo : hi, dir, speed: (near ? 0.55 : 0.38) + Math.random() * 0.35,
-                    near, kind: PASSERS[Math.floor(Math.random() * PASSERS.length)], phase: Math.random() * 6, pause: 0, paused: false,
+                    near, kind: PASSERS[Math.floor(Math.random() * PASSERS.length)], other: Object.keys(FOLK)[Math.floor(Math.random() * 7)], phase: Math.random() * 6, pause: 0, paused: false,
                 });
             }
         }
@@ -211,47 +212,58 @@ export class ShopView {
             if (p.pause > 0) { p.pause -= dt; continue; }
             p.x += p.dir * p.speed * dt;
             // now and then someone stops to look in at the books
-            if (!p.paused && p.kind !== 'dog' && Math.random() < dt * 0.08) { p.paused = true; p.pause = 1.2 + Math.random() * 1.5; }
+            if (!p.paused && Math.random() < dt * 0.08) { p.paused = true; p.pause = 1.2 + Math.random() * 1.5; }
             if (p.x < lo - 0.5 || p.x > hi + 0.5) this.walkers.splice(i, 1);
         }
     }
 
-    /** Draw the passers-by as soft silhouettes, clipped to the windows' glass so they only show through them. */
+    /** A townsfolk sprite as a dark silhouette: the same outline, filled with one colour ('source-in'). Made once per
+     *  sprite when it has loaded; the canvas equivalent of a CSS brightness filter, and it works on every browser. */
+    _silhouette(kind) {
+        this.sil ||= {};
+        if (this.sil[kind]) return this.sil[kind];
+        const im = this.art.folk[kind];
+        if (!ok(im)) return null;
+        const h = 180, w = Math.round(h * im.naturalWidth / im.naturalHeight);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const x = c.getContext('2d');
+        x.drawImage(im, 0, 0, w, h);
+        x.globalCompositeOperation = 'source-in';
+        x.fillStyle = '#3c2836';
+        x.fillRect(0, 0, w, h);
+        return (this.sil[kind] = c);
+    }
+
+    /** Draw the passers-by, masked by the windows' glass so they only show through it. Multiply darkens the glass
+     *  where someone passes, so the window bars stay in front of them; the near ones are darker than the far ones. */
     _street(tiles, iw, ih, top) {
         if (!this.walkers.length) return;
-        const { ctx, s } = this;
+        const { ctx } = this;
         ctx.save();
         ctx.beginPath();
         for (const x of tiles) for (const [a, b] of WINDOWS) ctx.rect(x + a * iw, top + GLASS.top * ih, (b - a) * iw, (GLASS.sill - GLASS.top) * ih);
         ctx.clip();
-        // multiply: the glass darkens where someone passes, and the window bars stay in front of them
         ctx.globalCompositeOperation = 'multiply';
         const ground = top + ih * 0.69;             // the street is below the sill: feet stay hidden
         for (const p of this.walkers) {
             const k = (p.near ? 0.27 : 0.21) * ih;  // a grown-up's height in px
             const x = this.sx(p.x);
             const step = p.pause > 0 ? 0 : Math.sin(this.time * 7 * p.speed + p.phase);
-            ctx.fillStyle = p.near ? 'rgba(92, 64, 84, 0.8)' : 'rgba(150, 112, 120, 0.7)';
-            const figure = (fx, hk, hat) => {
-                const y = ground - Math.abs(step) * k * 0.02;
-                const bw = hk * 0.24, bh = hk * 0.62;
-                ctx.beginPath(); ctx.ellipse(fx, y - bh * 0.5, bw / 2, bh / 2, step * 0.04 * p.dir, 0, 7); ctx.fill();
-                const hy = y - bh - hk * 0.09;
-                ctx.beginPath(); ctx.arc(fx, hy, hk * 0.09, 0, 7); ctx.fill();
-                if (hat === 'hat') { ctx.fillRect(fx - hk * 0.12, hy - hk * 0.08, hk * 0.24, hk * 0.025); ctx.fillRect(fx - hk * 0.065, hy - hk * 0.2, hk * 0.13, hk * 0.13); }
-                if (hat === 'bonnet') { ctx.beginPath(); ctx.arc(fx, hy - hk * 0.02, hk * 0.115, Math.PI, 0); ctx.fill(); }
+            ctx.globalAlpha = p.near ? 0.72 : 0.45;
+            const figure = (kind, fx) => {
+                const c = this._silhouette(kind);
+                if (!c) return;
+                const fh = k * (FOLK_H[kind] || 0.95) / 0.95, fw = fh * c.width / c.height;
+                ctx.save();
+                ctx.translate(fx, ground - Math.abs(step) * k * 0.03);
+                ctx.rotate(step * 0.035);
+                if (p.dir < 0) ctx.scale(-1, 1);
+                ctx.drawImage(c, -fw / 2, -fh, fw, fh);
+                ctx.restore();
             };
-            if (p.kind === 'dog') {
-                const y = ground - k * 0.33;
-                ctx.beginPath(); ctx.ellipse(x, y, k * 0.16, k * 0.06, 0, 0, 7); ctx.fill();
-                ctx.beginPath(); ctx.arc(x + p.dir * k * 0.17, y - k * 0.06, k * 0.055, 0, 7); ctx.fill();
-                ctx.fillRect(x - p.dir * k * 0.2, y - k * 0.06 - Math.abs(step) * k * 0.04, k * 0.03, k * 0.08);
-                continue;
-            }
-            if (p.kind === 'pair') { figure(x - k * 0.13, k, 'bonnet'); figure(x + k * 0.13, k * 0.95, 'hat'); continue; }
-            figure(x, p.kind === 'child' ? k * 0.68 : k, p.kind);
-            if (p.kind === 'basket') { ctx.beginPath(); ctx.ellipse(x + p.dir * k * 0.15, ground - k * 0.34, k * 0.09, k * 0.05, 0, 0, 7); ctx.fill(); }
-            if (p.kind === 'cane') ctx.fillRect(x + p.dir * k * 0.16, ground - k * 0.36, k * 0.02, k * 0.4);
+            if (p.kind === 'pair') { figure(p.other, x - k * 0.16); figure('noble', x + k * 0.16); }
+            else figure(p.kind, x);
         }
         ctx.restore();
     }
