@@ -253,6 +253,8 @@ try {
         await until(page, () => !!document.querySelector('dialog.wg-cloud [data-wgc="signout"]'), 'signed in');
         await click(page, 'dialog.wg-cloud [data-wgc="signout"]');
         await until(page, () => !!document.querySelector('dialog.wg-cloud input[type=email]') && !localStorage.getItem('web-games.cloud'), 'Sign out: the sign-in form again, and the shared session gone (signed out of every game)');
+        // the logout request goes out after the form is redrawn; on a slow page it lands a moment later
+        for (let i = 0; i < 50 && !log.some((r) => r.path === '/auth/v1/logout'); i++) await page.waitForTimeout(100);
         check(log.some((r) => r.path === '/auth/v1/logout'), 'and it tells Supabase');
         await ctx.close();
     }

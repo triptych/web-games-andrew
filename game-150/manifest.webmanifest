@@ -1,0 +1,39 @@
+{
+  "name": "Folio & Fable",
+  "short_name": "Folio & Fable",
+  "description": "Folio & Fable — a cozy fantasy bookshop. An orphan, a talking book and a dusty shop: arrange the shelves, send adventurers to find books, bind your own at the bindery, and put the right story in the right hands until the whole town of Larkspur wakes up.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#2a1c14",
+  "theme_color": "#2a1c14",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
