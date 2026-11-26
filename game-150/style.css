@@ -185,10 +185,12 @@ td:first-child { color: #7a3a1a; white-space: nowrap; font-weight: 600; }
 }
 .card.dim { opacity: 0.55; }
 .card .cover { width: 44px; height: 62px; object-fit: cover; border-radius: 3px; box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); flex: none; cursor: pointer; }
-.card .info { flex: 1; min-width: 0; }
+/* The text never gets narrower than ~170 px: when the buttons would squeeze it, they wrap onto their own line. */
+.card { flex-wrap: wrap; }
+.card .info { flex: 1 1 170px; min-width: 0; }
 .card .t { font-weight: 600; font-size: 15px; line-height: 1.2; }
 .card .s { font-size: 13px; color: var(--ink-soft); }
-.card .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.card .acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex: 0 1 auto; margin-left: auto; }
 .rar { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
 .vchip { display: inline-block; font-size: 12px; padding: 1px 6px; border-radius: 999px; margin: 2px 2px 0 0; color: #fff; }
 .tag { display: inline-block; font-size: 12px; padding: 1px 6px; border-radius: 6px; margin: 2px 2px 0 0; background: #e8d7b4; }

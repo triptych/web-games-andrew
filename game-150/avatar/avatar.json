@@ -78,6 +78,9 @@
   }
  ],
  "update": "Folio & Fable is now v{version}! A new page has been added to the shop. 📚",
+ "updates": {
+  "1.0.1": "A little tidying in the shop: the notes on every shelf and book are easier to read on a phone now. I do like a legible page."
+ },
  "bye": [
   "Goodnight! I'll keep your place marked.",
   "Off you go. I'll be on the counter, being wise."

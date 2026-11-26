@@ -191,6 +191,9 @@ bot play the whole story at two skills. `browsertest.mjs` drives the real game b
 
 ## Changelog
 
+### v1.0.1 (2026-11-26)
+- Fixed: on a phone, a card with several buttons (a bookshelf's Move ◀, Move ▶, Put away) squeezed its text to one word a line. The buttons now wrap onto their own line whenever the text would get narrower than about 170 px. The browser test checks every card's text is at least 150 px wide on both phones (it measured 15 px before).
+
 ### v1.0.0 (2026-11-26)
 - First release: the shop (two rows of furniture, sections, coziness, renovation), customers and wishes,
   commissions, the procedural book engine, the 2D covers and the three.js inspector and shelves, four adventurers and

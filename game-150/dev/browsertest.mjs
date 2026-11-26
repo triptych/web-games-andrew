@@ -315,6 +315,10 @@ async function phone(w, h) {
     await page.waitForTimeout(300);
     await page.touchscreen.tap(p.x, p.y);
     await until(page, () => !document.getElementById('column').hidden, 'a tap on the shelf opens its sheet');
+    // a card's text keeps a readable width; its buttons wrap below instead of squeezing it to a word a line (v1.0.1)
+    const narrow = (sel) => Q(page, (q) => Math.min(...[...document.querySelectorAll(q)].map((e) => e.getBoundingClientRect().width)), sel);
+    const colInfo = await narrow('#column .card .info');
+    check(colInfo >= 150, `the shelf card's text is at least 150 px wide (${Math.round(colInfo)} px)`);
     await Q(page, () => { const s = document.querySelector('#column .sheet'); s.scrollTop = 1e6; });
     const foot = await Q(page, () => { const r = document.querySelector('#column .sheet-foot .btn').getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && r.height >= 44; });
     check(foot, 'the sheet\'s Done button stays on screen, scrolled or not');
@@ -325,6 +329,8 @@ async function phone(w, h) {
     await tapSel('[data-tab="books"]');
     await until(page, () => !document.getElementById('books').hidden, 'a tap on the Books tab opens the library');
     await shot(page, `phone-books-${w}x${h}`);
+    const libInfo = await narrow('#books-list .card .info');
+    check(libInfo >= 150, `the library cards' text is at least 150 px wide (${Math.round(libInfo)} px)`);
     await tapSel('#btn-autoshelve');
     await tapSel('#books .sheet-foot .btn');
     await tapSel('#btn-main');

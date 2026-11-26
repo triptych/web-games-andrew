@@ -1,7 +1,7 @@
 // Folio & Fable — constants and tuning. Shared by the sim, the view and the tests. Pure data.
 // The content tables (books, materials, places, people, story) live in js/sim/data.js.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'folio-and-fable.v1';
 
 export const STEP = 1 / 60;               // the shop clock steps at this rate while the doors are open
