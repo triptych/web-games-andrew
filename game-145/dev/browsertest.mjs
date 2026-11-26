@@ -24,6 +24,8 @@ import { fileURLToPath } from 'node:url';
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const BASE = process.env.BASE ?? 'http://127.0.0.1:8145';
 const Q = process.env.Q ?? 'low';
+// three.js from a local copy when there is one (an offline or firewalled machine can't reach unpkg.com)
+const PKG = process.env.THREE_PKG ?? [path.join(HERE, 'package'), path.join(HERE, '../../dev/package')].find((p) => fs.existsSync(p));
 const OUT = path.join(HERE, 'shots');
 const ONLY = (process.env.ONLY || '').split(',').filter(Boolean);
 const want = (name) => !ONLY.length || ONLY.includes(name);
@@ -44,6 +46,11 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
         if (ns) Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('blocked', 'SecurityError'); } });
         else try { localStorage.clear(); } catch { /* */ }
     }, nostorage);
+    if (PKG) await ctx.route('https://unpkg.com/**', (route) => {
+        const file = path.join(PKG, new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, ''));
+        if (!fs.existsSync(file)) return route.abort();
+        route.fulfill({ status: 200, contentType: 'application/javascript', headers: { 'Access-Control-Allow-Origin': '*' }, body: fs.readFileSync(file) });
+    });
     const page = await ctx.newPage();
     await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
     errors = [];

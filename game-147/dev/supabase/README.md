@@ -1,7 +1,9 @@
 # Inn Over My Head — cloud saves (Supabase)
 
 Players can sign in with a link emailed to them (no password) and keep a copy of their save online, then carry on from
-another device or browser. The game talks to Supabase with plain `fetch` ([js/cloud.js](../../js/cloud.js)): Auth for
+another device or browser. Since v1.3.0 the game uses the shared client and screen
+([lib/core/cloud.js](../../../lib/core/cloud.js), [lib/core/cloud-ui.js](../../../lib/core/cloud-ui.js)), with one
+sign-in for every game on the site. They talk to Supabase with plain `fetch`: Auth for
 the magic link and token refresh, PostgREST for the `game_saves` table. Local saves keep working as before.
 
 | | |
@@ -11,6 +13,9 @@ the magic link and token refresh, PostgREST for the `game_saves` table. Local sa
 | Key in the page | the **publishable** key (`sb_publishable_…`). It is meant to be public; row-level security guards the data. |
 | Table | `public.game_saves`: one row per player, game and slot ([game_saves.sql](game_saves.sql)). The `game` column (`game-147`) lets other games in the repo share the table. |
 | Security | RLS: a signed-in player can read, add, change and delete only their own rows; `anon` has no access at all. Checked by running as each role (anonymous read denied; a player can't write as someone else, and doesn't see or change another player's rows). The security advisor reports nothing. |
+
+For other games, and for the full email setup with Resend, see the repo-wide guide
+[docs/generic/cloud-saves.md](../../../docs/generic/cloud-saves.md).
 
 ## One-time setup in the Supabase dashboard
 
@@ -33,8 +38,9 @@ These can't be set from the game or the SQL editor.
   device), a "save to the cloud by itself" switch (on by default) and **Sign out**.
 - **Automatic uploads** while signed in: every two minutes of play, on Save & Quit, and as the page is hidden or closed
   (a `keepalive` request when the save is under 60 KB).
-- The session (access and refresh tokens) is kept in `localStorage` under `inn-over-my-head.v1.cloud` and refreshed a
-  minute before it runs out. An expired sign-in asks the player to sign in again.
+- The session (access and refresh tokens) is kept in `localStorage` under `web-games.cloud`, shared by every game, and
+  refreshed a minute before it runs out. A v1.2.0 sign-in (`inn-over-my-head.v1.cloud`) moves there by itself. An
+  expired sign-in asks the player to sign in again.
 
 ## Tests
 

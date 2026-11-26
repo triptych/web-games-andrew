@@ -278,17 +278,10 @@ td:first-child { color: var(--berry); font-weight: 800; white-space: nowrap; }
 .pill { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 999px; background: #fff; border: 1px solid var(--line); }
 .where { margin: 6px 0 8px; padding: 6px 10px; border-radius: 10px; background: #fff3dc; border: 1px dashed var(--wood); font-size: 12px; line-height: 1.45; color: var(--ink-2); }
 .where b { color: var(--ink); }
-/* cloud save */
-#cloud-body .row input[type=email] { flex: 1; min-width: 0; min-height: 44px; padding: 6px 12px; border-radius: 12px; border: 2px solid var(--wood-d); font: 600 16px var(--font); color: var(--ink); background: #fff; }
-#cloud-body .cloud-save { display: flex; gap: 10px; align-items: center; margin: 10px 0; }
-#cloud-body .cloud-save b { display: block; font-family: var(--display); }
-#cloud-body .acts { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
-#cloud-body .acts .btn { flex: 1 1 140px; }
-#cloud-body .check { display: flex; gap: 8px; align-items: center; font-weight: 700; margin: 10px 0; min-height: 44px; }
-#cloud-body .check input { width: 22px; height: 22px; }
-#cloud-msg:empty { display: none; }
-#cloud-msg.bad { color: #b0303f; }
-#cloud-msg.good { color: #2f7d52; }
+/* cloud save: the shared screen (lib/core/cloud-ui.js) inside the game's sheet, in the game's colours */
+#cloud-body { --wg-cloud-edge: var(--wood-d); --wg-cloud-accent: var(--berry); }
+#cloud-body .wg-save { background: var(--paper-2); border: 2px solid var(--wood-d); }
+#cloud-body .wg-save b { font-family: var(--display); }
 /* portraits that open the 3D model viewer */
 .por-btn { position: relative; padding: 0; border: 0; background: none; cursor: pointer; flex: none; border-radius: 12px; }
 .por-btn img { display: block; transition: transform 0.12s; }

@@ -1,6 +1,6 @@
 // Glimmerglade — tuning and tables. Shared by the sim, the view and the tests. Pure data.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'glimmerglade.v1';
 
 export const STEP = 1 / 60;               // the sim only keeps a clock; every rule is a command (act)

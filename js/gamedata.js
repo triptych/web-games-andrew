@@ -2257,7 +2257,7 @@ const games = [
         description: 'You wake on a rotting mattress in a broken house in Ashmere, a city where everyone walked into the light one night and never came back. Walk it in first person: a whole procedural city from a seed, 450-odd buildings you can enter floor by floor (malls with tree-split atriums, hospitals, hotels, factories, car parks, houses, endless yellow backrooms offices), all decaying: rotten floors you fall through, collapsed walls, mould, puddles, dead trees, cars left in the streets, vending machines that still work. A brass compass points at the next of ten diaries left by the missing; they tell what the Threshold Laboratory opened, hold the tools that open boarded, chained and card-locked doors, and carry the dial numbers and conduit order you will need at the ring in Hall C to bring everyone home. No enemies. Every seed is a different city, cast and code.',
         icon: '\uD83C\uDFDA\uFE0F',
         folder: 'game-145',
-        version: '1.1.0',
+        version: '1.2.0',
         cssClass: 'vacancy',
         genre: 'story',
         tags: [
@@ -2274,7 +2274,7 @@ const games = [
         description: 'A Christmas ornament-popping puzzle. Grimwick, a lonely snow goblin who loves shiny things, blew every ornament out of Santa\'s workshop, and Juniper the junior elf has six nights to win them back with her candy-cane bauble blaster. Aim, bank shots off the walls and match three glass ornaments of a colour to pop them free; anything left hanging falls too. 36 levels across six painted chapters (the workshop, Gingerbread Lane, the Candy Cane Forest, Twinkle Pond, Reindeer Ridge and Grimwick\'s icy hoard) bring presents, coal, frozen ornaments, golden bells and prism baubles, a tray that grows to three ornaments you tap to swap, eight power-ups (Pudding Bomb, Rainbow Star, Candy Cane Striker, Jingle Bell, Tinsel Garland, Hot Cocoa, North Star, Gingerbread Break) and a snowy ceiling that creeps down with every shot. Then the endless Blizzard. Voiced story, ElevenLabs music and art.',
         icon: '\uD83C\uDF84',
         folder: 'game-146',
-        version: '1.0.0',
+        version: '1.1.0',
         cssClass: 'jingle-pop',
         genre: 'puzzle',
         tags: [
@@ -2291,7 +2291,7 @@ const games = [
         description: "A cozy anime RPG and inn-management game in three.js, with every character, monster, item and piece of furniture a Meshy 3D model (the heroes rigged and animated by Meshy) and art, music, sound and voices by ElevenLabs. Maple Hearthwood inherits the Drowsy Dragonfly Inn, a sunlit, slightly rundown fantasy inn, along with 40,000 gold of debt to Madame Goldmaw, a fussy little dragon banker with a monocle. Restore it room by room in a textured dollhouse cutaway you can zoom into, room by room: check guests in, shoo the dust bunnies hopping in their rooms, cook in the kitchen with a stir-timing mini-game, harvest the courtyard and pay the debt in five installments that open the East Wing, new regions and the Sunroom Suite. Strangers arrive at the desk with a request: a soot-faced chef, a reformed-pickpocket bellhop, a dreamy gardener and a retired knight who hates dust. Give them a room, their favourite meal and a favour and they join as party, staff or both; staff keep the inn running while you adventure, and even while the game is closed. Meals become party buffs, a spotless inn becomes Fresh Linens. Battles are turn-based in a 3/4 isometric view on diorama islands (Sunny Meadow, Mushroom Grove, Crystal Cave): a turn-order timeline, elemental weaknesses that stagger, combo links between heroes, a chain gauge, solo, duo and trio Chain Attacks unlocked by bonds, items, a comic flee and an auto-battle with Aggressive, Balanced and Conserve MP presets. Bonds grow from cooking, cleaning and fighting together and unlock scenes, stat synergy and decor favourites. A five-chapter voiced story. Mouse, keyboard or touch.",
         icon: '\uD83D\uDECE\uFE0F',
         folder: 'game-147',
-        version: '1.2.0',
+        version: '1.3.0',
         cssClass: 'inn-over-my-head',
         genre: 'rpg',
         tags: [
@@ -2310,7 +2310,7 @@ const games = [
         description: "A gentle fairy sorting puzzle in vanilla JavaScript and Canvas 2D, with art, music, sound and voices made with ElevenLabs. The Tumble Wind blew through the glade overnight and every wisp of light landed in the wrong glass bell-flower. Help Lumi, a young lantern fairy, tip the glowing wisps between the blossoms (tap one, tap another, or drag) until each holds four of a colour: then it blooms, and the magical creature whose heart-light filled it wakes up and sits on top of its flower. Fifty levels across five painted glades, each proved solvable by a solver that uses the game's own rules: Dawnpetal Meadow, Mushroom Hollow (mist hides the wisps underneath), Moonpond (brambles that loosen after enough blooms), Crystal Grotto (acorn cups that hold two but never bloom) and the Starfall Canopy. Free undo, three firefly hints a level, one sprout for an extra blossom, three stars for matching Grandmother Willow's pours, a creature journal of nine friends, a daily dewdrop puzzle with a streak, endless dreams, and a voiced story told by Willow and Lumi. Made for phones first.",
         icon: '\uD83E\uDDDA',
         folder: 'game-148',
-        version: '1.0.1',
+        version: '1.1.0',
         cssClass: 'glimmerglade',
         genre: 'puzzle',
         tags: [
@@ -2326,7 +2326,7 @@ const games = [
         description: "An upbeat anime visual novel RPG in three.js. Kai's only magic is that he can hear other people's spells as songs and sing them back. At Lumina Academy, a castle school on a floating island, he makes four friends (fiery Hana, shy star mage Lys, explosive alchemist Pip and his wind-mage roommate Ren), plays their six magical mini-games, collects twelve hidden Echo Charms, gives gifts, and grows close to one of them through heart events that end in romance or best friendship. But students are falling into a magicless sleep, and the trail leads from an archive full of cult marks to the kindly, candy-giving principal. On the night of the Starfall Festival the Hollow Moon rises, your closest friend is taken, and you race the moon across the island to free every caged student before facing the Hollow Choir's master, where Kai's Echo turns every stolen spell back on him. Five chapters, 74 scenes, turn-based battles with Meshy-modelled and animated characters on a 3D campus, fal-painted art, and ElevenLabs music, sound and voices.",
         icon: '\uD83C\uDF19',
         folder: 'game-149',
-        version: '1.1.1',
+        version: '1.2.0',
         cssClass: 'echoheart-academy',
         genre: 'story',
         tags: [

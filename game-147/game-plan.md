@@ -520,6 +520,11 @@ clip (`dev/rigshot.mjs` covers single models).
 
 ## Changelog
 
+### v1.3.0 (2026-11-26)
+
+- Changed: cloud saves use the shared `lib/core/cloud.js` and `cloud-ui.js`, with one sign-in for every game on the site
+  (a v1.2.0 sign-in carries over).
+
 ### v1.2.0 (2026-11-24)
 
 - Added: cloud saves with Supabase: sign in by an emailed link, save and load online, automatic cloud saves while signed

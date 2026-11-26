@@ -4,7 +4,9 @@
 //
 // ?debug=1 exposes window.__gg for the dev/ harnesses.
 
-import { STEP, MAX_FRAME, CHAPTERS, WISPS, LEVELS_PER_CHAPTER, TOTAL_LEVELS, ENDING } from './config.js';
+import { STEP, MAX_FRAME, CHAPTERS, WISPS, LEVELS_PER_CHAPTER, TOTAL_LEVELS, ENDING, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -147,6 +149,7 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     else if (a === 'map') openMap();
     else if (a === 'daily') startDaily();
     else if (a === 'journal') { ui.journal(P); ui.openScreen('journal'); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 document.getElementById('pause-menu').addEventListener('click', (e) => {
@@ -157,7 +160,8 @@ document.getElementById('pause-menu').addEventListener('click', (e) => {
     if (a === 'resume') ui.closeScreen('pause');
     else if (a === 'restart') { ui.closeScreen('pause'); queue({ t: 'restart' }); }
     else if (a === 'map') openMap();
-    else if (a === 'quit') toTitle();
+    else if (a === 'quit') { cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 document.getElementById('btn-pause').addEventListener('click', () => pause());
@@ -399,12 +403,23 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { save(); pause(); } });
-window.addEventListener('pagehide', () => save());
+window.addEventListener('pagehide', () => { save(); cloudUI.autosave({ keepalive: true }); });
 window.addEventListener('resize', () => { if (G) fitArea(); });
 
 // ------------------------------------------------------------------ boot
 ui.title(P);
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-148'.
+// The save is everything stored under SAVE_KEY (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-148' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { save(); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const p = snapValue(snap, SAVE_KEY); const st = p ? (p.stars || []).reduce((a, b) => a + (+b || 0), 0) : 0; return p ? `${(p.unlocked || 0) + 1} levels open · ${st}★` : 'A Glimmerglade game'; },
+    hasGame: () => mode === 'play' || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 audio.play('title');
 requestAnimationFrame((t) => { last = t; frame(t); });
 
