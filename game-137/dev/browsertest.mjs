@@ -63,7 +63,9 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
         });
     }
     if (PKG) {
-        await page.route('https://unpkg.com/**', (route) => {
+        // on the context, not the page: a page's routes were missed on a reload or a second page (the three.js modules
+        // failed before the route saw them)
+        await page.context().route('https://unpkg.com/**', (route) => {
             const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');
             const file = path.join(PKG, rel);
             if (!fs.existsSync(file)) return route.abort();
@@ -297,24 +299,37 @@ async function phone(w, h) {
     await touch('touchStart', [{ x: zone.x, y: zone.y, id: 1 }]);
     for (let i = 1; i <= 6; i++) await touch('touchMove', [{ x: zone.x + i * 12, y: zone.y, id: 1 }]);
     await until(page, (x) => __sf.G.run.mech.x > x + 1, 'dragging the stick walks the mech', 40000, x0);
+    // Kills (walking, Overdrive, the beam) can level the mech up: the game then shows its upgrade picker (a screen over
+    // everything, by design) and a player picks a card. Do the same before each later tap, or it lands on the picker.
+    const pickLevelUps = async () => {
+        for (let i = 0; i < 4 && await Q(page, () => !document.getElementById('levelup').hidden); i++) {
+            await tapSel('#cards [data-pick="0"]');
+            await page.waitForTimeout(300);
+        }
+    };
     // hold the magnet with a second finger
     const mag = await center('#btn-mag');
     await touch('touchStart', [{ x: zone.x + 72, y: zone.y, id: 1 }, { x: mag.x, y: mag.y, id: 2 }]);
     await until(page, () => __sf.G.run.mech.magnetOn === true, 'holding 🧲 with a second finger turns the magnet on');
     await touch('touchEnd', []);
+    await pickLevelUps();
     await until(page, () => __sf.G.run.mech.magnetOn === false, 'lifting the fingers lets go');
 
+    await pickLevelUps();
     await Q(page, () => { __sf.G.run.mech.od = 1; });
     await tapSel('#btn-od');
     await until(page, () => (__sf.seen.overdrive || 0) >= 1, 'tapping OD fires Overdrive');
     await Q(page, () => { const M = __sf.G.run.mech; M.beam = 1; M.beamCd = 0; });
+    await pickLevelUps();
     await tapSel('#btn-beam');
     await until(page, () => (__sf.seen.shard_beam || 0) >= 1, 'tapping BEAM fires the Shard Beam');
     // tap a monster up and to the right of the mech, away from the stick
+    await pickLevelUps();
     const fid = await Q(page, () => __sf.spawn('brute', 4, -5));
     await page.waitForTimeout(300);
     const fp = await Q(page, (id) => { const e = __sf.G.run.enemies.find((x) => x.id === id); return __sf.view.project(e.x, e.y, 0.6); }, fid);
-    check(await Q(page, (p) => { const t = document.elementFromPoint(p.x, p.y); return t && t.id === 'view'; }, fp), 'the monster is tappable (nothing covers it)');
+    const hit = await Q(page, (p) => { const t = document.elementFromPoint(p.x, p.y); return t ? (t.id || t.className || t.tagName) : 'nothing (off screen)'; }, fp);
+    check(hit === 'view', `the monster is tappable (nothing covers it)${hit === 'view' ? '' : `: at ${Math.round(fp.x)},${Math.round(fp.y)} there is ${hit}`}`);
     await touch('touchStart', [{ x: fp.x, y: fp.y, id: 3 }]);
     await touch('touchEnd', []);
     await until(page, (id) => __sf.G.run.focus?.id === id, 'a tap on the monster focuses fire on it', 40000, fid);
@@ -325,8 +340,10 @@ async function phone(w, h) {
     }), 'the 🧲, OD and BEAM buttons are on screen and don\'t overlap');
     await shot(page, `phone-${w}x${h}`);
 
+    await pickLevelUps();
+    const pz = await Q(page, () => { const b = document.getElementById('btn-pause'), r = b.getBoundingClientRect(), t = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return t === b || b.contains(t) ? '' : `: ${t ? (t.id || t.className || t.tagName) : 'nothing'} covers it`; });
     await tapSel('#btn-pause');
-    await until(page, () => !document.getElementById('pause').hidden, 'tapping ❚❚ pauses');
+    await until(page, () => !document.getElementById('pause').hidden, `tapping ❚❚ pauses${pz}`);
     await page.waitForTimeout(300);
     check(await visible(page, 'pause'), 'the pause screen stays open after the finger lifts');
     await tapSel('#pause-menu [data-act="resume"]');

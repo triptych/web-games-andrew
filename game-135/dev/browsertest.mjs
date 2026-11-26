@@ -50,7 +50,9 @@ async function open(viewport, { touch = false, nostorage = false } = {}) {
     const page = await ctx.newPage();
     if (PKG) {
         // No network to the CDN? Serve the genuine three.js package from disk.
-        await page.route('https://unpkg.com/**', (route) => {
+        // on the context, not the page: a page's routes were missed on a reload or a second page (the three.js modules
+        // failed before the route saw them), so the reload / second-page steps timed out
+        await page.context().route('https://unpkg.com/**', (route) => {
             const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');
             const file = path.join(PKG, rel);
             if (!fs.existsSync(file)) return route.abort();
@@ -220,8 +222,15 @@ async function desktop() {
     await Q(page, () => __hh.ff(3600, (G) => G.jobs.square.step === 3 && G.jobs.square.prog && G.jobs.square.prog.n === 2));
     check(await Q(page, () => Object.values(__hh.G.jobs).filter((j) => j.st === 'done').length === 9), 'the bot plays on to the last beam of the last job');
     await shot(page, 'desktop-late');
-    await Q(page, () => { __hh.G.hookT = 0; __hh.G.missCd = 0; __hh.G.p.v = 0; });
-    await page.keyboard.press('Space');
+    // a real press when the hook swings over the spot (as for the first beam above): setting hookT and pressing at once
+    // missed, because the press is handled a frame later and a slow software-rendered frame swings the hook away.
+    // A miss is a fair outcome of a real press, so try again (a few times) rather than fail.
+    for (let i = 0; i < 6 && !(await Q(page, () => __hh.G.finished)); i++) {
+        await Q(page, () => { __hh.G.missCd = 0; __hh.G.p.v = 0; });
+        await page.waitForFunction(() => Math.abs(Math.sin(__hh.G.hookT)) < 0.12, null, { timeout: 30000, polling: 'raf' }).catch(() => {});
+        await page.keyboard.press('Space');
+        await page.waitForFunction(() => __hh.G.finished || __hh.G.missCd > 0, null, { timeout: 8000, polling: 100 }).catch(() => {});
+    }
     await until(page, () => __hh.G.finished, 'a real press places the statue and finishes the town', 40000);
     await until(page, () => !document.getElementById('done').hidden, 'the last thank-you');
     await page.keyboard.press('Enter');

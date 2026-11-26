@@ -54,7 +54,9 @@ async function newPage(viewport, { touch = false, nostorage = false, keep = fals
     }, [nostorage, keep]);
     const page = await ctx.newPage();
     if (PKG) {
-        await page.route('https://unpkg.com/**', (route) => {
+        // on the context, not the page: a page's routes were missed on a reload or a second page (the three.js modules
+        // failed before the route saw them), so the reload / second-page steps timed out
+        await page.context().route('https://unpkg.com/**', (route) => {
             const rel = new URL(route.request().url()).pathname.replace(/^\/three@0\.165\.0\//, '');
             const file = path.join(PKG, rel);
             if (!fs.existsSync(file)) return route.abort();
