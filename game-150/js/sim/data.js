@@ -15,14 +15,14 @@ export const VIRTUE_IDS = Object.keys(VIRTUES);
 
 // ------------------------------------------------------------------ book kinds (genres; also the bindery's patterns)
 export const KINDS = {
-    cookbook: { name: 'Cookbook', icon: '🍲', virtues: ['hearth', 'charm'], shape: { h: 0.95, w: 0.8, t: 0.22 } },
-    novel: { name: 'Novel', icon: '📖', virtues: ['valor', 'charm', 'wonder'], shape: { h: 1.0, w: 0.66, t: 0.26 } },
-    poetry: { name: 'Poetry', icon: '🪶', virtues: ['charm', 'wonder'], shape: { h: 0.82, w: 0.62, t: 0.13 } },
-    manual: { name: 'Skill Manual', icon: '🛠️', virtues: ['wit', 'valor'], shape: { h: 0.92, w: 0.7, t: 0.2 } },
-    bestiary: { name: 'Bestiary', icon: '🐉', virtues: ['valor', 'wit'], shape: { h: 1.08, w: 0.76, t: 0.3 } },
-    atlas: { name: 'Atlas', icon: '🧭', virtues: ['wonder', 'wit'], shape: { h: 1.22, w: 0.86, t: 0.14 } },
-    almanac: { name: 'Almanac', icon: '🌾', virtues: ['hearth', 'wit'], shape: { h: 0.9, w: 0.68, t: 0.18 } },
-    grimoire: { name: 'Grimoire', icon: '🔮', virtues: ['wonder', 'wit'], shape: { h: 1.1, w: 0.78, t: 0.36 } },
+    cookbook: { name: 'Cookbook', plural: 'Cookbooks', icon: '🍲', virtues: ['hearth', 'charm'], shape: { h: 0.95, w: 0.8, t: 0.22 } },
+    novel: { name: 'Novel', plural: 'Novels', icon: '📖', virtues: ['valor', 'charm', 'wonder'], shape: { h: 1.0, w: 0.66, t: 0.26 } },
+    poetry: { name: 'Poetry', plural: 'Poetry', icon: '🪶', virtues: ['charm', 'wonder'], shape: { h: 0.82, w: 0.62, t: 0.13 } },
+    manual: { name: 'Skill Manual', plural: 'Skill Manuals', icon: '🛠️', virtues: ['wit', 'valor'], shape: { h: 0.92, w: 0.7, t: 0.2 } },
+    bestiary: { name: 'Bestiary', plural: 'Bestiaries', icon: '🐉', virtues: ['valor', 'wit'], shape: { h: 1.08, w: 0.76, t: 0.3 } },
+    atlas: { name: 'Atlas', plural: 'Atlases', icon: '🧭', virtues: ['wonder', 'wit'], shape: { h: 1.22, w: 0.86, t: 0.14 } },
+    almanac: { name: 'Almanac', plural: 'Almanacs', icon: '🌾', virtues: ['hearth', 'wit'], shape: { h: 0.9, w: 0.68, t: 0.18 } },
+    grimoire: { name: 'Grimoire', plural: 'Grimoires', icon: '🔮', virtues: ['wonder', 'wit'], shape: { h: 1.1, w: 0.78, t: 0.36 } },
 };
 export const KIND_IDS = Object.keys(KINDS);
 

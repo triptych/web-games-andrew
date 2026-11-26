@@ -7739,3 +7739,50 @@ fal for 70 paintings, Meshy for 15 models (11 rigged, 91 clips), ElevenLabs for 
   each retry thins the foes' HP by 10% (to 60%), so no player is ever stuck in a VN.
 - **A reachability proof for pickups.** A flood fill with the real mover (`step()` in eight directions) found a charm
   outside the island and another inside the lab's walls.
+
+## Game 150: Folio & Fable — a procedural book engine drawn twice, a side-on shop that pans, and ElevenLabs for everything (2026-11-26)
+
+A cozy bookshop management game ([game-150](../../game-150/)): a command-driven sim (`act`) with a shop clock
+(`step`), a Canvas 2D doll's-house shop, a DOM UI, and three.js only for the books. What carries over:
+
+- **One painter, two outputs.** Every book is one seed → a `look` (material, colour, metal, tooling pattern, emblem,
+  page edges, clasp, size; `js/sim/books.js`). `js/view/covers.js` paints the cover in three *modes* from the same
+  code: `color`, `metal` (white where the tooling is gilt) and `bump` (tooling raised). The list thumbnails use the
+  colour pass; the 3D book uses all three as `map`, `metalnessMap` (with `metalness: 1`) and `bumpMap`, plus a
+  roughness map derived from the metal mask so gilt shines and leather stays matte. Because the masks come from the
+  same drawing calls, the gold always sits exactly on the painted tooling.
+- **A shelf view that stays cheap.** The 3D bookcases draw each shelved book as one box with only its spine textured
+  (64 px wide); the full book with seven textures is built only for the inspector. Rows that aren't full get a prop
+  (a candle, a plant, a globe) so a sparse shelf still looks cozy.
+- **A side-on shop on every screen.** Scale the backdrop *with the furniture*, not with the canvas: the room is about
+  three furniture heights tall, wider shops pan (drag), a tall phone caps the zoom (about three spots across) and fills
+  the space above the painted room with dark ceiling beams. Fitting the painting to the canvas height made the windows
+  enormous next to tiny shelves on desktop and the door fill the screen on a phone.
+- **Signs go where nothing stands in front of them.** Section labels on a shelf's plinth were hidden by the ferns and
+  armchairs on the floor row in front; hung above the shelf, they are always readable.
+- **The purity grep reads prose too.** `simtest` failed `data.js` because a story line said "Look out the window." The
+  regex can't tell code from strings; rewording ("out of the window:") was simpler than teaching it.
+- **Emblems grow faces.** A cauldron drawn as a pot with three bubbles above it read as a smiley face on every cookbook
+  cover; steam curls fixed it. Look at generated *code* art for faces as well as painted art.
+- **Story beats that pause the clock pause the tests.** Chapter 1 finishes mid-day (the third sale), Old Vellum's
+  beat opens and the shop clock stops until it is read, by design. The browser test waiting for closing time sat
+  still for two minutes. Tests that wait for the day to end must click through beats as a player would.
+- **Read a WebGL canvas in the same task as its render.** Without `preserveDrawingBuffer`, `drawImage` of a three.js
+  canvas in a later task returns a cleared buffer; the "not blank" check renders and reads in one `evaluate`.
+- **ElevenLabs, all media** ([art](../../game-150/dev/art/README.md), [audio](../../game-150/dev/audio/README.md)):
+  - *Music defaults to four takes.* The estimate for four 60 s tracks was 20,680 credits; with `generations_count: 1`
+    it was 5,170 and the charge 2,820. Always estimate music first.
+  - *BiRefNet can drop an object.* On a 3×3 furniture sheet it kept eight pieces and removed the shop counter
+    entirely (alpha 0 over the whole cell). Check every cell of a cut-out, and key the missing one out of the flat
+    grey yourself (flood fill from the border).
+  - *The model's grids are never even.* Cutting a 3×3 sheet into equal thirds sliced the lamp and the counter and gave
+    the fern a neighbour's leaves. Find each figure as a connected blob of alpha and name them in reading order
+    (`game-150/dev/art/export.py` `blobs`).
+  - *Ask for empty furniture.* "A bookshelf with four completely EMPTY shelves" let the view draw every book's real spine
+    into the sprite at measured row positions, so the 2D shop shows the actual stock.
+- **Pacing found by the bot.** The first whole-story run ended on day 13 with the shelves sold bare. Ordinary sales
+  now give a third of a renown point, visitors grow more slowly, the town's inspirations need 70 and 200 points, the
+  star fragment must come from the Observatory, and a **donation basket** leaves one to three old books every
+  morning, which keeps a low-stakes shop from emptying. The good bot now ends on day ~23 (asserted ≤ 45 and ≥ 15).
+- `dev/cloudtest.mjs`: the sign-out check looked for the `/auth/v1/logout` request without waiting for it and failed
+  one run in three on a slower page; it now waits up to 5 s like the other checks.

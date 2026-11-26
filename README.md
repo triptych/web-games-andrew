@@ -8,7 +8,7 @@ A collection of browser-based games built with HTML5, CSS3, and JavaScript. Play
 
 ## Games Included
 
-149 games, `game-001` through `game-149`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
+150 games, `game-001` through `game-150`, each self-contained with its own `index.html`. Full metadata (title, description, tags, genre) lives in [js/gamedata.js](js/gamedata.js), which drives the launcher at [index.html](index.html).
 
 ### The Garden of Games (launcher)
 
@@ -190,6 +190,7 @@ The garden grows with the collection. A game's `genre` field picks its path (a g
 | 147 | [Inn Over My Head](game-147/) | A cozy anime RPG and inn manager: restore an inherited inn, recruit guests as party and staff, cook buffs, shoo dust bunnies and fight 3/4 turn-based battles with chain attacks; Meshy 3D models (rigged heroes), ElevenLabs art, music and voices | three.js |
 | 148 | [Glimmerglade](game-148/) | A gentle fairy sorting puzzle: tip glowing wisps between glass bell-flowers until each holds four of a colour and a creature wakes on top; 50 solver-proved levels with mist, brambles and acorn cups, a daily puzzle, ElevenLabs art, music and voices | Canvas 2D |
 | 149 | [Echoheart Academy](game-149/) | An anime visual novel RPG: a boy who echoes other people's spells, four friends with heart events and light romance, six magical mini-games, Echo Charms, and a race against the Hollow Moon to rescue students from the kindly principal's cult; fal art, Meshy 3D characters, ElevenLabs music and voices | three.js |
+| 150 | [Folio & Fable](game-150/) | A cozy fantasy bookshop: arrange a doll's-house shop, sell procedurally generated books to the townsfolk and grant their wishes, send adventurers on quests for books, bind your own at the bindery, and inspect every book in 3D, while an orphan and a talking book wake up a whole town; ElevenLabs art, music and voices | Canvas 2D + three.js |
 | 142 | [Kaboom Keep](game-142/) | A whimsical physics cannon game: blast toy-block castles to bits and knock over every little knight, prince and wizard; a rigid-body engine written for the game, five cannonballs, 48 castles from a proved generator plus Endless Siege; fal art, ElevenLabs music, effects and voices | three.js |
 
 ### Highlights

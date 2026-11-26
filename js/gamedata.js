@@ -2335,8 +2335,25 @@ const games = [
             { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-150',
+        title: 'Folio & Fable',
+        description: "A cozy fantasy bookshop management game. Tam, an orphan reading shop signs in the rain, is found by Old Vellum, a talking book, and led to Folio & Fable, the bookshop its late owner left behind. Arrange the shop like a doll's house (shelves, display tables, armchairs, lamps, ferns and a cat), shelve books into sections, open the doors and sell to adventurers, nobles, actors, bakers, scholars and children, some of whom bring a wish to the counter that you can answer now or take as a commission. Send adventurers carrying books for courage on quests to the Whispering Woods, a drowned library and a dragon's attic; buy from Ottoline the travelling badger; and bind your own books at the bindery like a smith forges swords: a cover for rarity, an ink for its virtue, accents like gems, rebinding like tempering. Every book is procedurally generated, with its own title, author, virtues, skill and sometimes a voice, and you can turn any of them over in a high-resolution three.js inspector or browse every shelf in 3D. The books you sell inspire the town of Larkspur: a new bun at the bakery, opening night at the playhouse, the Duchess's garden party. Seven chapters, ending with Elowen's last book. Art, music, sound and voices by ElevenLabs.",
+        icon: '\uD83D\uDCDA',
+        folder: 'game-150',
+        version: '1.0.0',
+        cssClass: 'folio-and-fable',
+        genre: 'cozy',
+        tags: [
+            { emoji: '\uD83D\uDCD6', label: 'Bookshop sim' },
+            { emoji: '\uD83D\uDD28', label: 'Crafting' },
+            { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
+            { emoji: '\uD83C\uDFA8', label: 'Canvas 2D + three.js' }
+        ]
     }
 ];
+
 
 
 /**

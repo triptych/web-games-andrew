@@ -1,0 +1,113 @@
+{
+ "id": "game-150",
+ "name": "Old Vellum",
+ "role": "Talking book of Folio & Fable",
+ "emoji": "📕",
+ "color": "#a8342a",
+ "bio": "An ancient leather book with brass spectacles for eyes. He found an orphan reading shop signs in the rain and gave her a bookshop. Now he tells the story, one chapter at a time.",
+ "portrait": {
+  "subject": "Old Vellum, a cute talking book: a thick oxblood-red leather tome with worn gold corners and a brass clasp, its friendly face on the front cover made of two round brass-rimmed spectacle lenses for eyes, bushy tooled-leather eyebrows and a gentle stitched-leather smile, little gold-edged pages fluttering at its sides like wings",
+  "background": "warm amber lamplight of a cozy bookshop with soft golden bokeh"
+ },
+ "request": "Ahem. Good evening. I am Old Vellum, a book of some standing. There is a little shop in Larkspur that needs a keeper, and a girl named Tam who needs a shop. Would you help us? 📚",
+ "hello": [
+  "Splendid! A reader! I can always tell.",
+  "Welcome, welcome. Mind the dust; it's historical."
+ ],
+ "about": "I belonged to Elowen, who kept Folio & Fable for forty years. When she passed, I went looking for the right heart and found Tam reading shop signs in the rain. Now she keeps the shop, and I narrate.",
+ "how": "Mornings, tap the wall or floor to place furniture and tap a shelf to fill it. Open the shop (O). Tap 🔔 to grant a customer's wish. Send adventurers on quests, bind books, and read one each evening.",
+ "tips": [
+  "Four books of one kind on one shelf make a section. Customers adore a section; it practically glows.",
+  "Put a lamp, a fern or the cat beside a shelf. Coziness brings customers and keeps them browsing.",
+  "Give each adventurer the book that suits the place: Valor for the Dragon's Attic, Wonder for the Observatory.",
+  "In the bindery the cover sets the rarity and the ink sets the virtue. Gold leaf and a star fragment may lift a book higher still.",
+  "Can't grant a wish today? Take it as a commission. Nobody in Larkspur minds waiting a little.",
+  "Read the skill manuals in the evening. Silver Tongue alone pays for itself by Thursday."
+ ],
+ "chat": [
+  "The cat has been sleeping on the poetry again. I suspect she prefers sonnets.",
+  "A grimoire on shelf three keeps telling owl jokes. All eleven of them. Repeatedly.",
+  "Ottoline says she once sold a book to a dragon. I believe her. She has the scorch marks.",
+  "Elowen used to read to the shop after closing. I think the shelves still listen.",
+  "The baker tried a recipe from one of our cookbooks and now the whole street smells of cinnamon.",
+  "Do you know, I was rebound twice before you were born. Very good thread, the second time."
+ ],
+ "nudge": [
+  "The shelves are dusting themselves out of sheer impatience. Shall we open the shop?",
+  "Someone left a wish on the commission board. I can't reach it. No arms, you see."
+ ],
+ "idle": [
+  "It's been {ago}! The shop has been very quiet. Too quiet. The cat has started rearranging the shelves.",
+  "{ago} already? Tam kept a lamp lit in the window for you."
+ ],
+ "progress": [
+  "Day {day} at Folio & Fable! Larkspur reads a little more every day.",
+  "Chapter {chapter} of our story. I do love a good chapter {chapter}.",
+  "Day {day}, and the shelves have never looked finer. Day {day+1} awaits!"
+ ],
+ "questions": [
+  {
+   "q": "What kind of book should we bind next?",
+   "a": [
+    [
+     "A cookbook",
+     "Splendid. The bakery will be insufferable about it."
+    ],
+    [
+     "A grimoire",
+     "Oh, careful. They do tend to start talking."
+    ],
+    [
+     "An atlas",
+     "Wise. Adventurers who know the way come home with more books."
+    ]
+   ]
+  },
+  {
+   "q": "Do you ever get tired of being a book?",
+   "a": [
+    [
+     "Do you?",
+     "Never! Every reader turns me a little differently."
+    ],
+    [
+     "I'd love to be a book",
+     "Then you'd need a good binding. Leather, I think. And gold corners."
+    ]
+   ]
+  }
+ ],
+ "update": "Folio & Fable is now v{version}! A new page has been added to the shop. 📚",
+ "bye": [
+  "Goodnight! I'll keep your place marked.",
+  "Off you go. I'll be on the counter, being wise."
+ ],
+ "save": {
+  "keys": [
+   "folio-and-fable.v1"
+  ],
+  "stats": {
+   "day": [
+    "day"
+   ],
+   "chapter": [
+    "ch"
+   ]
+  }
+ },
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a small walking talking book: a thick oxblood-red leather tome standing upright on two tiny legs in little brown boots, with gold corners, a brass clasp and a friendly face on its cover made of round brass spectacle lenses and a stitched smile, little gold-edged pages at its sides like wings"
+ },
+ "art": "fal"
+}
