@@ -158,8 +158,10 @@ async function desktop() {
     await until(page, () => document.getElementById('books').hidden, 'and Escape closes it');
 
     // open the shop with the O key; customers come; serve a wish at the counter
+    check(await Q(page, () => __ff.shop.walkers.length === 0), 'nobody walks past the windows before the shop opens');
     await page.keyboard.press('KeyO');
     await until(page, () => __ff.G.phase === 'open' && __ff.G.clock > 0, 'the O key opens the shop and the clock runs');
+    await until(page, () => __ff.shop.walkers.length > 0, 'once it is open, townsfolk pass by outside the windows');
     await until(page, () => __ff.seen.enter >= 1, 'a customer comes in', 60000);
     await until(page, () => !document.getElementById('btn-waiting').hidden, 'someone brings a wish to the counter (🔔)', 90000);
     await shot(page, 'desktop-open');

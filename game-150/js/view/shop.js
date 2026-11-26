@@ -11,6 +11,10 @@ const SHELF = { x0: 0.16, x1: 0.84, rows: [0.336, 0.514, 0.69, 0.891], rowH: 0.1
 // furniture size in slot units (height); width follows the sprite
 const SIZE = { shelf: 1.45, table: 0.62, armchair: 0.82, lamp: 1.3, fern: 0.72, cat: 0.42, painting: 0.5, ivy: 0.95, counter: 0.78 };
 const FOLK_H = { child: 0.62 };
+// the glass of the backdrop's three windows (fractions of the painting), measured from art/bg-shop.webp
+const WINDOWS = [[0.141, 0.246], [0.449, 0.551], [0.755, 0.859]];
+const GLASS = { top: 0.22, sill: 0.643 };
+const PASSERS = ['adult', 'adult', 'hat', 'bonnet', 'basket', 'child', 'cane', 'dog', 'pair'];
 
 const s3 = (v) => v.s;
 function img(src) { const i = new Image(); i.src = src; return i; }
@@ -26,6 +30,7 @@ export class ShopView {
         this.sel = null;           // the selected column (arranging)
         this.arranging = false;
         this.time = 0;
+        this.walkers = [];         // townsfolk passing the windows while the shop is open (view only)
         this.art = {
             bg: img('art/bg-shop.webp'),
             tam: img('art/cast-tam.webp'),
@@ -124,6 +129,7 @@ export class ShopView {
     // ------------------------------------------------------------------ drawing
     frame(G, dt) {
         this.time += dt;
+        this._passers(G, dt);
         this.resize();
         this.shopW = G.shop.width;
         const { ctx } = this;
@@ -172,7 +178,9 @@ export class ShopView {
             const iw = ih * bg.naturalWidth / bg.naturalHeight;
             const x0 = this.sx(-DOOR_W) - iw * 0.08;
             const x1 = this.sx(G.shop.width + COUNTER_W);
-            for (let x = x0 - iw * Math.ceil(Math.max(0, x0) / iw); x < Math.max(w, x1); x += iw) ctx.drawImage(bg, x, top, iw, ih);
+            const tiles = [];
+            for (let x = x0 - iw * Math.ceil(Math.max(0, x0) / iw); x < Math.max(w, x1); x += iw) { ctx.drawImage(bg, x, top, iw, ih); tiles.push(x); }
+            this._street(tiles, iw, ih, top);
             // the floor in front of the backdrop
             const fy = top + ih * 0.985;
             const g = ctx.createLinearGradient(0, fy, 0, h);
@@ -180,6 +188,72 @@ export class ShopView {
             ctx.fillStyle = g;
             ctx.fillRect(0, fy, w, h - fy);
         }
+    }
+
+    /** Townsfolk walking by outside while the shop is open: more of them the busier the day. Made up by the view;
+     *  the sim never knows. Positions are in slot units so they stay put when the shop pans. */
+    _passers(G, dt) {
+        const W = G.shop.width;
+        const lo = -DOOR_W - 1.5, hi = W + COUNTER_W + 1.5;
+        if (G.phase === 'open' && G.clock < 79) {
+            const want = Math.min(9, 3 + Math.floor((G.today?.visitors || 4) / 2));
+            if (this.walkers.length < want && Math.random() < dt * 0.9) {
+                const dir = Math.random() < 0.5 ? 1 : -1;
+                const near = Math.random() < 0.45;
+                this.walkers.push({
+                    x: dir > 0 ? lo : hi, dir, speed: (near ? 0.55 : 0.38) + Math.random() * 0.35,
+                    near, kind: PASSERS[Math.floor(Math.random() * PASSERS.length)], phase: Math.random() * 6, pause: 0, paused: false,
+                });
+            }
+        }
+        for (let i = this.walkers.length - 1; i >= 0; i--) {
+            const p = this.walkers[i];
+            if (p.pause > 0) { p.pause -= dt; continue; }
+            p.x += p.dir * p.speed * dt;
+            // now and then someone stops to look in at the books
+            if (!p.paused && p.kind !== 'dog' && Math.random() < dt * 0.08) { p.paused = true; p.pause = 1.2 + Math.random() * 1.5; }
+            if (p.x < lo - 0.5 || p.x > hi + 0.5) this.walkers.splice(i, 1);
+        }
+    }
+
+    /** Draw the passers-by as soft silhouettes, clipped to the windows' glass so they only show through them. */
+    _street(tiles, iw, ih, top) {
+        if (!this.walkers.length) return;
+        const { ctx, s } = this;
+        ctx.save();
+        ctx.beginPath();
+        for (const x of tiles) for (const [a, b] of WINDOWS) ctx.rect(x + a * iw, top + GLASS.top * ih, (b - a) * iw, (GLASS.sill - GLASS.top) * ih);
+        ctx.clip();
+        // multiply: the glass darkens where someone passes, and the window bars stay in front of them
+        ctx.globalCompositeOperation = 'multiply';
+        const ground = top + ih * 0.69;             // the street is below the sill: feet stay hidden
+        for (const p of this.walkers) {
+            const k = (p.near ? 0.27 : 0.21) * ih;  // a grown-up's height in px
+            const x = this.sx(p.x);
+            const step = p.pause > 0 ? 0 : Math.sin(this.time * 7 * p.speed + p.phase);
+            ctx.fillStyle = p.near ? 'rgba(92, 64, 84, 0.8)' : 'rgba(150, 112, 120, 0.7)';
+            const figure = (fx, hk, hat) => {
+                const y = ground - Math.abs(step) * k * 0.02;
+                const bw = hk * 0.24, bh = hk * 0.62;
+                ctx.beginPath(); ctx.ellipse(fx, y - bh * 0.5, bw / 2, bh / 2, step * 0.04 * p.dir, 0, 7); ctx.fill();
+                const hy = y - bh - hk * 0.09;
+                ctx.beginPath(); ctx.arc(fx, hy, hk * 0.09, 0, 7); ctx.fill();
+                if (hat === 'hat') { ctx.fillRect(fx - hk * 0.12, hy - hk * 0.08, hk * 0.24, hk * 0.025); ctx.fillRect(fx - hk * 0.065, hy - hk * 0.2, hk * 0.13, hk * 0.13); }
+                if (hat === 'bonnet') { ctx.beginPath(); ctx.arc(fx, hy - hk * 0.02, hk * 0.115, Math.PI, 0); ctx.fill(); }
+            };
+            if (p.kind === 'dog') {
+                const y = ground - k * 0.33;
+                ctx.beginPath(); ctx.ellipse(x, y, k * 0.16, k * 0.06, 0, 0, 7); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + p.dir * k * 0.17, y - k * 0.06, k * 0.055, 0, 7); ctx.fill();
+                ctx.fillRect(x - p.dir * k * 0.2, y - k * 0.06 - Math.abs(step) * k * 0.04, k * 0.03, k * 0.08);
+                continue;
+            }
+            if (p.kind === 'pair') { figure(x - k * 0.13, k, 'bonnet'); figure(x + k * 0.13, k * 0.95, 'hat'); continue; }
+            figure(x, p.kind === 'child' ? k * 0.68 : k, p.kind);
+            if (p.kind === 'basket') { ctx.beginPath(); ctx.ellipse(x + p.dir * k * 0.15, ground - k * 0.34, k * 0.09, k * 0.05, 0, 0, 7); ctx.fill(); }
+            if (p.kind === 'cane') ctx.fillRect(x + p.dir * k * 0.16, ground - k * 0.36, k * 0.02, k * 0.4);
+        }
+        ctx.restore();
     }
 
     _door(G) {
