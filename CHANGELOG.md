@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Cloud saves** ([lib/core/cloud.js](lib/core/cloud.js)): loading a cloud save could be undone at once. `restore()` wrote the save and the page reloaded, but the reload fired the game's own pagehide save, which put the game on screen straight back. Restored keys now ignore further writes until the page goes away. The sign-in from an emailed link is also picked up as soon as the module is imported, before a game that reads the address's `#fragment` itself (Lanternhollow's shared dungeons) can rewrite it. Lanternhollow also drops its `#dungeon` from the address before reloading into a cloud save, and asks for a second tap when it has a dungeon of its own.
+- **The Last Apprentice** (game-140) v1.1.0: on a landscape phone (844×390) the extra ☁️ Cloud Save button pushed Settings off the bottom of the title menu. On short screens the smaller title buttons now sit three to a row on one line each, and the tagline is hidden.
 - `status.md`: three of Inn Over My Head's version notes (v1.1.1, v1.2.0, v1.3.0) had landed on the WYRMZONE (game-083) and Starbase Spooky (game-130) rows; they are back on game-147's.
 
 ### Added
