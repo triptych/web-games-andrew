@@ -1836,6 +1836,17 @@ h1 {
     box-shadow: 0 0 14px rgba(255, 156, 194, 0.75);
 }
 
+.game-preview.folio-and-fable,
+.carousel-slide-bg.folio-and-fable {
+    background: radial-gradient(ellipse at 70% 40%, #f6c46a 0%, #b0602a 30%, #3a2416 70%, #1e140d 100%);
+}
+
+.game-card.folio-and-fable .play-button {
+    background: linear-gradient(135deg, #f6d77e, #c9a24a, #8a3a1a);
+    color: #2a1608;
+    box-shadow: 0 0 14px #f0c060;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;
