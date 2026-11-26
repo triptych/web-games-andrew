@@ -370,7 +370,19 @@ async function cloudTest() {
         }
         if (url.pathname === '/auth/v1/logout') return route.fulfill({ status: 204, body: '' });
         if (url.pathname === '/rest/v1/game_saves' && req.method() === 'GET') return json(200, row ? [row] : []);
-        if (url.pathname === '/rest/v1/game_saves' && req.method() === 'POST') { const b = JSON.parse(req.postData()); row = { data: b.data, version: b.version, summary: b.summary, updated_at: new Date().toISOString() }; return route.fulfill({ status: 201, body: '' }); }
+        // as PostgREST does: an insert ignoring duplicates returns nothing if the row exists; an update filtered on
+        // updated_at returns nothing if the cloud version moved on (the guard against overwriting a newer save)
+        if (url.pathname === '/rest/v1/game_saves' && req.method() === 'POST') {
+            const b = JSON.parse(req.postData());
+            if (row && (req.headers().prefer || '').includes('ignore-duplicates')) return json(201, []);
+            row = { data: b.data, version: b.version, summary: b.summary, updated_at: new Date(Date.now() + log.length).toISOString() };
+            return json(201, [{ updated_at: row.updated_at }]);
+        }
+        if (url.pathname === '/rest/v1/game_saves' && req.method() === 'PATCH') {
+            if (!row || row.updated_at !== url.searchParams.get('updated_at')?.replace(/^eq\./, '')) return json(200, []);
+            row = { ...row, ...JSON.parse(req.postData()), updated_at: new Date(Date.now() + log.length).toISOString() };
+            return json(200, [{ updated_at: row.updated_at }]);
+        }
         return json(404, { message: 'not mocked' });
     });
     let page = await open({ width: 1280, height: 760 }, { setup });

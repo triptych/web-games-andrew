@@ -1,6 +1,6 @@
 // SANDSUNK — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.1.0';
+export const VERSION = '1.1.1';
 export const SAVE_KEY = 'sandsunk.v1';
 
 export const STEP = 1 / 60;               // the view's animation step; the rules are turn-based

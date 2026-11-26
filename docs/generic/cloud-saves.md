@@ -263,6 +263,14 @@ for `game_saves`: as `anon`, selecting `game_players` and writing `game_stats` f
 - **Refresh tokens rotate.** Supabase replaces the refresh token on every refresh and refuses a used one, so two
   game tabs refreshing at once would sign one of them out. `lib/core/cloud.js` refreshes under a Web Lock and re-reads
   the stored session first; without the Locks API, a refused refresh adopts whatever another tab stored.
+- **Two devices, one save.** Play on a phone, then open the game on a desktop that still has an older game: a plain
+  upsert from the desktop's autosave would overwrite the phone's newer cloud save. Each device keeps the `updated_at` of
+  the cloud row it last uploaded or loaded (`web-games.cloud.sync`, per user, per game and slot), and `upload()` sends
+  it as a condition: `PATCH …?game=eq.…&slot=eq.…&updated_at=eq.<that value>` (URL-encode the `+00:00`). With no
+  marker it's a `POST` with `resolution=ignore-duplicates`, which never replaces a row. Both use
+  `return=representation`, so an empty answer means "refused": `upload()` throws `code: 'cloud_newer'`. The UI then
+  pauses autosave, says so once, and offers Load or Keep (`force: true` is a plain upsert, behind a second tap).
+  PostgREST's timestamp text round-trips exactly, so the equality filter is safe.
 - **Upsert needs the conflict target:** `POST /rest/v1/game_saves?on_conflict=user_id,game,slot` with
   `Prefer: resolution=merge-duplicates`. Send `user_id` from the token's `sub` so the row matches the policy check.
 - **Paused projects:** free-plan projects pause after a week without traffic, and API calls then fail. Restore it in the
