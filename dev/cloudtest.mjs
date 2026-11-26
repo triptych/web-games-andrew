@@ -11,7 +11,10 @@
  *   - on a "new device" (the game's local keys gone), Load from cloud writes them back and reloads the game, which
  *     shows "Loaded your cloud save";
  *   - no page errors, console errors or failed requests.
- * Finally Sign out signs out of every game.
+ * Then, on one game: play on a phone (it saves to the cloud) and open the game on a desktop with an older game of its
+ * own: the desktop's autosave never overwrites the phone's newer save (it warns, and holds off), its Cloud Save offers
+ * to load it (keeping the desktop's game takes a second tap), and an upload from a device a version behind is refused
+ * by the conditional update itself. Finally Sign out signs out of every game.
  *
  *   python3 -m http.server 8147                 # from the REPO ROOT
  *   node dev/cloudtest.mjs                      # every game that imports lib/core/cloud-ui.js
@@ -44,6 +47,8 @@ const check = (c, m) => { if (!c) { fails++; console.log('  FAIL', m); } else co
 
 // the mock Supabase: one player's rows, kept here
 const rows = {}, log = [];
+let tick = 0;
+const stamp = () => new Date(Date.UTC(2026, 10, 26, 12, 0, 0) + 1000 * ++tick).toISOString().replace('Z', '+00:00');
 let refuseNext = true;
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: '0b7c6c1e-1111-4a4a-9999-0123456789ab', email: 'player@example.com', exp: Math.floor(Date.now() / 1000) + 3600, role: 'authenticated' })}.sig`;
@@ -71,7 +76,22 @@ async function context(storageState) {
         if (url.pathname === '/rest/v1/game_saves') {
             const game = url.searchParams.get('game')?.replace(/^eq\./, '');
             if (req.method() === 'GET') return json(200, rows[game] ? [rows[game]] : []);
-            if (req.method() === 'POST') { const b = JSON.parse(req.postData()); rows[b.game] = { data: b.data, version: b.version, summary: b.summary, updated_at: new Date().toISOString() }; return route.fulfill({ status: 201, body: '' }); }
+            // as PostgREST does: an insert that ignores duplicates returns nothing when the row exists; an update
+            // filtered on updated_at returns nothing when the cloud version has moved on
+            const prefer = req.headers().prefer || '';
+            if (req.method() === 'POST') {
+                const b = JSON.parse(req.postData());
+                if (rows[b.game] && prefer.includes('ignore-duplicates')) return json(201, []);
+                rows[b.game] = { data: b.data, version: b.version, summary: b.summary, updated_at: stamp() };
+                return json(201, [{ updated_at: rows[b.game].updated_at }]);
+            }
+            if (req.method() === 'PATCH') {
+                const want = url.searchParams.get('updated_at')?.replace(/^eq\./, '');
+                if (!rows[game] || rows[game].updated_at !== want) return json(200, []);
+                const b = JSON.parse(req.postData());
+                rows[game] = { ...rows[game], ...b, updated_at: stamp() };
+                return json(200, [{ updated_at: rows[game].updated_at }]);
+            }
         }
         return json(404, { message: 'not mocked' });
     });
@@ -139,7 +159,8 @@ try {
         await openCloud(page);
         await until(page, () => !!document.querySelector('dialog.wg-cloud [data-wgc="up"]:not([disabled])'), 'Save to cloud is offered');
         await click(page, 'dialog.wg-cloud [data-wgc="up"]');
-        await until(page, () => document.querySelector('dialog.wg-cloud .wg-msg')?.textContent.includes('Saved to the cloud'), 'Save to cloud says it saved');
+        if (!await until(page, () => document.querySelector('dialog.wg-cloud .wg-msg')?.textContent.includes('Saved to the cloud'), 'Save to cloud says it saved'))
+            console.log('     it said:', await page.evaluate(() => [document.querySelector('dialog.wg-cloud')?.open, document.querySelector('dialog.wg-cloud .wg-msg')?.textContent, document.querySelector('dialog.wg-cloud [data-wgc="up"]')?.textContent]), log.slice(-6).map((r) => r.method + ' ' + r.path + ' ' + (r.query || '').slice(0, 90)));
         const up = log.filter((r) => r.path === '/rest/v1/game_saves' && r.method === 'POST').pop();
         const ub = up && JSON.parse(up.body);
         check(ub && ub.game === g && up.auth === `Bearer ${jwt}` && ub.data?.[key + '.cloudtest'] && Object.keys(ub.data).every((k) => k === key || k.startsWith(key + '.')) && !Object.keys(ub.data).some((k) => k.endsWith('.settings')),
@@ -167,6 +188,62 @@ try {
         storage = await ctx.storageState();
         await ctx.close();
     }
+    // ------------------------------------------------------------------ phone, then desktop
+    // Play on a phone (it saves to the cloud), then open the game on a desktop that has an older game of its own: the
+    // desktop's autosave must never overwrite the phone's newer cloud save. It warns, holds off, and lets the player load
+    // the newer save (or, with a second tap, keep the desktop's). And once the desktop is in step, a newer save from the
+    // phone is still refused by the database's own check (a conditional update), not just by the page.
+    const g0 = games.find((g) => !mounted(g));
+    if (g0) {
+        const key = saveKey(g0), mk = key + '.cloudtest';
+        console.log(`\n== phone, then desktop (${g0})`);
+        const edit = (state, fn) => ({ ...state, origins: state.origins.map((o) => (BASE.startsWith(o.origin) ? { ...o, localStorage: fn(o.localStorage.slice()) } : o)) });
+        const put = (ls, name, value) => [...ls.filter((x) => x.name !== name), { name, value }];
+        const marker = () => { try { return JSON.parse(rows[g0]?.data?.[mk] || 'null')?.marker; } catch { return null; } };
+        // the phone plays and saves
+        let ctx = await context(storage);
+        let page = await openGame(ctx, g0);
+        await page.evaluate((k) => localStorage.setItem(k, JSON.stringify({ marker: 'phone' })), mk);
+        await openCloud(page);
+        await until(page, () => !!document.querySelector('dialog.wg-cloud [data-wgc="up"]:not([disabled])'), 'the phone: Save to cloud');
+        await click(page, 'dialog.wg-cloud [data-wgc="up"]');
+        await until(page, () => document.querySelector('dialog.wg-cloud .wg-msg')?.textContent.includes('Saved to the cloud'), 'the phone\'s game is in the cloud');
+        check(marker() === 'phone', 'the cloud holds the phone\'s game');
+        const phone = await ctx.storageState();
+        await ctx.close();
+        // the desktop: the same sign-in, an older game of its own, never in step with the cloud
+        const desktop = edit(phone, (ls) => put(ls.filter((x) => x.name !== 'web-games.cloud.sync'), mk, JSON.stringify({ marker: 'desktop (older)' })));
+        ctx = await context(desktop);
+        page = await openGame(ctx, g0);
+        await until(page, () => [...document.querySelectorAll('.wg-cloud-toast')].some((t) => t.textContent.includes('newer save')), 'the desktop says at once that the cloud has a newer save, and that cloud saving is paused');
+        const before = JSON.stringify(rows[g0]), writes = log.filter((r) => r.path === '/rest/v1/game_saves' && r.method !== 'GET').length;
+        await page.goto('about:blank');                       // leaving the page fires its pagehide autosave
+        await new Promise((r) => setTimeout(r, 2000));
+        check(JSON.stringify(rows[g0]) === before && marker() === 'phone', 'the desktop\'s autosave on leaving does not overwrite the phone\'s cloud save');
+        check(log.filter((r) => r.path === '/rest/v1/game_saves' && r.method !== 'GET').length === writes, 'it doesn\'t even try');
+        await page.close();
+        page = await openGame(ctx, g0);
+        await openCloud(page);
+        await until(page, () => !!document.querySelector('dialog.wg-cloud .wg-warn') && document.querySelector('dialog.wg-cloud [data-wgc="down"]')?.textContent.includes('newer cloud save'), 'its Cloud Save warns and offers to load the newer save');
+        await click(page, 'dialog.wg-cloud [data-wgc="up"]');
+        check(await page.evaluate(() => document.querySelector('dialog.wg-cloud [data-wgc="up"]').textContent.includes('Tap again')) && marker() === 'phone', 'keeping the desktop\'s game instead needs a second tap (one tap overwrites nothing)');
+        // loading replaces the desktop's own game, so it asks for a second tap too
+        await click(page, 'dialog.wg-cloud [data-wgc="down"]');
+        check(await page.evaluate(() => document.querySelector('dialog.wg-cloud [data-wgc="down"]')?.textContent.includes('Tap again')), 'loading over the desktop\'s game asks for a second tap');
+        await Promise.all([page.waitForNavigation({ timeout: 60000 }).catch(() => null), click(page, 'dialog.wg-cloud [data-wgc="down"]')]);
+        await page.waitForFunction(() => !!document.querySelector('[data-act="cloud"]'), null, { timeout: 90000 });
+        check(await page.evaluate((k) => JSON.parse(localStorage.getItem(k) || 'null')?.marker === 'phone', mk), 'loading it brings the phone\'s game to the desktop');
+        // the phone saves again; the desktop (in step with the older version) tries to upload: the database refuses
+        rows[g0] = { ...rows[g0], data: { ...rows[g0].data, [mk]: JSON.stringify({ marker: 'phone, later' }) }, updated_at: stamp() };
+        const r = await page.evaluate(async (g) => {
+            const m = await import('/lib/core/cloud.js');
+            try { await m.makeCloud({ game: g }).upload({ stale: true }); return 'uploaded'; } catch (e) { return e.code || e.message; }
+        }, g0);
+        check(r === 'cloud_newer' && marker() === 'phone, later', `an upload from a device a version behind is refused by the conditional update (${r}), and the newer save stays`);
+        storage = await ctx.storageState();
+        await ctx.close();
+    }
+
     if (games.length) {
         const g = games[games.length - 1];
         console.log(`\n== sign out (${g})`);
