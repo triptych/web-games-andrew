@@ -331,6 +331,56 @@ async function phone(w, h) {
     await shot(page, `phone-books-${w}x${h}`);
     const libInfo = await narrow('#books-list .card .info');
     check(libInfo >= 150, `the library cards' text is at least 150 px wide (${Math.round(libInfo)} px)`);
+    // every sheet: no card's text narrower than 150 px, and no button lying over a card's text (v1.0.2)
+    const audit = await Q(page, async () => {
+        const G = __ff.G, ui = __ff.ui;
+        // content for every sheet: adventurers (one to hire), the trader, a commission, a ledger, a waiting customer
+        __ff.give(6);
+        Object.assign(G.flags, { exp: true, bindery: true, trader: true });
+        G.heroes.rook.hired = true; G.day = 5; G.gold = 900;
+        G.mats = { leather: 2, ink: 2, gold: 1, thread: 2 };
+        G.commissions.push({ id: 9001, folk: 'cook', name: 'Baker Bun', req: { kind: 'cookbook' }, reason: 'for the harvest feast', until: 12 });
+        G.ledger.push({ title: 'The Velvet Lantern', price: 12, folk: 'noble', day: 4 });
+        G.phase = 'evening'; __ff.cmd({ t: 'next' }); G.day = 5; G.phase = 'evening'; G.flags.traderFirst = 6; __ff.cmd({ t: 'next' });
+        __ff.skipStory(); ui.closeAll();
+        const measure = (id) => {
+            const out = { id, minInfo: Infinity, overlap: null, cards: 0 };
+            for (const card of document.querySelectorAll(`#${id} .card, #${id} .hero`)) {
+                const info = card.querySelector(':scope > .info');
+                if (!info || !card.getClientRects().length) continue;
+                out.cards++;
+                const r = info.getBoundingClientRect();
+                out.minInfo = Math.min(out.minInfo, r.width);
+                for (const b of card.querySelectorAll('button')) {
+                    const q = b.getBoundingClientRect();
+                    if (info.contains(b)) continue;
+                    if (q.left < r.right - 1 && q.right > r.left + 1 && q.top < r.bottom - 1 && q.bottom > r.top + 1) out.overlap = b.textContent;
+                }
+            }
+            return out;
+        };
+        const res = [];
+        const sheet = (id, open, tab) => { ui.closeAll(); open(); if (tab) { document.querySelector(tab).click(); } res.push(measure(id) ); };
+        sheet('books', () => ui.openBooks(G));
+        sheet('column', () => ui.openColumn(G, 1));
+        sheet('furniture', () => ui.openFurniture(G));
+        sheet('bindery', () => ui.openBindery(G), '[data-b="rebind"]');
+        sheet('heroes', () => ui.openHeroes(G));
+        sheet('town', () => ui.openTown(G), '[data-t="commissions"]');
+        sheet('town', () => ui.openTown(G), '[data-t="ledger"]');
+        sheet('trader', () => ui.openTrader(G));
+        sheet('evening', () => ui.openEvening(G));
+        sheet('picker', () => ui.pickBook(G, { title: 'Choose', books: G.books.slice(0, 4), onPick: () => {} }));
+        sheet('loot', () => ui.showLoot(G, { place: 'woods', heroes: ['rook'], win: true, xp: 6, ups: [], loot: { mats: { paper: 2 }, books: [G.books[0].id] } }));
+        G.phase = 'open'; G.customers.push({ id: 9002, folk: 'scholar', name: 'Owl', x: 3, tx: 3, state: 'ask', want: { kind: 'atlas' }, reason: 'for my research', patience: 99 });
+        sheet('serve', () => ui.openServe(G, 9002));
+        ui.closeAll(); G.customers.length = 0; G.phase = 'morning';
+        return res;
+    });
+    for (const a of audit) {
+        check(a.cards > 0 && a.minInfo >= 150 && !a.overlap, `${a.id}: ${a.cards} cards, text ≥ 150 px wide (${Math.round(a.minInfo)} px), no button over the text${a.overlap ? ` (“${a.overlap}” overlaps)` : ''}`);
+    }
+    await Q(page, () => __ff.ui.openBooks(__ff.G));
     await tapSel('#btn-autoshelve');
     await tapSel('#books .sheet-foot .btn');
     await tapSel('#btn-main');
