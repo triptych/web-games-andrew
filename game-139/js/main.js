@@ -3,7 +3,9 @@
 //
 // ?debug=1 exposes window.__cs for the dev/ harnesses; &fast=1 makes the attract bot play every frame.
 
-import { MAX_FRAME } from './config.js';
+import { MAX_FRAME, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { UI } from './ui.js';
@@ -50,6 +52,17 @@ const keys = [];             // key presses, one handled per frame
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-139'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-139' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (G && mode === 'run') saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { return snapValue(snap, SAVE_KEY)?.data ? 'A CLEAN SLATE run' : 'A CLEAN SLATE game'; },
+    hasGame: () => (mode === 'run') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, () => audio.init(), { capture: true });
 
@@ -60,6 +73,7 @@ $('title-menu').addEventListener('click', (e) => {
     const a = b.dataset.act;
     if (a === 'new') startRun(newGame((Date.now() % 1e9) | 0));
     else if (a === 'continue') { const g = loadGame(); if (g) startRun(g, true); else ui.toast('That save could not be read.'); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('pause-menu').addEventListener('click', (e) => {
@@ -68,7 +82,8 @@ $('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'resume') ui.closeScreen('pause');
-    else if (a === 'quit') { if (G) saveGame(G); toTitle(); }
+    else if (a === 'quit') { if (G) saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('btn-pause').addEventListener('click', () => pause());
@@ -306,7 +321,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'run' && G?.phase === 'night') pause(); });
-window.addEventListener('pagehide', () => { if (G && mode === 'run') saveGame(G); });
+window.addEventListener('pagehide', () => { if (G && mode === 'run') saveGame(G); cloudUI.autosave({ keepalive: true }); });
 requestAnimationFrame((t) => { last = t; frame(t); });
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)

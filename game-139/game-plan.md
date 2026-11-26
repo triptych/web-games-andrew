@@ -167,6 +167,13 @@ The bot plays the real `act()` commands. 24 seeds a row (`SEEDS=24 ONLY=bot node
 
 ## Changelog
 
+### v1.2.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.1.1 (2026-11-17)
 - The title painting was a torn-paper picture laid over a strip of sky, so the sky seemed to cut across the houses; it is now one
   seamless painting (regenerated with fal), framed on the innkeeper and the blank sign on a portrait phone.

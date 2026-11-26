@@ -4,7 +4,9 @@
 //
 // ?debug=1 exposes window.__pp for the dev/ harnesses.
 
-import { MAX_FRAME, PHOTO } from './config.js';
+import { MAX_FRAME, PHOTO, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { KINDS } from './sim/data/catalog.js';
 import { LEVELS, LEVEL } from './sim/data/levels.js';
 import { newGame, act, step, unlocked, shelf } from './sim/game.js';
@@ -77,6 +79,7 @@ $('title-menu').addEventListener('click', (e) => {
     if (a === 'rooms') openRooms();
     else if (a === 'studio') openBrief('studio');
     else if (a === 'album') openAlbum();
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('pause-menu').addEventListener('click', (e) => {
@@ -88,7 +91,8 @@ $('pause-menu').addEventListener('click', (e) => {
     else if (a === 'brief') { ui.closeScreen('pause'); ui.showBrief(G.level); $('brief-go').textContent = 'Back to it'; }
     else if (a === 'clear') { ui.closeScreen('pause'); doAct({ t: 'clear' }); }
     else if (a === 'rooms') { ui.closeAll(); saveGame(G); openRooms(); }
-    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else if (a === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 
@@ -665,7 +669,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { saveGame(G); if (mode === 'build') pause(); } });
-window.addEventListener('pagehide', () => saveGame(G));
+window.addEventListener('pagehide', () => { saveGame(G); cloudUI.autosave({ keepalive: true }); });
 
 // ------------------------------------------------------------------ boot
 const demo = demoRoom();
@@ -673,6 +677,17 @@ const shared = fromHash();
 preloadPaintings().then(() => { icons.cache.clear(); if (mode === 'build') refresh(); });
 if (shared) visit(shared);
 else toTitle();
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-136'.
+// The save is everything stored under its save keys (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-136' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode !== 'title') saveGame(G); return snapshot([SAVE_KEY, 'pinch-and-place.album.v1']); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const al = snapValue(snap, 'pinch-and-place.album.v1'); const n = Array.isArray(al) ? al.length : Array.isArray(al?.photos) ? al.photos.length : 0; return `A diorama${n ? ` · ${n} photo${n === 1 ? '' : 's'} in the album` : ''}`; },
+    hasGame: () => (mode !== 'title') || !!snapshot([SAVE_KEY, 'pinch-and-place.album.v1']),
+    version: VERSION,
+});
+cloudUI.boot();
 requestAnimationFrame((t) => { last = t; frame(t); });
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)

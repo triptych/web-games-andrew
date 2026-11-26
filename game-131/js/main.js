@@ -3,7 +3,9 @@
 //
 // ?debug=1 exposes window.__si for the dev/ harnesses; &fast=N runs N× simulation per frame; &q=low draws less.
 
-import { STEP, MAX_FRAME } from './config.js';
+import { STEP, MAX_FRAME, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -47,6 +49,17 @@ const seen = {};             // a count of every sim event drained, for the test
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-131'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-131' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'play') saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const d = snapValue(snap, SAVE_KEY)?.data; return d ? `Fray's journey${d.zone ? ` · ${d.zone}` : ''}` : 'A Spiral Isle game'; },
+    hasGame: () => (mode === 'play') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 audio.play('title');
 
 const unlock = () => audio.init();
@@ -61,7 +74,8 @@ $('title-menu').addEventListener('click', (e) => {
     else if (act === 'continue') {
         const g = loadGame();
         if (g) startGame(g); else ui.toast('That saved journey could not be read.');
-    } else ui.openScreen(act);
+    } else if (act === 'cloud') cloudUI.open();
+    else ui.openScreen(act);
 });
 $('pause-menu').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-act]');
@@ -69,7 +83,8 @@ $('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const act = b.dataset.act;
     if (act === 'resume') ui.closeScreen('pause');
-    else if (act === 'quit') { saveGame(G); toTitle(); }
+    else if (act === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (act === 'cloud') cloudUI.open();
     else ui.openScreen(act);
 });
 $('btn-pause').addEventListener('click', () => pause());
@@ -197,7 +212,7 @@ function frame(now) {
             n++;
         }
         saveT += dt;
-        if (saveT > 20) { saveT = 0; saveGame(G); }
+        if (saveT > 20) { saveT = 0; saveGame(G); cloudUI.autosave(); }
     } else { acc = 0; input.wantLock = false; }
     flushEvents(now);
     view.pitch = mode === 'play' ? input.pitch : 0.08;
@@ -207,7 +222,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); cloudUI.autosave({ keepalive: true }); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 

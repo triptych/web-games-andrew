@@ -141,6 +141,13 @@ Bands asserted in the simtest: the perfect bot finishes at least 75% of seeds, t
 
 ## Changelog
 
+### v1.1.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.0.0 (2026-11-13)
 - First release: eight episodes and a boss, the beam, the hold and banking, drops and bonks, seven enemies, seven pickups, glitches, report cards with grades and upgrades, continues.
 - Painted art (fal) and recorded music, effects and voices (ElevenLabs), with code-made fallbacks.

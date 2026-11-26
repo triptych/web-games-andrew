@@ -3,7 +3,9 @@
 //
 // ?debug=1 exposes window.__ss for the dev/ harnesses; &fast=N runs N× simulation per frame.
 
-import { STEP, MAX_FRAME, W, H } from './config.js';
+import { STEP, MAX_FRAME, W, H, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { loadArt } from './view/assets.js';
 import { Audio } from './audio.js';
@@ -93,6 +95,17 @@ window.visualViewport?.addEventListener('resize', layout);
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-130'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-130' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'play') saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const d = snapValue(snap, SAVE_KEY)?.data; return d ? `Night ${(d.day ?? 0) + 1} on the starbase` : 'A Starbase Spooky game'; },
+    hasGame: () => (mode === 'play') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 
 const unlock = () => { audio.init(); if (mode === 'title') audio.play('title'); };
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
@@ -104,6 +117,7 @@ $('title-menu').addEventListener('click', (e) => {
     const a = b.dataset.act;
     if (a === 'new') startGame(newGame((Date.now() % 1e9) | 0));
     else if (a === 'continue') { const g = loadGame(); if (g) startGame(g); else ui.toast('That save could not be read.'); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('pause-menu').addEventListener('click', (e) => {
@@ -112,7 +126,8 @@ $('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'resume') ui.closeScreen('pause');
-    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else if (a === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('btn-pause').addEventListener('click', () => pause());
@@ -402,7 +417,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') { saveGame(G); pause(); } });
-window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); cloudUI.autosave({ keepalive: true }); });
 requestAnimationFrame((t) => { last = t; frame(t); });
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)

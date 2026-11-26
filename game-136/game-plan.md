@@ -118,6 +118,13 @@ See [dev/README.md](dev/README.md). `simtest.mjs` checks purity, the catalogue, 
 
 ## Changelog
 
+### v1.1.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.0.1 (2026-11-14)
 - Fixed: a medium or large rug was hidden inside the Clay Bench's turntable, which grew in height as well as width for big things. It grows sideways only now; the browser test checks every floor thing at every size stands on it.
 

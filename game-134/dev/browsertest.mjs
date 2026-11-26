@@ -95,7 +95,9 @@ async function desktop() {
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
     await shot(page, 'desktop-title');
 
-    await page.mouse.click(640, 700);                                    // a gesture: audio may start
+    // a gesture so audio may start, on the logo: a fixed spot could land on a menu button (v1.1.0 added ☁️ Cloud Save)
+    const logo = await page.evaluate(() => { const r = document.querySelector('h1.logo').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(logo.x, logo.y);
     await until(page, () => __uo.sound().sfx >= 27 && __uo.sound().voices >= 40, 'the recorded effects and voices decode', 40000);
     check(await Q(page, () => __uo.sound().failed.length === 0), 'no sound file failed');
     await until(page, () => (__uo.sound().playing || '').startsWith('file:theme'), 'the title theme is the recorded track');

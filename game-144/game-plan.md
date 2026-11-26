@@ -169,6 +169,13 @@ move; skill sets reaction rate, how many bullets it notices and look-ahead). Nor
 
 ## Changelog
 
+### v1.2.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.1.0 (2026-11-21)
 - The three Seraphs, all 21 enemy kinds and the six bosses are now Meshy 3D models (30 GLBs, 15 MB after shrinking
   the textures), each turned and sized to face its way; bosses keep their procedural weak points and effects.

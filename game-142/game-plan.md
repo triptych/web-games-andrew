@@ -181,6 +181,13 @@ From `ONLY=bot node game-142/dev/simtest.mjs` (the perfect bot aims at the lowes
 
 ## Changelog
 
+### v1.2.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.1.0 (2026-11-19)
 - 48 castles in four regions (36 from the new castle generator), Moonbeam Marsh, Endless Siege.
 - Fixed: Next Castle or Castles, then Back, left the screen with no menu (the title screen had been closed underneath).

@@ -100,9 +100,11 @@ is ever renamed, keep sending the old id). Games with several save slots pass `s
 use the default `main`. Locally, each game's own save keys must be unique too: `node dev/check-save-keys.mjs` checks
 all 149 games and fails on a shared key.
 
-**Games with cloud saves:** Inn Over My Head (game-147, its own screen, loads in place), VACANCY (game-145),
-JINGLE POP (game-146), Glimmerglade (game-148), Echoheart Academy (game-149) (the shared dialog, snapshot and reload).
-`node dev/cloudtest.mjs` finds every game that imports `lib/core/cloud-ui.js` and tests them all.
+**Games with cloud saves:** the 20 newest, game-130 to game-149. Inn Over My Head (game-147) draws the screen in its
+own sheet and loads in place; the other 19 use the shared dialog with snapshot and reload. Pinch & Place (game-136) and
+Kaboom Keep (game-142) keep data under a second prefix (`pinch-and-place.album.v1`, `kaboom-keep.progress.v1`), so
+they pass both: `snapshot([SAVE_KEY, 'pinch-and-place.album.v1'])`. Lanternhollow (game-138) has no menu, so its
+button is on the title only. `node dev/cloudtest.mjs` finds every game that imports `lib/core/cloud-ui.js` and tests them all.
 
 **The quickest way: snapshot and reload** (VACANCY, JINGLE POP, Glimmerglade, Echoheart). It needs no knowledge of the
 game's save format. `snapshot(SAVE_KEY)` takes every `localStorage` key equal to SAVE_KEY or under `SAVE_KEY.` (the save,
@@ -129,8 +131,8 @@ Then a `<button data-act="cloud" class="btn">☁️ Cloud Save</button>` beside 
 `cloud` case in their handlers (`cloudUI.open()`), and `cloudUI.autosave()` / `autosave({ force: true })` /
 `autosave({ keepalive: true })` next to the game's periodic save, save-and-quit and `pagehide`. Put the block at **top
 level**: one game's first `ui.openScreen('title')` was inside its `toTitle()` function, so `cloudUI` didn't exist for
-the menus. Check the game's keys really share the prefix (`node dev/check-save-keys.mjs --list`); a game whose keys
-don't would need its own `getSave`.
+the menus. Check the game's keys really share the prefix (`node dev/check-save-keys.mjs --list`); for keys under another prefix,
+pass an array to `snapshot()`.
 
 **The detailed way** (game-147, which loads in place without a reload and draws the screen in its own sheet):
 
@@ -216,6 +218,13 @@ attribute. To allow another host, add it both there and to the project's Redirec
   `history.replaceState` it away.
 - **Magic links are single-use and expire** (about an hour by default). An old link gives an error in the fragment
   (`#error=…&error_description=…`); show it.
+- **A reload fires the game's own save.** `restore()` then `reload()` triggers the game's `pagehide` /
+  `visibilitychange` saves, which wrote the game on screen straight back over the restored one. `restore()` now freezes
+  the keys it wrote (later writes to them are ignored) until the page goes away.
+- **Games that use the `#fragment` themselves** (Lanternhollow keeps its shared dungeon there) would read or rewrite
+  the sign-in tokens first. `lib/core/cloud.js` takes them as soon as it's imported, before any game code runs, and
+  `boot()` reports it. Such a game also clears its own fragment before reloading into a cloud save, or the address would
+  win over the restored save.
 - **Refresh tokens rotate.** Supabase replaces the refresh token on every refresh and refuses a used one, so two
   game tabs refreshing at once would sign one of them out. `lib/core/cloud.js` refreshes under a Web Lock and re-reads
   the stored session first; without the Locks API, a refused refresh adopts whatever another tab stored.

@@ -4,7 +4,9 @@
 // ?debug=1 exposes window.__tv for the dev/ harnesses; &fast=N runs N× simulation per frame; &q=low draws less;
 // &models=0 keeps the code-built stand-ins.
 
-import { STEP, MAX_FRAME } from './config.js';
+import { STEP, MAX_FRAME, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -52,6 +54,17 @@ const seen = {};
 function refreshTitle() { document.getElementById('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-132'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-132' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (G && mode === 'play') saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { return snapValue(snap, SAVE_KEY)?.data ? 'A heist in the vault' : 'A Giant\'s Vault game'; },
+    hasGame: () => (mode === 'play') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 
 const unlock = () => { audio.init(); if (mode === 'title') audio.setTheme('town'); };
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
@@ -63,6 +76,7 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     const a = b.dataset.act;
     if (a === 'new') ui.showClasses((cls) => startGame(newGame((Date.now() % 1e9) | 0, cls)));
     else if (a === 'continue') { const g = loadGame(); if (g) startGame(g); else ui.toast('That save could not be read.'); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 document.getElementById('pause-menu').addEventListener('click', (e) => {
@@ -71,7 +85,8 @@ document.getElementById('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'resume') ui.closeScreen('pause');
-    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else if (a === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 document.getElementById('card-ok').addEventListener('click', () => { audio.ui('close'); ui.closeScreen('card'); });
@@ -256,7 +271,7 @@ function frame(now) {
             if (G.events.length > 40) flushEvents();
         }
         saveT += dt;
-        if (saveT > 15) { saveT = 0; saveGame(G); }
+        if (saveT > 15) { saveT = 0; saveGame(G); cloudUI.autosave(); }
     } else {
         acc = 0;
         // death plays on behind the screen: the sim counts down to the respawn
@@ -271,7 +286,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { pause(); if (G) saveGame(G); } });
-window.addEventListener('pagehide', () => { if (G && mode === 'play') saveGame(G); });
+window.addEventListener('pagehide', () => { if (G && mode === 'play') saveGame(G); cloudUI.autosave({ keepalive: true }); });
 requestAnimationFrame((t) => { last = t; frame(t); });
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)

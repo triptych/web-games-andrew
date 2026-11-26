@@ -126,7 +126,7 @@ try {
             await ctx.close();
             ctx = await context(storage);
             page = await openGame(ctx, g, `#access_token=${jwt}&refresh_token=rt1&expires_in=3600&token_type=bearer&type=magiclink`);
-            await until(page, () => document.querySelector('dialog.wg-cloud')?.open && document.querySelector('dialog.wg-cloud').textContent.includes('player@example.com') && !location.hash, 'back from the link: signed in, the dialog open, the tokens gone from the address');
+            await until(page, () => document.querySelector('dialog.wg-cloud')?.open && document.querySelector('dialog.wg-cloud').textContent.includes('player@example.com') && !location.hash.includes('access_token'), 'back from the link: signed in, the dialog open, the tokens gone from the address');
             await page.keyboard.press('Escape');
         } else {
             await openCloud(page);
@@ -155,7 +155,11 @@ try {
         page = await openGame(ctx, g);
         await openCloud(page);
         await until(page, () => !!document.querySelector('dialog.wg-cloud [data-wgc="down"]:not([disabled])'), 'on a new device, Load from cloud is offered');
-        await Promise.all([page.waitForNavigation({ timeout: 60000 }).catch(() => null), click(page, 'dialog.wg-cloud [data-wgc="down"]')]);
+        // a game with something of its own already here asks for a second tap first (Lanternhollow builds a dungeon at once)
+        if (await page.evaluate(() => { document.querySelector('dialog.wg-cloud [data-wgc="down"]').click(); return document.querySelector('dialog.wg-cloud [data-wgc="down"]')?.textContent.includes('Tap again'); }).catch(() => false)) {
+            check(true, 'with something already on this device it asks for a second tap');
+            await Promise.all([page.waitForNavigation({ timeout: 60000 }).catch(() => null), click(page, 'dialog.wg-cloud [data-wgc="down"]')]);
+        } else await page.waitForNavigation({ timeout: 60000 }).catch(() => null);
         await page.waitForFunction(() => !!document.querySelector('[data-act="cloud"]'), null, { timeout: 90000 });
         check(await page.evaluate((k) => JSON.parse(localStorage.getItem(k + '.cloudtest') || 'null')?.marker === k, key), 'Load from cloud writes the save back and reloads the game');
         await until(page, () => [...document.querySelectorAll('.wg-cloud-toast')].some((t) => t.textContent.includes('Loaded your cloud save')), 'and says so once it\'s back');

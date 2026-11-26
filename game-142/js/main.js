@@ -4,7 +4,9 @@
 // ?debug=1 exposes window.__kk for the dev/ harnesses; &fast=N runs N× simulation per frame.
 // The title screen plays a castle in the background with the bot (no sound): the attract demo.
 
-import { STEP, MAX_FRAME, AMMO_ORDER } from './config.js';
+import { STEP, MAX_FRAME, AMMO_ORDER, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -56,6 +58,17 @@ view.mode = 'title';
 function refreshTitle() { document.getElementById('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-142'.
+// The save is everything stored under its save keys (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-142' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'play') saveGame(G); return snapshot([SAVE_KEY, 'kaboom-keep.progress.v1']); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const p = snapValue(snap, 'kaboom-keep.progress.v1'); const st = p && typeof p === 'object' ? Object.values(p.stars || {}).reduce((a, b) => a + (+b || 0), 0) : 0; return `Kaboom Keep${st ? ` · ${st}★` : ''}`; },
+    hasGame: () => (mode === 'play') || !!snapshot([SAVE_KEY, 'kaboom-keep.progress.v1']),
+    version: VERSION,
+});
+cloudUI.boot();
 
 const unlock = () => { audio.init(); if (mode === 'title') audio.playMusic('title'); };
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
@@ -71,12 +84,14 @@ on('title-menu', (act) => {
     else if (act === 'continue') {
         const g = loadGame();
         if (g) startGame(g, true); else { ui.toast('That save could not be read.'); clearSave(); refreshTitle(); }
-    } else ui.openScreen(act);
+    } else if (act === 'cloud') cloudUI.open();
+    else ui.openScreen(act);
 });
 on('pause-menu', (act) => {
     if (act === 'resume') ui.closeScreen('pause');
     else if (act === 'restart') startGame(newGame(seedNow(), G.level));
-    else if (act === 'quit') { saveGame(G); toTitle(); }
+    else if (act === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (act === 'cloud') cloudUI.open();
     else ui.openScreen(act);
 });
 on('over-menu', (act) => {
@@ -256,7 +271,7 @@ function frame(now) {
         }
         if (acc > STEP * 6 * FAST) acc = 0;   // a slow device drops time rather than spiral
         saveT += dt;
-        if (saveT > 20 && mode === 'play') { saveT = 0; saveGame(G); }
+        if (saveT > 20 && mode === 'play') { saveT = 0; saveGame(G); cloudUI.autosave(); }
         flushEvents();
     } else if (mode === 'title' && attract && ui.top() !== 'title') {
         // the attract demo: the bot knocks the castle down, then the next castle goes up
@@ -275,7 +290,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); cloudUI.autosave({ keepalive: true }); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 
