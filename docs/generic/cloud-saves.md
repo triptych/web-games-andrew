@@ -173,7 +173,7 @@ pass an array to `snapshot()`.
 
 5. **Optional: a title label.** `cloudUI.onInfo = (info) => …` is called when the online save is learned, e.g. to show
    `☁️ Cloud Save · Day 7` (game-147's `refreshTitle`). `cloud.listAll()` returns every game's cloud saves for the
-   player, for a launcher or Pocket Garden view.
+   player; the Pocket Garden's Saved Games uses it (see below).
 
 6. **A test.** `node dev/cloudtest.mjs` picks the game up by itself (it imports `lib/core/cloud-ui.js`) and runs the
    whole flow on a mock Supabase; a game that mounts the screen in its own sheet gets the sign-on check there and keeps
@@ -187,6 +187,41 @@ pass an array to `snapshot()`.
 from there couldn't come back. `cloudUI.boot()` hides every `[data-act="cloud"]` button when the page isn't served from
 one of `CLOUD_HOSTS` in `lib/core/cloud.js` (`triptych.github.io`, `localhost`, `127.0.0.1`), so give the button that
 attribute. To allow another host, add it both there and to the project's Redirect URLs.
+
+## The Pocket Garden's backup and Saved Games
+
+The handheld ([console/js/cloud.js](../../console/js/cloud.js)) uses the same client and sign-in but draws its own
+screens on the LCD (Cloud, Sign in, Saved Games) instead of `cloud-ui.js`.
+
+- **Its own backup** is the row (player, `pocket-garden`, `main`): a `snapshot()` of `console.settings`,
+  `console.recent`, `console.messages`, `console.lounge`, `garden.starred` and `garden.companion`. Restoring writes them
+  back and reloads.
+- **Which device wins.** `console.cloud` remembers which account this device has matched (restored, or backed up over
+  the cloud). Until then it never backs up by itself: a device with nothing of its own (no stars, no plays, no friends
+  but the dragonfly, no Lounge or dragonfly) restores the backup on sign-in; one with data asks.
+- **Saved Games** backs up each game's save from the console, to the row (player, `game-NNN`, `pocket-garden`). The
+  keys come from `save.keys` in the game's `avatar/avatar.json` (a `*` at the end takes every key with that prefix),
+  the same keys Messages reads. It never writes slot `main`, so it can't collide with a game's own Cloud Save, whose
+  format the console doesn't know. Restoring writes the keys back without freezing them (the game isn't running).
+- Test: `ONLY=cloud node console/dev/browsertest.mjs` (with `BASE=disk` it serves the repo on `localhost`, since sign-in
+  is hidden on hosts outside `CLOUD_HOSTS`).
+
+## Player counts
+
+How many players each game has had, shown on the Pocket Garden's cartridges and the classic list's cards.
+
+| | |
+|---|---|
+| Tables | `public.game_players` (game, player uuid, first_seen, last_seen): one row per game per device; RLS on, **no** grants or policies, so nobody reads or writes it over the API. `public.game_stats` (game, players, plays, updated_at): the totals, `select` for anyone. SQL: [dev/supabase/game_stats.sql](../../dev/supabase/game_stats.sql), applied 2026-11-26 as the migration `game_player_counts`. |
+| Counting | `POST /rest/v1/rpc/record_play` `{"p_game":"game-031","p_player":"<uuid>"}` with the publishable key. `record_play` is `SECURITY DEFINER`: it checks the id is `game-NNN`, adds the device to `game_players`, and bumps `game_stats` (players +1 for a new device, plays +1 at most once per device per 30 minutes). |
+| Client | [lib/plays.js](../../lib/plays.js), loaded by [lib/pwa.js](../../lib/pwa.js) on every game page (game-037 loads it directly). The device id is a random UUID in `localStorage['web-games.player']`; nothing else is sent. It runs 2.5 s after the page loads, only on `triptych.github.io` (not local servers, tests or itch builds). |
+| Reading | [lib/core/stats.js](../../lib/core/stats.js): `playerCounts()` → `{ 'game-031': { players, plays } }`, cached an hour in `web-games.stats.cache`; `playersLabel(n)` → `'1.2k players'`. |
+| Testing | `localStorage['web-games.stats'] = 'on'` turns both on for any host; mock `/rest/v1/game_stats` and `/rest/v1/rpc/record_play` with `context.route`. |
+
+The security advisor warns that anon can execute a `SECURITY DEFINER` function (`record_play`) and that `game_players`
+has RLS with no policy: both are intended. The function can only add a device to one game's count. Anyone can still
+inflate a count by sending made-up device ids; the counts are a friendly guide, not a leaderboard. Check with SQL as
+for `game_saves`: as `anon`, selecting `game_players` and writing `game_stats` fail with 42501.
 
 ## Testing
 

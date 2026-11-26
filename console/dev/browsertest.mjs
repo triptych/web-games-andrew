@@ -40,6 +40,10 @@
  * serving (stars, friendship hearts, the Lounge's memory); a thank-you text
  * and a friend asking for a drink in Messages, whose button opens the Lounge
  * with them at the bar; a phone walks by tapping the floor.
+ * Cloud (./js/cloud.js, a mock Supabase): the player count on a cartridge, signing in
+ * by email link, the backup made on return (stars, shell; no game saves), an auto
+ * backup of a new star, Saved Games backing up a game's save in its own slot, a
+ * new device taking the backup by itself, restoring a game's save, signing out.
  * Screenshots → console/dev/shots/.
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
@@ -47,7 +51,7 @@
  *
  * Env: BASE (default http://127.0.0.1:8077; BASE=disk answers from the repo on disk, no server
  * needed, and skips the installable-app checks, which need one),
- * PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage|dragonfly|messages|lounge.
+ * PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage|dragonfly|messages|lounge|cloud.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -60,8 +64,8 @@ const BASE = DISK ? 'http://pocket.test' : process.env.BASE ?? 'http://127.0.0.1
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.mp3': 'audio/mpeg' };
 /** BASE=disk: answer every request for the site from the files in the repo. */
-async function serveDisk(ctx) {
-    await ctx.route(`${BASE}/**`, (r) => {
+async function serveDisk(ctx, base = BASE) {
+    await ctx.route(`${base}/**`, (r) => {
         let f = decodeURIComponent(new globalThis.URL(r.request().url()).pathname);
         if (f.endsWith('/')) f += 'index.html';
         const file = path.join(ROOT, f);
@@ -129,9 +133,9 @@ async function open(viewport, { touch = false, blockStorage = false, init = null
     return { ctx, page };
 }
 
-async function boot(page, hash = '') {
+async function boot(page, hash = '', url = URL) {
     if (hash) await page.goto('about:blank');
-    await page.goto(URL + hash);
+    await page.goto(url + hash);
     await page.waitForFunction(() => window.pocketGarden && document.querySelector('.view'));
     await page.waitForTimeout(400);
     // any key skips the boot screen
@@ -1177,6 +1181,161 @@ async function lounge() {
     await ctx.close();
 }
 
+// ------------------------------------------------------------------ cloud (a mock Supabase)
+
+/** A Supabase stand-in: game_saves rows by "game|slot", the play counts, and every request it was sent. */
+async function mockSupabase(ctx, db) {
+    await ctx.route('https://zhjcfwrgvwfmjhfibkjc.supabase.co/**', async (r) => {
+        const req = r.request();
+        const u = new globalThis.URL(req.url());
+        db.calls.push({ method: req.method(), path: u.pathname, search: u.search, headers: req.headers(), body: req.postData() });
+        const json = (status, body) => r.fulfill({ status, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+        if (req.method() === 'OPTIONS') return r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } });
+        if (u.pathname === '/auth/v1/otp') return json(200, {});
+        if (u.pathname === '/auth/v1/logout') return r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*' } });
+        if (u.pathname === '/rest/v1/game_stats') return json(200, db.stats);
+        if (u.pathname === '/rest/v1/game_saves') {
+            const eq = (k) => u.searchParams.get(k)?.replace(/^eq\./, '');
+            if (req.method() === 'POST') {
+                const row = JSON.parse(req.postData());
+                db.rows[`${row.game}|${row.slot}`] = { ...row, updated_at: new Date().toISOString() };
+                return r.fulfill({ status: 201, headers: { 'access-control-allow-origin': '*' } });
+            }
+            const all = Object.values(db.rows);
+            if (eq('game')) return json(200, all.filter((x) => x.game === eq('game') && x.slot === eq('slot')));
+            return json(200, all.map(({ game, slot, summary, version, updated_at }) => ({ game, slot, summary, version, updated_at })));
+        }
+        return json(404, {});
+    });
+}
+
+// sign-in only works on the hosts a link can come back to (lib/core/cloud.js CLOUD_HOSTS): with BASE=disk, serve the
+// repo on localhost instead of pocket.test
+const CLOUD_BASE = DISK ? 'http://localhost:8199' : BASE;
+
+function fakeJwt(sub, email) {
+    const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+    return `${b64({ alg: 'HS256' })}.${b64({ sub, email, exp: Math.floor(Date.now() / 1000) + 3600 })}.sig`;
+}
+
+async function cloudScenario() {
+    const URL = `${CLOUD_BASE}/console/`;
+    console.log('\nCloud: sign in, back up, a new device restores, Saved Games, player counts');
+    const db = { rows: {}, calls: [], stats: [{ game: 'game-135', players: 1234, plays: 4000 }, { game: 'game-001', players: 1, plays: 3 }] };
+    const back = `#access_token=${fakeJwt('user-1', 'player@example.com')}&refresh_token=r1&expires_in=3600&token_type=bearer&type=magiclink`;
+
+    // ---- the first device: has stars, a shell and a game save
+    let { ctx, page } = await open({ width: 1280, height: 800 }, {
+        init: () => {
+            try {
+                localStorage.setItem('web-games.stats', 'on');
+                if (!localStorage.getItem('garden.starred')) {
+                    localStorage.setItem('garden.starred', JSON.stringify(['game-135', 'game-031']));
+                    localStorage.setItem('console.settings', JSON.stringify({ shell: 'lilac', glow: 'amber' }));
+                    localStorage.setItem('grimhold-abyss-save', JSON.stringify({ level: 4, gold: 99 }));
+                }
+            } catch {
+                /* about:blank */
+            }
+        },
+    });
+    await mockSupabase(ctx, db);
+    if (DISK) await serveDisk(ctx, CLOUD_BASE);
+    await boot(page, '#game-135', URL);
+    await page.waitForFunction(() => document.querySelector('.d-players')?.textContent.includes('players'));
+    check((await page.textContent('.d-players')).includes('1.2k players'), 'the cartridge shows the player count (1.2k players)');
+    check(db.calls.some((c) => c.path === '/rest/v1/game_stats' && c.headers.apikey?.startsWith('sb_publishable_')), 'the counts are read with the publishable key');
+    await page.evaluate(() => window.pocketGarden.popTo(1));
+    await settle(page);
+    await pick(page, 'Cloud');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    check((await top(page)).title === 'Cloud', 'the main menu opens Cloud');
+    check((await page.evaluate(() => window.pocketGarden.top.items.map((x) => x.label))).includes('Sign in with email'), 'signed out, it offers to sign in');
+    await pick(page, 'Sign in with email');
+    await page.keyboard.press('Enter');
+    await settle(page);
+    await page.fill('.cl-form input', 'nope');
+    await page.keyboard.press('Enter');
+    check((await page.textContent('.cl-form .nm-hint')).includes('email address first'), 'a bad address is refused');
+    await page.fill('.cl-form input', 'player@example.com');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => document.querySelector('.cl-form .nm-hint').textContent.includes('Check your inbox'));
+    const otp = db.calls.find((c) => c.path === '/auth/v1/otp');
+    check(otp && JSON.parse(otp.body).email === 'player@example.com' && decodeURIComponent(otp.search).includes('/console/'), 'the sign-in link is emailed, coming back to the console');
+    await page.screenshot({ path: path.join(OUT, 'cloud-email.png') });
+
+    // back from the email: nothing in the cloud yet, so this device becomes the backup
+    await page.goto('about:blank');
+    await page.goto(URL + back);
+    await page.waitForFunction(() => window.pocketGarden?.top?.title === 'Cloud' && window.pocketGarden.cloud.row);
+    check(!(await page.evaluate(() => location.hash)), 'the sign-in tokens are taken out of the address');
+    await page.evaluate(() => window.pocketGarden.skipBoot());
+    const up = db.rows['pocket-garden|main'];
+    check(up && up.user_id === 'user-1' && JSON.parse(up.data['garden.starred']).length === 2 && JSON.parse(up.data['console.settings']).shell === 'lilac', 'signed in, the Pocket Garden is backed up (stars, shell)');
+    check(!('grimhold-abyss-save' in up.data), 'the backup holds only the Pocket Garden keys');
+    await settle(page, 500);
+    check((await page.textContent('.cl-lead')).startsWith('Backed up'), 'Cloud says when it was backed up');
+    await page.screenshot({ path: path.join(OUT, 'cloud-signed-in.png') });
+
+    // a change is backed up by itself
+    await page.evaluate(() => { window.pocketGarden.store.toggleFav('game-001'); window.pocketGarden.cloud.lastUp = 0; window.pocketGarden.cloud.autosave(); });
+    await page.waitForFunction(() => !window.pocketGarden.cloud.busy);
+    await settle(page, 200);
+    check(JSON.parse(db.rows['pocket-garden|main'].data['garden.starred']).includes('game-001'), 'auto backup sends a new star');
+
+    // Saved Games: the game's save is on this device; back them all up
+    await pick(page, 'Saved Games');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.pocketGarden.top.title === 'Saved Games' && window.pocketGarden.top.saves);
+    const sg = await page.evaluate(() => window.pocketGarden.top.items.map((x) => x.label || x.game?.id));
+    check(sg[0] === 'Back up all 1' && sg.includes('game-031'), 'Saved Games lists the game with a save on this device');
+    await page.evaluate(() => window.pocketGarden.top.setIndex(0));
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => !window.pocketGarden.top.running && window.pocketGarden.top.el.querySelector('.cl-lead').textContent.includes('1 backed up'));
+    const gs = db.rows['game-031|pocket-garden'];
+    check(gs && JSON.parse(gs.data['grimhold-abyss-save']).level === 4 && gs.summary.includes('4'), "the game's save is backed up in its own slot, with a summary");
+    await page.screenshot({ path: path.join(OUT, 'cloud-saved-games.png') });
+    await ctx.close();
+
+    // ---- a new device: nothing on it, signs in, and the backup comes back by itself
+    ({ ctx, page } = await open({ width: 1280, height: 800 }));
+    await mockSupabase(ctx, db);
+    if (DISK) await serveDisk(ctx, CLOUD_BASE);
+    await page.goto(URL + back);
+    await page.waitForFunction(() => localStorage.getItem('garden.starred')?.includes('game-001'), null, { timeout: 15000 });
+    await page.waitForFunction(() => window.pocketGarden && document.querySelector('.view'));
+    await settle(page, 600);
+    check((await page.getAttribute('#device', 'data-shell')) === 'lilac', 'a new device takes the backup by itself: the lilac shell is back');
+    check((await page.evaluate(() => window.pocketGarden.store.favs.length)) === 3, 'and the stars');
+    // the game's save, restored from Saved Games
+    await page.evaluate(() => window.pocketGarden.openCloud());
+    await settle(page);
+    await pick(page, 'Saved Games');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => window.pocketGarden.top.title === 'Saved Games' && window.pocketGarden.top.saves);
+    const i = await page.evaluate(() => window.pocketGarden.top.items.findIndex((x) => x.game?.id === 'game-031'));
+    check(i >= 0, 'the cloud backup of a game shows on a device without its save');
+    await page.evaluate((n) => window.pocketGarden.top.setIndex(n), i);
+    await page.keyboard.press('Enter');
+    await settle(page);
+    await pick(page, 'Restore to this device');
+    await page.keyboard.press('Enter');
+    await page.waitForFunction(() => localStorage.getItem('grimhold-abyss-save'));
+    check(JSON.parse(await page.evaluate(() => localStorage.getItem('grimhold-abyss-save'))).gold === 99, "the game's save is restored to this device");
+    // sign out
+    await page.evaluate(() => window.pocketGarden.popTo(1));
+    await settle(page);
+    await page.evaluate(() => window.pocketGarden.openCloud());
+    await settle(page);
+    await pick(page, 'Sign out');
+    await page.keyboard.press('Enter');
+    await settle(page, 400);
+    check(db.calls.some((c) => c.path === '/auth/v1/logout') && !(await page.evaluate(() => localStorage.getItem('web-games.cloud'))), 'Sign out signs out (of every game)');
+    check((await page.evaluate(() => window.pocketGarden.top.items[0].label)) === 'Sign in with email', 'and Cloud offers to sign in again');
+    await ctx.close();
+}
+
 try {
     if (!ONLY || ONLY === 'dragonfly') await dragonfly();
     if (!ONLY || ONLY === 'desktop') await desktop();
@@ -1193,6 +1352,7 @@ try {
     if (!ONLY || ONLY === 'storage') await storage();
     if (!ONLY || ONLY === 'messages') await messages();
     if (!ONLY || ONLY === 'lounge') await lounge();
+    if (!ONLY || ONLY === 'cloud') await cloudScenario();
     if (errors.length) throw new Error('errors:\n' + errors.join('\n'));
     console.log('\nAll console checks passed.');
 } catch (e) {

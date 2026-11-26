@@ -316,7 +316,7 @@ export class ListView extends View {
                 <div class="pv-text">
                     <p class="pv-genre">${gen.emoji} ${esc(gen.short)}</p>
                     <h3>${esc(g.title)}</h3>
-                    <p class="pv-meta">No.${pad3(gameNo(g))}${g.version ? ` · v${esc(g.version)}` : ''}</p>
+                    <p class="pv-meta">No.${pad3(gameNo(g))}${g.version ? ` · v${esc(g.version)}` : ''}${this.app.playersOf(g) ? ` · 👥 ${esc(this.app.playersOf(g))}` : ''}</p>
                     <p class="pv-desc">${esc(excerpt(g.description, 170))}</p>
                 </div>`;
         }, 70);
@@ -392,6 +392,12 @@ export class ListView extends View {
             this.marquee(row);
         }
         this.updateScrollbar();
+    }
+
+    countsChanged() {
+        if (this.preview !== 'game') return;
+        this.pvGame = null;
+        this.renderPreview();
     }
 
     favChanged() {
@@ -589,7 +595,7 @@ export class DetailView extends View {
             <div class="d-info">
                 <p class="d-genre">${gen.emoji} ${esc(gen.short)} <span>· ${esc(gen.name)}</span></p>
                 <h2 class="d-title"><span class="d-star" aria-label="Favorite">${fav ? '★' : ''}</span>${esc(g.title)}</h2>
-                <p class="d-meta">${g.version ? `v${esc(g.version)} · ` : ''}${esc(g.id)}</p>
+                <p class="d-meta">${g.version ? `v${esc(g.version)} · ` : ''}${esc(g.id)}<span class="d-players">${this.playersHTML(g)}</span></p>
                 <div class="d-actions" role="listbox" aria-label="Actions">${this.actionsHTML()}</div>
                 <div class="d-tags">${g.tags.map((t) => `<span class="tag">${t.emoji} ${esc(t.label)}</span>`).join('')}</div>
                 <p class="d-desc">${esc(g.description)}</p>
@@ -599,6 +605,16 @@ export class DetailView extends View {
         this.selectAct(this.act, false);
         this.app.focusGame(g);
         this.app.updateStatus();
+    }
+
+    playersHTML(g) {
+        const p = this.app.playersOf(g);
+        return p ? ` · <span aria-hidden="true">👥</span> ${esc(p)}` : '';
+    }
+
+    countsChanged() {
+        const el = this.el.querySelector('.d-players');
+        if (el) el.innerHTML = this.playersHTML(this.currentGame());
     }
 
     selectAct(i, scroll = true) {

@@ -1,4 +1,5 @@
 import games, { gameIcon } from './gamedata.js';
+import { playerCounts, cachedCounts, playersLabel } from '../lib/core/stats.js';
 
 // Newest-first ordering used everywhere in the browser
 const gamesNewestFirst = [...games].reverse();
@@ -39,6 +40,7 @@ class GameRenderer {
                     <div class="preview-icon"><img class="game-icon-img" src="${gameIcon(game)}" alt="" width="96" height="96" loading="lazy" decoding="async"></div>
                 </div>
                 <div class="game-title">${game.title} ${versionBadge(game)}</div>
+                <div class="game-players" data-players="${game.id}" hidden></div>
                 <div class="game-description">
                     ${game.description}
                 </div>
@@ -433,6 +435,22 @@ function initApp() {
 
     // Update game count dynamically
     updateGameCount();
+
+    // How many players each game has had (lib/core/stats.js): the last known counts at once, then fresh ones
+    showPlayerCounts(cachedCounts());
+    playerCounts().then(showPlayerCounts);
+}
+
+/**
+ * Writes "👥 57 players" on each card that has a count
+ * @param {Object} counts - { 'game-031': { players, plays } }
+ */
+function showPlayerCounts(counts) {
+    for (const el of document.querySelectorAll('[data-players]')) {
+        const label = playersLabel(counts[el.dataset.players]?.players);
+        el.textContent = label ? `👥 ${label}` : '';
+        el.hidden = !label;
+    }
 }
 
 /**

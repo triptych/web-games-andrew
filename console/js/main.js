@@ -15,10 +15,12 @@ import { PetView, petGlyph, petCaption, currentMem } from './pet.js';
 import { Messenger, MessagesView, NameView, FREQ, openThread } from './messages.js';
 import { LoungeView, loungeCaption } from './lounge.js';
 import { pendingOrders } from './lounge-data.js';
+import { Cloud, CloudView } from './cloud.js';
+import { playerCounts, cachedCounts, playersLabel } from '../../lib/core/stats.js';
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.6.0';
+export const CONSOLE_VERSION = '1.7.0';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -63,6 +65,12 @@ class App {
         this.lastPointer = 'mouse';
         /** When each game was added and last changed: null while loading, {} if it can't be read. */
         this.updates = null;
+        this.allGames = ALL;
+        this.version = CONSOLE_VERSION;
+        /** How many players each game has had (lib/core/stats.js): the last known counts, then fresh ones. */
+        this.counts = cachedCounts();
+        // sign-in and backups (./cloud.js); lib/core/cloud.js has already taken a sign-in link out of the address
+        this.cloud = new Cloud(this);
 
         $('model').textContent = `PG-${ALL.length}`;
         $('boot-count').textContent = ALL.length;
@@ -88,6 +96,11 @@ class App {
         this.boot(!this.route(deep, { animate: false }));
         this.messenger.start();
         this.messagesChanged();
+        this.cloud.boot();
+        playerCounts().then((c) => {
+            this.counts = c;
+            this.countsChanged();
+        });
         $('notif').addEventListener('click', () => {
             const id = $('notif').dataset.id;
             this.hideNotif();
@@ -153,6 +166,7 @@ class App {
             dragonfly: () => this.openPet({ animate }),
             messages: () => this.openMessages({ animate }),
             lounge: () => this.openLounge({ animate }),
+            cloud: () => this.openCloud({ animate }),
             shuffle: () => this.shuffle(),
         }[hash];
         if (!go) return false;
@@ -205,6 +219,9 @@ class App {
             'js/messages.js',
             'js/lounge.js',
             'js/lounge-data.js',
+            'js/cloud.js',
+            '../lib/core/cloud.js',
+            '../lib/core/stats.js',
             'lounge-cast.json',
             'img/bartender.png',
             '../garden/avatar/avatar.json',
@@ -638,6 +655,32 @@ class App {
         this.push(new LoungeView(this, { m: this.messenger, cast: this.loungeCast || {}, byId, guest }), { animate });
     }
 
+    /** The Cloud screen: sign in, back up and restore the Pocket Garden and the games' saves. */
+    openCloud({ animate = true } = {}) {
+        if (this.top instanceof CloudView) return this.top.refresh();
+        this.push(new CloudView(this, { cloud: this.cloud }), { animate });
+    }
+
+    /** Signed in or out, or the backup changed: the Cloud screens and the main menu's Cloud row. */
+    cloudChanged() {
+        for (const v of this.stack) if (v instanceof CloudView) v.refresh();
+        const home = this.stack[0];
+        const i = home?.items?.findIndex((x) => x.label === 'Cloud') ?? -1;
+        const meta = i >= 0 ? home.row?.(i)?.querySelector('.r-meta') : null;
+        if (meta) meta.textContent = this.cloud.signedIn ? 'On' : '';
+    }
+
+    /** '57 players' for a game, or '' while the counts aren't known. */
+    playersOf(g) {
+        return playersLabel(this.counts?.[g?.id]?.players);
+    }
+
+    /** The player counts arrived: the cartridge, the preview and the sleeve show them. */
+    countsChanged() {
+        for (const v of this.stack) v.countsChanged?.();
+        if (this.sleeveGame) this.renderSleeve(this.sleeveGame);
+    }
+
     /** Something changed in Messages: the unread count in the status bar and on the home menu. */
     messagesChanged() {
         this.updateStatus();
@@ -843,7 +886,7 @@ class App {
                     <div class="sl-body">
                         <p class="sl-kicker">${esc(gen.name)}</p>
                         <h2>${esc(g.title)}</h2>
-                        <p class="sl-meta">${g.version ? `Version ${esc(g.version)} · ` : ''}${esc(g.id)}</p>
+                        <p class="sl-meta">${g.version ? `Version ${esc(g.version)} · ` : ''}${esc(g.id)}${this.playersOf(g) ? ` · 👥 ${esc(this.playersOf(g))}` : ''}</p>
                         <div class="sl-tags">${g.tags.map((t) => `<span class="tag">${t.emoji} ${esc(t.label)}</span>`).join('')}</div>
                         <p class="sl-desc">${esc(excerpt(g.description, 360))}</p>
                         <div class="sl-actions">
@@ -1006,6 +1049,14 @@ class App {
                     this.canInstall()
                         ? { label: 'Install App', icon: ICONS.install, chev: false, hero: { glyph: ICONS.install, caption: 'Keep it on your home screen' }, action: () => this.install() }
                         : null,
+                    {
+                        label: 'Cloud',
+                        icon: ICONS.cloud,
+                        meta: this.cloud.signedIn ? 'On' : '',
+                        say: this.cloud.signedIn ? `Cloud, signed in as ${this.cloud.email}` : 'Cloud, sign in to back up',
+                        hero: { glyph: ICONS.cloud, caption: this.cloud.signedIn ? `Backed up as ${this.cloud.email}` : 'Sign in to back up your Garden and saves' },
+                        action: () => this.openCloud(),
+                    },
                     { label: 'Settings', icon: ICONS.settings, hero: { glyph: ICONS.settings, caption: 'Shell, screen and sound' }, action: () => this.push(this.settingsView()) },
                     { label: 'About', icon: ICONS.about, hero: { glyph: ICONS.about, caption: `Firmware ${CONSOLE_VERSION}` }, action: () => this.push(this.aboutView()) },
                 ].filter(Boolean);
@@ -1113,6 +1164,7 @@ class App {
                             this.say(`Messages: ${f[1]}`);
                         },
                     },
+                    { label: 'Cloud backup', icon: ICONS.cloud, meta: this.cloud.signedIn ? 'On' : 'Off', action: () => this.openCloud() },
                     { label: 'Your name', icon: ICONS.person, meta: this.messenger.state.me || 'friend', action: () => this.push(new NameView(this, { m: this.messenger })) },
                     {
                         label: 'Install as an app',
