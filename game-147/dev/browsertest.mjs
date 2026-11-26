@@ -375,12 +375,12 @@ async function cloudTest() {
     });
     let page = await open({ width: 1280, height: 760 }, { setup });
     await click(page, '#title-menu [data-act="cloud"]');
-    await until(page, () => !document.getElementById('cloud').hidden && !!document.getElementById('cloud-email'), 'the title\'s Cloud Save opens the sign-in form');
-    await page.fill('#cloud-email', 'player@example.com');
-    await click(page, '[data-cloud="signin"]');
-    await until(page, () => document.getElementById('cloud-msg').textContent.includes('invite-only'), 'an address Supabase won\'t email yet gets a plain explanation');
-    await click(page, '[data-cloud="signin"]');
-    await until(page, () => document.getElementById('cloud-msg').textContent.includes('Check your inbox'), 'asking for a link says to check the inbox');
+    await until(page, () => !document.getElementById('cloud').hidden && !!document.querySelector('#cloud-body input[type=email]'), 'the title\'s Cloud Save opens the sign-in form');
+    await page.fill('#cloud-body input[type=email]', 'player@example.com');
+    await click(page, '[data-wgc="signin"]');
+    await until(page, () => document.querySelector('#cloud-body .wg-msg').textContent.includes('invite-only'), 'an address Supabase won\'t email yet gets a plain explanation');
+    await click(page, '[data-wgc="signin"]');
+    await until(page, () => document.querySelector('#cloud-body .wg-msg').textContent.includes('Check your inbox'), 'asking for a link says to check the inbox');
     const otp = log.find((r) => r.path === '/auth/v1/otp');
     check(!!otp && JSON.parse(otp.body).email === 'player@example.com' && decodeURIComponent(otp.query).includes('redirect_to=http://127.0.0.1:8147/game-147/index.html') && otp.apikey.startsWith('sb_publishable_'),
         'it asks Supabase to email a link back to this page, with the publishable key');
@@ -388,6 +388,8 @@ async function cloudTest() {
     page = await newTab(page, setup, `#access_token=${jwt}&refresh_token=rt1&expires_in=3600&token_type=bearer&type=magiclink`);
     await until(page, () => !document.getElementById('cloud').hidden && document.getElementById('cloud-body').textContent.includes('player@example.com') && !location.hash, 'back from the link: signed in, the Cloud Save screen open, the tokens gone from the address');
     await until(page, () => document.getElementById('cloud-body').textContent.includes('No cloud save yet'), 'it checks the cloud: no save yet');
+    check(await Q(page, () => { const s = JSON.parse(localStorage.getItem('web-games.cloud') || 'null'); return s?.email === 'player@example.com' && !localStorage.getItem('inn-over-my-head.v1.cloud'); }),
+        'the sign-in is kept once for every game on the site (web-games.cloud), not per game');
     // play a little, then save to the cloud from the menu
     await Q(page, () => { for (const id of [...__iomh.ui.stack]) __iomh.ui.closeScreen(id); });
     await click(page, '#title-menu [data-act="new"]');
@@ -398,9 +400,9 @@ async function cloudTest() {
     await page.keyboard.press('Escape');
     await until(page, () => !document.getElementById('pause').hidden, 'Escape opens the menu');
     await click(page, '#pause-menu [data-act="cloud"]');
-    await until(page, () => !document.getElementById('cloud').hidden && !!document.querySelector('[data-cloud="up"]:not([disabled])'), 'the menu\'s Cloud Save offers Save to cloud');
-    await click(page, '[data-cloud="up"]');
-    await until(page, () => document.getElementById('cloud-msg').textContent.includes('Saved to the cloud'), 'Save to cloud says it saved');
+    await until(page, () => !document.getElementById('cloud').hidden && !!document.querySelector('[data-wgc="up"]:not([disabled])'), 'the menu\'s Cloud Save offers Save to cloud');
+    await click(page, '[data-wgc="up"]');
+    await until(page, () => document.querySelector('#cloud-body .wg-msg').textContent.includes('Saved to the cloud'), 'Save to cloud says it saved');
     const up = log.filter((r) => r.path === '/rest/v1/game_saves' && r.method === 'POST').pop();
     const ub = up && JSON.parse(up.body);
     check(!!ub && up.auth === `Bearer ${jwt}` && ub.game === 'game-147' && ub.slot === 'main' && ub.data?.data?.day === 7 && ub.summary.startsWith('Day 7') && up.query.includes('on_conflict=user_id,game,slot'),
@@ -411,18 +413,23 @@ async function cloudTest() {
     check(await Q(page, () => document.getElementById('btn-continue').hidden), 'no local save on the "new device"');
     await until(page, () => document.getElementById('btn-cloud').textContent.includes('Day 7'), 'the title\'s Cloud Save button shows the cloud save (Day 7)');
     await click(page, '#title-menu [data-act="cloud"]');
-    await until(page, () => !!document.querySelector('[data-cloud="down"]:not([disabled])'), 'Load from cloud is offered');
-    await click(page, '[data-cloud="down"]');
+    await until(page, () => !!document.querySelector('[data-wgc="down"]:not([disabled])'), 'Load from cloud is offered');
+    await click(page, '[data-wgc="down"]');
     await until(page, () => __iomh.mode === 'play' && __iomh.G.day === 7 && __iomh.G.gold >= 4321, 'Load from cloud starts the cloud game (day 7, the gold)');
     await page.keyboard.press('Escape');
     await Q(page, () => { for (const id of [...__iomh.ui.stack]) __iomh.ui.closeScreen(id); });
     await Q(page, () => document.querySelector('#pause-menu [data-act="cloud"]').click());
-    await until(page, () => !!document.querySelector('[data-cloud="down"]:not([disabled])'), 'the menu\'s Cloud Save again');
-    await click(page, '[data-cloud="down"]');
-    check(await Q(page, () => __iomh.mode === 'play' && document.querySelector('[data-cloud="down"]').textContent.includes('Tap again')), 'with a game going, Load from cloud asks to be tapped again first');
-    await click(page, '[data-cloud="signout"]');
-    await until(page, () => !!document.getElementById('cloud-email') && document.getElementById('cloud-msg').textContent.includes('Signed out'), 'Sign out: back to the sign-in form, the game still here');
+    await until(page, () => !!document.querySelector('[data-wgc="down"]:not([disabled])'), 'the menu\'s Cloud Save again');
+    await click(page, '[data-wgc="down"]');
+    check(await Q(page, () => __iomh.mode === 'play' && document.querySelector('[data-wgc="down"]').textContent.includes('Tap again')), 'with a game going, Load from cloud asks to be tapped again first');
+    await click(page, '[data-wgc="signout"]');
+    await until(page, () => !!document.querySelector('#cloud-body input[type=email]') && document.querySelector('#cloud-body .wg-msg').textContent.includes('Signed out'), 'Sign out: back to the sign-in form, the game still here');
     check(log.some((r) => r.path === '/auth/v1/logout'), 'and it tells Supabase');
+    // a v1.2.0 player's sign-in (game-147's own key) carries over to the shared one, so nobody is signed out by v1.3.0
+    await Q(page, (t) => localStorage.setItem('inn-over-my-head.v1.cloud', JSON.stringify({ access_token: t, refresh_token: 'rt-old', expires_at: Date.now() / 1000 + 3600, email: 'player@example.com' })), jwt);
+    page = await newTab(page, setup);
+    check(await Q(page, () => __iomh.ui && JSON.parse(localStorage.getItem('web-games.cloud') || 'null')?.refresh_token === 'rt-old' && !localStorage.getItem('inn-over-my-head.v1.cloud')),
+        'an old per-game sign-in moves to the shared one');
     reportErrors('cloud');
 }
 

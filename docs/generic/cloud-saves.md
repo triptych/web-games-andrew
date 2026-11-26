@@ -1,11 +1,11 @@
 # Cloud saves with Supabase (sign in by email link, save online)
 
-How to give a game a login and an online copy of its save, the way Inn Over My Head (game-147, v1.2.0) does it. The
-backend is already set up and shared: a new game only needs its own copy of the client module, a screen and a few
-hooks. Vanilla JS with plain `fetch`, no Supabase client library.
+How to give a game a login and an online copy of its save. The backend is set up and shared, and so is the code: the
+client [lib/core/cloud.js](../../lib/core/cloud.js) and the screen [lib/core/cloud-ui.js](../../lib/core/cloud-ui.js).
+One sign-in covers every game. Vanilla JS with plain `fetch`, no Supabase client library.
 
-- Working example: [game-147/js/cloud.js](../../game-147/js/cloud.js) (the client), the cloud controller in
-  [game-147/js/main.js](../../game-147/js/main.js) (search for `cloud saves`), and the `cloud` section of
+- Working example: Inn Over My Head (game-147): the cloud section of [game-147/js/main.js](../../game-147/js/main.js)
+  (search for `cloud saves`) and the `cloud` section of
   [game-147/dev/browsertest.mjs](../../game-147/dev/browsertest.mjs) (the test against a mock Supabase).
 - Game-147's own notes: [game-147/dev/supabase/README.md](../../game-147/dev/supabase/README.md).
 
@@ -89,28 +89,66 @@ in, send through Resend (free for about 3,000 emails a month, 100 a day).
 
 ## Adding cloud saves to another game
 
-1. **Copy the client.** Copy [game-147/js/cloud.js](../../game-147/js/cloud.js) into the game's `js/` and change:
-   - `GAME = 'game-147'` → the new game's folder id (this keeps each game's saves apart in the shared table);
-   - the `SAVE_KEY` import → the new game's own save key (the session is stored under `SAVE_KEY + '.cloud'`);
-   - the "invite-only" wording if you like.
-   Its methods: `consumeRedirect()`, `signIn(email)`, `signOut()`, `upload(save, { version, summary, keepalive })`,
-   `download()`, plus `signedIn` and `email`. Tokens are refreshed a minute before they expire.
-2. **Read the magic link on boot.** Call `cloud.consumeRedirect()` once the UI exists. It returns `'signed-in'` (show
-   the cloud screen), an error message, or `null`. It strips the tokens out of the address bar.
-3. **Add a screen.** Signed out: an email box and "Email me a sign-in link". Signed in: the cloud save's summary and
-   when it was saved, **Save to cloud**, **Load from cloud** (ask for a second tap if it would replace a game on the
-   device), an auto-save switch, **Sign out**. Game-147's `renderCloud()` and `cloudAction()` in `main.js` can be
-   copied nearly as they are.
-4. **Hooks.** Upload the local save quietly every couple of minutes of play, on save-and-quit, and on
-   `visibilitychange` (hidden) and `pagehide` with `keepalive: true` (a keepalive request carries at most 64 KB; the
-   client skips keepalive for bigger saves). To load: write the downloaded `data` into local storage with the game's
-   own save function, then go through the normal Continue path, so idle catch-up and the like still run.
-5. **Keep the save shape.** Upload exactly what the local save holds (game-147: `{ savedAt, data }`), so loading is
-   just "write it locally and continue".
-6. **Summary text.** A short line such as `Day 7 · Maple Lv 9 · 4,321 G` makes the cloud slot recognisable on the title
-   screen and in the cloud screen.
-7. **No new table or settings are needed.** The `game` column separates games. Only if a game needs something else
-   (a leaderboard, say) add a new table, with RLS enabled and policies written before any data goes in.
+The client and the screen are shared modules in [lib/core/](../../lib/core/README.md), so a game only writes a few
+hooks. **One sign-in covers every game**: all the games are served from one origin, so they share one `localStorage`,
+and the session is stored once under `web-games.cloud`. Signing in on any game signs the player in on all of them;
+signing out signs out everywhere.
+
+**Why saves can't collide.** Each row is (player, game, slot). A game passes its folder id as `game`
+(`makeCloud({ game: 'game-031' })`), so one player has a separate row per game. Never change a game's id (if a folder
+is ever renamed, keep sending the old id). Games with several save slots pass `slot: 'slot-1'`, `'slot-2'`, …; others
+use the default `main`. Locally, each game's own save keys must be unique too: `node dev/check-save-keys.mjs` checks
+all 149 games and fails on a shared key.
+
+1. **Import the shared modules** (paths from the game's `js/` folder; the itch exporter copies `lib/` files into the
+   zip):
+
+   ```js
+   import { makeCloud } from '../../lib/core/cloud.js';
+   import { makeCloudUI } from '../../lib/core/cloud-ui.js';
+
+   const cloud = makeCloud({ game: 'game-031' });
+   const cloudUI = makeCloudUI(cloud, {
+       getSave: () => readMySave(),                       // the save as stored locally (any JSON), or null
+       applySave: (save) => { writeMySave(save); continueFromSave(); },   // then the normal Continue path
+       summary: (save) => `Floor ${save.floor} · ${save.gold} G`,         // one line, shown in the cloud slot
+       hasGame: () => playing || !!readMySave(),          // loading would replace something: asks for a second tap
+       version: VERSION,
+       onOpen: pause, onClose: resume,                    // dialog mode: hold the game while it's open
+       toast: (text, kind) => showToast(text),            // optional: "Signed in as …", "Loaded your cloud save"
+   });
+   cloudUI.boot();          // at startup, once the page is up: back from the emailed link → opens the dialog
+   ```
+
+2. **A button.** Put **☁️ Cloud Save** on the title screen and in the pause menu: `onclick = () => cloudUI.open()`
+   opens a ready-made modal dialog (Escape closes it; the game's own keys don't see presses inside it). A game with its
+   own screens can draw it inside one instead: `cloudUI.mount(element)` (game-147 does this, passing
+   `classes: { btn: 'btn', primary: 'btn primary' }` so the buttons match, and colouring it with the
+   `--wg-cloud-edge` / `--wg-cloud-accent` / `--wg-cloud-bg` / `--wg-cloud-ink` CSS variables).
+
+3. **Hooks while playing.** Call `cloudUI.autosave()` where the game autosaves (it uploads at most every two minutes),
+   `cloudUI.autosave({ force: true })` on save-and-quit, and `cloudUI.autosave({ keepalive: true })` on
+   `visibilitychange` (hidden) and `pagehide`. The player's "save to the cloud by itself" switch is shared by all games
+   (`web-games.cloud.auto`).
+
+4. **Keep the save shape.** Upload exactly what the local save holds, so loading is "write it locally and continue"
+   (idle catch-up and save upgrades then run as usual). Each row also records `version`, so a game can upgrade or
+   refuse an old save.
+
+5. **Optional: a title label.** `cloudUI.onInfo = (info) => …` is called when the online save is learned, e.g. to show
+   `☁️ Cloud Save · Day 7` (game-147's `refreshTitle`). `cloud.listAll()` returns every game's cloud saves for the
+   player, for a launcher or Pocket Garden view.
+
+6. **A browser test** (copy game-147's `cloud` section): mock Supabase, ask for a link, return from it, save, load on
+   a "new device", sign out. For the single sign-on, also check that the session sits in `web-games.cloud`.
+
+7. **No new table or dashboard settings are needed.** The `game` column separates games, and the redirect URL
+   `https://triptych.github.io/web-games-andrew/**` covers every game folder. Only a different kind of data (a
+   leaderboard, say) needs a new table, with RLS enabled and policies written before any data goes in.
+
+**Exported builds (itch.io).** They run on another address, which isn't on the redirect list, so a sign-in link
+from there would land on the Site URL instead. Hide the Cloud Save button in exported builds, or add the itch address
+to the Redirect URLs.
 
 ## Testing
 
@@ -141,6 +179,9 @@ in, send through Resend (free for about 3,000 emails a month, 100 a day).
   `history.replaceState` it away.
 - **Magic links are single-use and expire** (about an hour by default). An old link gives an error in the fragment
   (`#error=…&error_description=…`); show it.
+- **Refresh tokens rotate.** Supabase replaces the refresh token on every refresh and refuses a used one, so two
+  game tabs refreshing at once would sign one of them out. `lib/core/cloud.js` refreshes under a Web Lock and re-reads
+  the stored session first; without the Locks API, a refused refresh adopts whatever another tab stored.
 - **Upsert needs the conflict target:** `POST /rest/v1/game_saves?on_conflict=user_id,game,slot` with
   `Prefer: resolution=merge-duplicates`. Send `user_id` from the token's `sub` so the row matches the policy check.
 - **Paused projects:** free-plan projects pause after a week without traffic, and API calls then fail. Restore it in the

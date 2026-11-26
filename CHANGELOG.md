@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Cloud saves for every game, with one sign-in** ([lib/core/cloud.js](lib/core/cloud.js), [lib/core/cloud-ui.js](lib/core/cloud-ui.js), [docs/generic/cloud-saves.md](docs/generic/cloud-saves.md)): the Supabase client and the Cloud Save screen from Inn Over My Head, made shared. The sign-in is stored once for the whole site (`web-games.cloud`), so signing in on one game signs you in on all of them. Refreshing it is safe with several games open in tabs: one refresh under a Web Lock, the others re-read the result. Saves can't collide: each row is (player, game, slot), and each game sends its folder id. The screen works as a ready-made modal dialog (`open()`) or inside a game's own sheet (`mount(el)`), with hooks for the game's save, loading, a summary line and auto-saving. `cloud.listAll()` lists a player's saves across games.
+- [dev/check-save-keys.mjs](dev/check-save-keys.mjs): every game shares one `localStorage`, so this lists each game's storage keys and fails if two games share one (none do: 177 keys across 149 games).
+
+### Changed
+- **Inn Over My Head** (game-147) v1.3.0: cloud saves now use the shared modules, so one sign-in covers every game with cloud saves; a v1.2.0 sign-in carries over by itself. The auto-save switch is now shared by all games.
+
 ### Fixed
 - **Echoheart Academy** (game-149) v1.1.1: Lys's surprised sprite (her first line, when the book slips) had four hands: two raised palms in front of her chest and two more beside them. It was repainted from her character reference with fal Nano Banana 2 (edit), asking for exactly two arms and two hands in the same "oh no, sorry!" pose, and cut out with the same `dev/art/export.py` code as the other sprites. The other 32 sprites were checked by eye on a contact sheet and have the right number of hands.
 
