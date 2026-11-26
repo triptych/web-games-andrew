@@ -138,7 +138,7 @@ the masterwork only comes from the Observatory; dragon scale from the Dragon's A
 
 ## Look and sound
 
-- **The shop** (`js/view/shop.js`): a side-on doll's house: the ElevenLabs back wall tiled along the room, furniture
+- **The shop** (`js/view/shop.js`): a side-on doll's house: the ElevenLabs back wall tiled along the room, townsfolk passing outside its windows while the shop is open, furniture
   sprites in two rows, every shelved book drawn as a spine in its own colours and gilt (and a glow for the legendary),
   customers walking with a bob and a patience ring over a wish, Tam and Old Vellum behind the counter, coins and
   sparkles, dust motes in the light, evening dusk. It pans on narrow screens; a beamed ceiling fills a tall phone.
@@ -190,6 +190,10 @@ bot play the whole story at two skills. `browsertest.mjs` drives the real game b
 - Drag-and-drop furniture and books on the shop floor, as well as tap-to-place.
 
 ## Changelog
+
+### v1.1.0 (2026-11-26)
+- Added: while the shop is open, townsfolk walk past outside the windows: the customers' own sprites as dark silhouettes, masked by the glass, near ones darker than far ones, more on busier days, sometimes stopping to look in. View only: the sim never knows.
+- Fixed: on a phone, a card with several buttons (a bookshelf's Move ◀, Move ▶, Put away) squeezed its text to one word a line, and in the Quests sheet an adventurer's buttons lay over their name (adventurer cards had their own class with no layout for the buttons). Every card-like row in every sheet now shares one rule: the buttons wrap onto their own line whenever the text would get narrower than about 170 px. The browser test opens all twelve sheets on both phones and checks no card's text is under 150 px and no button lies over it (it measured 15 px and 39 px before).
 
 ### v1.0.0 (2026-11-26)
 - First release: the shop (two rows of furniture, sections, coziness, renovation), customers and wishes,

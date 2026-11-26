@@ -447,13 +447,13 @@ export class UI {
             const stats = ['valor', 'wit', 'wonder'].map((v) => h('span', { class: 'vchip', style: `background:${VIRTUES[v].color}` }, `${VIRTUES[v].icon} ${(H.stats[v] || 0) + (b ? b.stats[v] || 0 : 0)}`));
             body.append(h('div', { class: 'hero' + (sel ? ' sel' : '') },
                 h('img', { src: `art/hero-${id}.webp`, alt: H.name }),
-                h('div', { class: 'info', style: 'flex:1;min-width:0' },
+                h('div', { class: 'info' },
                     h('div', { class: 't' }, h('b', {}, H.name), ` · ${H.role} · Lv ${st.lv}`),
                     h('div', { class: 'bar', style: 'margin:4px 0' }, h('i', { style: `width:${Math.min(100, st.xp / (10 * st.lv) * 100)}%;background:#7b5cc4` })),
                     h('div', {}, stats, H.skill ? h('span', { class: 'tag' }, `🎓 ${SKILLS[H.skill].name}`) : null),
                     h('div', { class: 's' }, b ? `Carrying “${b.title}”${b.skill && SKILLS[b.skill].who === 'adv' ? ` (🎓 ${SKILLS[b.skill].name})` : ''}` : 'Carrying no book.'),
                     exp ? h('div', { class: 's' }, `🧭 At ${PLACES[exp.place].name}. Home in ${exp.left} day${exp.left > 1 ? 's' : ''}.`) : null),
-                h('div', { class: 'acts', style: 'flex-direction:column' },
+                h('div', { class: 'acts' },
                     !st.away ? h('button', { class: 'btn small' + (sel ? ' primary' : ''), disabled: open || null, on: { click: () => { this.party = sel ? this.party.filter((x) => x !== id) : [...this.party, id].slice(-3); this.audio.ui('click'); this.refresh(); } } }, sel ? '✓ In party' : 'Add to party') : null,
                     !st.away ? h('button', { class: 'btn small', on: { click: () => this.pickBook(G, {
                         title: `A book for ${H.name} to carry`, note: 'Its virtues become their courage; a skill book teaches them on the road.', label: 'Give',
@@ -469,7 +469,7 @@ export class UI {
             for (const id of hire) {
                 const H = HEROES[id];
                 body.append(h('div', { class: 'hero' }, h('img', { src: `art/hero-${id}.webp`, alt: H.name }),
-                    h('div', { class: 'info', style: 'flex:1' }, h('div', { class: 't' }, h('b', {}, H.name), ` · ${H.role}`), h('div', { class: 's' }, `“${H.line}”`), h('div', {}, ['valor', 'wit', 'wonder'].map((v) => h('span', { class: 'vchip', style: `background:${VIRTUES[v].color}` }, `${VIRTUES[v].icon} ${H.stats[v] || 0}`)), H.skill ? h('span', { class: 'tag' }, `🎓 ${SKILLS[H.skill].name}`) : null)),
+                    h('div', { class: 'info' }, h('div', { class: 't' }, h('b', {}, H.name), ` · ${H.role}`), h('div', { class: 's' }, `“${H.line}”`), h('div', {}, ['valor', 'wit', 'wonder'].map((v) => h('span', { class: 'vchip', style: `background:${VIRTUES[v].color}` }, `${VIRTUES[v].icon} ${H.stats[v] || 0}`)), H.skill ? h('span', { class: 'tag' }, `🎓 ${SKILLS[H.skill].name}`) : null)),
                     h('button', { class: 'btn small primary', disabled: G.gold < H.hire || open || null, on: { click: () => this.cmd({ t: 'hire', hero: id }) } }, `Hire · ${H.hire} 🪙`)));
             }
         }
