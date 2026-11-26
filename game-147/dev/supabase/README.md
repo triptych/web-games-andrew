@@ -12,6 +12,9 @@ the magic link and token refresh, PostgREST for the `game_saves` table. Local sa
 | Table | `public.game_saves`: one row per player, game and slot ([game_saves.sql](game_saves.sql)). The `game` column (`game-147`) lets other games in the repo share the table. |
 | Security | RLS: a signed-in player can read, add, change and delete only their own rows; `anon` has no access at all. Checked by running as each role (anonymous read denied; a player can't write as someone else, and doesn't see or change another player's rows). The security advisor reports nothing. |
 
+For other games, and for the full email setup with Resend, see the repo-wide guide
+[docs/generic/cloud-saves.md](../../../docs/generic/cloud-saves.md).
+
 ## One-time setup in the Supabase dashboard
 
 These can't be set from the game or the SQL editor.
