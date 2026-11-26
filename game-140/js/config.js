@@ -1,6 +1,6 @@
 // The Last Apprentice — constants shared by the game and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.1.0';
 export const SAVE_KEY = 'last-apprentice.v1';
 export const SLOTS = 3;                    // manual save slots, plus the autosave
 

@@ -115,7 +115,9 @@ async function desktop() {
     check(await Q(page, () => [...document.querySelectorAll('.screen')].every((sc) => [...document.querySelectorAll(`[id="${sc.id}-title"]`)].every((e) => /^H[1-6]$/.test(e.tagName)))), 'no element id shadows a screen heading (lib/a11y.js)');
     await shot(page, 'desktop-title');
 
-    await page.mouse.click(640, 255);   // New Expedition
+    // New Expedition, clicked where it is (v1.1.0 added ☁️ Cloud Save to the menu, which can move it)
+    const newExp = await page.evaluate(() => { const r = document.querySelector('[data-act="new"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(newExp.x, newExp.y);
     await until(page, () => __ss.mode === 'play' && document.getElementById('title').hidden, 'New Expedition starts the dig');
     await page.waitForTimeout(1200);
     const b = await exposedBlock(page);

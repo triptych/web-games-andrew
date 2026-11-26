@@ -6,7 +6,9 @@
 // ?debug=1 exposes window.__tla for the dev/ harnesses; &fast=N speeds up typing, auto mode and the ward's
 // opening blaze N times.
 
-import { VERSION } from './config.js';
+import { VERSION, SAVE_KEY } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { ART, preload } from './assets.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -84,6 +86,17 @@ function showTitle() {
     ui.openScreen('title');
 }
 showTitle();
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-140'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-140' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'game') save(); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const slots = Object.keys(snap || {}).filter((k) => /\.slot\d+$/.test(k)).length; return `The Last Apprentice · ${slots} save slot${slots === 1 ? '' : 's'}`; },
+    hasGame: () => (mode === 'game') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 preload([ART.bg('ravenmoor'), ART.bg('library'), ART.cg('book')]);
 
 const unlock = () => { audio.init(); if (mode === 'title' && !audio.current) audio.play('title'); };
@@ -102,6 +115,7 @@ $('title-menu').addEventListener('click', (e) => {
         if (g) startGame(g); else ui.toast('That save could not be read.');
     } else if (a === 'load') ui.openSlots('load', listSlots());
     else if (a === 'gallery') { ui.journalTab = 'gallery'; ui.openJournal(null, album); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('ng-go').addEventListener('click', () => {
@@ -122,7 +136,8 @@ $('menu-menu').addEventListener('click', (e) => {
     else if (a === 'journal') { ui.closeScreen('menu'); openJournal(); }
     else if (a === 'save') ui.openSlots('save', listSlots());
     else if (a === 'load') ui.openSlots('load', listSlots());
-    else if (a === 'quit') { save(); ui.closeScreen('menu'); toTitle(); }
+    else if (a === 'quit') { save(); ui.closeScreen('menu'); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('set-delete').addEventListener('click', () => {
@@ -428,7 +443,7 @@ function frame(t) {
 
 function save() { if (G && mode === 'game') saveSlot(0, G); }
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
-window.addEventListener('pagehide', save);
+window.addEventListener('pagehide', () => { save(); cloudUI.autosave({ keepalive: true }); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 

@@ -4,7 +4,9 @@
 //
 // ?debug=1 exposes window.__ss for the dev/ harnesses (see dev/README.md).
 
-import { MAX_FRAME, STORY_FLOORS } from './config.js';
+import { MAX_FRAME, STORY_FLOORS, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Museum } from './view/museum.js';
 import { Audio } from './audio.js';
@@ -78,6 +80,17 @@ function musicFor() {
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-141'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-141' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'play') saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const d = snapValue(snap, SAVE_KEY)?.data; return d ? `Dig level ${d.lv ?? 1}${d.gold != null ? ` · ${d.gold} gold` : ''}` : 'A SANDSUNK game'; },
+    hasGame: () => (mode === 'play') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 view.sync(G);
 
 const unlock = () => { audio.init(); musicFor(); };
@@ -93,7 +106,8 @@ $('title-menu').addEventListener('click', (e) => {
     else if (a === 'continue') {
         const g = loadGame();
         if (g) startGame(g); else ui.toast('That save could not be read.');
-    } else ui.openScreen(a);
+    } else if (a === 'cloud') cloudUI.open();
+    else ui.openScreen(a);
 });
 $('pause-menu').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-act]');
@@ -101,7 +115,8 @@ $('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'resume') ui.closeScreen('pause');
-    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else if (a === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 const openPanel = (id) => {
@@ -307,7 +322,7 @@ function frame(now) {
     museum.frame(dt, time);
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') { saveGame(G); pause(); } });
-window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'play') saveGame(G); cloudUI.autosave({ keepalive: true }); });
 input.onTouch = () => layout();
 requestAnimationFrame((t) => { last = t; frame(t); });
 

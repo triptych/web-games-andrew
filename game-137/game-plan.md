@@ -171,6 +171,13 @@ Asserted bands: the perfect bot finishes on every seed in ≤ 18 sorties per cam
 
 ## Changelog
 
+### v1.3.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.1.0 (2026-11-16)
 - The Shard Beam (charged by voxels, with a cooldown, cuts through rock), tap or click to focus fire with auto-aim when the target dies, objective arrows, and a low-HP klaxon with a red screen edge and red mech outline. Hives take a quarter of the beam's damage so hive sorties keep their length; the balance bands now also assert that.
 

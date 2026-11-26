@@ -5,7 +5,9 @@
 // ?debug=1 exposes window.__sf for the dev/ harnesses; &fast=N runs N× simulation per frame;
 // &q=low draws without antialiasing at 1× pixels.
 
-import { STEP, MAX_FRAME } from './config.js';
+import { STEP, MAX_FRAME, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -46,6 +48,17 @@ function save() { return G ? saveGame(G) : false; }
 function refreshTitle() { document.getElementById('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-137'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-137' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { save(); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { return snapValue(snap, SAVE_KEY) ? 'A SHARDFRAME campaign' : 'A SHARDFRAME game'; },
+    hasGame: () => (mode !== 'title') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 view.setMode('off');
 
 const unlock = () => audio.init();
@@ -153,7 +166,8 @@ document.getElementById('title-menu').addEventListener('click', async (e) => {
     } else if (a === 'continue') {
         const g = loadGame();
         if (g) resume(g); else ui.toast('That save could not be read.');
-    } else ui.openScreen(a);
+    } else if (a === 'cloud') cloudUI.open();
+    else ui.openScreen(a);
 });
 document.getElementById('pause-menu').addEventListener('click', async (e) => {
     const b = e.target.closest('button[data-act]');
@@ -166,7 +180,8 @@ document.getElementById('pause-menu').addEventListener('click', async (e) => {
         ui.closeScreen('pause');
         act(G, { t: 'abort' });
         flushEvents();
-    } else if (a === 'quit') { save(); toTitle(); }
+    } else if (a === 'quit') { save(); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 document.getElementById('btn-pause').addEventListener('click', () => pause());
@@ -278,7 +293,7 @@ function frame(now) {
             n++;
         }
         saveT += dt;
-        if (saveT > 15) { saveT = 0; save(); }
+        if (saveT > 15) { saveT = 0; save(); cloudUI.autosave(); }
         audio.tick(G, dt);
     } else acc = 0;
     flushEvents();
@@ -292,7 +307,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (mode === 'mission') pause(); save(); } });
-window.addEventListener('pagehide', () => save());
+window.addEventListener('pagehide', () => { save(); cloudUI.autosave({ keepalive: true }); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 

@@ -135,7 +135,9 @@ async function desktop() {
     check(L.noHScroll && L.canvas, 'no sideways scroll; the canvas fills the window');
     await shot(page, 'desktop-title');
 
-    await page.mouse.click(640, 545);   // New Run (real click on the button)
+    // New Run: a real click where the button is (v1.2.0 added ☁️ Cloud Save to the menu, which moved it)
+    const newRun = await page.evaluate(() => { const r = document.querySelector('#title [data-act="new"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(newRun.x, newRun.y);
     await until(page, () => __cs.mode === 'run' && !document.getElementById('story').hidden, 'New Run starts the story');
     await page.keyboard.press('Enter');
     await until(page, () => /thirteen/.test(document.getElementById('story-text').textContent), 'Enter moves the story on');

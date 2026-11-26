@@ -4,7 +4,9 @@
 //
 // ?debug=1 exposes window.__lh for the dev/ harnesses; &fast=N runs the walk N× per frame.
 
-import { STEP, MAX_FRAME, WALK } from './config.js';
+import { STEP, MAX_FRAME, WALK, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -316,6 +318,7 @@ $('title-menu').addEventListener('click', (e) => {
     const act = b.dataset.act;
     if (act === 'build') { ui.closeScreen('title'); document.activeElement?.blur?.(); }
     else if (act === 'walk') startWalk();
+    else if (act === 'cloud') cloudUI.open();
     else ui.openScreen(act);
 });
 
@@ -435,7 +438,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) { saveParams(G.params); input.clear(); } });
-window.addEventListener('pagehide', () => saveParams(G.params));
+window.addEventListener('pagehide', () => { saveParams(G.params); cloudUI.autosave({ keepalive: true }); });
 window.addEventListener('hashchange', () => {
     const p = decode(location.hash);
     if (p && encode(p) !== encode(G.params)) applyParams((d) => Object.assign(d, p), 'Opened a shared dungeon');
@@ -479,6 +482,18 @@ async function finishBoot() {
     ui.openScreen('title');
 }
 finishBoot();
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-138'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-138' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { saveParams(G.params); return snapshot(SAVE_KEY); },
+    // the address carries the dungeon on screen (#…), which would win over the restored one: drop it before reloading
+    applySave: (snap) => { restore(snap); try { history.replaceState(null, '', location.pathname + location.search); } catch { /* sandboxed */ } cloudUI.reload(); },
+    summary: (snap) => { const s = snapValue(snap, SAVE_KEY); return s?.params?.seed != null ? `Dungeon “${s.params.seed}”` : 'A Lanternhollow dungeon'; },
+    hasGame: () => !!snapshot(SAVE_KEY),            // a dungeon kept on this device
+    version: VERSION,
+});
+cloudUI.boot();
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)
 if (DEBUG) {

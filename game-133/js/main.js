@@ -5,7 +5,9 @@
 //
 // ?debug=1 exposes window.__lh for the dev/ harnesses; &fast=N speeds up typing, auto mode and the till N times.
 
-import { DAYS, JOBS } from './config.js';
+import { DAYS, JOBS, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { ART, CG_FILES, preload } from './assets.js';
 import { Audio } from './audio.js';
 import { VN } from './vn.js';
@@ -54,6 +56,17 @@ layout();
 function refreshTitle() { $('btn-continue').hidden = latestSlot() < 0; }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-133'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-133' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { autosave(); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const n = Object.keys(snap || {}).length; return `Lanternhall · ${n} saved record${n === 1 ? '' : 's'}`; },
+    hasGame: () => (mode === 'game') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 
 const unlock = () => { audio.init(); if (mode === 'title' && !audio.want) audio.play('title'); };
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
@@ -71,6 +84,7 @@ $('title-menu').addEventListener('click', (e) => {
     else if (a === 'continue') { const g = loadSlot(latestSlot()); if (g) startGame(g); else ui.toast('That save could not be read.'); }
     else if (a === 'load') ui.openSlots('load', listSlots(), slotPicked);
     else if (a === 'album') ui.openAlbum(album);
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('ng-go').addEventListener('click', () => {
@@ -89,7 +103,8 @@ $('menu-menu').addEventListener('click', (e) => {
     else if (a === 'save') ui.openSlots('save', listSlots(), slotPicked);
     else if (a === 'load') ui.openSlots('load', listSlots(), slotPicked);
     else if (a === 'album') ui.openAlbum(album);
-    else if (a === 'quit') { autosave(); toTitle(); }
+    else if (a === 'quit') { autosave(); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('set-delete').addEventListener('click', () => {
@@ -289,11 +304,11 @@ function frame(now) {
             if (vn.skipping && !G.scene.cur?.choice) { vn.complete(); send({ t: 'next' }); }
         }
         saveT += dt;
-        if (saveT > 30) { saveT = 0; autosave(); }
+        if (saveT > 30) { saveT = 0; autosave(); cloudUI.autosave(); }
     }
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) autosave(); });
-window.addEventListener('pagehide', () => autosave());
+window.addEventListener('pagehide', () => { autosave(); cloudUI.autosave({ keepalive: true }); });
 requestAnimationFrame((t) => { last = t; frame(t); });
 
 // ------------------------------------------------------------------ debug hooks (?debug=1)

@@ -150,6 +150,12 @@ h1, h2, h3 { font-family: var(--display); font-weight: 700; letter-spacing: 0.05
 .screen.title .sheet { width: min(440px, 100%); margin: 0 3vw 3vh 0; }
 .screen.title .menu { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .screen.title .menu .primary { grid-column: 1 / -1; }
+/* short screens (a landscape phone): the five smaller buttons three to a row, so ☁️ Cloud Save (v1.1.0) adds no row */
+@media (max-height: 460px) and (min-aspect-ratio: 1/1) {
+    .screen.title .menu { grid-template-columns: repeat(3, 1fr); }
+    .screen.title .menu .btn { white-space: nowrap; font-size: 15px; padding-left: 6px; padding-right: 6px; min-height: 44px; }
+    .screen.title .tag { display: none; }
+}
 @media (max-aspect-ratio: 1/1) { .screen.title .sheet { margin: 0; } .screen.title { background: linear-gradient(0deg, rgba(0, 0, 0, 0.6), transparent 60%); } }
 .logo { margin: 0 0 6px; font-family: 'Cinzel Decorative', var(--display); font-size: clamp(30px, 7vw, 46px); line-height: 1.02; color: #f2efe6; text-shadow: 0 0 24px rgba(232, 194, 120, 0.35); }
 .logo small { display: block; font-family: var(--display); font-size: 0.42em; letter-spacing: 0.4em; color: var(--gold); }

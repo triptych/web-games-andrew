@@ -592,6 +592,13 @@ more) and dies at least as often.
 
 ## Changelog
 
+### v1.3.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.2.1 (2026-11-13)
 - Ember stayed on her side after being revived (reported by a player). A downed pet is tipped over each frame; the
   code gait used to set the tilt back every frame, but the rigged path never did. Rigged models are set upright

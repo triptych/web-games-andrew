@@ -3,7 +3,9 @@
 //
 // ?debug=1 exposes window.__ds for the dev/ harnesses; &fast=N runs N× simulation per frame.
 
-import { STEP, MAX_FRAME, DAY_LEN, IDLE, MODES } from './config.js';
+import { STEP, MAX_FRAME, DAY_LEN, IDLE, MODES, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { loadAssets } from './view/assets.js';
 import { Audio } from './audio.js';
@@ -77,6 +79,17 @@ loadAssets().then(() => { document.body.classList.add('art-ready'); });
 function refreshTitle() { document.getElementById('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-143'.
+// The save is everything stored under its save key (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-143' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'play' && !G.over) saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const d = snapValue(snap, SAVE_KEY)?.data; return d ? `Day ${d.day ?? 1} of the siege` : 'A Sugar Siege game'; },
+    hasGame: () => (mode === 'play') || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 
 const unlock = () => { audio.init(); if (mode === 'title') audio.playTheme('town'); };
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
@@ -90,7 +103,8 @@ document.getElementById('title-menu').addEventListener('click', (e) => {
     else if (a === 'continue') {
         const at = savedAt(), g = loadGame();
         if (g) { startGame(g); if (at) claimIdle((Date.now() - at) / 1000); } else ui.toast('That save could not be read.');
-    } else ui.openScreen(a);
+    } else if (a === 'cloud') cloudUI.open();
+    else ui.openScreen(a);
 });
 document.getElementById('mode-menu').addEventListener('click', (e) => {
     const b = e.target.closest('button[data-mode]');
@@ -118,7 +132,8 @@ document.getElementById('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'resume') ui.closeScreen('pause');
-    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else if (a === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 for (const id of ['btn-pause', 'btn-pause2']) document.getElementById(id).addEventListener('click', () => pause());
@@ -358,7 +373,7 @@ function frame(now) {
         if (n >= 12 * FAST * 3) acc = 0;
         view.tickTown(G, townT);
         saveT += dt;
-        if (saveT > 20 && G.mode === 'town' && !G.over) { saveT = 0; saveGame(G); }
+        if (saveT > 20 && G.mode === 'town' && !G.over) { saveT = 0; saveGame(G); cloudUI.autosave(); }
     } else acc = 0;
     flushEvents();
     view.selPlot = ui.panel ? view.selPlot : -1;
@@ -372,7 +387,7 @@ document.addEventListener('visibilitychange', () => {
     if (document.hidden) { pause(); hiddenAt = Date.now(); return; }
     if (hiddenAt != null) { const away = (Date.now() - hiddenAt) / 1000; hiddenAt = null; claimIdle(away); }
 });
-window.addEventListener('pagehide', () => { if (mode === 'play' && !G.over) saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'play' && !G.over) saveGame(G); cloudUI.autosave({ keepalive: true }); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 
