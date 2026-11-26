@@ -112,7 +112,9 @@ async function desktop() {
     await shot(page, 'desktop-title');
 
     // New Game, a name typed with the keyboard
-    await page.mouse.click(640, 572);
+    // (clicked where the button is: v1.2.0 added ☁️ Cloud Save to the menu, which moved New Game up)
+    const ng = await Q(page, () => { const r = document.querySelector('[data-act="new"]').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+    await page.mouse.click(ng.x, ng.y);
     await until(page, () => !document.getElementById('namescr').hidden, 'New Game asks for a name');
     await page.fill('#name-input', '');
     await page.keyboard.type('Sora');

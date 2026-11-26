@@ -4,7 +4,9 @@
 // ?debug=1 exposes window.__va for the dev/ harnesses; &fast=N runs N× simulation per frame; &q=low|medium|high
 // forces the picture quality; &seed=N starts that city straight away.
 
-import { STEP, MAX_FRAME } from './config.js';
+import { STEP, MAX_FRAME, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { Audio } from './audio.js';
 import { Input } from './input.js';
@@ -48,6 +50,17 @@ const INTRO = 'You wake on a bare mattress that smells of rain.\n\nThe ceiling h
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-145'.
+// The save is everything stored under SAVE_KEY (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-145' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'play' && G) saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const s = snapValue(snap, SAVE_KEY)?.data; return s ? `${s.got?.length || 0} keepsakes · ${s.visited?.length || 0} places visited` : 'A journey'; },
+    hasGame: () => mode === 'play' || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 
 const unlock = () => audio.init();
 for (const ev of ['pointerdown', 'keydown']) window.addEventListener(ev, unlock, { capture: true });
@@ -62,7 +75,8 @@ $('title-menu').addEventListener('click', (e) => {
     else if (act === 'continue') {
         const g = loadGame();
         if (g) begin(g, false); else ui.toast('That journey could not be read.');
-    } else ui.openScreen(act);
+    } else if (act === 'cloud') cloudUI.open();
+    else ui.openScreen(act);
 });
 $('seed-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); begin(seedFromText(e.target.value || String(newSeed())), true); } });
 $('pause-menu').addEventListener('click', (e) => {
@@ -71,9 +85,10 @@ $('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const act = b.dataset.act;
     if (act === 'resume') ui.closeScreen('pause');
-    else if (act === 'quit') { saveGame(G); toTitle(); }
+    else if (act === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
     else if (act === 'journal') openJournal();
     else if (act === 'map') openMap();
+    else if (act === 'cloud') cloudUI.open();
     else ui.openScreen(act);
 });
 $('btn-pause').addEventListener('click', () => pause());
@@ -217,7 +232,7 @@ function frame(now) {
             n++;
         }
         saveT += dt;
-        if (saveT > 20) { saveT = 0; saveGame(G); }
+        if (saveT > 20) { saveT = 0; saveGame(G); cloudUI.autosave(); }
         ui.setLockHint(input.wantLock && document.pointerLockElement !== canvas && !input.drag);
     } else acc = 0;
     // the ending keeps playing out behind its card
@@ -233,7 +248,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-window.addEventListener('pagehide', () => { if (mode === 'play' && G) saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'play' && G) saveGame(G); cloudUI.autosave({ keepalive: true }); });
 requestAnimationFrame((t) => { last = t; frame(t); });
 
 if (params.get('seed') && DEBUG) begin(+params.get('seed'), false);

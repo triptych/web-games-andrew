@@ -126,6 +126,13 @@ See [dev/README.md](dev/README.md). The bot finishes every seed tried in 14–17
 
 ## Changelog
 
+### v1.2.0 (2026-11-26)
+- Added: cloud saves. **☁️ Cloud Save** on the title screen and in the menu opens the shared dialog
+  ([lib/core/cloud-ui.js](../lib/core/cloud-ui.js)): sign in with an emailed link (one sign-in for every game on the
+  site), save this game online and load it on another device. Everything stored under the game's save key goes up
+  (settings stay on the device); loading writes it back and restarts the game. It also saves to the cloud by itself
+  while signed in. See [docs/generic/cloud-saves.md](../docs/generic/cloud-saves.md).
+
 ### v1.1.0 (2026-11-21)
 - The vehicles are Meshy models: seven text-to-3D vehicles (sedan, hatchback, wagon, pickup, van, box truck, city bus), abandoned and weathered, drawn instanced per block with faded tints and flat-tyre sags; the code-built ones stay as the fallback ([dev/meshy/README.md](dev/meshy/README.md)).
 

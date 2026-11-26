@@ -100,6 +100,40 @@ is ever renamed, keep sending the old id). Games with several save slots pass `s
 use the default `main`. Locally, each game's own save keys must be unique too: `node dev/check-save-keys.mjs` checks
 all 149 games and fails on a shared key.
 
+**Games with cloud saves:** Inn Over My Head (game-147, its own screen, loads in place), VACANCY (game-145),
+JINGLE POP (game-146), Glimmerglade (game-148), Echoheart Academy (game-149) (the shared dialog, snapshot and reload).
+`node dev/cloudtest.mjs` finds every game that imports `lib/core/cloud-ui.js` and tests them all.
+
+**The quickest way: snapshot and reload** (VACANCY, JINGLE POP, Glimmerglade, Echoheart). It needs no knowledge of the
+game's save format. `snapshot(SAVE_KEY)` takes every `localStorage` key equal to SAVE_KEY or under `SAVE_KEY.` (the save,
+progress, records, …) except `….settings`. `restore()` writes them back and `cloudUI.reload()` restarts the game from
+them, as if they had always been local:
+
+```js
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
+
+ui.openScreen('title');                               // (at top level, once the title is up)
+const cloud = makeCloud({ game: 'game-145' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'play' && G) saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const s = snapValue(snap, SAVE_KEY)?.data; return s ? `${s.got.length} keepsakes` : 'A journey'; },
+    hasGame: () => mode === 'play' || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
+```
+
+Then a `<button data-act="cloud" class="btn">☁️ Cloud Save</button>` beside Settings in the title and pause menus, a
+`cloud` case in their handlers (`cloudUI.open()`), and `cloudUI.autosave()` / `autosave({ force: true })` /
+`autosave({ keepalive: true })` next to the game's periodic save, save-and-quit and `pagehide`. Put the block at **top
+level**: one game's first `ui.openScreen('title')` was inside its `toTitle()` function, so `cloudUI` didn't exist for
+the menus. Check the game's keys really share the prefix (`node dev/check-save-keys.mjs --list`); a game whose keys
+don't would need its own `getSave`.
+
+**The detailed way** (game-147, which loads in place without a reload and draws the screen in its own sheet):
+
 1. **Import the shared modules** (paths from the game's `js/` folder; the itch exporter copies `lib/` files into the
    zip):
 
@@ -139,16 +173,18 @@ all 149 games and fails on a shared key.
    `☁️ Cloud Save · Day 7` (game-147's `refreshTitle`). `cloud.listAll()` returns every game's cloud saves for the
    player, for a launcher or Pocket Garden view.
 
-6. **A browser test** (copy game-147's `cloud` section): mock Supabase, ask for a link, return from it, save, load on
-   a "new device", sign out. For the single sign-on, also check that the session sits in `web-games.cloud`.
+6. **A test.** `node dev/cloudtest.mjs` picks the game up by itself (it imports `lib/core/cloud-ui.js`) and runs the
+   whole flow on a mock Supabase; a game that mounts the screen in its own sheet gets the sign-on check there and keeps
+   its own full test (copy game-147's `cloud` section of `dev/browsertest.mjs`).
 
 7. **No new table or dashboard settings are needed.** The `game` column separates games, and the redirect URL
    `https://triptych.github.io/web-games-andrew/**` covers every game folder. Only a different kind of data (a
    leaderboard, say) needs a new table, with RLS enabled and policies written before any data goes in.
 
 **Exported builds (itch.io).** They run on another address, which isn't on the redirect list, so a sign-in link
-from there would land on the Site URL instead. Hide the Cloud Save button in exported builds, or add the itch address
-to the Redirect URLs.
+from there couldn't come back. `cloudUI.boot()` hides every `[data-act="cloud"]` button when the page isn't served from
+one of `CLOUD_HOSTS` in `lib/core/cloud.js` (`triptych.github.io`, `localhost`, `127.0.0.1`), so give the button that
+attribute. To allow another host, add it both there and to the project's Redirect URLs.
 
 ## Testing
 
@@ -160,10 +196,11 @@ to the Redirect URLs.
 - **Fake the return from the email** by opening the game with
   `#access_token=<jwt>&refresh_token=…&expires_in=3600&token_type=bearer&type=magiclink`. The JWT only needs a payload
   the client can read (`sub`, `email`, `exp`), base64url-encoded; the signature isn't checked in the browser.
-- **Gotcha: reopening the page in a test.** A second load in the same Playwright browser context missed the routes that
-  serve three.js locally (the module requests failed before the route saw them), and going to the same URL with only a
-  new `#fragment` doesn't reload at all. Open a **fresh context with the same storage**:
-  `browser.newContext({ storageState: await page.context().storageState() })` (game-147's `newTab()` helper).
+- **Gotcha: reopening the page in a test.** Routes set with `page.route` were missed on the page's second load (the
+  module requests for three.js failed before the route saw them); routes set with **`context.route` survive reloads
+  and new pages**, which `dev/cloudtest.mjs` relies on for the reload after Load from cloud. Going to the same URL
+  with only a new `#fragment` doesn't reload at all. game-147's own test opens a fresh context with the same storage
+  instead (`browser.newContext({ storageState })`).
 - **Check the security with SQL**, not just the UI: in one transaction, `set local role anon` and try a select (should
   fail with 42501); insert two users into `auth.users`, then `set local role authenticated` with
   `set local request.jwt.claims = '{"sub":"…"}'` for each and check that neither can see or change the other's rows.

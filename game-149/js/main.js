@@ -3,7 +3,9 @@
 //
 // ?debug=1 exposes window.__ea for the dev/ harnesses; &fast=N runs N× simulation per frame.
 
-import { STEP, MAX_FRAME } from './config.js';
+import { STEP, MAX_FRAME, SAVE_KEY, VERSION } from './config.js';
+import { makeCloud, snapshot, restore, snapValue } from '../../lib/core/cloud.js';
+import { makeCloudUI } from '../../lib/core/cloud-ui.js';
 import { View } from './view/view.js';
 import { MiniView } from './view/miniview.js';
 import { Audio } from './audio.js';
@@ -57,6 +59,17 @@ const bui = new BattleUI({ audio, send });
 function refreshTitle() { $('btn-continue').hidden = !hasSave(); }
 refreshTitle();
 ui.openScreen('title');
+// cloud saves (lib/core/cloud.js + cloud-ui.js): one sign-in for every game on the site; this game's rows are 'game-149'.
+// The save is everything stored under SAVE_KEY (settings stay on the device); loading writes it back and reloads.
+const cloud = makeCloud({ game: 'game-149' });
+const cloudUI = makeCloudUI(cloud, {
+    getSave: () => { if (mode === 'game' && G) saveGame(G); return snapshot(SAVE_KEY); },
+    applySave: (snap) => { restore(snap); cloudUI.reload(); },
+    summary: (snap) => { const s = snapValue(snap, SAVE_KEY); return s ? `${s.name || s.data?.name || 'Kai'} · Day ${s.day || s.data?.day || 1}` : 'An Echoheart game'; },
+    hasGame: () => mode === 'game' || !!snapshot(SAVE_KEY),
+    version: VERSION,
+});
+cloudUI.boot();
 audio.want = 'title';
 
 const unlock = () => { audio.init(); if (mode === 'title') audio.setTheme('title'); };
@@ -69,6 +82,7 @@ $('title-menu').addEventListener('click', (e) => {
     const a = b.dataset.act;
     if (a === 'new') { ui.openScreen('namescr'); $('name-input').select(); }
     else if (a === 'continue') { const g = loadGame(); if (g) startGame(g); else ui.toast('That save could not be read.'); }
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('name-go').addEventListener('click', () => {
@@ -83,9 +97,10 @@ $('pause-menu').addEventListener('click', (e) => {
     audio.ui('click');
     const a = b.dataset.act;
     if (a === 'resume') ui.closeScreen('pause');
-    else if (a === 'quit') { saveGame(G); toTitle(); }
+    else if (a === 'quit') { saveGame(G); cloudUI.autosave({ force: true }); toTitle(); }
     else if (a === 'journal') ui.openJournal(G);
     else if (a === 'bag') ui.openBag(G);
+    else if (a === 'cloud') cloudUI.open();
     else ui.openScreen(a);
 });
 $('btn-pause').addEventListener('click', () => pause());
@@ -315,7 +330,7 @@ function frame(now) {
             n++;
             if (G.events.length && G.mode === 'battle') flushEvents();
         }
-        if (G.mode === 'map') { saveT += dt; if (saveT > 30) { saveT = 0; saveGame(G); } }
+        if (G.mode === 'map') { saveT += dt; if (saveT > 30) { saveT = 0; saveGame(G); cloudUI.autosave(); } }
     } else acc = 0;
     flushEvents();
     syncLayers(dt);
@@ -323,7 +338,7 @@ function frame(now) {
 }
 
 document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-window.addEventListener('pagehide', () => { if (mode === 'game' && G) saveGame(G); });
+window.addEventListener('pagehide', () => { if (mode === 'game' && G) saveGame(G); cloudUI.autosave({ keepalive: true }); });
 
 requestAnimationFrame((t) => { last = t; frame(t); });
 
