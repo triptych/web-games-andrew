@@ -6,6 +6,7 @@ const svg = (body, cls = '') =>
     `<svg class="ico ${cls}" viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="square" stroke-linejoin="miter">${body}</svg>`;
 
 export const ICONS = {
+    cloud: svg('<path d="M4.4 12.6h7.8a2.8 2.8 0 00.4-5.6 4 4 0 00-7.7-1A3.3 3.3 0 004.4 12.6z"/>'),
     dragonfly: svg('<path d="M8 4.6v10M7 3.2a1 1 0 102 0 1 1 0 10-2 0"/><path d="M7.4 5.6C5.6 3.9 2.2 3.6 1.6 4.8s3.2 2 5.8 1.6M8.6 5.6c1.8-1.7 5.2-2 5.8-.8s-3.2 2-5.8 1.6M7.4 7.4c-2 .5-5 1.9-4.6 3s3.4-.5 4.6-2M8.6 7.4c2 .5 5 1.9 4.6 3s-3.4-.5-4.6-2"/>', 'thin'),
     feed: svg('<path d="M8 5.2c-3-2.2-6.3 0-5.7 3.6S5.5 14.6 8 13.6c2.5 1 6.3-1.2 5.7-4.8S11 3 8 5.2z"/><path d="M8 5c0-1.6.6-2.6 2.2-3.2"/>'),
     play2: svg('<path d="M8 1.6l1.7 4.7 4.7 1.7-4.7 1.7L8 14.4l-1.7-4.7L1.6 8l4.7-1.7z"/>'),

@@ -3406,6 +3406,17 @@ kbd {
     opacity: 0.7;
 }
 
+/* the Cloud screens (./js/cloud.js) */
+.cl-lead {
+    margin: 2px 14px 6px;
+    font: 500 clamp(11px, 3.4cqh, 13px) / 1.35 var(--screen);
+    color: var(--ink-dim);
+    overflow-wrap: anywhere;
+}
+.cl-form .nm-input {
+    width: min(100%, 300px);
+}
+
 /* ------------------------------------------------------------------ the Lounge (./js/lounge.js) */
 
 .v-lounge {
