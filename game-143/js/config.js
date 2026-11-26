@@ -1,6 +1,6 @@
 // Doom & Doilies: The Sugar Siege — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.3.1';
+export const VERSION = '1.3.2';
 export const SAVE_KEY = 'doom-doilies-sugar-siege.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

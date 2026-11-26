@@ -1196,10 +1196,19 @@ async function mockSupabase(ctx, db) {
         if (u.pathname === '/rest/v1/game_stats') return json(200, db.stats);
         if (u.pathname === '/rest/v1/game_saves') {
             const eq = (k) => u.searchParams.get(k)?.replace(/^eq\./, '');
+            // as PostgREST does (lib/core/cloud.js asks for the new row back): an insert that ignores duplicates
+            // returns nothing when the row exists, an update filtered on updated_at nothing when it has moved on
             if (req.method() === 'POST') {
-                const row = JSON.parse(req.postData());
-                db.rows[`${row.game}|${row.slot}`] = { ...row, updated_at: new Date().toISOString() };
-                return r.fulfill({ status: 201, headers: { 'access-control-allow-origin': '*' } });
+                const row = JSON.parse(req.postData()), k = `${row.game}|${row.slot}`;
+                if (db.rows[k] && (req.headers().prefer || '').includes('ignore-duplicates')) return json(201, []);
+                db.rows[k] = { ...row, updated_at: new Date(Date.now() + db.calls.length).toISOString() };
+                return json(201, [{ updated_at: db.rows[k].updated_at }]);
+            }
+            if (req.method() === 'PATCH') {
+                const k = `${eq('game')}|${eq('slot')}`;
+                if (!db.rows[k] || db.rows[k].updated_at !== eq('updated_at')) return json(200, []);
+                db.rows[k] = { ...db.rows[k], ...JSON.parse(req.postData()), updated_at: new Date(Date.now() + db.calls.length).toISOString() };
+                return json(200, [{ updated_at: db.rows[k].updated_at }]);
             }
             const all = Object.values(db.rows);
             if (eq('game')) return json(200, all.filter((x) => x.game === eq('game') && x.slot === eq('slot')));
@@ -1308,6 +1317,11 @@ async function cloudScenario() {
     await settle(page, 600);
     check((await page.getAttribute('#device', 'data-shell')) === 'lilac', 'a new device takes the backup by itself: the lilac shell is back');
     check((await page.evaluate(() => window.pocketGarden.store.favs.length)) === 3, 'and the stars');
+    // and it backs up from then on (the shared upload refused it once: this device had restored, never uploaded)
+    await page.evaluate(() => { window.pocketGarden.store.toggleFav('game-002'); window.pocketGarden.cloud.lastUp = 0; window.pocketGarden.cloud.autosave(); });
+    await page.waitForFunction(() => !window.pocketGarden.cloud.busy);
+    await settle(page, 200);
+    check(JSON.parse(db.rows['pocket-garden|main'].data['garden.starred']).includes('game-002'), 'the new device backs up its own changes after restoring');
     // the game's save, restored from Saved Games
     await page.evaluate(() => window.pocketGarden.openCloud());
     await settle(page);

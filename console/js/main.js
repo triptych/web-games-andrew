@@ -20,7 +20,7 @@ import { playerCounts, cachedCounts, playersLabel } from '../../lib/core/stats.j
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.7.0';
+export const CONSOLE_VERSION = '1.7.1';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');

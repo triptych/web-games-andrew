@@ -1,7 +1,7 @@
 // Kaboom Keep — tuning and constants. Shared by the sim, the view and the tests.
 // World: metres, y up. The cannon sits near the origin and fires along +z at the castle.
 
-export const VERSION = '1.2.1';
+export const VERSION = '1.2.2';
 export const SAVE_KEY = 'kaboom-keep.v1';
 export const PROGRESS_KEY = 'kaboom-keep.progress.v1';
 

@@ -50,6 +50,9 @@ const rows = {}, log = [];
 let tick = 0;
 const stamp = () => new Date(Date.UTC(2026, 10, 26, 12, 0, 0) + 1000 * ++tick).toISOString().replace('Z', '+00:00');
 let refuseNext = true;
+// when set, a save is written but its answer waits for this promise: the page that sent it can be gone by then, as when
+// a tab is closed (Playwright doesn't see a keepalive fetch sent while a page unloads, so the test sends it just before)
+let holdAnswer = null;
 const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
 const jwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: '0b7c6c1e-1111-4a4a-9999-0123456789ab', email: 'player@example.com', exp: Math.floor(Date.now() / 1000) + 3600, role: 'authenticated' })}.sig`;
 
@@ -83,6 +86,7 @@ async function context(storageState) {
                 const b = JSON.parse(req.postData());
                 if (rows[b.game] && prefer.includes('ignore-duplicates')) return json(201, []);
                 rows[b.game] = { data: b.data, version: b.version, summary: b.summary, updated_at: stamp() };
+                if (holdAnswer) await holdAnswer;
                 return json(201, [{ updated_at: rows[b.game].updated_at }]);
             }
             if (req.method() === 'PATCH') {
@@ -90,6 +94,7 @@ async function context(storageState) {
                 if (!rows[game] || rows[game].updated_at !== want) return json(200, []);
                 const b = JSON.parse(req.postData());
                 rows[game] = { ...rows[game], ...b, updated_at: stamp() };
+                if (holdAnswer) await holdAnswer;
                 return json(200, [{ updated_at: rows[game].updated_at }]);
             }
         }
@@ -217,7 +222,9 @@ try {
         page = await openGame(ctx, g0);
         await until(page, () => [...document.querySelectorAll('.wg-cloud-toast')].some((t) => t.textContent.includes('newer save')), 'the desktop says at once that the cloud has a newer save, and that cloud saving is paused');
         const before = JSON.stringify(rows[g0]), writes = log.filter((r) => r.path === '/rest/v1/game_saves' && r.method !== 'GET').length;
-        await page.goto('about:blank');                       // leaving the page fires its pagehide autosave
+        // leaving the page fires its pagehide autosave (dispatched here: Playwright never sees a keepalive fetch sent
+        // while a page unloads, so a real navigation would pass this check without the page trying anything)
+        await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false })));
         await new Promise((r) => setTimeout(r, 2000));
         check(JSON.stringify(rows[g0]) === before && marker() === 'phone', 'the desktop\'s autosave on leaving does not overwrite the phone\'s cloud save');
         check(log.filter((r) => r.path === '/rest/v1/game_saves' && r.method !== 'GET').length === writes, 'it doesn\'t even try');
@@ -240,6 +247,47 @@ try {
             try { await m.makeCloud({ game: g }).upload({ stale: true }); return 'uploaded'; } catch (e) { return e.code || e.message; }
         }, g0);
         check(r === 'cloud_newer' && marker() === 'phone, later', `an upload from a device a version behind is refused by the conditional update (${r}), and the newer save stays`);
+        storage = await ctx.storageState();
+        await ctx.close();
+    }
+
+    // ------------------------------------------------------------------ one device: leave, come back
+    // The autosave sent as the page closes (keepalive) changes the cloud's version, but the closing page never reads the
+    // answer. Coming back on the same device must not take that save for one from "another device".
+    const g1 = games.find((g) => !mounted(g));
+    if (g1) {
+        const key = saveKey(g1), mk = key + '.cloudtest';
+        const marker = () => { try { return JSON.parse(rows[g1]?.data?.[mk] || 'null')?.marker; } catch { return null; } };
+        console.log(`\n== one device: leave and come back (${g1})`);
+        delete rows[g1];                                      // a fresh start: nothing in the cloud for this game yet
+        let ctx = await context(storage);
+        let page = await openGame(ctx, g1);
+        await page.evaluate((k) => localStorage.setItem(k, JSON.stringify({ marker: 'first' })), mk);
+        await openCloud(page);
+        await until(page, () => !!document.querySelector('dialog.wg-cloud [data-wgc="up"]:not([disabled])'), 'Save to cloud is offered');
+        await click(page, 'dialog.wg-cloud [data-wgc="up"]');
+        await until(page, () => document.querySelector('dialog.wg-cloud .wg-msg')?.textContent.includes('Saved to the cloud'), 'in step with the cloud');
+        await page.keyboard.press('Escape');
+        await page.evaluate((k) => localStorage.setItem(k, JSON.stringify({ marker: 'played on' })), mk);
+        // the tab closes: its pagehide autosave reaches the cloud, but the page is gone before the answer comes back
+        let release;
+        holdAnswer = new Promise((r) => { release = r; });
+        await page.evaluate(() => dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false })));
+        for (let i = 0; i < 50 && marker() !== 'played on'; i++) await new Promise((r) => setTimeout(r, 100));
+        check(marker() === 'played on', 'leaving the page saves the game to the cloud');
+        await page.close();
+        release();
+        holdAnswer = null;
+        page = await openGame(ctx, g1);
+        await page.waitForTimeout(2500);
+        check(!await page.evaluate(() => [...document.querySelectorAll('.wg-cloud-toast')].some((t) => t.textContent.includes('newer save'))), 'coming back on the same device: no "newer save from another device" warning');
+        await openCloud(page);
+        await until(page, () => !!document.querySelector('dialog.wg-cloud [data-wgc="up"]:not([disabled])'), 'Cloud Save opens');
+        check(!await page.evaluate(() => !!document.querySelector('dialog.wg-cloud .wg-warn')), 'and its dialog shows no clash');
+        await page.keyboard.press('Escape');
+        await page.evaluate((k) => localStorage.removeItem(k), mk);
+        for (const e of page.errors) console.log('    ', e);
+        check(page.errors.length === 0, 'no page errors, console errors or failed requests');
         storage = await ctx.storageState();
         await ctx.close();
     }
