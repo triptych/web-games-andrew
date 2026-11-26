@@ -82,6 +82,7 @@ console.log('\n# desktop');
     await shot(page, 'varec');
     await talkThrough(page, [1, 1]);
     ok(await ea(page, `__.G.quests.the_missing_merchant?.s === 'active'`), 'choices by number keys took the quest');
+    ok(await page.evaluate(() => document.getElementById('vn').hidden && document.getElementById('vn-por').hidden), 'closing the talk clears Varec\'s portrait');
     // the hint and the menu
     await page.waitForTimeout(400);
     await page.keyboard.press('KeyH');
@@ -143,7 +144,10 @@ console.log('\n# desktop');
     await ea(page, `(__.G.gold = 500, __.warp('forge', 3, 3), __.G.face = 'up')`);
     await page.keyboard.press('Space');
     await talkThrough(page, [1]);
-    await page.waitForFunction(() => !document.getElementById('shop').hidden, null, { timeout: 5000 });
+    await page.waitForFunction(() => !document.getElementById('shop').hidden, null, { timeout: 5000 }).catch(async (e) => {
+        console.log('  at the forge:', await ea(page, `JSON.stringify({ mode: __.mode(), map: __.G.map, painted: __.mapView.mapId, at: [__.G.x, __.G.y, __.G.face], sheets: __.ui.stack, busy: __.busy(), dialog: __.G.dialog?.tree })`));
+        throw e;
+    });
     await page.click('[data-buy=mage_staff]');
     await page.waitForTimeout(200);
     ok(await page.evaluate(() => !document.getElementById('picker').hidden), 'buying a staff offers to equip it');
@@ -154,6 +158,34 @@ console.log('\n# desktop');
     await page.click('#shop-close');
     await idle(page);
     ok(await ea(page, `__.mode() === 'explore'`), 'Leave closes the shop');
+    // a chest, opened by holding an arrow key into it: the loot, and no "empty" line straight after
+    await ea(page, `(__.warp('thornwood', 3, 15), __.G.face = 'down', true)`);
+    await idle(page);
+    const potions = await ea(page, '__.G.inv.potion || 0');
+    await page.keyboard.down('ArrowDown'); await page.waitForTimeout(700); await page.keyboard.up('ArrowDown');
+    await page.waitForTimeout(300);
+    ok(await ea(page, `__.G.done.tw_chest && (__.G.inv.potion || 0) === ${potions} + 2`), 'holding an arrow into a chest opens it');
+    ok(await ea(page, `__.mode() === 'explore' && document.getElementById('vn').hidden`), 'and no "the chest is empty" dialogue follows');
+    await page.keyboard.press('Space'); await page.waitForTimeout(200);
+    ok(await ea(page, `__.mode() === 'explore' && !document.getElementById('hint').hidden && /empty/.test(document.getElementById('hint-text').textContent)`), 'Space at the opened chest shows a short note');
+    // a place not painted yet: a veil with its name while it is painted, then the map; a place painted a moment ago: no veil
+    await ea(page, `(__.warp('thornhaven', 16, 5), __.G.face = 'up', true)`);
+    await idle(page);
+    await page.evaluate(() => {
+        window.__veil = [];
+        new MutationObserver(() => { const v = document.getElementById('mapload'); if (!v.hidden) window.__veil.push(document.getElementById('mapload-name').textContent); })
+            .observe(document.getElementById('mapload'), { attributes: true });
+    });
+    await page.keyboard.press('ArrowUp');
+    await page.waitForFunction(() => window.__ea.G.map === 'inn' && window.__ea.mapView.mapId === 'inn' && document.getElementById('mapload').hidden, null, { timeout: 20000 });
+    ok(await page.evaluate(() => window.__veil.includes('Ember Hearth Inn')), `entering the inn shows a loading veil with its name (${await page.evaluate(() => JSON.stringify(window.__veil))})`);
+    await idle(page);
+    await page.evaluate(() => { window.__veil.length = 0; });
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(() => window.__ea.G.map === 'thornhaven' && window.__ea.mapView.mapId === 'thornhaven', null, { timeout: 20000 });
+    await page.waitForTimeout(200);
+    ok(await page.evaluate(() => window.__veil.length === 0), 'walking back out to the village needs no veil (it is kept painted)');
+    await idle(page);
     // continue after a reload
     await ea(page, `__.warp('thornhaven', 9, 7)`);
     await page.reload();

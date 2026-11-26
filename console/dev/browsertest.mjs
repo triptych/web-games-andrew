@@ -32,12 +32,22 @@
  * from the clock with a banner that opens its chat, a friend's game updated
  * (a message with a play link), a brand-new game calling, declining it, the
  * ▶ chip launching the game, and every avatar picture loading. A phone runs a
- * chat by touch. Screenshots → console/dev/shots/.
+ * chat by touch.
+ * The Lounge (./js/lounge.js): friends and games with a save walk in on their
+ * sprites (every sprite sheet loads), the bartender walks eight ways with the
+ * arrow keys, the wheel picks a guest and ● walks over; an order in a dialog
+ * box, a wrong ingredient, the right ones, the needle stopped in the gold, the
+ * serving (stars, friendship hearts, the Lounge's memory); a thank-you text
+ * and a friend asking for a drink in Messages, whose button opens the Lounge
+ * with them at the bar; a phone walks by tapping the floor.
+ * Screenshots → console/dev/shots/.
  *
  *   python3 -m http.server 8077            # from the REPO ROOT
  *   node console/dev/browsertest.mjs
  *
- * Env: BASE (default http://127.0.0.1:8077), PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage|dragonfly|messages.
+ * Env: BASE (default http://127.0.0.1:8077; BASE=disk answers from the repo on disk, no server
+ * needed, and skips the installable-app checks, which need one),
+ * PW_CHROMIUM_PATH, ONLY=desktop|pwa|calm|phones|storage|dragonfly|messages|lounge.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -45,7 +55,20 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const BASE = process.env.BASE ?? 'http://127.0.0.1:8077';
+const DISK = process.env.BASE === 'disk';
+const BASE = DISK ? 'http://pocket.test' : process.env.BASE ?? 'http://127.0.0.1:8077';
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.webp': 'image/webp', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.mp3': 'audio/mpeg' };
+/** BASE=disk: answer every request for the site from the files in the repo. */
+async function serveDisk(ctx) {
+    await ctx.route(`${BASE}/**`, (r) => {
+        let f = decodeURIComponent(new globalThis.URL(r.request().url()).pathname);
+        if (f.endsWith('/')) f += 'index.html';
+        const file = path.join(ROOT, f);
+        if (!file.startsWith(ROOT) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return r.fulfill({ status: 404, body: 'not found' });
+        r.fulfill({ status: 200, contentType: TYPES[path.extname(file)] || 'application/octet-stream', body: fs.readFileSync(file) });
+    });
+}
 const URL = `${BASE}/console/`;
 const OUT = path.join(HERE, 'shots');
 const ONLY = process.env.ONLY;
@@ -72,6 +95,7 @@ async function open(viewport, { touch = false, blockStorage = false, init = null
     browsers.push(browser);
     const ctx = await browser.newContext({ viewport, deviceScaleFactor: 1, hasTouch: touch, isMobile: touch, reducedMotion, serviceWorkers });
     await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+    if (DISK) await serveDisk(ctx);
     // the games themselves are not under test: answer their pages with a stub
     await ctx.route(/\/game-\d+\/index\.html$/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title>stub</title><p>game</p>' }));
     if (blockStorage) {
@@ -995,10 +1019,172 @@ async function messages() {
     await ctx.close();
 }
 
+async function lounge() {
+    console.log('\nLounge');
+    const seed = () => {
+        try {
+            if (sessionStorage.getItem('seeded')) return;
+            sessionStorage.setItem('seeded', '1');
+            const t = Date.now();
+            localStorage.setItem('console.recent', JSON.stringify([{ id: 'game-001', t: t - 2 * 36e5 }, { id: 'game-021', t: t - 5 * 36e5 }, { id: 'game-147', t: t - 9 * 36e5 }]));
+            // a save in a game never opened from the console: its character comes to the Lounge too
+            localStorage.setItem('roguelike_save', JSON.stringify({ level: 3 }));
+        } catch {
+            /* about:blank */
+        }
+    };
+    let { ctx, page } = await open({ width: 1280, height: 800 }, { init: seed });
+    await boot(page, '#lounge');
+    const L = (fn, arg) => page.evaluate(fn, arg);
+    check((await top(page)).type === 'lounge', '#lounge opens the Lounge');
+    const pool = await L(() => pocketGarden.top.pool);
+    check(['game-001', 'game-021', 'game-147'].every((id) => pool.includes(id)) && pool.includes('game-003'), `friends and saved games are the regulars (${pool.join(', ')})`);
+    check(!pool.includes('garden'), 'the dragonfly is not a guest (it flies about if you have met it)');
+    await page.waitForFunction(() => pocketGarden.top.guests.length >= 3 && pocketGarden.top.guests.every((g) => g.state !== 'enter'), null, { timeout: 15000 });
+    await page.waitForFunction(() => pocketGarden.top.guests.every((g) => g.img.complete && g.img.naturalWidth === 96 && g.img.naturalHeight === 200), null, { timeout: 8000 });
+    check(true, 'guests walk in on their 96×200 sprite sheets (five facings by three steps)');
+    check(await page.locator('.lg-hud .lg-who i').textContent().then((t) => /^[♥♡]{5}$/.test(t)), 'the HUD shows the picked guest with their friendship hearts');
+    await page.screenshot({ path: path.join(OUT, 'lounge.png') });
+
+    // every character's sprite sheet loads in the browser
+    const bad = await L(async () => {
+        const cast = pocketGarden.loungeCast;
+        const games = [...pocketGarden.messenger.byId.values()];
+        const out = [];
+        await Promise.all(
+            Object.keys(cast).map(
+                (id) =>
+                    new Promise((ok) => {
+                        const img = new Image();
+                        img.onload = () => (img.naturalWidth === 96 && img.naturalHeight === 200 ? 0 : out.push(id), ok());
+                        img.onerror = () => (out.push(id), ok());
+                        img.src = `../${games.find((g) => g.id === id)?.folder || id}/avatar/sprite.png`;
+                    }),
+            ),
+        );
+        return { n: Object.keys(cast).length, bad: out };
+    });
+    check(bad.n === TOTAL && !bad.bad.length, `all ${bad.n} Lounge sprites load (${bad.bad.join(', ') || 'none missing'})`);
+
+    // walking: eight ways with the arrow keys
+    await L(() => pocketGarden.top.closeDialog());
+    const p0 = await L(() => ({ x: pocketGarden.top.me.x, y: pocketGarden.top.me.y }));
+    await page.keyboard.down('ArrowRight');
+    await settle(page, 600);
+    await page.keyboard.up('ArrowRight');
+    const p1 = await L(() => ({ x: pocketGarden.top.me.x, y: pocketGarden.top.me.y, dir: pocketGarden.top.me.dir }));
+    check(p1.x > p0.x + 10 && p1.dir === 'e', `→ walks the bartender east (${Math.round(p0.x)} → ${Math.round(p1.x)})`);
+    await page.keyboard.down('ArrowDown');
+    await page.keyboard.down('ArrowLeft');
+    await settle(page, 500);
+    const p2 = await L(() => ({ x: pocketGarden.top.me.x, y: pocketGarden.top.me.y, dir: pocketGarden.top.me.dir }));
+    await page.keyboard.up('ArrowDown');
+    await page.keyboard.up('ArrowLeft');
+    check(p2.dir === 'sw' && p2.y > p1.y && p2.x < p1.x, `↓+← walks south-west (facing ${p2.dir}, a mirrored sprite)`);
+    check(!(await L(() => pocketGarden.top.free(pocketGarden.top.me.x, 3 * 16 + 8))), 'the counter is solid');
+
+    // an order: someone at the bar asks; the wheel picks them and ● walks over
+    const who = await L(() => {
+        const v = pocketGarden.top;
+        const a = v.guests.find((g) => g.id === 'game-001') || v.guests[0];
+        v.seatGuest(a, 'bar');
+        a.wants = 'coffee';
+        a.asked = null;
+        return a.id;
+    });
+    await page.waitForFunction((id) => pocketGarden.top.guests.find((g) => g.id === id)?.state === 'order', who, { timeout: 15000 });
+    check(true, `${who} sits at the bar with an order bubble`);
+    await L((id) => {
+        const v = pocketGarden.top;
+        v.focus = v.guests.findIndex((g) => g.id === id);
+    }, who);
+    await page.locator('#wheel-center').click();
+    await page.waitForFunction(() => !!pocketGarden.top.dlg, null, { timeout: 10000 });
+    check(true, '● walks the bartender over (across the bar) and they order in a dialog box');
+    check((await page.locator('.lg-name').textContent()).length > 0 && (await page.locator('.lg-face').isVisible()), 'the dialog box has their name and portrait');
+    await page.keyboard.press('Enter');
+    await settle(page, 200);
+    check(await page.locator('.lg-choice.sel').isVisible(), 'and a choice with a ▶ cursor');
+    await page.screenshot({ path: path.join(OUT, 'lounge-order.png') });
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('.lg-craft:not([hidden])');
+    check(true, '"Coming right up!" opens the recipe and the shelf');
+    const pts0 = await L((id) => pocketGarden.messenger.friend(id)?.pts || 0, who);
+    await page.locator('.lg-ing[aria-label="Milk"]').click();
+    check((await L(() => pocketGarden.top.craft.misses)) === 1 && (await page.locator('.lg-miss').isVisible()), 'a wrong ingredient is a miss');
+    await page.locator('.lg-ing[aria-label="Coffee beans"]').click();
+    await page.locator('.lg-ing[aria-label="Hot water"]').click();
+    check((await L(() => pocketGarden.top.craft.phase)) === 'time' && (await page.locator('.lg-meter').isVisible()), 'the right ones in order, then the timing needle');
+    await page.screenshot({ path: path.join(OUT, 'lounge-craft.png') });
+    await page.waitForFunction(() => Math.abs(pocketGarden.top.craft.needle - 0.5) < 0.04, null, { polling: 5, timeout: 8000 });
+    await page.keyboard.press(' ');
+    await page.waitForSelector('.lg-stars');
+    check((await page.locator('.lg-stars').textContent()).startsWith('★★☆'), 'the gold with one miss is two stars');
+    await page.waitForFunction(() => !pocketGarden.top.craft && !!pocketGarden.top.dlg, null, { timeout: 5000 });
+    const after = await L((id) => ({ pts: pocketGarden.messenger.friend(id)?.pts || 0, l: JSON.parse(localStorage.getItem('console.lounge')) }), who);
+    check(after.pts >= pts0 + 4, `serving it grows your friendship (+${after.pts - pts0})`);
+    check(after.l.served[who]?.item === 'coffee' && after.l.served[who].q === 2 && after.l.count === 1, 'the Lounge remembers what you made them');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Enter');
+
+    // later, in Messages: thanks for the drink yesterday
+    const thanks = await L((id) => {
+        const l = JSON.parse(localStorage.getItem('console.lounge'));
+        l.served[id].t -= 26 * 36e5;
+        localStorage.setItem('console.lounge', JSON.stringify(l));
+        return pocketGarden.messenger.compose(id, 'lthanks');
+    }, who);
+    check(thanks?.k === 'lthanks' && /coffee/.test(thanks.x), `a day later they text to say thanks ("${thanks?.x}")`);
+    check((await L((id) => pocketGarden.messenger.compose(id, 'lthanks').k, who)) !== 'lthanks', 'once');
+
+    // a friend asks for a drink in Messages; its button opens the Lounge with them at the bar
+    await page.keyboard.press('Escape');
+    await settle(page);
+    const ask = await L(() => {
+        const m = pocketGarden.messenger;
+        const msg = m.compose('game-147', 'lask');
+        m.deliver('game-147', msg, { notify: false });
+        return msg;
+    });
+    check(ask.lounge === 'game-147' && /Lounge|bar|stool|seat/i.test(ask.x), `a friend asks for something ("${ask.x}")`);
+    check(/🍹/.test(await L(() => pocketGarden.stack[0].items.find((x) => x.label === 'Lounge').meta)), 'the Lounge row on the main menu says someone is waiting');
+    await L(() => import('./js/messages.js').then((m) => m.openThread(pocketGarden, pocketGarden.messenger, 'game-147')));
+    await page.waitForSelector('.view.is-top [data-lounge]');
+    await page.locator('.view.is-top [data-lounge]').last().click();
+    await page.waitForFunction(() => pocketGarden.top.type === 'lounge', null, { timeout: 5000 });
+    await page.waitForFunction(() => pocketGarden.top.guests.find((g) => g.id === 'game-147')?.state === 'order', null, { timeout: 15000 });
+    const o = await L(() => {
+        const a = pocketGarden.top.guests.find((g) => g.id === 'game-147');
+        return { order: a.order, asked: a.asked, want: JSON.parse(localStorage.getItem('console.lounge')).orders['game-147']?.item };
+    });
+    check(o.asked === 'msg' && o.order === o.want, `"Go to the Lounge" brings you to the bar, and they order what they asked for (${o.order})`);
+    check((await L(() => pocketGarden.top.guests[0].id)) === 'game-147', 'the one who asked walks in first');
+    await ctx.close();
+
+    // a phone: tap the floor to walk there
+    ({ ctx, page } = await open({ width: 390, height: 844 }, { touch: true, init: seed }));
+    await boot(page, '#lounge');
+    await settle(page, 1200);
+    await L(() => pocketGarden.top.closeDialog());
+    await noSideScroll(page, 'the Lounge on a phone');
+    const q0 = await L(() => ({ x: pocketGarden.top.me.x, y: pocketGarden.top.me.y }));
+    const box = await page.locator('.lg-cv').boundingBox();
+    await page.touchscreen.tap(box.x + box.width * 0.62, box.y + box.height * 0.72);
+    await settle(page, 2500);
+    const q1 = await L(() => ({ x: pocketGarden.top.me.x, y: pocketGarden.top.me.y }));
+    check(Math.hypot(q1.x - q0.x, q1.y - q0.y) > 30, `tapping the floor walks the bartender there (${Math.round(q0.x)},${Math.round(q0.y)} → ${Math.round(q1.x)},${Math.round(q1.y)})`);
+    await page.screenshot({ path: path.join(OUT, 'lounge-phone.png') });
+    await ctx.close();
+}
+
 try {
     if (!ONLY || ONLY === 'dragonfly') await dragonfly();
     if (!ONLY || ONLY === 'desktop') await desktop();
-    if (!ONLY || ONLY === 'pwa') await pwa();
+    // the installable-app checks fetch outside the page and need a real server
+    if (!ONLY || ONLY === 'pwa') {
+        if (DISK) console.log('\nInstallable app: skipped with BASE=disk (needs a server)');
+        else await pwa();
+    }
     if (!ONLY || ONLY === 'calm') await calm();
     if (!ONLY || ONLY === 'phones') {
         await phone({ width: 390, height: 844 }, 'phone');
@@ -1006,6 +1192,7 @@ try {
     }
     if (!ONLY || ONLY === 'storage') await storage();
     if (!ONLY || ONLY === 'messages') await messages();
+    if (!ONLY || ONLY === 'lounge') await lounge();
     if (errors.length) throw new Error('errors:\n' + errors.join('\n'));
     console.log('\nAll console checks passed.');
 } catch (e) {

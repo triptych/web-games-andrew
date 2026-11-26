@@ -1,0 +1,29 @@
+{
+  "_about": "Shared prompt for the Pocket Garden Lounge sprites, painted with ElevenLabs (model recraft-v4.1-flash, 16:9, one generation each) from each character's portrait.subject in its avatar/avatar.json, or its own sprite.subject where the portrait's wording doesn't suit a full-body sprite (sitting on something, floating copies, a head only). Characters with green in them are painted on magenta so the key doesn't eat them. dev/make-sprites.py turns each painting into avatar/sprite.png (5 facings x 3 walk frames). See docs/generic/avatars.md.",
+  "model": "recraft-v4.1-flash",
+  "style": "16-bit pixel art JRPG character turnaround sheet, SNES overworld sprite style, chibi, about 2.5 heads tall. Character: {subject}. Five full-body standing views of this same character in one horizontal row, evenly spaced, same size, feet level, gaps between them. Left to right: front view; three-quarter front view turned right; right side profile; three-quarter back view; back view. Crisp pixels, dark outline, simple cel shading. Flat solid {bg} background, no shadows, no text.",
+  "backgrounds": {
+    "green": "pure green (#00FF00)",
+    "magenta": "pure magenta (#FF00FF)"
+  },
+  "magentaWords": [
+    "green",
+    "emerald",
+    "jade",
+    "teal",
+    "mint",
+    "leaf",
+    "leafy",
+    "moss",
+    "mossy",
+    "slime",
+    "goblin",
+    "sprout",
+    "seedling",
+    "lime",
+    "olive",
+    "forest",
+    "kaiju",
+    "dinosaur"
+  ]
+}

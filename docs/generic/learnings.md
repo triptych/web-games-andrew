@@ -7444,6 +7444,10 @@ because of something that table showed.
 - **Keyboard taps shorter than a frame**: walking read only the held-key state, so a press and release inside one frame did nothing on the map (a browser test with `keyboard.press` caught it). Queue the press and step on it too.
 - **A "swallow the closing key" guard must only swallow that key.** After a dialogue closes, presses were ignored for 0.25 s so the Space that closed it would not talk again; it also ate the arrow keys pressed right after, and a test walking straight from a dialogue arrived four tiles short. Guard Space/Enter only.
 - **A tween that only advances while it is drawn can freeze a gate.** The map's step tween counted toward "busy", and it advanced only in the map's draw; a battle that began mid-step hid the map, so busy stayed true and the in-browser bot never acted in its first battle. Snap tweens when their view is hidden, and count a view's busy only while it is on screen.
+- **Something solid you can bump must react differently the second time.** An opened chest stayed solid, and walking into it ran "The chest is empty." Opening it needed no dialogue, so the still-held arrow key bumped it again on the very next frame: the player got the loot and was told it was empty in the same moment. Make a repeat walk-in a silent stop and keep the message for a deliberate Space. Test it with a held key (`keyboard.down`, a pause, `up`), not a single press.
+- **A portrait the narrator "keeps" must be dropped when the scene ends.** Narrator lines left the last speaker on screen, which is right within a scene, but closing the dialogue never cleared it, so the next narrator-only line (a chest) brought back Elder Varec from an earlier talk.
+- **Blur small, then scale up.** Painting a map's ground blurred a full map-size canvas once per texture (`filter: blur()` on a canvas of thousands of pixels a side): 7–18 s per big map in software rendering, and a visible freeze on the step into a new place on real devices. Drawing each mask at 8 px a tile, blurring that, and scaling it up with smoothing gives the same soft edges 50–170× faster. Then keep the last few painted places (by place and tile size; a phone map is tens of MB), and for the rest put a loading veil up and paint only after it has reached the screen (wait two frames; anything done in the same frame as showing the veil runs before it is painted).
+- **A clicked button keeps the focus after its panel hides.** Input that lets a focused button take Space/Enter must check the button is still on screen (`getClientRects().length`); otherwise the first Space after a mouse click on a battle's Continue went to the hidden button, and it was a timing flake in the browser test until it was traced.
 
 ## Game 030 Coppergate Lane v2.0.0: a prototype rebuilt on another game's engine, a boss tuned by sweeping levels, and two media budgets that ran out (2026-11-21)
 
@@ -7693,3 +7697,45 @@ A fairy ball-sort puzzle in Canvas 2D with every picture and sound from ElevenLa
   outside the glass, overlapping any blossom means behind it. Test it as geometry, not by eye: sample every
   from→to pair through the view's own position function and assert containment and layering (`flightAudit` in
   `game-148/dev/browsertest.mjs`); run it on a two-row phone layout too, where the only failures were.
+
+## Game 149: Echoheart Academy — a visual novel written in a compiled script, an A-pose Meshy cast, and bugs only a picture shows (2026-11-25)
+
+An anime visual novel RPG: 74 scenes, a 3D campus for free time, four friends with heart events and romance, six
+mini-games, turn-based battles where Kai's Echo copies any spell (an enemy's too), and a rescue against a moon clock.
+fal for 70 paintings, Meshy for 15 models (11 rigged, 91 clips), ElevenLabs for 6 themes, 16 effects and 50 voice lines.
+
+- **Write a VN's story in a tiny line language and compile it at load.** `hana blush: line [v:thanks]`, `choice` with
+  `- text | hana+3 flag:x -> label`, `if hearts:hana>=5 -> x`, `battle archive`, `mini runes 1 hana`, `call scene`
+  ([js/sim/vn.js](../../game-149/js/sim/vn.js)). The compiler rejects an unknown speaker or a missing label, and the
+  simtest walks every compiled op to check that every background, CG, sprite, theme, sound and voice file it names
+  exists. That caught Hana's missing "surprised" sprite and Hollow Veymont's voice lines pointing at `hollow-*` files
+  when they were recorded as Veymont's. Two semantics to get right: `end` in a *called* scene must return to the
+  caller (the first version also ended the Festival scene that called the dance menu), and the scene interpreter must
+  run until it *needs the player*, so tests should start scenes through the same function the game does
+  (`playScene`), not the bare `startScene`.
+- **The purity grep reads story text too.** `story.js` failed purity because a line said "the seat by the window." and
+  the check looks for `window.`. Rewording was cheaper than a smarter grep; just know it can happen.
+- **Ask Meshy for an A-pose up front.** With `--pose-mode a-pose` on every humanoid image-to-3D job, all eleven rigs
+  succeeded first time (game-147 had to rebuild three). Image-to-3D also dropped the principal's cane and staff, which
+  left his hands free for the rig. 15 models + 11 rigs + 67 clips came to ≈ 480 credits.
+- **Flood-filling a light grey backdrop eats light shirts and silver hair.** The first cut also removed every
+  enclosed pocket of near-background colour and punched holes in white shirts and Lys's hair. Keep only *big*
+  pockets of almost exactly the backdrop colour, count a pixel as background only if it is light *and* colourless, and
+  for waist-up sprites (which run off the bottom of the picture) don't seed the fill from the bottom edge
+  ([dev/art/export.py](../../game-149/dev/art/export.py)).
+- **Big fal batches overflow the conversation.** `wait_for_jobs` on 16+ jobs came back as a saved file; parse it with
+  a script (`grab.py`) rather than reading it in.
+- **`object.visible = a && b && flags[x]` can be `undefined`, and three.js only skips `false`.** A friend's model
+  stood at her door before you'd met her because the expression ended in an unset flag. Coerce with `!!`.
+- **Two CSS classes called `.pop`.** The damage numbers' `.pop` (with `transform: translate(-50%, -50%)`) also matched
+  the sprite entrance class, so every VN sprite floated half its height up with its head off screen. Only
+  `getComputedStyle(...).transform` showed why. Give effect classes specific names.
+- **Close a sheet *after* sending its action, when closing it changes the sim.** The place sheet's buttons closed the
+  sheet first; closing tells the sim to leave the place, so the action that followed was refused ("looking around
+  the library" did nothing). The browser test caught it on its first run.
+- **The bot found three balance bugs in an hour.** Bonds rose 3× too fast (a rotating bot reached 100 with all four);
+  the party reached the boss at level 4 because XP came only from story battles; four of six mini-game goals let a
+  clumsy bot score S. Each became a band in `simtest.mjs`. A story battle that can be lost now offers *Try again*, and
+  each retry thins the foes' HP by 10% (to 60%), so no player is ever stuck in a VN.
+- **A reachability proof for pickups.** A flood fill with the real mover (`step()` in eight directions) found a charm
+  outside the island and another inside the lab's walls.

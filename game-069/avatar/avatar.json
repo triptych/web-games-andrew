@@ -74,5 +74,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute cheerful grandpa mechanic with a grey mustache, a backwards trucker cap, oil-stained overalls and a wrench"
+ }
 }

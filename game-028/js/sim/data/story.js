@@ -353,7 +353,6 @@ export const TREES = {
     } },
 
     // ------------------------------------------------------------------ system scenes
-    chest_empty: { start: 'a', nodes: { a: { who: 'n', text: 'The chest is empty.', next: 'end' } } },
     defeat: { start: 'a', nodes: {
         a: { who: 'n', bg: 'inn', text: 'Darkness. Then firelight, and the smell of stew.', next: 'b' },
         b: { who: 'aldric', text: 'Easy, easy! A woodcutter carried you all in. You were lucky. I took what you owed from your purse; don\'t argue, you\'d do the same.', next: 'end' },

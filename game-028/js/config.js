@@ -1,6 +1,6 @@
 // Echoes of Aethermoor — version, save key and tuning. Shared by the sim, the view and the tests.
 
-export const VERSION = '2.0.1';
+export const VERSION = '2.0.3';
 export const SAVE_KEY = 'echoes-of-aethermoor.v2';
 
 // Party and growth. One shared level for the whole party (late recruits arrive at the party's level).

@@ -13,10 +13,12 @@ import { ICONS } from './icons.js';
 import { ListView, DetailView, CoverFlowView, SearchView, TextView, gameArt, gameIconHTML } from './views.js';
 import { PetView, petGlyph, petCaption, currentMem } from './pet.js';
 import { Messenger, MessagesView, NameView, FREQ, openThread } from './messages.js';
+import { LoungeView, loungeCaption } from './lounge.js';
+import { pendingOrders } from './lounge-data.js';
 import { esc, excerpt, gameNo, thumbUrl, playUrl, sortKey, timeAgo, shuffled } from './util.js';
 
 /** Shown in About; bump it with any change to the console. */
-export const CONSOLE_VERSION = '1.5.0';
+export const CONSOLE_VERSION = '1.6.0';
 
 const $ = (id) => document.getElementById(id);
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
@@ -74,6 +76,11 @@ class App {
         this.messenger = new Messenger(this, { all: ALL, byId, store: this.store });
         this.messenger.on(() => this.messagesChanged());
         this.loadUpdates();
+        // the Lounge's cast: who has a walking sprite, and their save keys (dev/make-sprites.py --cast)
+        this.castReady = fetch('lounge-cast.json')
+            .then((r) => (r.ok ? r.json() : {}))
+            .catch(() => ({}))
+            .then((c) => (this.loungeCast = c && typeof c === 'object' ? c : {}));
 
         const deep = decodeURIComponent(location.hash.slice(1));
         history.replaceState({ d: 1 }, '', this.base);
@@ -145,6 +152,7 @@ class App {
             cover: () => this.push(new CoverFlowView(this, { list: ALPHA, index: 0 }), { animate }),
             dragonfly: () => this.openPet({ animate }),
             messages: () => this.openMessages({ animate }),
+            lounge: () => this.openLounge({ animate }),
             shuffle: () => this.shuffle(),
         }[hash];
         if (!go) return false;
@@ -195,6 +203,10 @@ class App {
             'js/pet.js',
             'js/pixel-dragonfly.js',
             'js/messages.js',
+            'js/lounge.js',
+            'js/lounge-data.js',
+            'lounge-cast.json',
+            'img/bartender.png',
             '../garden/avatar/avatar.json',
             '../garden/avatar/avatar.webp',
             '../garden/avatar/avatar-tiny.webp',
@@ -383,11 +395,21 @@ class App {
     }
 
     bindKeys() {
+        // the Lounge walks with the arrows (and WASD) and lets go on keyup
+        addEventListener('keyup', (e) => this.top?.onKey?.(e, false));
+        addEventListener('blur', () => this.top?.keys?.clear?.());
         addEventListener('keydown', (e) => {
             if (e.ctrlKey || e.metaKey || e.altKey) return;
             const k = e.key;
             const typing = e.target.closest?.('input, textarea');
             this.touch = false;
+            if (!typing && this.top?.onKey && !this.launching && !this.busy && !(e.target.closest?.('button, a') && (k === 'Enter' || k === ' '))) {
+                this.wake();
+                if (this.top.onKey(e, true)) {
+                    e.preventDefault();
+                    return;
+                }
+            }
             if (typing) {
                 if (k === 'ArrowDown' || k === 'ArrowUp') {
                     e.preventDefault();
@@ -609,6 +631,13 @@ class App {
         this.push(new MessagesView(this, { m: this.messenger }), { animate });
     }
 
+    /** The Lounge (already there: nothing to do). A friend who asked for something comes in first. */
+    async openLounge({ animate = true, guest = null } = {}) {
+        if (this.top instanceof LoungeView) return;
+        await this.castReady;
+        this.push(new LoungeView(this, { m: this.messenger, cast: this.loungeCast || {}, byId, guest }), { animate });
+    }
+
     /** Something changed in Messages: the unread count in the status bar and on the home menu. */
     messagesChanged() {
         this.updateStatus();
@@ -620,6 +649,12 @@ class App {
         if (meta) meta.textContent = un ? `${un} new` : '';
         else if (home.row?.(i) && un) home.refresh();
         home.row?.(i)?.classList.toggle('has-unread', !!un);
+        // a friend asked for something at the bar: the Lounge row says so
+        const li = home.items.findIndex((x) => x.label === 'Lounge');
+        const lmeta = home.row?.(li)?.querySelector('.r-meta');
+        const asks = pendingOrders().length;
+        if (lmeta) lmeta.textContent = asks ? `${asks} 🍹` : '';
+        else if (home.row?.(li) && asks) home.refresh();
     }
 
     /** A banner slides down from the status bar: who it's from and what they said. Tap it to reply. */
@@ -901,6 +936,17 @@ class App {
                             action: () => this.openMessages(),
                         };
                     })(),
+                    (() => {
+                        const asks = pendingOrders();
+                        return {
+                            label: 'Lounge',
+                            icon: ICONS.lounge,
+                            meta: asks.length ? `${asks.length} 🍹` : '',
+                            say: `Lounge${asks.length ? `, ${asks.length} friend${asks.length === 1 ? '' : 's'} waiting at the bar` : ''}`,
+                            hero: { glyph: '<span class="lg-hero" aria-hidden="true"></span>', caption: loungeCaption(this.messenger) },
+                            action: () => this.openLounge(),
+                        };
+                    })(),
                     {
                         label: 'New Arrivals',
                         icon: ICONS.new,
@@ -1162,6 +1208,8 @@ class App {
                 <p>Your stars are the same ones the Garden of Games uses, so a game starred on the island is starred here too.</p>
                 <h3>Messages</h3>
                 <p>Every game you play adds its character to your address book, and they text you: tips, chatter, how your save is doing, and news when their game is updated. Pick a quick reply with the wheel and <b>●</b>, or type. Hold <b>●</b> in a chat to send a heart. When a new game arrives, its character calls with a friend request and the handheld shakes. <b>Settings → Messages</b> sets how chatty they are.</p>
+                <h3>Lounge</h3>
+                <p>The characters of the games you have played (or have a save in) hang out in a little bar, and you are the bartender. Walk with the arrow keys or WASD, or tap the floor; turn the wheel to pick someone and press <b>●</b> to go over and talk. When someone at the bar has an order bubble, take it, then make it: pick the ingredients off the shelf in order and stop the needle in the gold. Serving a friend grows your hearts with them, more for their favourite, more again when they asked for it in Messages. Later they text to say thanks, and now and then a friend texts to ask for something, with a button that brings you to the bar.</p>
                 <h3>Dragonfly</h3>
                 <p>Once you have met the dragonfly on the Garden's dock, it lives here too (the dragonfly pressed into the shell opens it). Feed it, play with it and pet it (hold <b>●</b>, or tap it); it remembers on the island. <b>Places</b> lists where you have been together: pick one and it flies you there.</p>`,
         });

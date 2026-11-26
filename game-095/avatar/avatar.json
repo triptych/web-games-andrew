@@ -64,5 +64,19 @@
    "hauntly-manor.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute artist girl with a messy bun with a pencil in it, paint-smudged overalls and a sketchbook, with a tiny friendly ghost riding on her shoulder"
+ }
 }

@@ -85,6 +85,7 @@ console.log('\n# desktop');
     ok(await ea(page, `__.audio.voiceEl?.src.includes('audio/vo/trina-') && !__.audio.voiceEl.error`), 'Trina speaks a recorded line');
     await talkThrough(page, [2]);
     ok(await ea(page, `__.G.quests.main_gear?.s === 'active' && __.G.quests.side_scraps?.s === 'active'`), 'choices by number keys took the quests');
+    ok(await page.evaluate(() => document.getElementById('vn').hidden && document.getElementById('vn-por').hidden), 'closing the talk clears Trina\'s portrait');
     // the hint and the menu
     await page.waitForTimeout(400);
     await page.keyboard.press('KeyH');
@@ -159,6 +160,38 @@ console.log('\n# desktop');
     await page.click('#shop-close');
     await idle(page);
     ok(await ea(page, `__.mode() === 'explore'`), 'Leave closes the shop');
+    // a chest, opened by holding an arrow key into it: the loot, and no "empty" line straight after
+    await ea(page, `(__.warp('wilds', 23, 3), __.G.face = 'right', true)`);
+    await idle(page);
+    const oil = await ea(page, '__.G.inv.oilcan || 0');
+    await page.keyboard.down('ArrowRight'); await page.waitForTimeout(700); await page.keyboard.up('ArrowRight');
+    await page.waitForTimeout(300);
+    ok(await ea(page, `__.G.done.wl_chest && (__.G.inv.oilcan || 0) === ${oil} + 2`), 'holding an arrow into a chest opens it');
+    ok(await ea(page, `__.mode() === 'explore' && document.getElementById('vn').hidden`), 'and no "empty" dialogue follows');
+    await page.keyboard.press('Space'); await page.waitForTimeout(200);
+    ok(await ea(page, `__.mode() === 'explore' && !document.getElementById('hint').hidden && /cobwebs/.test(document.getElementById('hint-text').textContent)`), 'Space at the opened chest shows a short note');
+    // a place not painted yet: a veil with its name while it is painted, then the map; a place painted a moment ago: no veil
+    await ea(page, `(__.warp('wilds', 12, 20), __.G.face = 'down', __.G.grace = 99, true)`);
+    await idle(page);
+    await page.evaluate(() => {
+        window.__veil = [];
+        new MutationObserver(() => { const v = document.getElementById('mapload'); if (!v.hidden) window.__veil.push(document.getElementById('mapload-name').textContent); })
+            .observe(document.getElementById('mapload'), { attributes: true });
+    });
+    await page.keyboard.press('ArrowDown');
+    await page.waitForFunction(() => window.__cl.G.map === 'gully', null, { timeout: 20000 });
+    await talkThrough(page);
+    await page.waitForFunction(() => window.__cl.mapView.mapId === 'gully' && document.getElementById('mapload').hidden, null, { timeout: 20000 });
+    ok(await page.evaluate(() => window.__veil.includes('Gutter Gully')), `entering the gully shows a loading veil with its name (${await page.evaluate(() => JSON.stringify(window.__veil))})`);
+    await idle(page);
+    await page.evaluate(() => { window.__veil.length = 0; });
+    await ea(page, `(__.G.grace = 99, true)`);
+    await page.keyboard.press('ArrowUp');
+    await page.waitForFunction(() => window.__cl.G.map === 'wilds' && window.__cl.mapView.mapId === 'wilds', null, { timeout: 20000 });
+    await page.waitForTimeout(200);
+    ok(await page.evaluate(() => window.__veil.length === 0), 'walking back to the wilds needs no veil (it is kept painted)');
+    await talkThrough(page);
+    await idle(page);
     // continue after a reload
     await ea(page, `__.warp('lane', 12, 13)`);
     await page.reload();

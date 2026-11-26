@@ -157,4 +157,26 @@ export const sfx = {
         tone(320, 0, 0.35, { type: 'sine', vol: 0.06, to: 1400 });
         click(0.05, { freq: 2600, vol: 0.2, dur: 0.25 });
     },
+    // the Lounge: a JRPG text blip, a footstep, a shelf pick, a pour, the serving bell, the door chime
+    blip() {
+        tone(1320, 0, 0.025, { type: 'square', vol: 0.012 });
+    },
+    step() {
+        click(0, { freq: 500, vol: 0.12, dur: 0.02 });
+    },
+    pick() {
+        tone(740, 0, 0.05, { type: 'triangle', vol: 0.04, to: 990 });
+    },
+    pour() {
+        click(0, { freq: 1400, vol: 0.18, dur: 0.35 });
+        tone(520, 0, 0.3, { type: 'sine', vol: 0.03, to: 880 });
+    },
+    ding() {
+        tone(2093, 0, 0.5, { type: 'sine', vol: 0.06 });
+        tone(2637, 0.08, 0.5, { type: 'sine', vol: 0.04 });
+    },
+    door() {
+        tone(1319, 0, 0.18, { type: 'sine', vol: 0.04 });
+        tone(988, 0.16, 0.26, { type: 'sine', vol: 0.04 });
+    },
 };

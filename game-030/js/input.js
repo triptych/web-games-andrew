@@ -42,7 +42,9 @@ export class Input {
         const tag = e.target?.tagName;
         const inField = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
         if (inField && e.code !== 'Escape') return;
-        if (down && tag === 'BUTTON' && (e.code === 'Space' || e.code === 'Enter')) return;   // let the button click
+        // let a focused button take Space/Enter, but only one on screen: a button clicked just before its panel closed
+        // (a battle's Continue) can keep the focus, and then Space on the map did nothing
+        if (down && tag === 'BUTTON' && (e.code === 'Space' || e.code === 'Enter') && e.target.getClientRects().length) return;
         const dir = DIR_KEYS[e.code];
         if (dir) {
             if (down) { if (!this.held.has(dir)) { this.held.add(dir); this.order.push(dir); this.queue.push({ t: 'dir', dir }); } }

@@ -28,6 +28,7 @@ import { sfx } from './sound.js';
 import { esc, clamp, excerpt, timeAgo, gameNo } from './util.js';
 import { currentMem, flyTo } from './pet.js';
 import { spriteURL, lookOf } from './pixel-dragonfly.js';
+import { MENU, favOf, itemWords, whenWords, loungeState, updateLounge, pendingOrder, pendingOrders, THANKS, THANKS_MEH, ASK } from './lounge-data.js';
 
 export const MSG_KEY = 'console.messages';
 const GARDEN = 'garden';
@@ -412,7 +413,7 @@ export class Messenger {
             f.day = today;
             f.today = {};
         }
-        const caps = { talk: 12, heart: 3, answer: 15, play: 16 };
+        const caps = { talk: 12, heart: 3, answer: 15, play: 16, serve: 24 };
         const used = f.today[kind] || 0;
         const add = Math.max(0, Math.min(pts, (caps[kind] ?? 99) - used));
         if (!add) return;
@@ -539,10 +540,33 @@ export class Messenger {
         opts.push(['chat', 4], ['tips', 2], ['nudge', 2]);
         if (d.questions?.length && !this.pendingQuestion(id)) opts.push(['question', 2]);
         if (this.friend(id) && Date.now() - this.friend(id).since > 3 * DAY && Math.random() < 0.08) opts.push(['since', 1]);
+        // the Lounge: a thank-you for what you made them, or a friend asking for something at the bar
+        const served = loungeState().served[id];
+        if (served && !served.thanked && Date.now() - served.t > 2 * HOUR) opts.push(['lthanks', 6]);
+        if (this.app.loungeCast?.[id] && !pendingOrder(id) && pendingOrders().length < 2) opts.push(['lask', 1.2]);
         if (!kind) {
             let total = opts.reduce((s, o) => s + o[1], 0);
             let r = Math.random() * total;
             kind = opts.find((o) => (r -= o[1]) < 0)?.[0] || 'chat';
+        }
+        if (kind === 'lthanks') {
+            const sv = loungeState().served[id];
+            if (sv && !sv.thanked) {
+                updateLounge((s) => s.served[id] && (s.served[id].thanked = true));
+                const x = this.fillFor(id, pick(sv.q <= 1 ? THANKS_MEH : THANKS), { item: itemWords(sv.item), when: whenWords(sv.t) });
+                if (x) return { x, k: 'lthanks' };
+            }
+            kind = 'chat';
+        }
+        if (kind === 'lask') {
+            const item = Math.random() < 0.65 ? favOf(id, d) : pick(MENU).id;
+            const words = itemWords(item, { article: true });
+            const x = this.fillFor(id, pick(ASK), { item: words, Item: words.charAt(0).toUpperCase() + words.slice(1) });
+            if (x) {
+                updateLounge((s) => (s.orders[id] = { item, t: Date.now(), via: 'msg' }));
+                return { x, k: 'lask', lounge: id };
+            }
+            kind = 'chat';
         }
         if (kind === 'question') {
             const f = this.friend(id);
@@ -667,6 +691,8 @@ export class Messenger {
 
     notify(id, m) {
         if (this.app.top?.type === 'thread' && this.app.top.id === id) return;
+        // not over a dialog box or an order you're making in the Lounge (it waits in Messages)
+        if (this.app.top?.busyUI?.()) return;
         this.app.notify?.({ id, name: this.contact(id).name, text: m.x, img: this.img(id, true), px: this.pixel(id) });
     }
 
@@ -877,8 +903,8 @@ export class Messenger {
         if (a.launching || a.busy || document.hidden) return false;
         if (document.getElementById('boot')) return false;
         const t = a.top?.type;
-        // never over a chat you're in, a search you're typing or another call
-        return t !== 'search' && t !== 'ring' && t !== 'name' && t !== 'thread';
+        // never over a chat you're in, a search you're typing, another call or the Lounge
+        return t !== 'search' && t !== 'ring' && t !== 'name' && t !== 'thread' && t !== 'lounge';
     }
 
     /** The handheld shakes and rings like a phone: an incoming friend request. */
@@ -938,6 +964,7 @@ export class Messenger {
             if (stats) out.push({ label: '📊 How am I doing?', act: 'progress' });
             out.push({ label: '🙂 Tell me about you', act: 'about' }, { label: '😄 Say something fun', act: 'chat' });
             if (c.d?.questions?.length) out.push({ label: '🎲 Ask me something', act: 'askme' });
+            if (this.app.loungeCast?.[id]) out.push({ label: '🍹 Come to the Lounge!', act: 'lounge' });
             out.push({ label: `▶ Let's play!`, act: 'play' });
         }
         out.push({ label: '❤️ Send a heart', act: 'heart' }, { label: '👋 Bye!', act: 'bye' });
@@ -1003,6 +1030,14 @@ export class Messenger {
                 say(this.fillFor(id, pick(GENERIC.heart)));
                 this.grow(id, 3, 'heart');
                 break;
+            case 'lounge': {
+                // invited for a drink: they head over and want their favourite (or what they already asked for)
+                const item = pendingOrder(id)?.item || favOf(id, d);
+                const words = itemWords(item, { article: true });
+                updateLounge((s) => (s.orders[id] = { item, t: Date.now(), via: 'invite' }));
+                say(this.fillFor(id, pick(['On my way! Save me a stool. I will have {item}! 🍹', 'Ooh, yes please! {Item} sounds perfect.', 'Already walking over! Is {item} too much to ask? 😊']), { item: words, Item: words.charAt(0).toUpperCase() + words.slice(1) }), { lounge: id });
+                break;
+            }
             case 'thanks':
                 say(this.fillFor(id, pick(GENERIC.thanks)));
                 break;
@@ -1050,6 +1085,7 @@ export class Messenger {
             ['about', /\b(who are you|about you|yourself|your name|what are you)\b/],
             ['howareyou', /\b(how are you|how r u|how's it going|hows it going|you ok)\b/],
             ['tip', /\b(tips?|hints?|advice|help|stuck|tricks?)\b/],
+            ['lounge', /\b(lounge|the bar|a drink|drinks|coffee|hang out|come over)\b/],
             ['news', /\b(news|new games?|updates?|what'?s new)\b/],
             ['suggest', /\b(suggest|recommend|pick (me )?a game|what should i play|bored)\b/],
             ['play', /\b(let'?s play|play|launch|start)\b/],
@@ -1061,7 +1097,7 @@ export class Messenger {
         ];
         for (const [act, re] of rules) {
             if (!re.test(t)) continue;
-            if (id === GARDEN && (act === 'how' || act === 'progress' || act === 'play')) return { act: act === 'play' ? 'suggest' : 'tip' };
+            if (id === GARDEN && (act === 'how' || act === 'progress' || act === 'play' || act === 'lounge')) return { act: act === 'play' || act === 'lounge' ? 'suggest' : 'tip' };
             if (id !== GARDEN && (act === 'news' || act === 'suggest')) return { act: 'chat' };
             return { act };
         }
@@ -1541,6 +1577,11 @@ export class ThreadView extends View {
             }
             return;
         }
+        const lg = e.target.closest('[data-lounge]');
+        if (lg) {
+            this.app.feedback('press');
+            return this.app.openLounge({ guest: lg.dataset.lounge });
+        }
         const fly = e.target.closest('[data-fly]');
         if (fly) {
             this.app.feedback('press');
@@ -1575,6 +1616,7 @@ export class ThreadView extends View {
             msg.fly ? `<button type="button" class="b-act" data-fly="${esc(msg.fly)}" data-label="${esc(msg.flyLabel || '')}">🪽 Fly there</button>` : '',
             msg.open === 'pet' ? `<button type="button" class="b-act" data-open="pet">🍯 Open my pond</button>` : '',
             msg.garden ? `<button type="button" class="b-act" data-open="garden">🌿 Walk the Garden</button>` : '',
+            msg.lounge ? `<button type="button" class="b-act" data-lounge="${esc(msg.lounge)}">🍹 Go to the Lounge</button>` : '',
         ].join('');
         const lead = !me && (!prev || prev.f === 'me' || gap) ? this.m.avatarHTML(this.id) : '<i class="av-sp"></i>';
         return `${stamp}<div class="b ${me ? 'me' : 'them'}${msg.k === 'level' ? ' party' : ''}">${me ? '' : lead}<p class="b-x">${esc(msg.x)}${acts ? `<span class="b-acts">${acts}</span>` : ''}</p></div>`;

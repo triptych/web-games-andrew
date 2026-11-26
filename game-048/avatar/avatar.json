@@ -68,5 +68,19 @@
    "spinframe-save-v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute chibi robot AI with a slot machine for a chest showing three cherries, a round helmet head with a friendly cyan visor face, little legs"
+ }
 }

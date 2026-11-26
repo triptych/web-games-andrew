@@ -421,7 +421,7 @@ const games = [
         description: 'A fantasy visual-novel RPG in plain HTML, CSS and JavaScript, with every scene and character painted by fal and every line voiced with ElevenLabs. Lyra fled the burning Aethermoor Academy with a prophecy that names her as the key to the Lich sealed below it. Gather a knight, an elf ranger and a warlock across four chapters of voiced story; explore a painted village, forest, grove and ruins; take quests, buy and equip gear, and fight turn-based battles where every status effect counts and the bosses act twice a round. Your choice at the end decides how the story is remembered.',
         icon: '📖',
         folder: 'game-028',
-        version: '2.0.2',
+        version: '2.0.3',
         cssClass: 'echoes-of-aethermoor',
         genre: 'story',
         tags: [
@@ -453,7 +453,7 @@ const games = [
         description: "A cozy-fantasy tinker's RPG in plain HTML, CSS and JavaScript, painted with fal and voiced with ElevenLabs. You are Wick, the handy newcomer on Coppergate Lane. Fetch scrap for Trina, find Mabel's kettle, run errands for Bertram, and gather a party of three through those quests, then fight clockwork critters in turn-based battles that each play differently: Cog Sprites swarm, Rust Crabs shell up and rust your armour, Lane Bandits pick your pocket, Gear-Wolves hunt the weakest. Win the Mayor's Golden Gear back from Big Bertha, who telegraphs a slam, calls her cogs and loses her temper. Saves itself, with a hint arrow, tap-to-walk, a touch pad and a bot that tuned the balance. Painted places, characters and creatures, ElevenLabs music, sound effects and every line of dialogue voiced.",
         icon: '⚙️',
         folder: 'game-030',
-        version: '2.0.1',
+        version: '2.0.3',
         cssClass: 'coppergate-lane',
         genre: 'rpg',
         tags: [
@@ -2318,6 +2318,22 @@ const games = [
             { emoji: '\uD83E\uDDDA', label: 'Fairies' },
             { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
             { emoji: '\uD83C\uDFA8', label: 'Canvas 2D' }
+        ]
+    },
+    {
+        id: 'game-149',
+        title: 'Echoheart Academy',
+        description: "An upbeat anime visual novel RPG in three.js. Kai's only magic is that he can hear other people's spells as songs and sing them back. At Lumina Academy, a castle school on a floating island, he makes four friends (fiery Hana, shy star mage Lys, explosive alchemist Pip and his wind-mage roommate Ren), plays their six magical mini-games, collects twelve hidden Echo Charms, gives gifts, and grows close to one of them through heart events that end in romance or best friendship. But students are falling into a magicless sleep, and the trail leads from an archive full of cult marks to the kindly, candy-giving principal. On the night of the Starfall Festival the Hollow Moon rises, your closest friend is taken, and you race the moon across the island to free every caged student before facing the Hollow Choir's master, where Kai's Echo turns every stolen spell back on him. Five chapters, 74 scenes, turn-based battles with Meshy-modelled and animated characters on a 3D campus, fal-painted art, and ElevenLabs music, sound and voices.",
+        icon: '\uD83C\uDF19',
+        folder: 'game-149',
+        version: '1.1.1',
+        cssClass: 'echoheart-academy',
+        genre: 'story',
+        tags: [
+            { emoji: '\uD83D\uDC9E', label: 'Visual novel' },
+            { emoji: '\u2728', label: 'Magic school' },
+            { emoji: '\uD83C\uDF99\uFE0F', label: 'Voiced' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
     }
 ];

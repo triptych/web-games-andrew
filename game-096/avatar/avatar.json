@@ -75,5 +75,19 @@
    ]
   }
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a super cute small orange hermit crab with big eyes, wearing tiny goggles, in a swirly seashell with little gadgets stuck on it, walking on its little legs"
+ }
 }

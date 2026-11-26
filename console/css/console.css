@@ -3406,6 +3406,362 @@ kbd {
     opacity: 0.7;
 }
 
+/* ------------------------------------------------------------------ the Lounge (./js/lounge.js) */
+
+.v-lounge {
+    background: #140c14;
+    font-family: 'DotGothic16', var(--screen);
+}
+.lg-stage {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: radial-gradient(120% 80% at 50% 30%, #2a1828, #0c070c);
+}
+.lg-cv {
+    display: block;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    touch-action: none;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px #0a0610, 0 0 24px rgba(0, 0, 0, 0.6);
+}
+.lg-hud {
+    position: absolute;
+    top: 5px;
+    left: 6px;
+    right: 6px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    pointer-events: none;
+    font: 12px/1.1 'DotGothic16', var(--screen);
+    color: #fff;
+}
+/* the JRPG window: a navy gradient inside a white border */
+:is(.lg-who, .lg-want, .lg-count, .lg-tip, .lg-dlg, .lg-win) {
+    background: linear-gradient(180deg, #2b3a9c, #121866);
+    border: 2px solid #f4f4ff;
+    border-radius: 5px;
+    box-shadow: 0 0 0 1px #07071c, inset 0 0 0 1px #6a78dc, 0 3px 0 rgba(0, 0, 0, 0.35);
+    color: #fff;
+}
+:is(.lg-who, .lg-want, .lg-count, .lg-tip) {
+    padding: 3px 7px;
+    white-space: nowrap;
+}
+.lg-who {
+    display: flex;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+}
+.lg-who b {
+    font-weight: normal;
+    color: color-mix(in srgb, var(--c) 55%, #fff);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.lg-who i {
+    font-style: normal;
+    color: #ff86b0;
+    letter-spacing: 1px;
+}
+.lg-count {
+    margin-left: auto;
+    opacity: 0.85;
+}
+.lg-tip {
+    white-space: normal;
+}
+.lg-dlg {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 6px;
+    z-index: 3;
+    display: flex;
+    gap: 9px;
+    min-height: 28%;
+    max-height: 50%;
+    padding: 8px 10px 14px;
+    cursor: pointer;
+}
+.lg-dlg[hidden],
+.lg-craft[hidden],
+.lg-choices[hidden],
+.lg-face[hidden],
+.lg-more[hidden] {
+    display: none !important;
+}
+.lg-dlg.in,
+.lg-craft.in .lg-win {
+    animation: lg-pop 0.18s ease-out both;
+}
+@keyframes lg-pop {
+    from {
+        transform: scale(0.92) translateY(6px);
+        opacity: 0;
+    }
+}
+.lg-face {
+    flex: 0 0 auto;
+    align-self: flex-start;
+    width: clamp(40px, 15cqh, 76px);
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: center / cover no-repeat #10164a;
+    box-shadow: 0 0 0 2px #f4f4ff, 0 0 0 4px var(--c, #ffd27e);
+    margin: 2px;
+}
+.lg-body {
+    flex: 1;
+    min-width: 0;
+    overflow: auto;
+}
+.lg-name {
+    margin: 0 0 3px;
+    color: #ffe27a;
+    font-size: 13px;
+}
+.lg-text {
+    margin: 0;
+    font-size: clamp(13px, 4.4cqh, 17px);
+    line-height: 1.35;
+    white-space: pre-wrap;
+    text-shadow: 1px 1px 0 #07071c;
+}
+.lg-more {
+    position: absolute;
+    right: 10px;
+    bottom: 3px;
+    color: #ffe27a;
+    font-style: normal;
+    font-size: 11px;
+    animation: lg-blink 0.8s steps(2) infinite;
+}
+@keyframes lg-blink {
+    50% {
+        opacity: 0;
+    }
+}
+.lg-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-top: 6px;
+}
+.lg-choice {
+    all: unset;
+    position: relative;
+    padding: 2px 4px 2px 18px;
+    font: inherit;
+    font-size: 14px;
+    color: #fff;
+    cursor: pointer;
+}
+.lg-choice.sel {
+    color: #ffe27a;
+}
+.lg-choice.sel::before {
+    content: '▶';
+    position: absolute;
+    left: 3px;
+    animation: lg-nudge 0.5s ease-in-out infinite alternate;
+}
+@keyframes lg-nudge {
+    to {
+        transform: translateX(3px);
+    }
+}
+
+/* making an order */
+.lg-craft {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    padding: 6px;
+    background: rgba(5, 3, 12, 0.55);
+}
+.lg-win {
+    width: min(100%, 430px);
+    max-height: 100%;
+    overflow: auto;
+    padding: 8px 10px 10px;
+}
+.lg-ctitle {
+    margin: 0 0 7px;
+    color: #ffe27a;
+    font-size: 15px;
+    text-align: center;
+}
+.lg-ctitle small {
+    display: block;
+    color: #c8d0ff;
+    font-size: 11px;
+}
+.lg-recipe {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    margin-bottom: 7px;
+}
+.lg-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 42px;
+    padding: 3px 5px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+}
+.lg-step i {
+    font-style: normal;
+    font-size: 18px;
+    filter: grayscale(0.7) opacity(0.55);
+}
+.lg-step.done {
+    background: rgba(120, 255, 160, 0.2);
+}
+.lg-step.done i {
+    filter: none;
+}
+.lg-step.next {
+    box-shadow: 0 0 0 2px #ffe27a;
+}
+.lg-step small {
+    color: #c8d0ff;
+    font-size: 9px;
+    white-space: nowrap;
+}
+.lg-arrow {
+    color: #8a98ff;
+}
+.lg-shelf {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 3px;
+}
+.lg-ing {
+    all: unset;
+    display: grid;
+    place-items: center;
+    height: clamp(24px, 8.5cqh, 46px);
+    border-radius: 4px;
+    background: linear-gradient(#5f3f28, #3e2818);
+    box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+}
+.lg-ing i {
+    font-style: normal;
+    font-size: clamp(15px, 5.6cqh, 24px);
+}
+.lg-ing.sel {
+    background: linear-gradient(#83573a, #5f3f28);
+    box-shadow: 0 0 0 2px #ffe27a, inset 0 -3px 0 rgba(0, 0, 0, 0.3);
+}
+.lg-help {
+    margin: 6px 0 0;
+    color: #c8d0ff;
+    font-size: 12px;
+    text-align: center;
+}
+.lg-miss {
+    margin: 4px 0 0;
+    color: #ff8a8a;
+    font-size: 12px;
+    text-align: center;
+}
+.lg-meter {
+    position: relative;
+    height: 22px;
+    margin: 8px 0 7px;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: inset 0 0 0 2px #07071c;
+    cursor: pointer;
+}
+.lg-zone {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+.lg-zone.ok {
+    left: 0;
+    right: 0;
+    background: #6a2a3a;
+}
+.lg-zone.good {
+    left: 30%;
+    right: 30%;
+    background: #c07a3a;
+}
+.lg-zone.best {
+    left: 43%;
+    right: 43%;
+    background: #ffd24a;
+}
+.lg-needle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 3px;
+    margin-left: -1px;
+    background: #fff;
+    box-shadow: 0 0 0 1px #000;
+}
+.lg-go {
+    all: unset;
+    display: block;
+    margin: 0 auto;
+    padding: 5px 18px;
+    border-radius: 4px;
+    background: #ffe27a;
+    color: #2a1a40;
+    font: inherit;
+    font-size: 15px;
+    box-shadow: 0 3px 0 #b08a2a;
+    cursor: pointer;
+}
+.lg-stars {
+    margin: 7px 0 0;
+    color: #ffe27a;
+    font-size: 20px;
+    text-align: center;
+    animation: lg-pop 0.2s ease-out both;
+}
+.lg-stars span {
+    font-size: 13px;
+}
+/* the home menu's picture: the bartender, standing */
+.lg-hero {
+    display: block;
+    height: 62%;
+    aspect-ratio: 32 / 40;
+    background: url('../img/bartender.png') 50% 0 / 300% 500% no-repeat;
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 10px var(--glow));
+    animation: float 3.4s ease-in-out infinite;
+}
+@container lcd (max-height: 300px) {
+    .lg-dlg {
+        min-height: 0;
+        max-height: 58%;
+        padding: 6px 8px 12px;
+    }
+    .lg-face {
+        width: 36px;
+    }
+}
+
 /* ------------------------------------------------------------------ calmer motion */
 
 @media (prefers-reduced-motion: reduce) {

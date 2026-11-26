@@ -64,5 +64,19 @@
    "last-apprentice.v1"
   ]
  },
- "art": "fal"
+ "art": "fal",
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "a cute ghostly old sorcerer made of grey ink lines, a long wispy beard, a tall hat with stars, faint and translucent, holding an open book"
+ }
 }
