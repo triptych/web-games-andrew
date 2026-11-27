@@ -20,6 +20,7 @@ export class Input {
         this.stick = { active: false, id: null, ox: 0, oy: 0, x: 0, y: 0 };
         this.pad = { x: 0, y: 0, fire: false, prev: [] };
         this.touchFire = false;
+        this.mouse = { active: false, x: 0, y: 0, fire: false };
         this.autoFire = false;          // set by main.js from the settings
         this.lastDevice = 'keys';
         this.onTouch = null;
@@ -45,6 +46,38 @@ export class Input {
             this.lastDevice = 'touch';
             this.onTouch?.();
         }, { capture: true });
+    }
+
+    /** Desktop mouse controls: steer/throttle toward the cursor, hold left to fire, right-click for a missile. */
+    bindMouse(canvas) {
+        const update = (e) => {
+            const r = canvas.getBoundingClientRect();
+            if (!r.width || !r.height) return;
+            this.mouse.active = true;
+            this.mouse.x = Math.max(-1, Math.min(1, ((e.clientX - r.left) / r.width - 0.5) * 2));
+            this.mouse.y = Math.max(-1, Math.min(1, ((e.clientY - r.top) / r.height - 0.5) * 2));
+        };
+        canvas.addEventListener('pointermove', (e) => {
+            if (e.pointerType === 'mouse') update(e);
+        });
+        canvas.addEventListener('pointerdown', (e) => {
+            if (e.pointerType !== 'mouse' || e.button > 2) return;
+            update(e);
+            e.preventDefault();
+            this.lastDevice = 'mouse';
+            if (e.button === 0) { this.mouse.fire = true; this.edges.fire = true; }
+            if (e.button === 2) this.edges.missile = true;
+        });
+        window.addEventListener('pointerup', (e) => {
+            if (e.pointerType === 'mouse' && e.button === 0) {
+                this.mouse.fire = false;
+                this.mouse.active = false;
+            }
+        });
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+        canvas.addEventListener('pointerleave', (e) => {
+            if (e.pointerType === 'mouse' && !this.mouse.fire) this.mouse.active = false;
+        });
     }
 
     /** A floating stick: zone captures the thumb, el is the visual ring, knob follows the thumb. */
@@ -129,7 +162,11 @@ export class Input {
             const sx = this.stick.x, sy = this.stick.y;
             if (Math.abs(sx) > 0.12 || Math.abs(sy) > 0.35) { x = Math.abs(sx) > 0.12 ? Math.max(-1, Math.min(1, sx * 1.25)) : 0; y = Math.abs(sy) > 0.35 ? sy : 0; }
         }
-        const held = FIRE_KEYS.some((c) => k.has(c)) || this.pad.fire || this.touchFire;
+        if (this.mouse.active && this.lastDevice === 'mouse') {
+            x = this.mouse.x;
+            y = this.mouse.y;
+        }
+        const held = FIRE_KEYS.some((c) => k.has(c)) || this.pad.fire || this.touchFire || this.mouse.fire;
         return { x, y, fire: this.autoFire || held || this.edges.fire, jump: this.edges.jump, missile: this.edges.missile };
     }
 

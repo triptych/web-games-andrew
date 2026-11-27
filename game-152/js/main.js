@@ -167,6 +167,7 @@ function updateTouch() {
     ui.setAutoFire(input.autoFire);
 }
 input.onTouch = updateTouch;
+input.bindMouse(document.getElementById('view'));
 input.bindStick(document.getElementById('stick-zone'), document.getElementById('stick'), document.querySelector('#stick .knob'));
 input.bindButton(document.getElementById('btn-jump'), () => input.pressJump());
 input.bindButton(document.getElementById('btn-missile'), () => input.pressMissile());
