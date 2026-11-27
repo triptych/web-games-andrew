@@ -1,6 +1,6 @@
 // One Shot — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.0.1';
+export const VERSION = '1.0.2';
 export const SAVE_KEY = 'one-shot.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)
@@ -38,6 +38,7 @@ export const ROUND = {
     routeBase: 40,     // charge MIRA routes into the stat you pick when a round is cleared
     routePerSec: 10,   // plus this per second left on the round clock
     lance: 12,         // the final charge window once the mothership is exposed
+    repair: 20,        // hull MIRA patches between rounds
 };
 export const DRONE = {
     approach: 2.8,     // seconds from launch to firing range
@@ -57,15 +58,15 @@ export const GRADES = [
     { g: 'C', min: 1.0, mult: 1.0 },
 ];
 export const GRADE_ORDER = ['F', 'C', 'B', 'A', 'S'];
-export const REWARD = { perSecond: 2, perDrone: 4, flawless: 1.2, consolation: 0.35, replay: 0.5 };
+export const REWARD = { perSecond: 2, perDrone: 4, flawless: 1.2, consolation: 0.6, replay: 0.5 };
 
 // ------------------------------------------------------------------ the hangar
 export const UPGRADES = [
-    { id: 'capacitor', name: 'Lance Capacitor', stat: 'power', desc: '+15% Power per tile', per: 0.15 },
-    { id: 'coils', name: 'Velocity Coils', stat: 'speed', desc: '+15% Speed per tile', per: 0.15 },
-    { id: 'thermal', name: 'Thermal Lens', stat: 'thermal', desc: '+15% Thermal per tile', per: 0.15 },
-    { id: 'cryo', name: 'Cryo Lens', stat: 'cryo', desc: '+15% Cryo per tile', per: 0.15 },
-    { id: 'volt', name: 'Volt Lens', stat: 'volt', desc: '+15% Volt per tile', per: 0.15 },
+    { id: 'capacitor', name: 'Lance Capacitor', stat: 'power', desc: '+25% Power per tile', per: 0.25 },
+    { id: 'coils', name: 'Velocity Coils', stat: 'speed', desc: '+25% Speed per tile', per: 0.25 },
+    { id: 'thermal', name: 'Thermal Lens', stat: 'thermal', desc: '+25% Thermal per tile', per: 0.25 },
+    { id: 'cryo', name: 'Cryo Lens', stat: 'cryo', desc: '+25% Cryo per tile', per: 0.25 },
+    { id: 'volt', name: 'Volt Lens', stat: 'volt', desc: '+25% Volt per tile', per: 0.25 },
     { id: 'deflector', name: 'Deflector', stat: 'shield', desc: '+25% shield per tile, +15 capacity', per: 0.25 },
     { id: 'reactor', name: 'Reactor Core', stat: 'time', desc: '+3 s every round and the final window', per: 3 },
     { id: 'missiles', name: 'Point Defense', stat: 'missiles', desc: '+50% missile damage', per: 0.5 },

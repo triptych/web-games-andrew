@@ -277,6 +277,7 @@ export class UI {
         $('route-text').innerHTML = ev.cleared
             ? `${ev.of}/${ev.of} escorts down with <b>${Math.ceil(ev.spare)} s</b> to spare. MIRA can route <b>+${amount}</b> spare charge into one system:`
             : `${ev.killed}/${ev.of} escorts down; the rest made a final pass. MIRA can route <b>+${amount}</b> into one system:`;
+        if (ev.repaired > 0) $('route-text').innerHTML += ` <span style="color:var(--shield)">MIRA patched the hull: +${Math.round(ev.repaired)}.</span>`;
         const sug = suggestRoute(G);
         $('route-opts').innerHTML = ROUTES.map((s) => `<button class="btn ${s === sug ? 'suggest' : ''}" data-stat="${s}">${ROUTE_LABEL[s]}${s === sug ? '<br><small>MIRA suggests</small>' : ''}</button>`).join('');
     }

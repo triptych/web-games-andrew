@@ -134,11 +134,15 @@ function endRound(G, cleared) {
         if (m.phase !== 'round') return;    // the last pass brought the ship down
     }
     m.spare = cleared ? m.clock : 0;
+    // MIRA patches the hull between rounds, so a rough round doesn't doom the whole sortie
+    const repaired = Math.min(ROUND.repair, m.maxHull - m.hull);
+    m.hull += repaired;
+    if (m.hull > m.maxHull * 0.3) m.lowHull = false;
     m.drones = [];
     m.missiles = [];
     m.phase = 'clear';
     m.t = 0;
-    G.events.push({ type: 'roundEnd', round: m.round, cleared, spare: m.spare, killed: m.killed, of: wave.count });
+    G.events.push({ type: 'roundEnd', round: m.round, cleared, spare: m.spare, killed: m.killed, of: wave.count, repaired });
 }
 
 /** The charge MIRA routes when you pick a stat after a round. */

@@ -11,7 +11,7 @@
  * 3. rules: swaps, charge and its multipliers, missiles and escorts, enemy fire, rounds, routing, the final window,
  *    the shot, resistances, the shifting barrier, jammers, the desperate shot, grades, rewards, unlocks, the hangar.
  * 4. determinism: same seed and commands → same game; a save round trip mid-round plays on identically.
- * 5. bot: whole campaigns at skill 1 and 0.6 over SEEDS seeds with per-step invariants, the balance table, and the
+ * 5. bot: whole campaigns at skill 1, 0.6 and 0.25 (a casual player) over SEEDS seeds with per-step invariants, the balance table, and the
  *    bands the campaign must land in.
  */
 import fs from 'node:fs';
@@ -185,7 +185,7 @@ if (want('rules')) {
     G.m.board = boardOf({ [idx(3, 0)]: { k: 0, sp: 0 }, [idx(3, 1)]: { k: 0, sp: 0 }, [idx(4, 2)]: { k: 0, sp: 0 } });
     Gm.act(G, { t: 'swap', a: idx(4, 2), b: idx(3, 2) });
     run(G, 0.2, (g) => g.events.some((e) => e.type === 'clear'));
-    ok(Math.abs(G.events.find((e) => e.type === 'clear').gain.power - 3 * C.CHARGE.tile * 1.3) < 1e-6, 'the Lance Capacitor adds 15% Power per level');
+    ok(Math.abs(G.events.find((e) => e.type === 'clear').gain.power - 3 * C.CHARGE.tile * 1.5) < 1e-6, 'the Lance Capacitor adds 25% Power per level');
 
     // shield tiles fill the deflector, capped
     G = freshMission(5, 0);
@@ -228,6 +228,16 @@ if (want('rules')) {
     run(G, BOSSES[0].roundTime + 3, (g) => g.m.phase !== 'round');
     ok(G.m.phase === 'clear' && G.m.spare === 0 && G.m.timeouts === 1, 'a timed-out round ends with no spare seconds');
     ok(G.events.some((e) => e.type === 'roundEnd' && !e.cleared), 'and says the wave escaped');
+    G = freshMission(8, 0);
+    G.m.hull = 40;
+    G.m.killed = BOSSES[0].waves[0].count;
+    run(G, 0.5, (g) => g.m.phase === 'clear');
+    ok(G.m.phase === 'clear' && G.m.hull === 40 + C.ROUND.repair, 'MIRA patches the hull between rounds');
+    G = freshMission(8, 0);
+    G.m.hull = G.m.maxHull - 5;
+    G.m.killed = BOSSES[0].waves[0].count;
+    run(G, 0.5, (g) => g.m.phase === 'clear');
+    ok(G.m.hull === G.m.maxHull, 'but never past full');
 
     // after the last round the mothership is exposed; the Lance fires on FIRE or when the window closes
     G = freshMission(9, 0);
@@ -352,17 +362,18 @@ if (want('determinism')) {
 if (want('bot')) {
     section('bot');
     const rows = [];
-    for (const skill of [1, 0.6]) {
+    for (const skill of [1, 0.6, 0.25]) {
         for (let s = 1; s <= SEEDS; s++) {
             const G = Gm.newGame(s * 7919);
             const bot = Bt.makeBot({ skill, seed: s });
             const log = [];
+            const tries = BOSSES.map(() => 0);
             let bad = null, steps = 0;
             while (!G.ended && G.missions < 60 && !bad) {
                 Gm.step(G, DT);
                 const c = Bt.botCmd(G, bot, DT);
                 if (c) Gm.act(G, c);
-                for (const e of G.events) if (e.type === 'result') log.push(`${e.level + 1}${e.grade}`);
+                for (const e of G.events) if (e.type === 'result') { log.push(`${e.level + 1}${e.grade}`); tries[e.level]++; }
                 G.events.length = 0;
                 const m = G.m;
                 if (m) {
@@ -375,15 +386,20 @@ if (want('bot')) {
                 if (++steps > 120 * 60 * 120) bad = 'took over two hours';
             }
             ok(!bad, `skill ${skill} seed ${s}: ${bad || 'invariants hold'}`);
-            rows.push({ skill, seed: s, missions: G.missions, ended: G.ended, scrap: G.scrap, ups: Object.values(G.up).reduce((a, v) => a + v, 0), log: log.join(' ') });
+            rows.push({ skill, seed: s, tries, missions: G.missions, ended: G.ended, scrap: G.scrap, ups: Object.values(G.up).reduce((a, v) => a + v, 0), log: log.join(' ') });
         }
     }
     for (const r of rows) console.log(`  skill ${r.skill} seed ${r.seed}: ${r.ended ? 'won' : 'NOT WON'} in ${r.missions} sorties, ${r.ups} upgrades · ${r.log}`);
-    const p = rows.filter((r) => r.skill === 1), q = rows.filter((r) => r.skill === 0.6);
+    const p = rows.filter((r) => r.skill === 1), q = rows.filter((r) => r.skill === 0.6), c = rows.filter((r) => r.skill === 0.25);
     ok(p.every((r) => r.ended && r.missions <= 9), 'the perfect bot beats all six motherships in at most 9 sorties');
-    ok(q.every((r) => r.ended && r.missions <= 30), 'the skill-0.6 bot wins within 30 sorties');
-    ok(q.every((r) => r.missions >= 7), 'and needs at least one retry to do it');
-    ok(q.reduce((a, r) => a + r.missions, 0) > p.reduce((a, r) => a + r.missions, 0), 'a worse pilot needs more sorties');
+    ok(q.every((r) => r.ended && r.missions <= 14), 'the skill-0.6 bot wins within 14 sorties');
+    // a slow, often-random player (a move every 1.5 s, the best one only a fifth of the time) stands in for a person
+    ok(c.every((r) => r.ended && r.missions <= 20), 'the casual skill-0.25 bot wins within 20 sorties');
+    ok(c.every((r) => r.tries[1] <= 2), 'and beats the Ember Citadel in at most two tries (v1.0.2: it failed it every time)');
+    ok(c.every((r) => Math.max(...r.tries) <= 5), 'and never needs more than five tries at any mothership');
+    ok(c.reduce((a, r) => a + r.missions, 0) > p.reduce((a, r) => a + r.missions, 0), 'a worse pilot needs more sorties');
+    const grades = p.flatMap((r) => r.log.split(' ').map((x) => x.slice(-1)));
+    ok(grades.filter((g) => g === 'S').length < grades.length, 'and even the perfect bot doesn\'t S everything');
 }
 
 console.log(`\n${fails ? `${fails} FAILED` : 'all passed'} (${checks} checks)`);
