@@ -19,12 +19,12 @@ export const MODELS = {
     tank:     { len: 3.6, yaw: -Math.PI / 2, lift: 0.0, color: 0x50545e },
     turret:   { len: 4.2, yaw: -Math.PI / 2, lift: 0.0, color: 0x6a6a70 },
     mine:     { len: 2.0, yaw: 0, lift: -0.35, color: 0xc0262e },
-    kabuto:   { len: 16, yaw: -Math.PI / 2, lift: 0.0, color: 0x5a5f6b },
+    kabuto:   { len: 16, yaw: Math.PI / 2, lift: 0.0, color: 0x5a5f6b },
     torii:    { len: 28, yaw: 0, lift: 0.0, color: 0xb02a2a },
-    zero:     { len: 10, yaw: -Math.PI / 2, lift: 0.6, color: 0x22232a },
+    zero:     { len: 10, yaw: Math.PI / 2, lift: 0.6, color: 0x22232a },
     souen:    { len: 20, yaw: -Math.PI / 2, lift: 0.0, color: 0x7b808e },
-    raijin:   { len: 18, yaw: -Math.PI / 2, lift: 0.4, color: 0x1d2547 },
-    tetsuren: { len: 22, yaw: -Math.PI / 2, lift: 0.0, color: 0x1b1a1f },
+    raijin:   { len: 18, yaw: Math.PI / 2, lift: 0.4, color: 0x1d2547 },
+    tetsuren: { len: 22, yaw: Math.PI / 2, lift: 0.0, color: 0x1b1a1f },
 };
 
 const protos = {};

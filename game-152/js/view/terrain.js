@@ -86,9 +86,13 @@ function waterMaterial(pal) {
                 float r1 = sin(p.x * 1.3 + sin(flow * 0.21) * 1.5) * sin(flow * 0.42 + p.x * 0.3);
                 col = mix(col, streak, step(0.93, r1) * 0.85);
                 // sparkles
-                vec2 cell = floor(vec2(p.x * 0.7, flow * 0.35));
+                vec2 q = vec2(p.x * 0.7, flow * 0.35);
+                vec2 cell = floor(q);
+                vec2 f = fract(q) - 0.5;
                 float sp = h21(cell);
-                float tw = step(0.985, sp) * step(0.6, fract(t * 1.7 + sp * 7.0));
+                // a small four-point glint in a few cells, blinking
+                float star = step(abs(f.x) * abs(f.y * 2.0), 0.004) * step(length(f * vec2(1.0, 2.0)), 0.3);
+                float tw = step(0.93, sp) * star * step(0.5, fract(t * 1.7 + sp * 7.0));
                 col = mix(col, vec3(1.0), tw);
                 // foam line at every shore, wobbling
                 float fw = 0.75 + 0.35 * sin(flow * 0.7 + p.x * 0.9) + 0.25 * sin(flow * 1.9);
@@ -189,7 +193,7 @@ export class Terrain {
             }
             for (let i = 0; i < rows - 1; i++) for (let j = 0; j < WC - 1; j++) {
                 const a = i * WC + j, b = a + 1, c = a + WC, d = c + 1;
-                idx.push(a, c, b, b, c, d);
+                idx.push(a, b, c, b, d, c);           // counter-clockwise seen from above (x right, rows toward −Z)
             }
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -222,7 +226,8 @@ export class Terrain {
             const W = DS.length;
             for (let i = 0; i < rows - 1; i++) for (let j = 0; j < W - 1; j++) {
                 const a = i * W + j, b = a + 1, c = a + W, d = c + 1;
-                if (side < 0) idx.push(a, b, c, b, d, c); else idx.push(a, c, b, b, c, d);
+                // the right bank's columns run toward +x, the left's toward −x: opposite windings face up
+                if (side > 0) idx.push(a, b, c, b, d, c); else idx.push(a, c, b, b, c, d);
             }
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
@@ -248,7 +253,7 @@ export class Terrain {
             }
             for (let i = 0; i < rows - 1; i++) for (let j = 0; j < 4; j++) {
                 const a = i * 5 + j, b = a + 1, c = a + 5, d = c + 1;
-                idx.push(a, c, b, b, c, d);
+                idx.push(a, b, c, b, d, c);
             }
             const geo = new THREE.BufferGeometry();
             geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
