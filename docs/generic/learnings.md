@@ -7836,3 +7836,38 @@ eight Meshy image-to-3D models from ElevenLabs reference pictures, ElevenLabs mu
   1.5 s, the best swap a fifth of the time) reproduced it at once, and also showed the late game's real wall was
   survival, not charge: it was shot down before the shot. Keep a slow bot in the campaign bands (`skill 0.25`: wins
   within 20 sorties, at most two tries at mothership 2, five anywhere) so the next rebalance can't drift back.
+
+## Game 152: HAYATE RIVER STRIKE — a river generated ahead of the boat, open-ended boss arenas, and a bot that found every balance hole first (2026-11-27)
+
+A 3D top-down river shooter (River Raid × 90s shmup) with a jump, fuel and a 15-node skill tree, in the sim/view
+layout. What the next game can take from it:
+
+- **Generate a scrolling world as segments made ahead of the player, with the generator's RNG state inside `G`.**
+  `js/sim/river.js` keeps `segs`, `endY` and its own `rngState` in `G.river`, so the river's shape never shifts with how
+  many shots were fired, and a save is a JSON round trip (`Infinity` needs a replacer/reviver in `serialize`). Each
+  segment eases its centre and width from the previous segment's end with a wiggle that is zero at both ends
+  (`amp × sin(π k t)`), so segments always join without a seam.
+- **A boss arena is a segment with `len = Infinity`.** The generator stops at it, the boss rides a fixed distance ahead
+  of the boat for as long as the fight takes, and when the boss dies the arena gets a real length and the generator
+  carries on. The view must then drop the terrain chunks it already built past the new end
+  (`terrain.dropFrom(G.river.endY)` on `bosskill`).
+- **A sandbar next to a chokepoint squeezed a channel to 5.3 m** although every island segment widened the river: the
+  width eases in from the previous (narrow) segment while the sandbar rises. Clamp the sandbar to `hw − MIN_GAP` at
+  every row, and prove the narrowest channel over 60 seeds × 3 sectors (`narrowest()` in the simtest).
+- **The bot table found three design bugs before any were drawn.** Fuel, not combat, killed the perfect bot in 5 of 8
+  runs; one 14-core rank of Extra Barrels (+50% firepower) made the weakest bot unbeatable; and the final boss stalled
+  because its bridge tower sat behind its shielded core, where no shot could reach. Each became a number change plus
+  a test (a simtest line now checks that no part hides behind a shielded core).
+- **Aim every enemy shot when its telegraph starts** (`lockAim` in `patterns.js`) and draw that aim line. The warning
+  then shows exactly where the shot goes, so a dodge is always possible, and the bot can read the same line.
+- **Hand-built terrain strips need their winding worked out per side.** The water and both banks were culled on the
+  first screenshot (only the trees showed): a strip whose columns run toward +x needs `(a, b, c), (b, d, c)` to face
+  up, and the left bank, whose columns run toward −x, needs the reverse.
+- **A sparkle drawn per noise cell fills the whole cell.** `step(0.985, hash(cell))` drew white rectangles across the
+  water; keep the cell hash for *which* cells sparkle and draw a small glint inside the cell from `fract()`.
+- **Meshy lays boats along X, bow at −X.** Look at every model from above with an arrow pointing downriver
+  (`dev/models.html`) before setting yaws: boats that travel with the player turn −90°, bosses that face the player
+  +90°, and one boss came out the other way.
+- **ElevenLabs' image filter blocked a sprite prompt that gave a character's age** ("a 19-year-old … girl"); "an adult
+  speedboat racing pilot" went through. Two of five music generations failed server-side and were not charged; rerun
+  only those.

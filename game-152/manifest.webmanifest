@@ -1,0 +1,39 @@
+{
+  "name": "HAYATE RIVER STRIKE",
+  "short_name": "HAYATE RIVER…",
+  "description": "HAYATE RIVER STRIKE — a 3D top-down arcade river shooter with an anime look: steer an armed assault boat down a winding canyon, jump over mines and booms, manage fuel, beat multi-phase bosses and grow a three-branch skill tree.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1a2e",
+  "theme_color": "#0b1a2e",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

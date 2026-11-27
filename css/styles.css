@@ -1864,6 +1864,17 @@ h1 {
     box-shadow: 0 0 14px #ff4fa8;
 }
 
+.game-preview.hayate-river-strike,
+.carousel-slide-bg.hayate-river-strike {
+    background: linear-gradient(180deg, #bfe6ff 0%, #ffc4dd 34%, #4fe8e0 58%, #0f9fc4 100%);
+}
+
+.game-card.hayate-river-strike .play-button {
+    background: linear-gradient(135deg, #46e0ff, #ff4f9a, #ffc93c);
+    color: #14121f;
+    box-shadow: 0 0 14px #46e0ff;
+}
+
 footer {
     text-align: center;
     padding: 30px 0;

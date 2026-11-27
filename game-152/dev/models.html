@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HAYATE RIVER STRIKE — models</title>
+<style>
+    html, body { margin: 0; height: 100%; background: #8a93a6; overflow: hidden; font: 12px system-ui, sans-serif; }
+    canvas { display: block; }
+    #labels div { position: fixed; color: #fff; text-shadow: 0 1px 2px #000; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div id="labels"></div>
+<script type="importmap">
+{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }
+</script>
+<script type="module">
+// Every model in the game's cel shading on a neutral grey, seen from above (top row of each pair) and from the
+// game camera's angle. The red arrow points downriver (−Z): every bow should point along it. ?view=side for a
+// side view. dev/shot.mjs models screenshots this page.
+import * as THREE from 'three';
+import { MODELS, loadModels, Craft, modelCount } from '../js/view/models.js';
+
+const view = new URLSearchParams(location.search).get('view') || 'top';
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setPixelRatio(1);
+r.setSize(innerWidth, innerHeight);
+r.outputColorSpace = THREE.SRGBColorSpace;
+document.body.appendChild(r.domElement);
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8a93a6);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x445566, 1.4));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(10, 30, 15);
+scene.add(sun);
+loadModels('../models/');
+const names = Object.keys(MODELS);
+const cols = 5, cell = 26;
+const crafts = names.map((n, i) => {
+    const c = new Craft(n);
+    const x = (i % cols - (cols - 1) / 2) * cell, z = Math.floor(i / cols) * cell;
+    c.group.position.set(x, 0, z);
+    const s = Math.min(1, 14 / MODELS[n].len);
+    c.group.scale.setScalar(s);
+    scene.add(c.group);
+    const arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 0, -1), new THREE.Vector3(x + 9, 0.2, z + 4), 8, 0xff3030, 2, 1.2);
+    scene.add(arrow);
+    const el = document.createElement('div');
+    el.textContent = n;
+    document.getElementById('labels').appendChild(el);
+    return { c, el, x, z };
+});
+const cam = new THREE.PerspectiveCamera(40, innerWidth / innerHeight, 1, 1000);
+const rows = Math.ceil(names.length / cols);
+const midZ = ((rows - 1) * cell) / 2;
+if (view === 'side') { cam.position.set(0, 18, midZ + 130); cam.lookAt(0, 0, midZ); }
+else { cam.position.set(0, 150, midZ + 0.01); cam.lookAt(0, 0, midZ); }
+function frame() {
+    requestAnimationFrame(frame);
+    r.render(scene, cam);
+    for (const q of crafts) {
+        const p = new THREE.Vector3(q.x, 0, q.z + 9).project(cam);
+        q.el.style.left = ((p.x + 1) / 2) * innerWidth + 'px';
+        q.el.style.top = ((1 - p.y) / 2) * innerHeight + 'px';
+    }
+    window.__ready = modelCount() === names.length;
+}
+frame();
+</script>
+</body>
+</html>
