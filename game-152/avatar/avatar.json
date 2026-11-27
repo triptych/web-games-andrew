@@ -1,0 +1,122 @@
+{
+ "id": "game-152",
+ "name": "Rin Kazamatsuri",
+ "role": "Pilot of the Hayate",
+ "emoji": "🚤",
+ "color": "#13b5c9",
+ "bio": "Speedboat ace with teal hair and orange goggles. She takes the Hayate down the valley's rivers to break Commodore Kurogane's Iron Lotus fleet, with Tomo fixing whatever she breaks.",
+ "portrait": {
+  "subject": "Rin Kazamatsuri, a determined young adult speedboat pilot with short spiky teal hair, orange goggles pushed up on her forehead, a white racing jacket with cyan panels and a red collar, a confident grin",
+  "background": "bright turquoise river spray with a few pink cherry petals"
+ },
+ "request": "Rin here, on the Hayate's radio! Kurogane's fleet has dammed every river in the valley and I'm going downstream to open them up. Want to ride along? 🚤",
+ "hello": [
+  "Welcome aboard, {you}! Hold on to something. The Hayate doesn't do slow.",
+  "Channel open! Tomo says hi. Well, he says 'don't break the hydrofoils again'. Same thing."
+ ],
+ "about": "I'm Rin, pilot of the Hayate: twin cannons, a missile rack and hydrofoils that throw her right out of the water. Tomo built her; I mostly crash her. Kurogane's fleet is choking the valley, so I'm sailing down to stop him.",
+ "how": "Steer with ← → or A D, throttle with ↑, brake with ↓. Hold J (or Z) to fire, K for a homing missile, Space to JUMP. On a phone, drag the left side to steer, tap JUMP and MSL, and auto-fire shoots for you.",
+ "tips": [
+  "Jump is your best friend: in the air you clear mines, booms, sandbars, bullets and even laser beams. It refills over time, and every kill tops it up.",
+  "Watch your fuel! Brake while you're over a FUEL depot to drink more, and stop shooting when one's in front of you. Yes, you can blow them up. I have. Twice.",
+  "Red lines mean a gun has already picked where it's shooting. Slide out of the line and the shot misses.",
+  "Tanks paint a long red laser before they fire. Don't sit in it!",
+  "Boss cores start shielded: break the hulls, pylons or batteries first. Missiles home in on whatever can be hit.",
+  "When a boss goes into OVERDRIVE, red lanes flash on the water before its beams fire. Get out of the lane, or jump right over the beam.",
+  "Cores get banked at every dock and when a run ends, so even a crash pays. Reinforced Hull and Hot Rounds are great first buys."
+ ],
+ "chat": [
+  "Tomo painted a little cherry blossom on the Hayate's bow. Don't tell him I noticed.",
+  "The jade river has waterfalls everywhere. I keep wanting to jump one. Tomo keeps saying no.",
+  "Kurogane's flagship has a giant iron lotus on the front. Who designs these things?",
+  "Speed raiders have a ram spike on the bow. Rude. Shoot them before they get close!",
+  "I named the twin cannons. Left is Ume, right is Sakura. They don't know.",
+  "SOUEN has two hulls and one very angry core in the middle. We've met."
+ ],
+ "nudge": [
+  "The Hayate's fuelled up and Tomo just tuned the hydrofoils. Want to take her out?",
+  "River's running fast today. Perfect for a run, {you}!"
+ ],
+ "idle": [
+  "It's been {ago}! The Hayate's been sitting at the dock gathering cherry petals.",
+  "{ago} without a run? Kurogane's probably building another fortress."
+ ],
+ "progress": [
+  "Your best run is {best} points! Think we can beat it?",
+  "{cores} cores in the bank. That's a skill or two, {you}!",
+  "{wins} rivers freed so far. Kurogane must hate us!"
+ ],
+ "questions": [
+  {
+   "q": "When something's in the way: shoot it or jump it?",
+   "a": [
+    [
+     "Shoot it",
+     "Classic! Just don't shoot the fuel depots. Ask me how I know."
+    ],
+    [
+     "Jump it",
+     "Ha! That's my favourite button too. Air time is happy time."
+    ],
+    [
+     "Both",
+     "Jump AND shoot? Get the Landing Barrage skill. You're going to love it."
+    ]
+   ]
+  },
+  {
+   "q": "Which skill branch do you go for first?",
+   "a": [
+    [
+     "Hull & Jump",
+     "Smart. More hull means more mistakes allowed. I need those."
+    ],
+    [
+     "Weapons",
+     "More barrels! Tomo says four is 'excessive'. Tomo is wrong."
+    ],
+    [
+     "Systems",
+     "Fuel efficiency and longer boosts? Very sensible. Tomo would approve."
+    ]
+   ]
+  }
+ ],
+ "update": "Tomo just rolled out a Hayate update: version {version}! Come try it out!",
+ "bye": [
+  "Hayate, signing off! Ride the current, {you}!",
+  "Back to the dock. Talk soon!"
+ ],
+ "save": {
+  "keys": [
+   "hayate-river-strike.meta.v1",
+   "hayate-river-strike.v1"
+  ],
+  "stats": {
+   "cores": [
+    "cores"
+   ],
+   "best": [
+    "best"
+   ],
+   "wins": [
+    "wins"
+   ]
+  }
+ },
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "an adult speedboat racing pilot with short spiky teal hair, orange goggles on her forehead, a white racing jacket with cyan panels and a red collar, navy trousers and white boots"
+ },
+ "art": "fal"
+}

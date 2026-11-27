@@ -2367,6 +2367,22 @@ const games = [
             { emoji: '\uD83D\uDCFC', label: '90s anime' },
             { emoji: '\uD83E\uDDCA', label: 'three.js' }
         ]
+    },
+    {
+        id: 'game-152',
+        title: 'HAYATE RIVER STRIKE',
+        description: "A 3D top-down arcade river shooter in three.js with a 1990s anime look. Commodore Kurogane's Iron Lotus fleet has dammed the rivers of the valley, and Rin Kazamatsuri takes the armed assault boat Hayate downriver to break it, with her mechanic Tomo on the radio. Steer, throttle and brake down a procedurally generated canyon of bends, chokepoints, sandbar islands and road bridges; rake everything with twin cannons and homing missiles; and JUMP: the boat vaults into the air with its shadow shrinking on the water, clearing mines, booms, sandbars, bullets and laser beams, and lands with a shockwave or a shell barrage once you upgrade it. River Raid-style fuel drains as you go: sail over FUEL depots (and don't shoot them), grab energy cells or sink a fuel barge. Patrol boats, gunboats, speed raiders that ram, fuel barges, mines, booms, tanks that paint a laser sight before they fire and cliff turrets; three mid-bosses (the KABUTO dreadnought barge, the fortified TORII river gate, the ZERO hydrofoil gunship) and three multi-phase bosses: the twin-hull fortress SOUEN, the storm hydrofoil RAIJIN and Kurogane's flagship TETSUREN, each breaking its outer guns, exposing its core and going into overdrive with laser lanes, rings and missile volleys. Overdrive, Spread, Plasma and Rapid fire, Barrier, Magnet, Jump cells and repairs with timers on the HUD; combos and multipliers; screen shake, hit-stop and floating scores. Cores from every kill feed a three-branch, fifteen-skill tree (Hull & Jump, Weapons & Ordnance, Systems & Boosts) with ranks, previews and a respec, at the dock between sectors or the title. Every boat and boss is a Meshy model in cel shading with ink outlines; the art, music, effects and voices are by ElevenLabs. Keyboard, gamepad or touch.",
+        icon: '\uD83D\uDEA4',
+        folder: 'game-152',
+        version: '1.0.0',
+        cssClass: 'hayate-river-strike',
+        genre: 'arcade',
+        tags: [
+            { emoji: '\uD83D\uDEA4', label: 'River shooter' },
+            { emoji: '\uD83C\uDF38', label: '90s anime' },
+            { emoji: '\uD83C\uDF33', label: 'Skill tree' },
+            { emoji: '\uD83E\uDDCA', label: 'three.js' }
+        ]
     }
 ];
 
