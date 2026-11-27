@@ -1,0 +1,116 @@
+{
+ "id": "game-151",
+ "name": "Juno Arakawa",
+ "role": "Pilot of the Solitaire",
+ "emoji": "🚀",
+ "color": "#e0106e",
+ "bio": "The last pilot of the last ship. She flies the Solitaire and fires the Lance, one shot per mothership, with MIRA, the ship's AI, in her ear.",
+ "portrait": {
+  "subject": "Juno Arakawa, a determined young woman starfighter pilot with short spiky dark-blue hair, a white flight headset with a small microphone, bright amber eyes and a white and navy-blue pilot suit with red trim and a high collar, a confident grin",
+  "background": "a starry violet space nebula with a soft cyan cockpit glow"
+ },
+ "request": "This is Juno Arakawa, Solitaire, on an open channel. The fleet's gone, and there are six motherships between me and home. I could use a wingmate. You in? 🚀",
+ "hello": [
+  "Copy that! Welcome aboard, {you}.",
+  "Channel open. Good to hear a friendly voice out here."
+ ],
+ "about": "I'm the pilot of the Solitaire, the last ship of the fleet. We carry the Lance, a beam that can take down a mothership in one shot, if it's tuned right. MIRA, our AI, helps me tune it. One mothership, one shot. That's the job.",
+ "how": "Each mothership sends escort waves: swap tiles to match three or more. Every match charges the Lance and fires missiles. After the last wave, charge up and hit FIRE!",
+ "tips": [
+  "Read the briefing! Match the element the barrier is weak to. Matching what it resists is wasted charge.",
+  "Speed is easy to forget. If the Lance is too slow, the mothership just dodges, no matter how much power you've got.",
+  "Shoot the wave down fast: every second you save, MIRA routes into the Lance. She usually picks the weakest stat, and she's usually right.",
+  "Keep matching quickly to build a rush. Fast matches multiply everything you charge.",
+  "Line up four for a line blast, five for a nova, an L or T for a cross. They chain!",
+  "Match a few shields when you see a red aiming glow. Hull hits leak charge out of the Lance.",
+  "On the Prism Cathedral, watch the countdown: fire when the barrier's weak spot lines up with what you charged."
+ ],
+ "chat": [
+  "MIRA says I talk to the ship too much. The ship hasn't complained.",
+  "Somebody painted 'ONE SHOT' on the Lance in the hangar. I'm pretty sure it was me. At 3 a.m.",
+  "The escorts all have one glowing pink eye. I swear they blink at me.",
+  "I named every capacitor ring on the Lance. Don't tell MIRA.",
+  "Did you know you can see a ringed planet from the hangar? I wave at it before every sortie."
+ ],
+ "nudge": [
+  "The Solitaire's fuelled and the Lance is cold. Want to fly a sortie?",
+  "MIRA's got a new briefing ready. The Choir won't shoot itself down!"
+ ],
+ "idle": [
+  "It's been {ago}! I've been circling the hangar, waiting for my wingmate.",
+  "{ago} without a sortie? The Choir's getting comfortable out there."
+ ],
+ "progress": [
+  "{beaten} motherships down! We're getting closer to home, {you}.",
+  "{scrap} scrap in the hold. Time for a new lens on the Lance?",
+  "{sorties} sorties flown together. Not bad for a two-person fleet."
+ ],
+ "questions": [
+  {
+   "q": "Which do you trust most: power, speed or the elements?",
+   "a": [
+    [
+     "Power",
+     "Raw power. Classic. Just remember it doesn't help if you miss."
+    ],
+    [
+     "Speed",
+     "Ha! A pilot after my own heart. You can't break what you can't hit."
+    ],
+    [
+     "The elements",
+     "Smart. Find the weak spot, and the barrier folds like paper."
+    ]
+   ]
+  },
+  {
+   "q": "Be honest: do you ever fire early?",
+   "a": [
+    [
+     "Every time",
+     "Quick Draw! I respect it. MIRA does not."
+    ],
+    [
+     "Never",
+     "Patience. You'd make a good AI. Don't tell MIRA I said that."
+    ]
+   ]
+  }
+ ],
+ "update": "One Shot is now v{version}! MIRA tuned something on the Lance. Come take it for a spin. 🚀",
+ "bye": [
+  "Solitaire out. Fly safe, {you}.",
+  "Copy. I'll keep the Lance warm."
+ ],
+ "save": {
+  "keys": [
+   "one-shot.v1"
+  ],
+  "stats": {
+   "beaten": [
+    "data.unlocked"
+   ],
+   "scrap": [
+    "data.scrap"
+   ],
+   "sorties": [
+    "data.missions"
+   ]
+  }
+ },
+ "sprite": {
+  "art": "elevenlabs",
+  "w": 32,
+  "h": 40,
+  "rows": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "frames": 3,
+  "subject": "Juno Arakawa, a young woman starfighter pilot with short spiky dark-blue hair, a white flight headset, amber eyes and a white and navy-blue pilot suit with red trim and white boots"
+ },
+ "art": "fal"
+}
