@@ -140,6 +140,8 @@ async function desktop() {
     await click(page, '#title-menu [data-act="new"]');
     await until(page, () => __os.mode === 'play' && !document.getElementById('hangar').hidden, 'New Game opens the hangar');
     await until(page, () => !document.getElementById('comm').hidden, 'MIRA and Juno open with the intro');
+    await until(page, () => { const a = __os.audio; return a.ducked() && a.duckMusic.gain.value < 0.5 && a.lastDuck && a.lastDuck.dur > 1; }, 'the intro is voiced, with the music and effects ducked under it (v1.0.1)');
+    await until(page, () => { const a = __os.audio; return !a.ducked() && a.duckMusic.gain.value > 0.9; }, 'and the music comes back after the lines', 60000);
     await click(page, '#hangar .tab[data-tab="upgrades"]');
     check(await Q(page, () => !document.getElementById('tab-upgrades').hidden && document.querySelectorAll('#upgrades button[data-buy]:disabled').length === 8), 'the Hangar tab lists 8 upgrades, none affordable yet');
     await shot(page, 'desktop-hangar');
@@ -184,6 +186,8 @@ async function desktop() {
 
     await until(page, () => __os.view.ship.model && __os.view.boss.model && __os.view.drone.model, 'the Meshy models (Solitaire, escort, mothership) loaded');
     await until(page, () => __os.audio.loaded >= 30, 'the ElevenLabs effects, jingles and voices decoded');
+    check(await Q(page, () => ['sfx-volley-a', 'sfx-volley-b', 'sfx-impact', 'sfx-kill'].every((n) => __os.audio.buffers[n])), 'the heavy cannon volleys, impacts and kills decoded (v1.0.1)');
+    await until(page, () => (__os.audio.volleyN || 0) > 0, 'a match fires a cannon volley sound', 60000);
     await until(page, () => __os.audio.playing(), 'battle music is playing');
     await shot(page, 'desktop-round');
 

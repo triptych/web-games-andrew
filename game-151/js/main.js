@@ -175,10 +175,13 @@ function pause() {
 let sayQ = [];
 function sayLines(lines) { sayQ = [...lines]; nextLine(); }
 function nextLine() {
+    // the next line waits for the one being spoken (it may have started late, once its clip decoded)
+    const a = audio;
+    if (a.ctx && (a.ducked() || a.pendingVoice)) { setTimeout(nextLine, 200); return; }
     const l = sayQ.shift();
     if (!l) return;
     ui.say(l, audio);
-    setTimeout(nextLine, ui.commT * 1000);
+    setTimeout(nextLine, Math.max(1, ui.commT - 0.4) * 1000);
 }
 
 // ------------------------------------------------------------------ input routing

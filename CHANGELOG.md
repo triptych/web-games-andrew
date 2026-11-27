@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **One Shot** (game-151) v1.0.1: the shots during the match-3 rounds sounded like little slaps instead of space cannons, and the opening voice lines were lost under the music.
+  - Every missile played a thin rocket hiss, and every non-lethal hit played the hull-impact sample pitched up 1.6×, which was the slap. Now each burst of missiles fires one heavy plasma-cannon volley (two new ElevenLabs takes, alternating), hits land with a deep impact, kills with a bigger explosion, and a sub-bass thump sits under all three ([js/audio.js](game-151/js/audio.js)). Effects are normalised in [dev/audio/process.py](game-151/dev/audio/process.py).
+  - MIRA's calm lines came back from ElevenLabs at -33 LUFS against about -12 for the music, and Juno's at about -20. Every voice line is now normalised to -15 LUFS, the music sits lower, and while anyone speaks the music ducks to 30% and the effects to 60% on gain nodes of their own. A line asked for before its clip has decoded (the intro, right after the first tap) now waits and plays instead of being skipped, and the next line waits for it.
+  - [dev/browsertest.mjs](game-151/dev/browsertest.mjs) checks that the intro is voiced with the music ducked under it and back after, and that the new volleys, impacts and kills decode and a match fires a volley.
+
 ### Added
 - **One Shot** (game-151) v1.0.0: a space shooter crossed with match-3 in a 1990s space-anime style. The last ship, the Solitaire, flown by Juno Arakawa with MIRA, its AI, carries the Lance: one beam, one shot per mothership. Plain HTML, CSS and ES modules; three.js for the battle, Canvas 2D for the board. See [game-151/game-plan.md](game-151/game-plan.md).
   - **Rounds** ([js/sim/game.js](game-151/js/sim/game.js), [js/sim/board.js](game-151/js/sim/board.js)): each mothership's 2–4 escort waves are match-3 rounds on a 7×7 board of Power, Speed, Thermal, Cryo, Volt and Shield. Every match charges the Lance (cascades and a rush of fast matches multiply it) and fires missiles at the escorts; escorts fly in, aim (a red telegraph) and shoot; the deflector blocks, the hull bleeds charge, hull 0 fires a desperate shot. 4 → line, 5 → nova, L/T → cross. A wave shot down early has its saved seconds routed by MIRA into the stat you pick.

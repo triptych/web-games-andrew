@@ -78,6 +78,9 @@
   }
  ],
  "update": "One Shot is now v{version}! MIRA tuned something on the Lance. Come take it for a spin. 🚀",
+ "updates": {
+  "1.0.1": "MIRA retuned the comms! You can actually hear us over the music now. And the Solitaire's cannons got an upgrade: every match fires a proper plasma volley. Feels great."
+ },
  "bye": [
   "Solitaire out. Fly safe, {you}.",
   "Copy. I'll keep the Lance warm."
