@@ -451,10 +451,11 @@ export class View {
         // the camera pulls in for the shot
         const cb = this.stage.camBase;
         const shooting = phase === 'beam';
-        const tx = shooting ? 14 : 0, ty = shooting ? 5 : 4.2, tz = shooting ? 14 : 12;
+        const narrow = this.stage.region.w < this.stage.region.h * 1.5;    // a portrait phone: lift the ship into view
+        const tx = shooting ? 14 : 0, ty = shooting ? 5 : narrow ? 2.2 : 3.4, tz = shooting ? 14 : narrow ? 13 : 12;
         const k = Math.min(1, dt * 2);
         cb.x += (tx - cb.x) * k; cb.y += (ty - cb.y) * k; cb.z += (tz - cb.z) * k;
-        const cl = this.stage.camLook, lx = shooting ? -4 : 0, ly = shooting ? 9 : 7.5, lz = shooting ? -60 : -40;
+        const cl = this.stage.camLook, lx = shooting ? -4 : 0, ly = shooting ? 9 : narrow ? 5.5 : 7, lz = shooting ? -60 : -40;
         cl.x += (lx - cl.x) * k; cl.y += (ly - cl.y) * k; cl.z += (lz - cl.z) * k;
         this.warp = mode === 'title' ? 2.2 : phase === 'round' ? 1.4 : phase === 'beam' ? 0.4 : 1;
         this.stage.frame(dt, time, { warp: this.warp });

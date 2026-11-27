@@ -130,6 +130,10 @@ export class UI {
         Object.assign(g.style, { left: gauges.x + 'px', top: gauges.y + 'px', width: gauges.w + 'px' });
         Object.assign(fire.style, { left: Math.round(region.x + region.w / 2 - 75) + 'px', top: Math.round(region.y + region.h - 92) + 'px' });
         Object.assign(rush.style, { left: Math.round(region.x + region.w / 2 - 50) + 'px', top: Math.round(region.y + Math.min(150, region.h * 0.42)) + 'px' });
+        // comms sit over the 3D scene, never over the board
+        const comm = $('comm');
+        const cw = Math.min(440, region.w - 16);
+        Object.assign(comm.style, { width: cw + 'px', left: Math.round(region.x + region.w / 2) + 'px' });
         if (full) region = { x: 0, y: 0, w, h };        // the shot gets the whole screen
         this.boardRect = board;
         return { board, region };

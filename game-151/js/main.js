@@ -39,7 +39,6 @@ const cloudUI = makeCloudUI(cloud, {
     applySave: (snap) => { restore(snap); cloudUI.reload(); },
     summary: (snap) => { const d = snapValue(snap, SAVE_KEY)?.data; return d ? `Mothership ${Math.min(d.unlocked + 1, BOSSES.length)} · ⬢ ${d.scrap}` : 'A sortie'; },
     version: VERSION,
-    toast: (t) => ui.toast(t),
 });
 const board = new BoardView($('board'), {
     onSwap: (a, b) => doAct({ t: 'swap', a, b }),

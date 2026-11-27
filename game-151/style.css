@@ -264,9 +264,17 @@ td:first-child { color: var(--accent); white-space: nowrap; }
 @media (max-width: 520px) {
     #resists .chip .n { display: none; }
     #resists { gap: 4px; font-size: 10px; }
+    #comm img { width: 42px; height: 42px; }
+    #comm p { font-size: 13px; }
     .gauge label small { display: none; }
 }
 
 /* the shot gets the whole screen: the board and the gauges step aside */
 body.shooting #board, body.shooting #gauges, body.shooting #rush { opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 #board, #gauges { transition: opacity 0.3s; }
+
+@media (max-height: 460px) {
+    #comm { top: calc(84px + var(--safe-t)); padding: 4px 8px 4px 4px; }
+    #comm img { width: 40px; height: 40px; }
+    #comm p { font-size: 12px; }
+}
