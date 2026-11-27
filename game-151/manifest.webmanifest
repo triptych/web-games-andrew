@@ -1,0 +1,39 @@
+{
+  "name": "One Shot",
+  "short_name": "One Shot",
+  "description": "One Shot — a space shooter crossed with match-3. Fight through each mothership",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07061a",
+  "theme_color": "#07061a",
+  "categories": [
+    "games"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

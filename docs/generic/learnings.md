@@ -7786,3 +7786,36 @@ A cozy bookshop management game ([game-150](../../game-150/)): a command-driven 
   morning, which keeps a low-stakes shop from emptying. The good bot now ends on day ~23 (asserted ≤ 45 and ≥ 15).
 - `dev/cloudtest.mjs`: the sign-out check looked for the `/auth/v1/logout` request without waiting for it and failed
   one run in three on a slower page; it now waits up to 5 s like the other checks.
+
+## Game 151: One Shot — match-3 rounds that charge one graded shot, a Meshy fleet in a day, and a beam nobody could see (2026-11-27)
+
+A space shooter crossed with match-3 ([game-151](../../game-151/game-plan.md)): every match charges a beam and fires
+missiles at escorts; after the escort waves the beam fires once and is graded against three requirements. Media:
+eight Meshy image-to-3D models from ElevenLabs reference pictures, ElevenLabs music, effects and voices.
+
+- **A cinematic timed by the view's clock lags a fast-forwarded sim.** Every screenshot of the Lance firing came out
+  with no beam: the browser tests run `&fast=4`, so the sim was 3.5 s into the shot while the view's own timer, fed
+  real frame time under SwiftShader, was still in its 1.3 s charge-up. Anything the view animates in step with a sim
+  phase (a beam, a countdown, a dodge) should read the sim's phase time (`m.t`) while that phase lasts and only
+  fall back to its own clock for the fade-out (`js/view/view.js`, `beamT`). It also makes Skip land the beam where
+  the readouts are.
+- **A stand-in cloned before the model loads stays a stand-in forever.** Escorts launched in the first second
+  (tests, or a fast phone with a slow network) cloned the procedural octahedron, which never got replaced. Mark each
+  clone as a stand-in and swap the model in on the frame it arrives.
+- **Gunmetal enemies vanish against space.** The Meshy drone matched its reference art perfectly and was invisible
+  at 40 units under toon shading: give dark enemies an emissive tint and an additive glow on the side that faces the
+  camera. A glow on the far side is hidden by the hull, which we found by drawing it at the engine first.
+- **With an off-centre projection, use `scene.background` for the sky.** The board covers half the screen, so the
+  camera's projection is shifted into the free region (`projectionMatrix.elements[8]/[9]`). A half-sphere skybox
+  then showed its seam on screen; a background texture fills the screen whatever the projection.
+- **"Portrait" means the scene's region, not the window.** On a 390×844 phone the 3D region left above the board is
+  390×317, wider than tall, so a camera rule keyed to `w < h` never fired and the ship sat under the gauges.
+- **Meshy on ElevenLabs references, eight for eight.** One shared "mechanical design reference … three-quarter view
+  from above and in front … plain white background … no face, no eyes" paragraph gave eight usable ship models with
+  no reruns (15 credits each, under a minute each). Rewrite "fanged maw" and "eye-like core" before generating:
+  the prompt forbids faces, and the subject must too. Long ships face the player nose-on and read as a dot; turn
+  them three-quarters in the holder (`boss.holder.rotation.y`), and check every model's facing on a gallery page.
+- **Rounds change the economy.** Moving from one long charge to several rounds roughly tripled the charge, and
+  escorts with 2 HP died before ever firing. The balance bot found both in its first run; requirements were rescaled
+  from the bot's own totals and escort HP raised to 5–12. A barrier the 0.6 bot failed fifty times with every upgrade
+  maxed was a design bug, not a skill check.
