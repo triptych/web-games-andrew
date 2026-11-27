@@ -1,6 +1,6 @@
 // Echoheart Academy — tuning and constants. Shared by the sim, the view and the tests.
 
-export const VERSION = '1.2.1';
+export const VERSION = '1.2.2';
 export const SAVE_KEY = 'echoheart-academy.v1';
 
 export const STEP = 1 / 120;              // fixed simulation step (s)

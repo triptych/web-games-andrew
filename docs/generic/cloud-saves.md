@@ -198,7 +198,9 @@ screens on the LCD (Cloud, Sign in, Saved Games) instead of `cloud-ui.js`.
   back and reloads.
 - **Which device wins.** `console.cloud` remembers which account this device has matched (restored, or backed up over
   the cloud). Until then it never backs up by itself: a device with nothing of its own (no stars, no plays, no friends
-  but the dragonfly, no Lounge or dragonfly) restores the backup on sign-in; one with data asks.
+  but the dragonfly, no Lounge or dragonfly) restores the backup on sign-in; one with data asks. That is the console's
+  own rule, so its backups pass `force: true` to `upload()`: the shared check (the version this device last matched)
+  would refuse every backup from a device that had only restored, never uploaded.
 - **Saved Games** backs up each game's save from the console, to the row (player, `game-NNN`, `pocket-garden`). The
   keys come from `save.keys` in the game's `avatar/avatar.json` (a `*` at the end takes every key with that prefix),
   the same keys Messages reads. It never writes slot `main`, so it can't collide with a game's own Cloud Save, whose
@@ -271,6 +273,14 @@ for `game_saves`: as `anon`, selecting `game_players` and writing `game_stats` f
   `return=representation`, so an empty answer means "refused": `upload()` throws `code: 'cloud_newer'`. The UI then
   pauses autosave, says so once, and offers Load or Keep (`force: true` is a plain upsert, behind a second tap).
   PostgREST's timestamp text round-trips exactly, so the equality filter is safe.
+- **An upload whose answer never comes back.** The autosave on `pagehide` is a `keepalive` fetch: the database writes it
+  (and the trigger moves `updated_at`), but the closing page never reads the answer, so `web-games.cloud.sync` still
+  holds the old version. Next visit, the same device would take its own save for one from "another device" and pause
+  cloud saving. So `upload()` first stores a fingerprint of what it sends (`sent` in the same key: a hash of the save
+  with its keys sorted, since `jsonb` reorders them), and `download()` adopts a cloud version it hasn't matched when the
+  row's data has exactly that fingerprint. A lost connection on the way back is covered the same way. Playwright never
+  sees a keepalive fetch sent while a page unloads, so `dev/cloudtest.mjs` dispatches `pagehide` itself and holds the
+  mock's answer until the page is closed.
 - **Upsert needs the conflict target:** `POST /rest/v1/game_saves?on_conflict=user_id,game,slot` with
   `Prefer: resolution=merge-duplicates`. Send `user_id` from the token's `sub` so the row matches the policy check.
 - **Paused projects:** free-plan projects pause after a week without traffic, and API calls then fail. Restore it in the

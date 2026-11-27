@@ -2001,7 +2001,7 @@ const games = [
         description: "A 16-bit edutainment point-and-click adventure for young players, in the spirit of the 1990s CD-ROM classics, with pixel art painted with fal and every line voiced with ElevenLabs. Captain Ada Comet is away at Moon Base, so Kit, the Junior Station Keeper, runs Starbase Nine for five days with Orby, a floating robot who always has a hint. Tap anything to walk over and look at it. Every day a funny alien docks and asks three space questions, read aloud with their answers so pre-readers can play: Zorp the tourist from Glorp (the planets), Madame Gloobella the jelly opera diva (the Sun and stars), Captain Snorkel the space walrus trucker (the Moon and comets), Professor Quasar the squid scientist (how space works) and two-headed Blip & Blop (rockets and astronauts). A wrong answer just gets a gentle try again, and every fact goes into Kit's Space Book. Something breaks every day too: connect the wires to light the Star Garden, pick batteries that add up to power the Snack-O-Tron, put the planets back in order to fix the telescope, and repeat the blinking fuse lights. And the station is haunted. Lights flicker, a ghost drifts past, something hums on the radio, the cookies vanish and a cable has tiny bite marks. Walk between rooms with the arrows on the toolbar or at the edges of each room (the one toward the next job glows), keep the clues and gadgets you find in a backpack on the toolbar, solve the mystery, bake a Glow Cookie and follow the glowing footprints into the air vents to meet Wisp, a lost baby Glimmerling, then play her mama's song to call a space whale made of starlight to the window. Nobody can lose; star stickers and a Station Keeper certificate at the end. Mouse, touch, keyboard or gamepad.",
         icon: '👻',
         folder: 'game-130',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'starbase-spooky',
         genre: 'story',
         tags: [
@@ -2018,7 +2018,7 @@ const games = [
         description: "A chill, meditative first-person journey in three.js with nothing that can hurt you and no clock. You are a new mage, sent for by an island that is not on the maps: seven peoples lived there once, finished what they came to do, tidied up and went on, leaving their quiet places behind. On the shore you find Fray, a small goblin hurt under a fallen shrine; moonmint heals her, but the quartz dust has taken her sight. She gives you the pendant she was carrying, a silver spiral with seven empty settings, and comes with you. Each place holds a story and a gem, and each gem opens the way to the next: the Leaf Gem grows the vine up the cliff to the Golem Fields, the Stone Gem rolls the boulder from the crystal caves of Glimmerdeep, the Light Gem lets you down the dark stair under Castle Hollowmere, the Wind Gem lifts you to the Aerie above the clouds, the Water Gem lets you walk down into sunken Thalune, and the Moon Gem opens the goblin door to Underhome. Fray goes where you cannot: send her into a root-way, a drain or a rain-pipe and call directions while she tells you what she feels and whether the hum is getting warmer, then have her pull the lever or bring back what she finds. Wake a golem with his heart-runes, ring singing stones in the order of an old verse, give an organ back its wandering pipes, bring three pearls to Tide Mother, and at the end guide Fray through the Listening Dark, where eyes are no use, so her tribe will say her name again. 39 inscriptions to read, eight sets of small things to find, a journal that keeps them. Paintings, textures and icons made with fal, 3D characters and props with Meshy, and music, ambience and every voice with ElevenLabs. Keyboard and mouse, gamepad or touch.",
         icon: '🌀',
         folder: 'game-131',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'spiral-isle',
         genre: 'cozy',
         tags: [
@@ -2035,7 +2035,7 @@ const games = [
         description: "An isometric action RPG in three.js that mixes Diablo's dread, Greek mythology and dual masteries and Torchlight's speed and loot pet. Before the gods left, they chained the Giants under the world; the chains are rusting, and you are a Vaultwarden. Swear one of three oaths: the Ironsworn (Warfare, built on Rage that you earn by hitting and lose by standing still), the Stormcaller (Storm: chaining lightning on Mana) or the Shadebinder (Umbra: shades and stolen life on Essence torn from the dying). At level 6 swear a second oath and become a Thunderborn, a Reaver or an Eclipse Seer, each with a synergy neither tree has alone. 21 skills in four tiers, mastery bars that unlock them, and never enough points for everything. Fight down through the Drowned Wilds and the Temple of the Tide-Eye, the Ashen Necropolis and the Ossuary, the Bronze Halls and the Giant's Vault, past Skyllith, Morwen the Ossuary Queen and Kolossar the Chained Giant, through packs, champions and rare elites with affixes. Loot fountains: common to mythic, rolled affixes with a quality bar, gems and sockets, two sets and twelve legendaries that change how a skill works. Ember the lynx-wolf fights beside you, carries what your bag can't and runs to town to sell it. Then the Vault cracks and the endless Rifts open. Telegraphed boss attacks, stagger and poise, potions with a cooldown, health globes, a one-button town portal, waystones, a loot filter and item labels. Art painted with fal, every monster, hero and prop a Meshy model, music and effects by ElevenLabs. Mouse and keyboard, gamepad or touch.",
         icon: '⛓️',
         folder: 'game-132',
-        version: '1.3.1',
+        version: '1.3.2',
         cssClass: 'giants-vault',
         genre: 'dungeon',
         tags: [
@@ -2052,7 +2052,7 @@ const games = [
         description: "A fantasy visual novel with mini-games and a light idle streak, set behind the quest desk of an adventurers' guild. You arrive in Brightmoor as the new Apprentice Clerk (choose your name and whether people call you she, he or they) and have thirty days before the guild needs a new Guildmaster. Each morning petitioners come to the desk: townsfolk, other adventurers, the Crown, and the Wild Folk who pay in acorns. Read what they say and grade the danger yourself from the Guild Handbook, creature plus number plus place plus omen, every two points a rank, Copper to Platinum; grade too low and the party you send walks into more than they were told. Manage twelve adventurers from Copper rookies to a Platinum legend: pick parties, watch them level and rank up, patch them up when it goes wrong. Spend your afternoons with five people you can fall for (a scarred swordsman who reads the board every morning, an elven mage hiding at Silver rank, the tavern's cook, a catfolk thief, the Crown's envoy), four heart events each, or work the guild's rooms in five mini-games: Stamp Rush, the Cauldron, Cartography, Dragon's Hoard dice and the Sparring Ring. The tavern till fills while you work, rooms pay in every night, parties are out for days. Rise through four reviews to Vice-Guildmaster, face the Chancellor's audit and his purse, a dragon who wants to post a quest, a raid on the Hollowdeep and a vote. Sixteen endings and five epilogues. Art painted with fal; music, effects and voices by ElevenLabs. Mouse, keyboard or touch.",
         icon: '🏮',
         folder: 'game-133',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'lanternhall',
         genre: 'story',
         tags: [
@@ -2070,7 +2070,7 @@ const games = [
         description: "A casual arcade abduction romp in Canvas 2D, drawn and voiced like a 1980s Saturday-morning cartoon. You are Zib, a little one-eyed alien in a slightly defective flying saucer (one dent, one duct-tape patch, an antenna that won't stay straight), and Mother is on the radio. Fly over farms, cornfields, a small town, an army base and a secret desert hangar, beam up cows, chickens, pigs, sheep, farmers and the odd golden cow, and carry them up to the Mother Ship to bank them. Shotgun farmers fire spreads at you, agents in black suits shrug off the beam and net you, tinfoil-hat conspiracy nuts zap the beam back and dazzle you with flash cameras, tanks lob shells, laser batteries mark your column and fire, and fighter jets scream across announced lanes. Drop a cow on an agent's head and beam him up while he sees stars; drop a pig on a tank and it's scrap. Every hit knocks a specimen loose and adds a defect: sputters, hiccups and honks until you find the duct tape. Between episodes Mother grades you on a report card (quota, variety, her special order, extras and dents) from D to A+, then lets you pick a repair: a bigger hold, a wider beam, more hull, faster thrusters. Eight episodes end with General Grumbles in the Buzzkill 9000, a tank the size of a barn that only falling livestock can stop. Art painted with fal; music, effects and the voices of Mother, Zib and the General by ElevenLabs. Keyboard, gamepad or touch.",
         icon: '🛸',
         folder: 'game-134',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'ufoops',
         genre: 'arcade',
         tags: [
@@ -2087,7 +2087,7 @@ const games = [
         description: "A cozy construction game in three.js, made in the spirit of the toy-truck CD-ROM games of the 1990s. You have a toy box of eight vehicles (a dump truck, a bulldozer, an excavator, a road roller, a crane truck, a wrecking crane, a loader tractor and a cement mixer) and a small seaside town that needs fixing. Mayor Maple and five townsfolk hand out ten jobs from a job board, each explained out loud: patch the potholes on Main Street, bulldoze a rockslide into the quarry crusher, crane a new roof onto the school, dig footings, pour concrete and lift the spans of a bridge across the river, lay a farm lane and scoop the rocks out of Farmer Gus's field, swing the wrecking ball at the old cannery and clear the rubble, turn the lot into a park with a duck pond, build three houses on the east bank, a playground, and at last a statue in the town square. Swap vehicle on the spot with a puff, follow the yellow arrow, hold the button to dig and pour, time the crane's swinging hook, and honk the horn whenever you like. Every job changes the town for good, nothing can go wrong, and quick work earns three stars and, in the end, the Golden Hard Hat. Vehicles and buildings are Meshy models; the townsfolk and title are painted with fal; music, effects and every voice are by ElevenLabs. Keyboard, gamepad or touch.",
         icon: '🚜',
         folder: 'game-135',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'hard-hat-harbor',
         genre: 'cozy',
         tags: [
@@ -2104,7 +2104,7 @@ const games = [
         description: "A cozy isometric room builder in three.js with a claymation look. Pinch furniture, toys, rugs, lamps and pictures out of plasticine at the Clay Bench (sixteen things, three sizes, three to five shapes each, sixteen clay colours in two slots, patterns, painted pictures, warm or cool lamps), then place them in cut-away diorama rooms: beds and sofas on the floor, rugs underneath, lamps, plants and toys up on tables, desks, shelves and mantels, pictures and clocks on the walls. Eight rooms are each for someone, with a brief of needs and wishes: Pip's first room, Mo's reading nook, the twins' playroom, Nonna's kitchen, Mr. Biscuit's living room, Juno's attic studio, Fern's greenhouse parlour and Grandma Clay's cabin, plus a Free Studio. Finish a room to be rated on the brief, colour harmony, balance, fullness, variety and cosiness, with up to three stars. Then photograph it: turn the room, set the light from morning to night (the lamps and the fire glow), add a film filter and a miniature tilt-shift blur, frame it as an instant photo or a postcard, save or share it, keep it in an album, or copy a link that rebuilds your diorama for whoever opens it. Every model and the clay shader with its thumbprints are made in code; the portraits, the title and the paintings in the frames are by fal; music and sound by ElevenLabs. Mouse, keyboard or touch.",
         icon: '🏺',
         folder: 'game-136',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'pinch-and-place',
         genre: 'cozy',
         tags: [
@@ -2121,7 +2121,7 @@ const games = [
         description: "A 1990s-anime voxel bullet heaven in three.js. Pilot Shardframe Unit-07, a sunset-orange walking mech, off the flying carrier Skylark against the Cubeborn, monsters made of glowing cubes. Your guns fire on their own; you move, hold the MAGNET and fire OVERDRIVE (with a cut-in, speed lines and all). Everything you destroy bursts into physics voxels that fly, bounce and stack: red for XP, blue for shield, green for repairs, gold for credits. Pull them in, or leave them lying as temporary walls that monsters and their spit can't pass (yours can) until they fade or get chewed through. The ground is voxels too: wide, natural, noise-shaped battlefields of fine voxels with no dead ends to be cornered in, where rockets, lasers and stomps break rock into rubble cover. Twelve sorties across the Glass Prairie, the Rust Canyons and a Neon Megalopolis: free caged civilians, burn down hives, hold out for the lift, and beat three kaiju. Collected voxels also charge the Shard Beam, a huge piercing beam that cuts through rock, on a cooldown; tap or click a monster or hive to focus fire on it; arrows point to the objectives, and a klaxon and a red outline warn when the mech is about to go down. Level up mid-sortie with 13 cards; between sorties, refit the mech with 12 parts in five slots (Vulcan, Scatter, Lance Laser; rockets, mortar, saw drones; plating, barrier, reactor; three kinds of legs). The twelve people you rescue move aboard and, in real time even while the game is closed, leave you gifts: credits, bentos, charms, tune-ups. A narrated opening cinematic (skippable), fal-painted cel art and portraits, ElevenLabs music, effects and voices. Keyboard, gamepad or touch.",
         icon: '🤖',
         folder: 'game-137',
-        version: '1.3.1',
+        version: '1.3.2',
         cssClass: 'shardframe',
         genre: 'arcade',
         tags: [
@@ -2138,7 +2138,7 @@ const games = [
         description: "A cozy fantasy dungeon builder in three.js. Roll a seed and watch wave function collapse grow each level out of little 3×3 tiles (tunnels, chamber walls, doorways, pools, streams, waterfalls and wells) placed only where their edges agree, then proved: every corner reachable from the stairs, or it grows again. Stack up to five levels and move between them with the depth slider; mix in more tunnels, chambers, water or wells; theme each level as a woodland burrow, stone keep, brick cellar, cavern, mossy ruin, crystal grotto or frost hollow; fill them with friendly Meshy-made residents (sleepy slimes, mushfolk, a moss golem, a goblin cook, a drowsy dragon on her hoard), hoards, braziers, campfire camps, bookshelves, tea tables and glowcaps. Paint squares and the rest regrows around them; place or tidy anything by hand. Every wall and floor has parallax occlusion mapping, and barred peek windows and wells show whole rooms by interior mapping. Share it with a link that rebuilds exactly your dungeon, and walk it in first person by lantern light, meeting every friend and finding every hoard. Keyboard, mouse, gamepad or touch.",
         icon: '🏮',
         folder: 'game-138',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'lanternhollow',
         genre: 'cozy',
         tags: [
@@ -2155,7 +2155,7 @@ const games = [
         description: "A Pyramid-solitaire roguelike deckbuilder about a retired assassin who just wants to run an inn, in three.js with art painted by fal and music, sound and voices by ElevenLabs. You were Nightfall, the deadliest blade in the five cities; now every rival you ever crossed comes by, one a night, and deals their past onto your table as a pyramid of cards. Clear it with your future: pair cards to 13 (two of theirs exactly, or one of yours within one, an exact 13 being a Clean pair worth Composure), Kings go alone, and each round the rival shows what they will do when you end it: strike, slip Grudges into your deck, lock or reshuffle cards, take your tips or deal cards back. Your old Blades still work, and fast, but every one raises Notoriety (which makes every blow harder), and a rival who saw too much knife work won't trust you enough to stay. Win their trust and offer them a room, and their signature card joins your staff: the Poisoner brews bitters, the Silent Knife takes the night desk, the Critic leaves five stars. By day recruit from the market, build the Snug, the Cellar or the Quiet Garden, and rest, polish a card or let one go (letting go of a blade lowers Notoriety). Fifteen rivals over three acts, nine self-aware interludes with a Narrator who knows it is a game, and three endings decided by who you became. Fifteen fal portraits and 28 card paintings on a painted oak table; four music themes, sixteen effects and 42 voiced lines. Mouse, touch or keyboard; a bot plays whole runs in the tests to balance it.",
         icon: '🍺',
         folder: 'game-139',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'clean-slate',
         genre: 'strategy',
         tags: [
@@ -2172,7 +2172,7 @@ const games = [
         description: "A gothic visual novel about giving the world back its colour, with art painted by fal and music, sound and voices by ElevenLabs. Three hundred years ago the Cinereal Order locked the world's magic behind seven wards, and colour drained out of everything with it. You are a scavenger picking over the castle of Ostrander Vael, the last sorcerer, a month dead; his book finds you, binds you with a geas, and his echo in its margins sends you across the continent of Velmaris to open the wards. Every painting in the game is generated in full colour and shown through a WebGL shader that greys each band of hue until its ward is open: the world starts in ash and charcoal, crimson comes back as a ripple when the Rose Ward breaks, then amber, sapphire, verdant, gold and indigo, and when the last ward opens the whole world floods with violet and every colour together. Each ward is a lock of concentric stone rings whose runes must line up, some rings dragging others with them, with hints and a Codex that will open it for you. Travel with Edda, a blind cartographer; Aldwin, a deserter knight turned blacksmith; Kestrel, a smuggler with a forbidden tattoo; and Ione, the last dryad, while Inquisitor Caius Morrow hunts you and the undying Hierarch waits on the Grey Throne. Nights at the fire let you hear their stories, and your choices decide who lives at the Starfall bridge, whether Caius turns, and whether the Hierarch is shown mercy at the very end. Nine chapters, 27 painted places, 35 illustrations and 13 portraits; 14 music themes, 13 effects and 374 voiced lines from ten voices.",
         icon: '📖',
         folder: 'game-140',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'last-apprentice',
         genre: 'story',
         tags: [
@@ -2189,7 +2189,7 @@ const games = [
         description: "A cozy dig-and-collect puzzle in three.js with painted art by fal, sixteen 3D artifacts by Meshy, and music, sound and voices by ElevenLabs. You are Sela Marrow, a young magical archaeologist, and a colossal sandstone tower has been found sunk in the desert to its crown. With Quill, a fussy clockwork owl, climb down it floor by floor and tap away the sand and rubble block by block: loose sand, packed sand, sandstone, mud brick, granite, obsidian and crystal, each harder than the last. Hidden in the blocks are traps and sleeping tomb creatures, and the glowing numbers on open floor count them like Minesweeper, so a careful reader marks a block first and disarms the trap or ambushes the monster inside. Nothing kills you outright: a careless dig only hurts, and the worst that happens is the camel-drivers hauling you up to camp for a small fee. Strike rune blocks in their numerals' order, turn golden channels until light runs from a sun pedestal to a sun panel, light all five runes of a chest lock, find the key for a bronze door. Clear every block, monster and chest and the hatch opens to the next floor. Run out of stamina and climb up to camp to rest, buy potions, tonics, a Hyper Gauntlet, ward charms, blast charges and dowsing rods from Madame Zahra, spend skill points across a 13-skill tree (pickaxe power, lucky strikes, shockwaves, endurance, vitality, stonecraft, obsidian lore, crystal song, dowsing and more), and claim rolling quests for gold. Sixteen artifacts, from a Wayfinder's Compass to the Heart of the Spire, each change the rules and turn on a marble plinth in your museum as real 3D models. Sixteen story floors, three treasure vaults, the Sphinx Warden, an ending at sunrise and the endless Echo Deeps below. Every break throws tumbling debris, dust and light; mouse, touch or keyboard.",
         icon: '🏺',
         folder: 'game-141',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'sandsunk',
         genre: 'puzzle',
         tags: [
@@ -2206,7 +2206,7 @@ const games = [
         description: "A whimsical physics cannon game in three.js with painted art by fal and music, sound and voices by ElevenLabs. Pip the Cannoneer sits behind a chunky bronze cannon on a grassy hill, and across the meadow stand toy-block castles: walls in running bond, interlocking square towers, round towers, cone roofs, wooden floors, ice windows and red crates with a bomb painted on. Every block is a real rigid body in a physics engine written for the game, so the castles stand by themselves and come down the way stacked blocks do: walls topple, floors drop, towers lean and crash, stone cracks in two, wood splinters, ice shatters and crates go off in chains. Little knights, a pompous prince, a sleepy wizard and King Bumble himself guard the battlements; knock every one of them over to clear the castle, and smash more for more stars. Five cannonballs: the honest Iron Ball, the Boom Ball (tap mid-flight to set it off early), Triple Trouble (tap to split it in three), Big Bertha, and the Boing Ball that ricochets around inside the walls. Drag to aim with a dotted arc to the landing spot, tap to fire, and the camera rides the ball in. Forty-eight castles across Greenmeadow, Frostpeak, Sunset Shire and moonlit Moonbeam Marsh (twelve hand-built, the rest from a castle generator that proves every one stands and can be won), then Endless Siege: a fresh, harder castle every time for as long as you can keep it up. Fireballs, flying chips, dust, shockwaves, slow motion on the big moments and a lot of very surprised little people. Mouse, touch, keyboard or gamepad.",
         icon: '💥',
         folder: 'game-142',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'kaboom-keep',
         genre: 'arcade',
         tags: [
@@ -2223,7 +2223,7 @@ const games = [
         description: "The sequel to Doom & Doilies: a cosy-spooky town tycoon with castle-defence sieges, in Canvas 2D, with pixel art by fal and music, sound and voices by ElevenLabs. Lady Noxia, the Dread Lady who would rather be baking, has been found out, and instead of torches and pitchforks the village of Thistlegloom has voted her mayor. Now King Crumbleton, the Gingerbread Zombie King, is marching from the Stale Lands with the Crumb Horde. Each phase gives you a few days: build cottages, a windmill, a sugarbeet patch, a bakery and a quarry on a painted village green, keep villagers housed and hopeful, put her household to work (Lord Vellum, Pip, Madame Silkwhistle, Grizelda, Gerald and Wick, all from the first game) and meet the siege checklist of wall, watchtowers, adventurers and bake. Then the game turns into a side-on defence: you command the wall on the left and throw doilies while Sir Tobias holds the line, Moss, Lark, Brother Fennel and Ottilie fight from the walkway, and gingerbread zombies, candy-corn imps, gumdrop slimes, marshmallow ghosts, sugar-skull bats, cupcake mimics and jawbreaker golems pour in from the right. Beaten invaders don't die; they curl up for a nap. Hold the wave and you win more days. All the while she is secretly finishing the Grand Bake: in the fourth wave the King himself comes, and he can't be beaten, so she reveals the Cookie Queen, who crosses the battlefield and kisses him, and like a frog prince he is baked fresh again. Eighteen quests with an undercurrent about not judging anyone by what the rumours say, voiced scenes, and an endless epilogue against the leftovers. Three ways to play: Story (Lord Vellum runs the town and you hold the wall), Normal, and Hard (if the wall falls the game is over, but the next game starts with part of what the old town had). Mouse, keyboard, gamepad or touch.",
         icon: '\uD83C\uDF6A',
         folder: 'game-143',
-        version: '1.3.1',
+        version: '1.3.2',
         cssClass: 'sugar-siege',
         genre: 'strategy',
         tags: [
@@ -2240,7 +2240,7 @@ const games = [
         description: "A 3D side-scrolling bullet-hell shooter in the arcade tradition, in three.js. The Requiem, a choir-fleet of biomechanical angels, came out of the Veil Nebula singing, and every star it sings to goes dark. The Aegis fleet is gone; the carrier Lumen Ark has three prototype Seraphs left. Choose your pilot: Sora Amane, whose lost sister Hikari sings inside the enemy's song; Kaito Ren, the commander who ordered the retreat at Saturn and now hunts the admiral who defected; or Lyra-07, an android grown from Requiem tissue whom the enemy calls daughter. Each has their own gun (a spread vulcan, a piercing lance, homing needles), their own Burst super and their own story told in fully voiced anime cutscenes with their own ending. Six stages, from Saturn's burning rings to the inside of a dying star, including a flight through the corridors of a mothership a thousand kilometres long, capital ships bigger than the screen whose hulls you fly along and whose engines you break to bring them down, and six colossal multi-phase bosses: the dreadnought Bellwether, a crystal serpent, an organ-wall engine with an eye, Admiral Voss's war-frame, the Mother of Eyes and Seraphine Null herself. Auto-fire, focus, bombs, warps, grazing and chains; eleven power-ups (power, options, rockets, shields, warp, halo blades, overdrive, chrono, magnet, bombs, 1UP) and nine named synergies that break the game when two combine. Survival mode, The Endless Choir, escalates forever. Painted backdrops, cutscenes and portraits made with fal; music, sound effects and 74 voiced lines made with ElevenLabs; ships, enemies and bosses modelled with Meshy over procedural scenery, instanced shader bullets, particles, shockwaves, bloom and a chromatic final pass. Keyboard, gamepad or touch.",
         icon: '\uD83C\uDF0C',
         folder: 'game-144',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'nebula-requiem',
         genre: 'arcade',
         tags: [
@@ -2257,7 +2257,7 @@ const games = [
         description: 'You wake on a rotting mattress in a broken house in Ashmere, a city where everyone walked into the light one night and never came back. Walk it in first person: a whole procedural city from a seed, 450-odd buildings you can enter floor by floor (malls with tree-split atriums, hospitals, hotels, factories, car parks, houses, endless yellow backrooms offices), all decaying: rotten floors you fall through, collapsed walls, mould, puddles, dead trees, cars left in the streets, vending machines that still work. A brass compass points at the next of ten diaries left by the missing; they tell what the Threshold Laboratory opened, hold the tools that open boarded, chained and card-locked doors, and carry the dial numbers and conduit order you will need at the ring in Hall C to bring everyone home. No enemies. Every seed is a different city, cast and code.',
         icon: '\uD83C\uDFDA\uFE0F',
         folder: 'game-145',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'vacancy',
         genre: 'story',
         tags: [
@@ -2274,7 +2274,7 @@ const games = [
         description: 'A Christmas ornament-popping puzzle. Grimwick, a lonely snow goblin who loves shiny things, blew every ornament out of Santa\'s workshop, and Juniper the junior elf has six nights to win them back with her candy-cane bauble blaster. Aim, bank shots off the walls and match three glass ornaments of a colour to pop them free; anything left hanging falls too. 36 levels across six painted chapters (the workshop, Gingerbread Lane, the Candy Cane Forest, Twinkle Pond, Reindeer Ridge and Grimwick\'s icy hoard) bring presents, coal, frozen ornaments, golden bells and prism baubles, a tray that grows to three ornaments you tap to swap, eight power-ups (Pudding Bomb, Rainbow Star, Candy Cane Striker, Jingle Bell, Tinsel Garland, Hot Cocoa, North Star, Gingerbread Break) and a snowy ceiling that creeps down with every shot. Then the endless Blizzard. Voiced story, ElevenLabs music and art.',
         icon: '\uD83C\uDF84',
         folder: 'game-146',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'jingle-pop',
         genre: 'puzzle',
         tags: [
@@ -2291,7 +2291,7 @@ const games = [
         description: "A cozy anime RPG and inn-management game in three.js, with every character, monster, item and piece of furniture a Meshy 3D model (the heroes rigged and animated by Meshy) and art, music, sound and voices by ElevenLabs. Maple Hearthwood inherits the Drowsy Dragonfly Inn, a sunlit, slightly rundown fantasy inn, along with 40,000 gold of debt to Madame Goldmaw, a fussy little dragon banker with a monocle. Restore it room by room in a textured dollhouse cutaway you can zoom into, room by room: check guests in, shoo the dust bunnies hopping in their rooms, cook in the kitchen with a stir-timing mini-game, harvest the courtyard and pay the debt in five installments that open the East Wing, new regions and the Sunroom Suite. Strangers arrive at the desk with a request: a soot-faced chef, a reformed-pickpocket bellhop, a dreamy gardener and a retired knight who hates dust. Give them a room, their favourite meal and a favour and they join as party, staff or both; staff keep the inn running while you adventure, and even while the game is closed. Meals become party buffs, a spotless inn becomes Fresh Linens. Battles are turn-based in a 3/4 isometric view on diorama islands (Sunny Meadow, Mushroom Grove, Crystal Cave): a turn-order timeline, elemental weaknesses that stagger, combo links between heroes, a chain gauge, solo, duo and trio Chain Attacks unlocked by bonds, items, a comic flee and an auto-battle with Aggressive, Balanced and Conserve MP presets. Bonds grow from cooking, cleaning and fighting together and unlock scenes, stat synergy and decor favourites. A five-chapter voiced story. Mouse, keyboard or touch.",
         icon: '\uD83D\uDECE\uFE0F',
         folder: 'game-147',
-        version: '1.3.1',
+        version: '1.3.2',
         cssClass: 'inn-over-my-head',
         genre: 'rpg',
         tags: [
@@ -2310,7 +2310,7 @@ const games = [
         description: "A gentle fairy sorting puzzle in vanilla JavaScript and Canvas 2D, with art, music, sound and voices made with ElevenLabs. The Tumble Wind blew through the glade overnight and every wisp of light landed in the wrong glass bell-flower. Help Lumi, a young lantern fairy, tip the glowing wisps between the blossoms (tap one, tap another, or drag) until each holds four of a colour: then it blooms, and the magical creature whose heart-light filled it wakes up and sits on top of its flower. Fifty levels across five painted glades, each proved solvable by a solver that uses the game's own rules: Dawnpetal Meadow, Mushroom Hollow (mist hides the wisps underneath), Moonpond (brambles that loosen after enough blooms), Crystal Grotto (acorn cups that hold two but never bloom) and the Starfall Canopy. Free undo, three firefly hints a level, one sprout for an extra blossom, three stars for matching Grandmother Willow's pours, a creature journal of nine friends, a daily dewdrop puzzle with a streak, endless dreams, and a voiced story told by Willow and Lumi. Made for phones first.",
         icon: '\uD83E\uDDDA',
         folder: 'game-148',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'glimmerglade',
         genre: 'puzzle',
         tags: [
@@ -2326,7 +2326,7 @@ const games = [
         description: "An upbeat anime visual novel RPG in three.js. Kai's only magic is that he can hear other people's spells as songs and sing them back. At Lumina Academy, a castle school on a floating island, he makes four friends (fiery Hana, shy star mage Lys, explosive alchemist Pip and his wind-mage roommate Ren), plays their six magical mini-games, collects twelve hidden Echo Charms, gives gifts, and grows close to one of them through heart events that end in romance or best friendship. But students are falling into a magicless sleep, and the trail leads from an archive full of cult marks to the kindly, candy-giving principal. On the night of the Starfall Festival the Hollow Moon rises, your closest friend is taken, and you race the moon across the island to free every caged student before facing the Hollow Choir's master, where Kai's Echo turns every stolen spell back on him. Five chapters, 74 scenes, turn-based battles with Meshy-modelled and animated characters on a 3D campus, fal-painted art, and ElevenLabs music, sound and voices.",
         icon: '\uD83C\uDF19',
         folder: 'game-149',
-        version: '1.2.1',
+        version: '1.2.2',
         cssClass: 'echoheart-academy',
         genre: 'story',
         tags: [
@@ -2342,7 +2342,7 @@ const games = [
         description: "A cozy fantasy bookshop management game. Tam, an orphan reading shop signs in the rain, is found by Old Vellum, a talking book, and led to Folio & Fable, the bookshop its late owner left behind. Arrange the shop like a doll's house (shelves, display tables, armchairs, lamps, ferns and a cat), shelve books into sections, open the doors and sell to adventurers, nobles, actors, bakers, scholars and children, some of whom bring a wish to the counter that you can answer now or take as a commission. Send adventurers carrying books for courage on quests to the Whispering Woods, a drowned library and a dragon's attic; buy from Ottoline the travelling badger; and bind your own books at the bindery like a smith forges swords: a cover for rarity, an ink for its virtue, accents like gems, rebinding like tempering. Every book is procedurally generated, with its own title, author, virtues, skill and sometimes a voice, and you can turn any of them over in a high-resolution three.js inspector or browse every shelf in 3D. The books you sell inspire the town of Larkspur: a new bun at the bakery, opening night at the playhouse, the Duchess's garden party. Seven chapters, ending with Elowen's last book. Art, music, sound and voices by ElevenLabs.",
         icon: '\uD83D\uDCDA',
         folder: 'game-150',
-        version: '1.1.1',
+        version: '1.1.2',
         cssClass: 'folio-and-fable',
         genre: 'cozy',
         tags: [

@@ -199,7 +199,9 @@ export class Cloud {
         const summary = this.summary(snap);
         this.busy = true;
         try {
-            await this.cloud.upload(snap, { version: this.app.version, summary, keepalive });
+            // force: the console decides for itself when a device may back up over the backup (it has matched the
+            // account, or the player chose Back up now); the shared check would refuse a device that has only restored
+            await this.cloud.upload(snap, { version: this.app.version, summary, keepalive, force: true });
         } finally {
             this.busy = false;
         }
@@ -276,7 +278,7 @@ export class Cloud {
         if (JSON.stringify(snap).length > MAX_BYTES) throw new Error(`${g.title}'s save is too big for the cloud.`);
         const c = makeCloud({ game: g.id, slot: GAME_SLOT });
         const summary = this.gameSummary(save);
-        await c.upload(snap, { version: g.version || '', summary });
+        await c.upload(snap, { version: g.version || '', summary, force: true });      // the player asked: replace it
         return { game: g.id, slot: GAME_SLOT, summary, version: g.version || '', updated_at: new Date().toISOString() };
     }
 
