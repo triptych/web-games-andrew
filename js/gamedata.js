@@ -2358,7 +2358,7 @@ const games = [
         description: "A space shooter crossed with match-3, in the style of a 1990s space anime. The fleet is gone; Juno Arakawa and MIRA, the ship's AI, fly the Solitaire, the last ship, carrying the Lance: a beam that can destroy a mothership in one shot if it is tuned right. Each of six motherships is guarded by escort waves fought as match-3 rounds: swap tiles of Power, Speed, Thermal, Cryo, Volt and Shield; every match charges the Lance and fires missiles at the escorts while they swoop in and shoot back. Shoot a wave down fast and MIRA routes the time you saved into the system you pick. After the last wave the mothership is exposed: one final charge, then FIRE. The Lance fires once: speed against its evasion, the elements against its barrier and its resistances, power against its armor. It must reach all three, and every shot is graded C to S against the mothership's defenses; the grade pays scrap for eight upgrades. Barriers that soak an element, a ship faster than your beam, a barrier that shifts its tuning while you charge, jammers that fill the board with static. Ship and mothership models by Meshy; art, music, sound and voices by ElevenLabs.",
         icon: '\uD83D\uDE80',
         folder: 'game-151',
-        version: '1.0.1',
+        version: '1.0.2',
         cssClass: 'one-shot',
         genre: 'puzzle',
         tags: [

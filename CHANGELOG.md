@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- **One Shot** (game-151) v1.0.2: the second mothership (Ember Citadel) failed every time, even after an upgrade. The balance had been tuned against bots that matched every 0.45–1.0 s, picking the best swap almost every time; a casual-pace bot (a move every 1.5 s, the best one a fifth of the time) shows what a person meets, and it beat the Ember Citadel in 1 of 6 tries with one upgrade.
+  - The requirements jumped 3.3× from the first mothership to the second while the charge only about doubled: the Ember Citadel now needs 650 / 1400 / 800 (was 800 / 1750 / 1100), and motherships 3–6 came down 10–20% ([js/sim/data.js](game-151/js/sim/data.js)).
+  - Upgrades were too small to notice: +25% per level instead of +15%. A failed shot pays 60% of the reward (was 35%) times how close it came, so the next upgrade is always in reach ([js/config.js](game-151/js/config.js)).
+  - From the third mothership on, slower players were shot down before the last round (the desperate shot at 75% always fails): escorts there have less HP and hit softer, the Throne flies fewer at once, and MIRA patches 20 hull between rounds (shown on the round-end screen).
+  - [dev/simtest.mjs](game-151/dev/simtest.mjs) now plays whole campaigns with the casual-pace bot too and asserts it beats the Ember Citadel in at most two tries, never needs more than five at any mothership, and wins within 20 sorties (it wins in 7–10); the repair has its own checks.
+
+### Fixed
 - **One Shot** (game-151) v1.0.1: the shots during the match-3 rounds sounded like little slaps instead of space cannons, and the opening voice lines were lost under the music.
   - Every missile played a thin rocket hiss, and every non-lethal hit played the hull-impact sample pitched up 1.6×, which was the slap. Now each burst of missiles fires one heavy plasma-cannon volley (two new ElevenLabs takes, alternating), hits land with a deep impact, kills with a bigger explosion, and a sub-bass thump sits under all three ([js/audio.js](game-151/js/audio.js)). Effects are normalised in [dev/audio/process.py](game-151/dev/audio/process.py).
   - MIRA's calm lines came back from ElevenLabs at -33 LUFS against about -12 for the music, and Juno's at about -20. Every voice line is now normalised to -15 LUFS, the music sits lower, and while anyone speaks the music ducks to 30% and the effects to 60% on gain nodes of their own. A line asked for before its clip has decoded (the intro, right after the first tap) now waits and plays instead of being skipped, and the next line waits for it.

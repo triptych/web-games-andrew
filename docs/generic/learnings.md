@@ -7831,3 +7831,8 @@ eight Meshy image-to-3D models from ElevenLabs reference pictures, ElevenLabs mu
 - **"Shots" need weight, not a hiss.** One sound per missile meant several thin hisses per match, and a hull-hit
   sample pitched up for a minor hit read as a slap. One heavy volley per burst (alternating two takes), real impact
   and kill samples, and a 110 → 42 Hz sine thump under each make them feel like cannons.
+- **v1.0.2: tune for a person's pace, not the bots'.** Both balance bots made a move every 0.45–1 s and found a good
+  swap most of the time; a player reported failing the second mothership every time. A casual-pace bot (a move every
+  1.5 s, the best swap a fifth of the time) reproduced it at once, and also showed the late game's real wall was
+  survival, not charge: it was shot down before the shot. Keep a slow bot in the campaign bands (`skill 0.25`: wins
+  within 20 sorties, at most two tries at mothership 2, five anywhere) so the next rebalance can't drift back.

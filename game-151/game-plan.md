@@ -3,7 +3,7 @@
 **Genre:** Space shooter × match-3, with a hangar upgrade loop
 **Engine:** three.js r165 (the 3D battle) + Canvas 2D (the resonance board) + DOM (HUD and screens)
 **Media:** 3D models by Meshy, art, music, effects and voices by ElevenLabs (see [dev/meshy](dev/meshy/README.md), [dev/art](dev/art/README.md), [dev/audio](dev/audio/README.md))
-**Status:** v1.0.1
+**Status:** v1.0.2
 
 ---
 
@@ -34,7 +34,7 @@ match-3 battlers (Puzzle Quest, Puzzle & Dragons) and on every anime where the l
 3. **Rounds** (2–4 per mothership): match tiles; missiles fly at the escorts; the escorts aim (a red telegraph) and
    shoot; the deflector blocks shots, the hull takes the rest and leaks charge. The round ends when the wave is
    down, or when the clock runs out (then the survivors make one last pass).
-4. **Route**: MIRA routes `40 + 10 × seconds left` into the stat you pick (she suggests the weakest).
+4. **Route**: MIRA patches 20 hull and routes `40 + 10 × seconds left` into the stat you pick (she suggests the weakest).
 5. **Final window** (12 s): no escorts, one last charge, FIRE when ready (or it fires itself at zero).
 6. **The shot**: the cut-in, the beam, three readouts, the verdict, the grade, the scrap.
 
@@ -68,7 +68,7 @@ match-3 battlers (Puzzle Quest, Puzzle & Dragons) and on every anime where the l
 - `speed / req.speed`, `Σ element × (1 − resist) / req.barrier`, `power / req.armor`. All three ≥ 1 destroys it.
 - Grade by the weakest: **S ≥ 2.0**, **A ≥ 1.6**, **B ≥ 1.3**, **C ≥ 1.0**, else **F**.
 - Scrap: `reward × grade multiplier (C 1, B 1.35, A 1.7, S 2.2) + 4 per escort down`, +10% per medal; half on a
-  replay that doesn't improve the grade. A failed shot pays `35% × reward × weakest ratio + 2 per escort`.
+  replay that doesn't improve the grade. A failed shot pays `60% × reward × weakest ratio + 2 per escort`.
 - Medals: **Flawless** (no hull damage), **Quick Draw** (fired with 6+ s left in the final window), **Ace** (every
   wave shot down, no desperate shot).
 
@@ -84,17 +84,17 @@ match-3 battlers (Puzzle Quest, Puzzle & Dragons) and on every anime where the l
 | # | Mothership | Evasion | Barrier | Armor | Resists (Thermal / Cryo / Volt) | Waves | Special |
 |---|---|---:|---:|---:|---|---|---|
 | 1 | Picket Ark | 240 | 600 | 320 | 0 / 0 / 0 | 3, 4 | the tutorial |
-| 2 | Ember Citadel | 800 | 1750 | 1100 | 0.8 / −0.5 / 0.2 | 4, 5, 5 | weak to Cryo |
-| 3 | Glacier Maw | 900 | 2500 | 1250 | −0.5 / 0.85 / 0 | 4, 5, 6 | weak to Thermal, heavy armor |
-| 4 | Storm Lattice | 1600 | 2600 | 1300 | 0.2 / −0.3 / 0.85 | 5, 6, 6 | very evasive; jams the board |
-| 5 | Prism Cathedral | 1500 | 3500 | 1800 | rotates 0.9 / 0.2 / −0.5 | 5, 6, 7 | shifting barrier |
-| 6 | Throne of the Choir | 2200 | 5000 | 2600 | rotates 0.75 / 0.3 / −0.3 | 6, 7, 7, 8 | shifting and jamming |
+| 2 | Ember Citadel | 650 | 1400 | 800 | 0.8 / −0.5 / 0.2 | 4, 5, 5 | weak to Cryo |
+| 3 | Glacier Maw | 800 | 2000 | 1050 | −0.5 / 0.85 / 0 | 4, 5, 6 | weak to Thermal, heavy armor |
+| 4 | Storm Lattice | 1250 | 2100 | 1050 | 0.2 / −0.3 / 0.85 | 5, 6, 6 | very evasive; jams the board |
+| 5 | Prism Cathedral | 1250 | 2700 | 1400 | rotates 0.9 / 0.2 / −0.5 | 5, 6, 7 | shifting barrier |
+| 6 | Throne of the Choir | 1800 | 4000 | 2100 | rotates 0.75 / 0.3 / −0.3 | 6, 7, 7, 8 | shifting and jamming |
 
 Numbers live in [js/sim/data.js](js/sim/data.js); every mothership's `art` line is the prompt its reference picture
 and Meshy model were made from.
 
-**Upgrades** (5 levels, 40 / 75 / 120 / 180 / 260 scrap): Lance Capacitor (+15% Power), Velocity Coils (+15% Speed),
-Thermal, Cryo and Volt Lenses (+15% each), Deflector (+25% shield, +15 capacity), Reactor Core (+3 s every round and
+**Upgrades** (5 levels, 40 / 75 / 120 / 180 / 260 scrap): Lance Capacitor (+25% Power), Velocity Coils (+25% Speed),
+Thermal, Cryo and Volt Lenses (+25% each), Deflector (+25% shield, +15 capacity), Reactor Core (+3 s every round and
 the final window), Point Defense (+50% missile damage).
 
 ## Story
@@ -159,12 +159,20 @@ The bot plays whole campaigns (hangar, briefing, rounds, routing, the shot) on f
 | Bot | Sorties to win | Grades |
 |---|---|---|
 | skill 1 (0.45 s a move, always the most-needed swap, waits for the best barrier tuning) | 6 | S/A on the first three, B/C on the last three |
-| skill 0.6 (slower, a random swap a third of the time) | 10 | B/C; one to four retries on the Prism Cathedral or the Throne |
+| skill 0.6 (a move a second, a random swap a third of the time) | 6 | B/C |
+| skill 0.25, casual (a move every 1.5 s, the best one only a fifth of the time) | 7–10 | B/C; a retry or two on a few motherships, never more than three |
 
-Asserted bands: the perfect bot wins in ≤ 9 sorties; the 0.6 bot wins in 7–30. Changes the bot forced: escort HP
+Asserted bands: the perfect bot wins in ≤ 9 sorties, the 0.6 bot in ≤ 14, the casual bot in ≤ 20 with at most two tries at the Ember Citadel and at most five at any mothership. Changes the bot forced: escort HP
 was raised (2 → 5–12) because escorts died before firing; requirements were rescaled after the rounds structure
 tripled the charge; the Prism Cathedral's barrier and armor came down (4300 → 3500, 2000 → 1800) after the 0.6 bot
 failed it fifty times in a row with every upgrade maxed.
+
+**v1.0.2, tuned for human pace.** A player reported failing the Ember Citadel every time, even after an upgrade. The
+two bots above were both much faster and sharper than a person; a casual-pace bot beat it in 1 of 6 tries with one
+upgrade (power against armor always short). Requirements jumped 3.3× from mothership 1 to 2 while the charge only
+doubled, and +15% upgrades barely registered. From mothership 3 on, the casual bot was also shot down before the last
+round, which no amount of charge fixes. Changes: the Ember Citadel eased to 650 / 1400 / 800 and the rest 10–20%,
+upgrades +25% a level, a failed shot pays 60%, softer and fewer late escorts, 20 hull patched between rounds.
 
 ## Open questions / next steps
 
@@ -173,6 +181,10 @@ failed it fifty times in a row with every upgrade maxed.
 - A combo voice bark per element (Juno calling "Cryo!" on a big cold match).
 
 ## Changelog
+
+### v1.0.2 (2026-11-27)
+- Rebalanced for human pace: the Ember Citadel no longer fails every time. Easier requirements from mothership 2 on,
+  upgrades +25% a level, a failed shot pays more, softer late escorts, and MIRA patches 20 hull between rounds.
 
 ### v1.0.1 (2026-11-27)
 - The round shots sound like space cannons: one heavy plasma volley per missile burst (two takes), deep impacts and
