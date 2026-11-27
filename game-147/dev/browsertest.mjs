@@ -394,7 +394,7 @@ async function cloudTest() {
     await click(page, '[data-wgc="signin"]');
     await until(page, () => document.querySelector('#cloud-body .wg-msg').textContent.includes('Check your inbox'), 'asking for a link says to check the inbox');
     const otp = log.find((r) => r.path === '/auth/v1/otp');
-    check(!!otp && JSON.parse(otp.body).email === 'player@example.com' && decodeURIComponent(otp.query).includes('redirect_to=http://127.0.0.1:8147/game-147/index.html') && otp.apikey.startsWith('sb_publishable_'),
+    check(!!otp && JSON.parse(otp.body).email === 'player@example.com' && decodeURIComponent(otp.query).includes(`redirect_to=${BASE}/game-147/index.html`) && otp.apikey.startsWith('sb_publishable_'),
         'it asks Supabase to email a link back to this page, with the publishable key');
     // the email's link opens the game in a new tab with the session in the address
     page = await newTab(page, setup, `#access_token=${jwt}&refresh_token=rt1&expires_in=3600&token_type=bearer&type=magiclink`);
