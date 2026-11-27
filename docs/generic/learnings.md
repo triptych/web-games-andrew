@@ -7819,3 +7819,15 @@ eight Meshy image-to-3D models from ElevenLabs reference pictures, ElevenLabs mu
   escorts with 2 HP died before ever firing. The balance bot found both in its first run; requirements were rescaled
   from the bot's own totals and escort HP raised to 5–12. A barrier the 0.6 bot failed fifty times with every upgrade
   maxed was a design bug, not a skill check.
+- **v1.0.1: ElevenLabs voices are not mastered to one loudness, and nothing ducked them.** MIRA's calm take came back
+  at -33 LUFS, Juno's shouts at -16 to -20, the music at -12: the opening line was inaudible under the title theme.
+  Normalise every cut line to one LUFS target in the pipeline (`ebur128` then `volume` and `alimiter`), keep music
+  well under the voices, and duck music and effects while a line plays. Put the duck on gain nodes of its own after
+  the volume buses: a duck and a volume change on one `AudioParam` fight over its automation. And in a test, don't
+  read a duck off an idle bus: Chrome doesn't advance automation on a gain node with no signal through it.
+- **A clip asked for before it decodes is silently dropped.** The intro fires on the same tap that creates the audio
+  context, before any clip has decoded. Queue the line and play it when its buffer arrives, and have the next line
+  wait for the one being spoken.
+- **"Shots" need weight, not a hiss.** One sound per missile meant several thin hisses per match, and a hull-hit
+  sample pitched up for a minor hit read as a slap. One heavy volley per burst (alternating two takes), real impact
+  and kill samples, and a 110 → 42 Hz sine thump under each make them feel like cannons.

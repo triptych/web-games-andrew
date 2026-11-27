@@ -3,7 +3,7 @@
 **Genre:** Space shooter × match-3, with a hangar upgrade loop
 **Engine:** three.js r165 (the 3D battle) + Canvas 2D (the resonance board) + DOM (HUD and screens)
 **Media:** 3D models by Meshy, art, music, effects and voices by ElevenLabs (see [dev/meshy](dev/meshy/README.md), [dev/art](dev/art/README.md), [dev/audio](dev/audio/README.md))
-**Status:** v1.0.0
+**Status:** v1.0.1
 
 ---
 
@@ -126,8 +126,8 @@ ending screen ("The Choir is silent... We're going home, Mira."), then every mot
   shattering, explosions along the hull, and either a chain of blasts and a white-out or a fizzle.
 - **Board**: Canvas 2D tiles drawn once per kind: a distinct shape and a glyph per kind (circle burst for Power,
   diamond chevrons for Speed, square flame, hexagon snowflake, octagon bolt, shield), ink outline, hard cel highlight.
-- **Sound**: three ElevenLabs music themes (title, battle, the final charge), two stingers, sixteen effects, 21 voice
-  lines; a Web Audio synth stands in for anything that fails to load.
+- **Sound**: three ElevenLabs music themes (title, battle, the final charge), two stingers, eighteen effects (two cannon volleys,
+  impacts and kills with a synth sub-bass under them), 21 voice lines normalised to -15 LUFS and ducking the music; a Web Audio synth stands in for anything that fails to load.
 
 ## Module overview
 
@@ -173,6 +173,13 @@ failed it fifty times in a row with every upgrade maxed.
 - A combo voice bark per element (Juno calling "Cryo!" on a big cold match).
 
 ## Changelog
+
+### v1.0.1 (2026-11-27)
+- The round shots sound like space cannons: one heavy plasma volley per missile burst (two takes), deep impacts and
+  kills, a sub-bass thump under each, instead of a rocket hiss per missile and a pitched-up hull hit that sounded
+  like a slap.
+- Voices are heard: every line normalised to -15 LUFS (MIRA's came back at -33), the music lower, and music and
+  effects ducked under any line; a line that hasn't decoded yet waits instead of being skipped.
 
 ### v1.0.0 (2026-11-27)
 - First release: six motherships, match-3 rounds against escort waves, routing, the final window and the One Shot
