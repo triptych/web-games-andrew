@@ -204,6 +204,8 @@ async function desktop() {
     await page.keyboard.press('Escape');
     await until(page, () => document.getElementById('inspect').hidden && !__ff.stage.visible, 'Escape closes the inspector');
     await page.keyboard.press('Escape');
+    // keys are handled one per frame: let that Escape land before opening the shelves, or it closes them the frame after
+    await Q(page, () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(r)))));
 
     // the 3D shelves: a real click on a book
     await Q(page, () => { __ff.ui.closeAll(); });
