@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>One Shot — model gallery</title>
+<style>body { margin: 0; background: #6a6f7a; color: #fff; font: 13px system-ui; } canvas { display: block; } #l { position: fixed; left: 8px; top: 8px; }</style>
+</head>
+<body>
+<div id="l">Side view (camera at +X): the Solitaire points RIGHT (-Z); the drone and motherships point LEFT (+Z, toward the player). Top row: side. Bottom row: the Solitaire and drone from above (nose up); the motherships from their front three-quarter, as the player sees them (bow toward the camera).</div>
+<canvas id="c"></canvas>
+<script type="importmap">{ "imports": { "three": "https://unpkg.com/three@0.165.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/" } }</script>
+<script type="module">
+// The Meshy models on a neutral background with the game's toon shading and the turn each one gets in
+// js/view/view.js (YAW), from the side and from above, so a model facing the wrong way is plain to see.
+import * as THREE from 'three';
+import { Craft } from '../js/view/models.js';
+import { YAW } from '../js/view/view.js';
+const names = Object.keys(YAW);
+const W = 1600, H = 520;
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+r.setSize(W, H); r.outputColorSpace = THREE.SRGBColorSpace; r.setClearColor(0x6a6f7a); r.setScissorTest(true);
+const scene = new THREE.Scene();
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.4));
+const dl = new THREE.DirectionalLight(0xffffff, 2); dl.position.set(5, 10, 7); scene.add(dl);
+const crafts = names.map((n, i) => { const c = new Craft(n, { size: 10, yaw: YAW[n], kind: ['solitaire', 'drone'].includes(n) ? n : 'boss' }); c.root.position.x = i * 1000; scene.add(c.root); return c; });
+await Promise.all(crafts.map((c) => c.ready));
+const cw = W / names.length;
+names.forEach((n, i) => {
+    for (const [row, pos] of [[0, [14, 0, 0]], [1, i < 2 ? [0, 16, 0.01] : [7, 6, 13]]]) {
+        const cam = new THREE.PerspectiveCamera(40, cw / (H / 2), 0.1, 100);
+        cam.position.set(i * 1000 + pos[0], pos[1], pos[2]); cam.lookAt(i * 1000, 0, 0);
+        const y = row === 0 ? H / 2 : 0;
+        r.setViewport(i * cw, y, cw, H / 2); r.setScissor(i * cw, y, cw, H / 2);
+        r.render(scene, cam);
+    }
+});
+document.title = 'ready';
+</script>
+</body>
+</html>
