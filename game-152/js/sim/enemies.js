@@ -89,12 +89,13 @@ export function spawn(G, s) {
     const r = riverAt(R, s.y);
     let x;
     if (s.onBridge) x = r.cx + s.f * r.hw;
+    else if (d.where === 'bank' && s.kind === 'tank') x = r.cx + s.side * (r.hw - 1.5);
     else if (d.where === 'bank') x = r.cx + s.side * (r.hw + (s.kind === 'turret' ? 5.5 : 3));
     else x = waterX(R, s.y, s.f, d.r + 0.6);
     const e = {
         id: G.nextId++, kind: s.kind, x, y: s.y, hp: d.hp * (1 + G.sector * 0.15), max: 0, home: x,
         vx: 0, vy: d.speed, t: 0, fireT: d.fire ? d.fire.every * (0.4 + 0.6 * ((G.nextId * 0.618) % 1)) : 0,
-        tele: 0, aim: 0, mode: 'idle', onBridge: !!s.onBridge, hit: 0,
+        tele: 0, aim: 0, mode: 'idle', onBridge: !!s.onBridge, side: s.side || Math.sign(x - r.cx) || 1, hit: 0,
     };
     e.max = e.hp;
     if (s.kind === 'blockade') {

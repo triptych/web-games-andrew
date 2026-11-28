@@ -294,6 +294,30 @@ export class Terrain {
         trunks.frustumCulled = leaves.frustumCulled = false;
         g.add(trunks, leaves);
 
+        // Break up the broad bank surfaces with layered boulders and exposed stone.
+        const rockGeo = new THREE.IcosahedronGeometry(1, 0);
+        const rocks = new THREE.InstancedMesh(rockGeo, this.land, 46);
+        const rockM = new THREE.Matrix4(), rockQ = new THREE.Quaternion();
+        for (let i = 0; i < 46; i++) {
+            const side = i % 2 ? 1 : -1;
+            const yy = y0 + hash3(k, i, 71) * CHUNK;
+            const rr = riverAt(R, yy);
+            const dist = 5 + hash3(k, i, 72) * 32;
+            const xx = rr.cx + side * (rr.hw + dist);
+            const hh = bankHeight(pal, dist, yy, side);
+            const sx = 0.45 + hash3(k, i, 73) * 1.15;
+            const sy = 0.35 + hash3(k, i, 74) * 0.8;
+            const sz = 0.5 + hash3(k, i, 75) * 1.3;
+            P.set(xx, hh + sy * 0.45, -yy);
+            S.set(sx, sy, sz);
+            rockQ.setFromAxisAngle(new THREE.Vector3(0, 1, 0), hash3(k, i, 76) * Math.PI);
+            rockM.compose(P, rockQ, S);
+            rocks.setMatrixAt(i, rockM);
+            rocks.setColorAt(i, C.setHex(hash3(k, i, 77) > 0.5 ? pal.rock : pal.rock2));
+        }
+        rocks.frustumCulled = false;
+        g.add(rocks);
+
         this.scene.add(g);
         return { group: g };
     }

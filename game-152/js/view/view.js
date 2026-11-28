@@ -313,8 +313,13 @@ export class View {
             if (!d.fire || e.tele <= 0) continue;
             const f = 1 - e.tele / d.fire.tele;
             const laser = !!d.fire.laser;
-            const on = laser || Math.floor(time * 16) % 2 === 0;
-            if (on) this.fx.line(e.x, e.y, e.aim, laser ? 70 : 24, laser ? 0xff2030 : 0xff6a3a, laser ? 0.14 + f * 0.18 : 0.3, 0.35 + f * 0.5);
+            const on = laser
+                ? Math.sin(time * (18 + f * 10) + e.id) > -0.12
+                : Math.floor(time * 16) % 2 === 0;
+            if (on) this.fx.line(e.x, e.y, e.aim, laser ? 58 : 24,
+                laser ? 0xff684a : 0xff6a3a,
+                laser ? 0.035 + f * 0.035 : 0.3,
+                laser ? 0.16 + f * 0.28 : 0.35 + f * 0.5);
         }
         if (G.boss) {
             const B = G.boss, d = BOSSES[B.key];
@@ -381,6 +386,20 @@ export class View {
             rope.position.y = 0.4;
             obj.add(rope);
             addOutlines(obj, 0.04);
+        } else if (e.kind === 'tank') {
+            // Tanks sit on a low cantilevered shelf. Its riverward edge hangs over
+            // the channel so the boat can pass beneath and line up a clean shot.
+            const side = e.side || 1;
+            const shelf = new THREE.Mesh(new THREE.BoxGeometry(5.8, 1.05, 5.2), toon(0x777c82));
+            shelf.position.set(-side * 1.35, 0, 0);
+            const lip = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.35, 4.6), toon(0xa4a9bd));
+            lip.position.set(-side * 3.0, 0.58, 0);
+            const shadow = new THREE.Mesh(new THREE.BoxGeometry(4.8, 0.25, 4.7), toon(0x404852));
+            shadow.position.set(-side * 1.5, -0.62, 0);
+            v.craft = new Craft(e.kind);
+            v.craft.group.position.set(-side * 3.0, 0.5, 0);
+            obj.add(shadow, shelf, lip, v.craft.group);
+            addOutlines(obj, 0.055);
         } else {
             v.craft = new Craft(e.kind);
             obj.add(v.craft.group);
@@ -392,7 +411,9 @@ export class View {
     placeEnemy(v, e, G, time, pal) {
         const d = ENEMIES[e.kind];
         let h = 0;
-        if (d.where === 'bank' && !e.onBridge) {
+        if (e.kind === 'tank' && !e.onBridge) {
+            h = 2.0;
+        } else if (d.where === 'bank' && !e.onBridge) {
             const r = riverAt(G.river, e.y);
             h = bankHeight(pal, Math.abs(e.x - r.cx) - r.hw + 0.6, e.y, Math.sign(e.x - r.cx));
         } else if (e.onBridge) h = 3.6;
