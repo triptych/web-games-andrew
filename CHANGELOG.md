@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **HAYATE RIVER STRIKE** (game-152) v1.0.1: improved keyboard and touch controls, corrected tank placement and firing visuals, and refined terrain and tank rendering ([js/input.js](game-152/js/input.js), [js/sim/enemies.js](game-152/js/sim/enemies.js), [js/view/terrain.js](game-152/js/view/terrain.js), [js/view/view.js](game-152/js/view/view.js)).
+
 ### Added
 - **HAYATE RIVER STRIKE** (game-152) v1.0.0: a 3D top-down arcade river shooter in the spirit of River Raid and 90s shoot-'em-ups, with a 1990s anime look. Rin Kazamatsuri takes the armed assault boat Hayate down three river sectors to break Commodore Kurogane's Iron Lotus fleet, with Tomo on the radio. Plain HTML, CSS and ES modules with three.js from a CDN. See [game-152/game-plan.md](game-152/game-plan.md).
   - **The river** ([js/sim/river.js](game-152/js/sim/river.js)): segments generated ahead of the boat from a seed (winding stretches, chokepoints, sandbar islands, road bridges, a calm opening and open-ended boss arenas that close behind a beaten boss). The simtest proves every channel stays at least 7.2 m wide over 60 seeds × 3 sectors and that every boat spawns on water and every tank on the bank.

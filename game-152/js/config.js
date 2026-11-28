@@ -1,7 +1,7 @@
 // HAYATE RIVER STRIKE — tuning and constants. Shared by the sim, the view and the tests.
 // Sim space: x is across the river (metres, + to the right), y is distance downriver (+ ahead), z is height.
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.0.1';
 export const SAVE_KEY = 'hayate-river-strike.v1';      // the run in progress
 export const META_KEY = 'hayate-river-strike.meta.v1'; // cores, skills and records (kept between runs)
 
